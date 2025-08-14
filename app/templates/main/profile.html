@@ -1,0 +1,94 @@
+{% extends "main/layout.html" %}
+{% set active_page = 'profile' %}
+
+{% block title %}Профиль{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+  <div class="row g-4">
+
+    <!-- Левая колонка: аватар -->
+    <div class="col-12 col-md-4 col-lg-3">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          {% set avatar_url = url_for('static', filename='uploads/avatars/' ~ current_user.avatar) if current_user.avatar else url_for('static', filename='img/default-avatar.png') %}
+          <img src="{{ avatar_url }}" alt="Avatar" class="rounded-circle mb-3" style="width:160px; height:160px; object-fit:cover;">
+
+          <form method="post" enctype="multipart/form-data">
+            <div class="mb-2 text-start">
+              <label class="form-label">Загрузить новое фото (PNG/JPG, до 2 МБ)</label>
+              <input class="form-control" type="file" name="avatar" accept=".png,.jpg,.jpeg,.webp">
+            </div>
+            <button class="btn btn-primary w-100" type="submit">Сохранить фото</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Правая колонка: данные профиля -->
+    <div class="col-12 col-md-8 col-lg-9">
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Личная информация</h5>
+
+          <form method="post" enctype="multipart/form-data">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">Фамилия</label>
+                <input type="text" class="form-control" name="secondname" value="{{ current_user.secondname or '' }}">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Имя</label>
+                <input type="text" class="form-control" name="firstname" value="{{ current_user.firstname or '' }}">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Отчество</label>
+                <input type="text" class="form-control" name="thirdname" value="{{ current_user.thirdname or '' }}">
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label">Телефон</label>
+                <input type="text" class="form-control" name="phonenumber" value="{{ current_user.phonenumber or '' }}">
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label">Роль</label>
+                <input type="text" class="form-control" name="role" value="{{ current_user.role or '' }}">
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label">Дата регистрации</label>
+                <input type="text" class="form-control" value="{{ (current_user.registerdate.strftime('%d.%m.%Y %H:%M') if current_user.registerdate) else '—' }}" disabled>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label">Логин</label>
+                <input type="text" class="form-control" value="{{ current_user.login }}" disabled>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">ID пользователя</label>
+                <input type="text" class="form-control" value="{{ current_user.userid }}" disabled>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+              <button class="btn btn-primary" type="submit">Сохранить изменения</button>
+              <a class="btn btn-outline-secondary" href="{{ url_for('main.profile') }}">Отменить</a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Безопасность</h5>
+          <p class="text-muted mb-2">Пароль не отображается по соображениям безопасности.</p>
+          <!-- Здесь потом можно добавить форму смены пароля -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

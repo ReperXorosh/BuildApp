@@ -1,0 +1,327 @@
+{% extends "main/layout.html" %}
+{% set active_page = 'calendar' %}
+
+{% block title %}Календарь{% endblock %}
+
+{% block content %}
+<h1>Главная страница</h1>
+<p>Добро пожаловать!</p>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="canonical" href="object-list.html">
+<script src="../../static/js/color-modes.js"></script>
+<link href="../../static/css/bootstrap.min.css" rel="stylesheet"
+      integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr">
+<link rel="apple-touch-icon" href="https://getbootstrap.com/docs/5.3/assets/img/favicons/apple-touch-icon.png"
+      sizes="180x180">
+<link rel="icon" href="../../static/img/favicons/favicon-32x32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="../../static/img/favicons/favicon-16x16.png" sizes="16x16" type="image/png">
+<link rel="manifest" href="../../static/img/favicons/manifest.json">
+<link rel="mask-icon" href="https://getbootstrap.com/docs/5.3/assets/img/favicons/safari-pinned-tab.svg"
+      color="#712cf9">
+<link rel="icon" href="../../static/img/favicons/favicon.ico">
+<meta name="theme-color" content="#712cf9">
+<link href="../../static/css/sidebars.css" rel="stylesheet">
+
+<style>
+    .dropdown-item-danger {
+        color: var(--bs-red);
+    }
+
+    .dropdown-item-danger:hover,
+    .dropdown-item-danger:focus {
+        color: #fff;
+        background-color: var(--bs-red);
+    }
+
+    .dropdown-item-danger.active {
+        background-color: var(--bs-red);
+    }
+
+    .btn-hover-light {
+        color: var(--bs-body-color);
+        background-color: var(--bs-body-bg);
+    }
+
+    .btn-hover-light:hover,
+    .btn-hover-light:focus {
+        color: var(--bs-link-hover-color);
+        background-color: var(--bs-tertiary-bg);
+    }
+
+    .cal-month,
+    .cal-days,
+    .cal-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        align-items: center;
+    }
+
+    .cal-month-name {
+        grid-column-start: 2;
+        grid-column-end: 7;
+        text-align: center;
+    }
+
+    .cal-weekday,
+    .cal-btn {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        height: 3rem;
+        padding: 0;
+    }
+
+    .cal-btn:not([disabled]) {
+        font-weight: 500;
+        color: var(--bs-emphasis-color);
+    }
+
+    .cal-btn:hover,
+    .cal-btn:focus {
+        background-color: var(--bs-secondary-bg);
+    }
+
+    .cal-btn[disabled] {
+        border: 0;
+        opacity: .5;
+    }
+
+    .w-220px {
+        width: 220px;
+    }
+
+    .w-280px {
+        width: 280px;
+    }
+
+    .w-340px {
+        width: 340px;
+    }
+
+    .opacity-10 {
+        opacity: .1;
+    }
+
+    .cal-toolbar {
+        display: grid;
+        grid-template-columns:auto 1fr auto;
+        align-items: center;
+        gap: .5rem;
+        margin-bottom: .5rem;
+    }
+
+    /* Месяц и год в центре, рядом друг с другом */
+    .cal-pickers {
+        justify-self: center; /* центрируем в средней колонке */
+        display: inline-flex;
+        gap: .5rem;
+    }
+
+    /* Кнопки со стрелками одинакового размера */
+    .cal-btn {
+        width: 2.25rem;
+        height: 2.25rem;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: .375rem;
+    }
+
+    .cal-btn i {
+        font-size: 1rem;
+        line-height: 1;
+    }
+
+    /* Сегодняшний день */
+    .cal-btn.is-today {
+        background-color: var(--bs-primary-bg-subtle);
+        color: var(--bs-primary-text-emphasis);
+        box-shadow: inset 0 0 0 2px var(--bs-primary);
+        font-weight: 700;
+    }
+
+
+</style>
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<div class="d-flex flex-column flex-md-row p-4 gap-4 py-md-5 align-items-center justify-content-center">
+    <div class="dropdown-menu d-block position-static p-2 mx-0 shadow rounded-3 w-340px">
+        <div class="d-grid gap-1">
+            <div class="cal">
+                <div class="cal-toolbar">
+                    <button class="btn cal-btn" type="button" id="cal-prev" aria-label="Предыдущий месяц" id="cal-prev">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+
+                    <div class="cal-pickers">
+                        <select id="cal-month" class="form-select form-select-sm"></select>
+                        <select id="cal-year" class="form-select form-select-sm"></select>
+                    </div>
+
+                    <button class="btn cal-btn" type="button" id="cal-next" aria-label="Следующий месяц" id="cal-next">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="cal-weekdays text-body-secondary">
+                    <div class="cal-weekday">Sun</div>
+                    <div class="cal-weekday">Mon</div>
+                    <div class="cal-weekday">Tue</div>
+                    <div class="cal-weekday">Wed</div>
+                    <div class="cal-weekday">Thu</div>
+                    <div class="cal-weekday">Fri</div>
+                    <div class="cal-weekday">Sat</div>
+                </div>
+                <div class="cal-days">
+                    <button class="btn cal-btn" disabled="" type="button">30</button>
+                    <button class="btn cal-btn" disabled="" type="button">31</button>
+                    <button class="btn cal-btn" type="button">1</button>
+                    <button class="btn cal-btn" type="button">2</button>
+                    <button class="btn cal-btn" type="button">3</button>
+                    <button class="btn cal-btn" type="button">4</button>
+                    <button class="btn cal-btn" type="button">5</button>
+                    <button class="btn cal-btn" type="button">6</button>
+                    <button class="btn cal-btn" type="button">7</button>
+                    <button class="btn cal-btn" type="button">8</button>
+                    <button class="btn cal-btn" type="button">9</button>
+                    <button class="btn cal-btn" type="button">10</button>
+                    <button class="btn cal-btn" type="button">11</button>
+                    <button class="btn cal-btn" type="button">12</button>
+                    <button class="btn cal-btn" type="button">13</button>
+                    <button class="btn cal-btn" type="button">14</button>
+                    <button class="btn cal-btn" type="button">15</button>
+                    <button class="btn cal-btn" type="button">16</button>
+                    <button class="btn cal-btn" type="button">17</button>
+                    <button class="btn cal-btn" type="button">18</button>
+                    <button class="btn cal-btn" type="button">19</button>
+                    <button class="btn cal-btn" type="button">20</button>
+                    <button class="btn cal-btn" type="button">21</button>
+                    <button class="btn cal-btn" type="button">22</button>
+                    <button class="btn cal-btn" type="button">23</button>
+                    <button class="btn cal-btn" type="button">24</button>
+                    <button class="btn cal-btn" type="button">25</button>
+                    <button class="btn cal-btn" type="button">26</button>
+                    <button class="btn cal-btn" type="button">27</button>
+                    <button class="btn cal-btn" type="button">28</button>
+                    <button class="btn cal-btn" type="button">29</button>
+                    <button class="btn cal-btn" type="button">30</button>
+                    <button class="btn cal-btn" type="button">31</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+  (function () {
+    const monthNames = [
+      'Январь','Февраль','Март','Апрель','Май','Июнь',
+      'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'
+    ];
+
+    // DOM-узлы
+    const root = document.querySelector('.cal');           // контейнер календаря
+    const monthSel = document.getElementById('cal-month');
+    const yearSel  = document.getElementById('cal-year');
+    const daysBox  = root.querySelector('.cal-days');
+    const prevBtn  = document.getElementById('cal-prev');
+    const nextBtn  = document.getElementById('cal-next');
+
+    // Инициализация селектов
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const yearFrom = 2024;
+    const yearTo   = currentYear + 2;
+
+    monthNames.forEach((name, i) => {
+      const o = document.createElement('option');
+      o.value = i; o.textContent = name;
+      monthSel.appendChild(o);
+    });
+
+    for (let y = yearFrom; y <= yearTo; y++) {
+      const o = document.createElement('option');
+      o.value = y; o.textContent = y;
+      yearSel.appendChild(o);
+    }
+
+    // Текущее состояние
+    let state = { m: today.getMonth(), y: today.getFullYear() };
+
+    // Рендер месяца в .cal-days
+    function render(m, y) {
+      daysBox.innerHTML = '';
+
+      // День недели 1-го числа (0=вс, 1=пн, ...)
+      const firstWeekday = new Date(y, m, 1).getDay();
+      const daysInMonth = new Date(y, m + 1, 0).getDate();
+      const daysInPrev  = new Date(y, m, 0).getDate();
+
+      // Сколько «хвостиков» предыдущего месяца показать слева
+      const leading = firstWeekday; // неделя начинается с воскресенья
+      const frag = document.createDocumentFragment();
+
+      // Предыдущий месяц (disabled)
+      for (let i = leading - 1; i >= 0; i--) {
+        const b = makeDayButton(daysInPrev - i, true);
+        frag.appendChild(b);
+      }
+      // Текущий месяц
+      for (let d = 1; d <= daysInMonth; d++) {
+        const b = makeDayButton(d, false);
+        frag.appendChild(b);
+      }
+      // Хвост следующего месяца (до полного количества ячеек кратно 7; обычно 42)
+      const total = leading + daysInMonth;
+      const trailing = (Math.ceil(total / 7) * 7) - total;
+      for (let d = 1; d <= trailing; d++) {
+        const b = makeDayButton(d, true);
+        frag.appendChild(b);
+      }
+
+      daysBox.appendChild(frag);
+
+      // Выставляем селекты (если пришли извне)
+      monthSel.value = m;
+      yearSel.value = y;
+    }
+
+    function makeDayButton(text, disabled) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'btn cal-btn';
+      if (disabled) b.setAttribute('disabled', '');
+      b.textContent = text;
+      return b;
+    }
+
+    // Обработчики
+    monthSel.addEventListener('change', () => {
+      state.m = +monthSel.value;
+      render(state.m, state.y);
+    });
+    yearSel.addEventListener('change', () => {
+      state.y = +yearSel.value;
+      render(state.m, state.y);
+    });
+    prevBtn.addEventListener('click', () => {
+      state.m--;
+      if (state.m < 0) { state.m = 11; state.y--; }
+      render(state.m, state.y);
+    });
+    nextBtn.addEventListener('click', () => {
+      state.m++;
+      if (state.m > 11) { state.m = 0; state.y++; }
+      render(state.m, state.y);
+    });
+
+    // Первый рендер
+    render(state.m, state.y);
+  })();
+</script>
+
+{% endblock %}
+
