@@ -1,5 +1,10 @@
-from flask import Blueprint, render_template, session, redirect, url_for, request
-from flask_login import login_required
+import os
+from uuid import uuid4
+
+from flask import Blueprint, render_template, session, redirect, url_for, request, current_app, flash
+from flask_login import login_required, current_user
+from werkzeug.utils import secure_filename
+from ..extensions import db
 
 main = Blueprint('main', __name__)
 
@@ -51,42 +56,49 @@ def calendar():
 def others():
     return render_template('main/others.html')
 
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg'}
+
+
 @main.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
-    # if request.method == 'POST':
-    #
-    #     current_user.firstname = request.form.get('firstname') or current_user.firstname
-    #     current_user.secondname = request.form.get('secondname') or current_user.secondname
-    #     current_user.thirdname = request.form.get('thirdname') or current_user.thirdname
-    #     current_user.phonenumber = request.form.get('phonenumber') or current_user.phonenumber
-    #     current_user.role = request.form.get('role') or current_user.role
-    #
-    #
-    #     file = request.files.get('avatar')
-    #     if file and file.filename and allowed_file(file.filename):
-    #         upload_dir = current_app.config['UPLOAD_FOLDER']
-    #         os.makedirs(upload_dir, exist_ok=True)
-    #
-    #         ext = '.' + file.filename.rsplit('.', 1)[1].lower()
-    #         filename = secure_filename(f"{current_user.userid}_{uuid4().hex}{ext}")
-    #         fullpath = os.path.join(upload_dir, filename)
-    #         file.save(fullpath)
-    #
-    #
-    #         if current_user.avatar:
-    #             old = os.path.join(upload_dir, current_user.avatar)
-    #             try:
-    #                 if os.path.exists(old):
-    #                     os.remove(old)
-    #             except Exception:
-    #                 pass
-    #
-    #         current_user.avatar = filename
-    #
-    #     db.session.commit()
-    #     flash('Профиль обновлён', 'success')
-    #     return redirect(url_for('main.profile'))
+    if request.method == 'POST':
+        if not current_user.firstname:
+            current_user.firstname = request.form.get('firstname')
+        if not current_user.secondname:
+            current_user.secondname = request.form.get('secondname')
+        if not current_user.thirdname:
+            current_user.thirdname = request.form.get('thirdname')
+        current_user.phonenumber = request.form.get('phonenumber') or current_user.phonenumber
+        current_user.role = request.form.get('role') or current_user.role
+
+
+        file = request.files.get('avatar')
+        if file and file.filename and allowed_file(file.filename):
+            upload_dir = current_app.config['UPLOAD_FOLDER']
+            os.makedirs(upload_dir, exist_ok=True)
+
+            ext = '.' + file.filename.rsplit('.', 1)[1].lower()
+            filename = secure_filename(f"{current_user.userid}_{uuid4().hex}{ext}")
+            fullpath = os.path.join(upload_dir, filename)
+            file.save(fullpath)
+
+
+            if current_user.avatar:
+                old = os.path.join(upload_dir, current_user.avatar)
+                try:
+                    if os.path.exists(old):
+                        os.remove(old)
+                except Exception:
+                    pass
+
+            current_user.avatar = filename
+
+        db.session.commit()
+        flash('Профиль обновлён', 'success')
+        return redirect(url_for('main.profile'))
     return render_template('main/profile.html')
 
 # @main.route('/layout')
