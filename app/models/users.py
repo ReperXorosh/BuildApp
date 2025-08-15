@@ -11,9 +11,9 @@ class Users(db.Model, UserMixin):
     firstname = db.Column(db.String(100), nullable=True)
     secondname = db.Column(db.String(100), nullable=True)
     thirdname = db.Column(db.String(100), nullable=True)
-    phonenumber = db.Column(db.String(100), nullable=False)
+    phonenumber = db.Column(db.String(100), nullable=True)
     role = db.Column(db.String(100), nullable=False)
-    avatar = db.Column(db.String(100), nullable=False)
+    avatar = db.Column(db.String(100), nullable=True)
 
     def get_id(self):
         return str(self.userid)
