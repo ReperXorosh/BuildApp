@@ -1,7 +1,7 @@
 from flask import Blueprint, request, url_for, redirect, render_template, session
 from flask_login import login_required, login_user, logout_user
 
-from ..models.users import User
+from ..models.users import Users
 
 user = Blueprint('user', __name__)
 
@@ -11,7 +11,7 @@ def login():
         login = request.form['login']
         password = request.form['password']
 
-        user = User.query.filter_by(login=login, password=password).first()
+        user = Users.query.filter_by(login=login, password=password).first()
 
         if user:
             login_user(user)

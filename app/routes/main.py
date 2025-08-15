@@ -17,6 +17,8 @@ from ..models.objects import Objects
 from ..models.columns import Columns
 from ..models.trenches import Trenches
 from ..models.reports import Reports
+from ..models.models import Models
+from ..models.types import Types
 
 
 @main.route('/object-list')

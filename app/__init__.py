@@ -26,8 +26,11 @@ def create_app(config_class=Config):
 
     db.init_app(app)
     login_manager.init_app(app)
+
+
     login_manager.login_view = "main.sign_in"  # куда редиректить неавторизованных
-    login_manager.login_message_category = "warning"
+    login_manager.login_message = "Вы не можете получить доступ к данной странице. Нужно сначала войти."
+    login_manager.login_message_category = "info"
 
     with app.app_context():
         db.create_all()

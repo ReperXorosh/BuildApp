@@ -1,6 +1,6 @@
 from ..extensions import db
 
-class Columns(db.Model):
+class Types(db.Model):
     __tablename__ = 'types'
 
     typeid = db.Column(db.Integer, primary_key=True)

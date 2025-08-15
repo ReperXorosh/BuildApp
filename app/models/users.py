@@ -2,7 +2,7 @@ from flask_login import UserMixin
 
 from ..extensions import db
 
-class User(db.Model, UserMixin):
+class Users(db.Model, UserMixin):
     __tablename__ = 'users'
 
     userid = db.Column(db.Integer, primary_key=True)

@@ -2,11 +2,11 @@ import os
 
 
 class Config(object):
-    USER = os.environ.get('USER', 'sankficeba')
-    PASSWORD = os.environ.get("PASSWORD", '12345678')
-    HOST = os.environ.get("HOST", "localhost")
-    PORT = os.environ.get("PORT", '5532')
-    DATABASE = os.environ.get("DATABASE", 'mydb')
+    USER = os.environ.get('POSTGRES_USER', 'sankficeba')
+    PASSWORD = os.environ.get("POSTGRES_PASSWORD", '12345678')
+    HOST = os.environ.get("POSTGRES_HOST", "postgres")
+    PORT = os.environ.get("POSTGRES_PORT", '5432')
+    DATABASE = os.environ.get("POSTGRES_DB", 'mydb')
 
     SQLALCHEMY_DATABASE_URI = f"postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}"
     SECRET_KEY = os.urandom(24)

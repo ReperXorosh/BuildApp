@@ -1,6 +1,6 @@
 from ..extensions import db
 
-class Columns(db.Model):
+class Models(db.Model):
     __tablename__ = 'models'
 
     modelid = db.Column(db.Integer, primary_key=True)
