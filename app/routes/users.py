@@ -61,8 +61,7 @@ def login():
 
         user = Users.query.filter_by(login=login).first()
 
-        if user:
-        # if user and check_password_hash(user.password, password):
+        if user and check_password_hash(user.password, password):
             login_user(user)
             # Логируем успешный вход
             ActivityLog.log_action(
