@@ -1,0 +1,210 @@
+{% extends "main/layout.html" %}
+
+{% block title %}Система снабжения{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="row">
+        <div class="col-12">
+            <div class="mb-4">
+                <h1 class="h3 mb-3">
+                    <svg class="bi me-2" width="24" height="24" fill="currentColor">
+                        <use xlink:href="#box-seam"></use>
+                    </svg>
+                    Система снабжения
+                </h1>
+                <div class="btn-group me-4" role="group">
+                    <a href="{{ url_for('supply.materials_list') }}" class="btn btn-outline-primary">
+                        <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                            <use xlink:href="#list"></use>
+                        </svg>
+                        Материалы
+                    </a>
+                    <a href="{{ url_for('supply.equipment_list') }}" class="btn btn-outline-primary">
+                        <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                            <use xlink:href="#tools"></use>
+                        </svg>
+                        Техника
+                    </a>
+                    <a href="{{ url_for('supply.orders_list') }}" class="btn btn-outline-primary">
+                        <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                            <use xlink:href="#clipboard-data"></use>
+                        </svg>
+                        Заказы
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">{{ materials_count }}</h5>
+                    <p class="card-text">Материалов</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-success">{{ equipment_count }}</h5>
+                    <p class="card-text">Единиц техники</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-warning">{{ pending_orders }}</h5>
+                    <p class="card-text">Ожидающих заказов</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-info">{{ delivered_orders }}</h5>
+                    <p class="card-text">Выполненных заказов</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Материалы с низким запасом -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <svg class="bi me-2" width="16" height="16" fill="currentColor">
+                            <use xlink:href="#exclamation-triangle"></use>
+                        </svg>
+                        Материалы с низким запасом
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if low_stock_materials %}
+                        <div class="list-group list-group-flush">
+                            {% for material in low_stock_materials %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ material.name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ material.description or 'Описание отсутствует' }}</small>
+                                </div>
+                                <span class="badge bg-danger rounded-pill">
+                                    {{ material.current_quantity }} {{ material.unit }}
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">Все материалы в достаточном количестве</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Последние заказы -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <svg class="bi me-2" width="16" height="16" fill="currentColor">
+                            <use xlink:href="#clock-history"></use>
+                        </svg>
+                        Последние заказы
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_orders %}
+                        <div class="list-group list-group-flush">
+                            {% for order in recent_orders %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <strong>{{ order.order_number }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ order.order_type|title }}</small>
+                                    </div>
+                                    <span class="badge bg-{{ 'success' if order.status == 'delivered' else 'warning' if order.status == 'pending' else 'secondary' }}">
+                                        {{ order.status|title }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">Заказов пока нет</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Информация о системе -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <svg class="bi me-2" width="16" height="16" fill="currentColor">
+                            <use xlink:href="#info-circle"></use>
+                        </svg>
+                        О системе снабжения
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Функции системы:</h6>
+                            <ul class="mb-0">
+                                <li>Учет материалов и техники на складе</li>
+                                <li>Контроль минимальных запасов</li>
+                                <li>Создание и отслеживание заказов</li>
+                                <li>Ведение истории поставок</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Доступные роли:</h6>
+                            <ul class="mb-0">
+                                <li><strong>Снабженец</strong> - полный доступ к системе</li>
+                                <li><strong>Инженер ПТО</strong> - административный доступ</li>
+                                <li>Другие роли - доступ ограничен</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Дополнительные SVG иконки -->
+<svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+    <symbol id="list" viewBox="0 0 16 16">
+        <path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+    </symbol>
+    <symbol id="tools" viewBox="0 0 16 16">
+        <path d="M4.5 5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1zM6 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+        <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/>
+    </symbol>
+    <symbol id="clipboard-data" viewBox="0 0 16 16">
+        <path d="M4 11a1 1 0 1 1 2 0v1a1 1 0 1 1-2 0v-1zm6-4a1 1 0 1 1 2 0v5a1 1 0 1 1-2 0V7zM7 9a1 1 0 0 1 2 0v3a1 1 0 1 1-2 0V9z"/>
+        <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+        <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+    </symbol>
+    <symbol id="exclamation-triangle" viewBox="0 0 16 16">
+        <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z"/>
+        <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z"/>
+    </symbol>
+    <symbol id="clock-history" viewBox="0 0 16 16">
+        <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022l-.074.997zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342l-.36.933zm1.37.171a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.327.081-.65.12-.97zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535zm-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/>
+        <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0v1z"/>
+        <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/>
+    </symbol>
+</svg>
+{% endblock %}

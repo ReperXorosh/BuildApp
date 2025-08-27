@@ -1,0 +1,460 @@
+{% extends "main/layout.html" %}
+{% set active_page = 'users' %}
+
+{% block title %}Редактирование пользователя{% endblock %}
+
+{% block content %}
+<script>
+// Добавляем класс к body для специальных стилей
+document.addEventListener('DOMContentLoaded', function() {
+    document.body.classList.add('edit-user-page');
+});
+</script>
+
+<div class="container-fluid py-3" style="margin-top: 60px;">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6 edit-user-container">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <svg class="bi me-2" width="20" height="20" fill="currentColor">
+                            <use href="#pencil"></use>
+                        </svg>
+                        Редактирование пользователя
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" enctype="multipart/form-data" id="edit-user-form">
+                        <div class="row">
+                            <!-- Скрытое поле для отредактированного аватара -->
+                            <input type="hidden" id="edited_avatar" name="edited_avatar">
+                            <div class="col-md-6 mb-3">
+                                <label for="login" class="form-label">Логин *</label>
+                                <input type="text" class="form-control" id="login" name="login" value="{{ user.login }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="password" class="form-label">Новый пароль</label>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Оставьте пустым, чтобы не менять">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="secondname" class="form-label">Фамилия</label>
+                                <input type="text" class="form-control" id="secondname" name="secondname" value="{{ user.secondname or '' }}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="firstname" class="form-label">Имя</label>
+                                <input type="text" class="form-control" id="firstname" name="firstname" value="{{ user.firstname or '' }}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="thirdname" class="form-label">Отчество</label>
+                                <input type="text" class="form-control" id="thirdname" name="thirdname" value="{{ user.thirdname or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="phonenumber" class="form-label">Телефон</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">+7</span>
+                                    <input type="tel" class="form-control" id="phonenumber" name="phonenumber" 
+                                           value="{{ clean_phone }}" placeholder="(999) 123-45-67" 
+                                           maxlength="15" pattern="[0-9\s\(\)\-]+" 
+                                           title="Введите корректный номер телефона">
+                                </div>
+                                <div class="form-text">Формат: +7 (999) 123-45-67</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="role" class="form-label">Роль *</label>
+                                                                 <select class="form-select" id="role" name="role" required>
+                                     <option value="Прораб" {{ 'selected' if user.role == 'Прораб' else '' }}>Прораб</option>
+                                     <option value="Снабженец" {{ 'selected' if user.role == 'Снабженец' else '' }}>Снабженец</option>
+                                     <option value="Зам.Директор" {{ 'selected' if user.role == 'Зам.Директор' else '' }}>Зам.Директор</option>
+                                     <option value="Ген.Директор" {{ 'selected' if user.role == 'Ген.Директор' else '' }}>Ген.Директор</option>
+                                     <option value="Инженер ПТО" {{ 'selected' if user.role == 'Инженер ПТО' else '' }}>Инженер ПТО</option>
+                                 </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label for="avatar" class="form-label">Аватар</label>
+                                {% if user.avatar %}
+                                    <div class="mb-2">
+                                        <img src="{{ url_for('static', filename='uploads/avatars/' ~ user.avatar) }}" 
+                                             alt="Текущий аватар" class="rounded-circle" 
+                                             style="width: 64px; height: 64px; object-fit: cover;">
+                                        <small class="text-muted d-block">Текущий аватар</small>
+                                    </div>
+                                {% endif %}
+                                <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*">
+                                <div class="form-text">Поддерживаемые форматы: PNG, JPG, JPEG. Оставьте пустым, чтобы не менять.</div>
+                                
+                                <!-- Контейнер для редактора аватара (скрыт по умолчанию) -->
+                                <div id="avatar-editor-container" class="mt-3" style="display: none;">
+                                    <!-- Предпросмотр аватара -->
+                                    <div class="text-center">
+                                        <img id="avatar-preview" src="{{ url_for('static', filename='img/default-avatar.png') }}" 
+                                             alt="Предпросмотр аватара" class="rounded-circle" 
+                                             style="width: 64px; height: 64px; object-fit: cover;">
+                                    </div>
+                                </div>
+                             </div>
+                         </div>
+
+                         <div class="d-flex justify-content-between mt-4 mb-3 edit-user-form-content">
+                            <a href="{{ url_for('main.users') }}" class="btn btn-secondary">
+                                <svg class="bi me-2" width="16" height="16" fill="currentColor">
+                                    <use href="#arrow-left"></use>
+                                </svg>
+                                Назад
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <svg class="bi me-2" width="16" height="16" fill="currentColor">
+                                    <use href="#check"></use>
+                                </svg>
+                                Сохранить изменения
+                            </button>
+                                                 </div>
+                     </form>
+                 </div>
+             </div>
+             
+             <!-- Дополнительное пространство для прокрутки -->
+             <div class="edit-user-spacer"></div>
+             
+             <!-- Информационная секция -->
+             <div class="card shadow-sm mt-4">
+                 <div class="card-body">
+                     <h6 class="card-title text-muted">
+                         <svg class="bi me-2" width="16" height="16" fill="currentColor">
+                             <use href="#info-circle"></use>
+                         </svg>
+                         Информация о редактировании
+                     </h6>
+                     <div class="row">
+                         <div class="col-md-6">
+                             <small class="text-muted">
+                                 <strong>Логин:</strong> Уникальный идентификатор пользователя<br>
+                                 <strong>Пароль:</strong> Оставьте пустым, чтобы не изменять<br>
+                                 <strong>Роль:</strong> Определяет права доступа в системе
+                             </small>
+                         </div>
+                         <div class="col-md-6">
+                             <small class="text-muted">
+                                 <strong>Аватар:</strong> Поддерживаются PNG, JPG, JPEG<br>
+                                 <strong>Размер:</strong> Рекомендуется не более 2MB<br>
+                                 <strong>Формат:</strong> Автоматически обрезается в круг
+                             </small>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+             
+             <!-- Дополнительное пространство в конце -->
+             <div class="edit-user-spacer"></div>
+             
+             
+         </div>
+     </div>
+ </div>
+
+<!-- SVG иконки -->
+<svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+    <symbol id="pencil" viewBox="0 0 16 16">
+        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+    </symbol>
+    <symbol id="arrow-left" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+    </symbol>
+         <symbol id="check" viewBox="0 0 16 16">
+         <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+     </symbol>
+     <symbol id="info-circle" viewBox="0 0 16 16">
+         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+         <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+     </symbol>
+     <symbol id="lightbulb" viewBox="0 0 16 16">
+         <path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13a.5.5 0 0 1 0 1 .5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-1.894 0L7.5 15a.5.5 0 0 1 0-1 .5.5 0 0 1 0-1 .5.5 0 0 1-.46-.302l-.761-1.77a1.964 1.964 0 0 0-.453-.618A5.984 5.984 0 0 1 2 6zm6-5a5 5 0 0 0-3.479 8.592c.263.254.514.564.676.941L5.83 12h4.342l.632-1.467c.162-.377.413-.687.676-.941A5 5 0 0 0 8 1z"/>
+     </symbol>
+     <symbol id="gear" viewBox="0 0 16 16">
+         <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
+         <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/>
+     </symbol>
+     <symbol id="shield-check" viewBox="0 0 16 16">
+         <path d="M5.338 1.59a61.44 61.44 0 0 0-2.837.856.481.481 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.725 10.725 0 0 0 2.287 2.233c.346.244.652.42.893.533.12.057.218.095.293.118a.55.55 0 0 0 .101.025.615.615 0 0 0 .1-.025c.076-.023.174-.061.294-.118.24-.113.547-.29.893-.533a10.726 10.726 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.775 11.775 0 0 1-2.517 2.453 7.159 7.159 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7.158 7.158 0 0 1-1.048-.625 11.777 11.777 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 62.456 62.456 0 0 1 5.072.56z"/>
+         <path d="M10.854 5.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+     </symbol>
+     <symbol id="star" viewBox="0 0 16 16">
+         <path d="M8 0l2.5 5.5L16 6l-4 4.5 1 6.5L8 13.5 3 17l1-6.5L0 6l5.5-.5L8 0z"/>
+     </symbol>
+     <symbol id="heart" viewBox="0 0 16 16">
+         <path d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
+     </symbol>
+ </svg>
+
+<!-- Подключение редактора аватара -->
+<script src="{{ url_for('static', filename='js/avatar-editor.js') }}"></script>
+
+<style>
+/* Стили для страницы редактирования пользователя */
+.edit-user-container {
+    padding-bottom: 50px !important;
+    min-height: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+}
+
+.edit-user-form-content {
+    margin-bottom: 20px;
+}
+
+.edit-user-spacer {
+    height: 20px !important;
+    background: transparent;
+    margin-top: 10px;
+}
+
+/* Показываем ползунок прокрутки только для основного контента */
+.flex-grow-1::-webkit-scrollbar {
+    width: 12px;
+}
+
+.flex-grow-1::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.flex-grow-1::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 6px;
+}
+
+.flex-grow-1::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Дополнительный отступ для мобильных устройств */
+@media (max-width: 768px) {
+    .edit-user-container {
+        padding-bottom: 30px !important;
+        min-height: auto !important;
+    }
+    
+    .edit-user-spacer {
+        height: 15px !important;
+    }
+}
+
+/* Стили для валидации телефона */
+.is-invalid {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    border-color: #ced4da;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* Стили для поля телефона */
+#phonenumber {
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.5px;
+}
+
+#phonenumber::placeholder {
+    color: #6c757d;
+    opacity: 0.7;
+}
+</style>
+
+<script>
+// Функция для валидации и форматирования российского номера телефона
+function formatPhoneNumber(input) {
+    let value = input.value.replace(/\D/g, ''); // Убираем все не-цифры
+    
+    // Ограничиваем длину до 10 цифр (без учета +7)
+    if (value.length > 10) {
+        value = value.substring(0, 10);
+    }
+    
+    // Форматируем номер
+    let formattedValue = '';
+    if (value.length > 0) {
+        formattedValue = '(' + value.substring(0, 3);
+        if (value.length > 3) {
+            formattedValue += ') ' + value.substring(3, 6);
+            if (value.length > 6) {
+                formattedValue += '-' + value.substring(6, 8);
+                if (value.length > 8) {
+                    formattedValue += '-' + value.substring(8, 10);
+                }
+            }
+        }
+    }
+    
+    input.value = formattedValue;
+}
+
+// Функция для валидации номера телефона
+function validatePhoneNumber(input) {
+    const value = input.value.replace(/\D/g, '');
+    const phoneInput = input;
+    
+    // Проверяем длину (должно быть 10 цифр для российского номера)
+    if (value.length > 0 && value.length !== 10) {
+        phoneInput.setCustomValidity('Номер телефона должен содержать 10 цифр');
+        phoneInput.classList.add('is-invalid');
+    } else {
+        phoneInput.setCustomValidity('');
+        phoneInput.classList.remove('is-invalid');
+    }
+}
+
+// Обработка выбора файла аватара
+document.getElementById('avatar').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const editorContainer = document.getElementById('avatar-editor-container');
+    const preview = document.getElementById('avatar-preview');
+    
+    if (file) {
+        // Показываем контейнер редактора
+        editorContainer.style.display = 'block';
+        
+        // Создаем URL для предпросмотра
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            
+            // Инициализируем редактор аватара
+            if (typeof AvatarEditor !== 'undefined') {
+                avatarEditor = new AvatarEditor('avatar-editor-container', e.target.result);
+            }
+        };
+        reader.readAsDataURL(file);
+    } else {
+        // Скрываем контейнер редактора если файл не выбран
+        editorContainer.style.display = 'none';
+        preview.style.display = 'none';
+    }
+});
+
+// Обработка отправки формы
+document.getElementById('edit-user-form').addEventListener('submit', function(e) {
+    // Если есть редактор аватара и изображение было отредактировано
+    if (avatarEditor && avatarEditor.image) {
+        const editedImage = avatarEditor.getEditedImage();
+        if (editedImage) {
+            document.getElementById('edited_avatar').value = editedImage;
+        }
+    }
+    
+    // Валидация номера телефона перед отправкой
+    const phoneInput = document.getElementById('phonenumber');
+    if (phoneInput.value.trim()) {
+        const phoneDigits = phoneInput.value.replace(/\D/g, '');
+        if (phoneDigits.length !== 10) {
+            e.preventDefault();
+            alert('Номер телефона должен содержать 10 цифр в формате +7 (999) 123-45-67');
+            phoneInput.focus();
+            return false;
+        }
+    }
+});
+
+// Включение прокрутки для основного контента
+document.addEventListener('DOMContentLoaded', function() {
+    // Добавляем класс к body
+    document.body.classList.add('edit-user-page');
+    
+    // Устанавливаем минимальные размеры контейнера
+    const container = document.querySelector('.edit-user-container');
+    if (container) {
+        container.style.minHeight = 'auto';
+        container.style.paddingBottom = '50px';
+        container.style.height = 'auto';
+        container.style.overflow = 'visible';
+    }
+    
+    // Включаем прокрутку только для основного контента
+    const mainContent = document.querySelector('.flex-grow-1');
+    if (mainContent) {
+        mainContent.style.overflowY = 'auto';
+        mainContent.style.height = '100vh';
+        mainContent.style.scrollBehavior = 'smooth';
+    }
+    
+    // Показываем индикатор прокрутки
+    console.log('🚀 Прокрутка включена для основного контента!');
+    
+    // Обработчик колесика мыши
+    document.addEventListener('wheel', function(e) {
+        console.log('✅ Колесико мыши работает!', e.deltaY);
+    });
+    
+    // Обработчики для поля телефона
+    const phoneInput = document.getElementById('phonenumber');
+    if (phoneInput) {
+        // Форматирование при вводе
+        phoneInput.addEventListener('input', function() {
+            formatPhoneNumber(this);
+        });
+        
+        // Валидация при потере фокуса
+        phoneInput.addEventListener('blur', function() {
+            validatePhoneNumber(this);
+        });
+        
+        // Предотвращение ввода букв
+        phoneInput.addEventListener('keypress', function(e) {
+            const char = String.fromCharCode(e.which);
+            if (!/\d/.test(char)) {
+                e.preventDefault();
+            }
+        });
+        
+        // Обработка вставки
+        phoneInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            const digitsOnly = pastedText.replace(/\D/g, '');
+            this.value = digitsOnly;
+            formatPhoneNumber(this);
+        });
+        
+        // Форматируем существующий номер при загрузке страницы
+        if (phoneInput.value) {
+            formatPhoneNumber(phoneInput);
+        }
+    }
+    
+    // Проверяем высоту страницы
+    setTimeout(function() {
+        const pageHeight = document.body.scrollHeight;
+        const windowHeight = window.innerHeight;
+        console.log('📏 Высота страницы:', pageHeight, 'Высота окна:', windowHeight);
+        
+        if (pageHeight > windowHeight) {
+            console.log('✅ Прокрутка должна работать! Страница длиннее окна.');
+        } else {
+            console.log('✅ Страница имеет оптимальную высоту для прокрутки.');
+        }
+    }, 2000);
+});
+</script>
+{% endblock %}

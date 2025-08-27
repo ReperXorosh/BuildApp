@@ -1,0 +1,86 @@
+{% extends "main/layout.html" %}
+
+{% block title %}Техника{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <svg class="bi me-2" width="24" height="24" fill="currentColor">
+                        <use xlink:href="#tools"></use>
+                    </svg>
+                    Техника
+                </h1>
+                <button class="btn btn-primary">
+                    <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                        <use xlink:href="#plus"></use>
+                    </svg>
+                    Добавить технику
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Список техники</h6>
+                </div>
+                <div class="card-body">
+                    {% if equipment %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Название</th>
+                                        <th>Модель</th>
+                                        <th>Серийный номер</th>
+                                        <th>Статус</th>
+                                        <th>Местоположение</th>
+                                        <th>Поставщик</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in equipment %}
+                                    <tr>
+                                        <td>{{ item.name }}</td>
+                                        <td>{{ item.model or '-' }}</td>
+                                        <td>{{ item.serial_number or '-' }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if item.status == 'available' else 'warning' if item.status == 'in_use' else 'danger' }}">
+                                                {{ item.status|title }}
+                                            </span>
+                                        </td>
+                                        <td>{{ item.location or '-' }}</td>
+                                        <td>{{ item.supplier or '-' }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary">Редактировать</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="text-muted">Техника не найдена</p>
+                            <button class="btn btn-primary">Добавить первую единицу техники</button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Дополнительные SVG иконки -->
+<svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+    <symbol id="plus" viewBox="0 0 16 16">
+        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+    </symbol>
+</svg>
+{% endblock %}

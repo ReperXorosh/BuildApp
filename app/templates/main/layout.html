@@ -5,19 +5,18 @@
     <title>{% block title %}My App{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="canonical" href="object-list.html">
-    <script src="../../static/js/color-modes.js"></script>
-    <link href="../../static/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr">
+    <script src="/static/js/color-modes.js"></script>
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
     <link rel="apple-touch-icon" href="https://getbootstrap.com/docs/5.3/assets/img/favicons/apple-touch-icon.png"
           sizes="180x180">
-    <link rel="icon" href="../../static/img/favicons/favicon-32x32.png" sizes="32x32" type="image/png">
-    <link rel="icon" href="../../static/img/favicons/favicon-16x16.png" sizes="16x16" type="image/png">
-    <link rel="manifest" href="../../static/img/favicons/manifest.json">
+    <link rel="icon" href="/static/img/favicons/favicon-32x32.png" sizes="32x32" type="image/png">
+    <link rel="icon" href="/static/img/favicons/favicon-16x16.png" sizes="16x16" type="image/png">
+    <link rel="manifest" href="/static/img/favicons/manifest.json">
     <link rel="mask-icon" href="https://getbootstrap.com/docs/5.3/assets/img/favicons/safari-pinned-tab.svg"
           color="#712cf9">
-    <link rel="icon" href="../../static/img/favicons/favicon.ico">
+    <link rel="icon" href="/static/img/favicons/favicon.ico">
     <meta name="theme-color" content="#712cf9">
-    <link href="../../static/css/sidebars.css" rel="stylesheet">
+    <link href="/static/css/sidebars.css" rel="stylesheet">
 
     <style>
         .bd-placeholder-img {
@@ -100,6 +99,217 @@
         .bd-mode-toggle .dropdown-menu .active .bi {
             display: block !important
         }
+        
+        /* Глобальные стили для прокрутки */
+        html, body {
+            overflow-y: auto !important;
+            height: auto !important;
+            min-height: 100vh !important;
+        }
+        
+        /* Фиксированный sidebar */
+        .d-flex.flex-column.flex-shrink-0 {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            height: 100vh !important;
+            overflow-y: auto !important;
+            z-index: 1000 !important;
+        }
+        
+        /* Отступ для основного контента */
+        .flex-grow-1 {
+            margin-left: 280px !important;
+            width: calc(100% - 280px) !important;
+        }
+        
+        /* Специальные стили для страницы редактирования пользователя */
+        .edit-user-page {
+            min-height: auto !important;
+            padding-bottom: 20px !important;
+            overflow-y: visible !important;
+        }
+        
+        .edit-user-page .container-fluid {
+            min-height: auto !important;
+            padding-bottom: 20px !important;
+        }
+        
+        .bd-language-toggle {
+            z-index: 1500
+        }
+        
+        .bd-language-toggle .bi {
+            width: 1em;
+            height: 1em
+        }
+        
+        /* Позиционирование кнопки языка относительно кнопки темы */
+        .bd-language-toggle {
+            transform: translateX(-90px);
+        }
+        
+        /* Стили кнопок как на странице входа */
+        .bd-mode-toggle .btn,
+        .bd-language-toggle .btn {
+            border-radius: 12px;
+            padding: 0.5rem 1rem;
+            height: 42px;
+            background: rgba(255, 255, 255, 0.98);
+            border: 2px solid rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .bd-mode-toggle .btn:hover,
+        .bd-language-toggle .btn:hover {
+            background: rgba(255, 255, 255, 1);
+            border-color: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+            transform: translateY(-2px);
+        }
+        
+        .bd-mode-toggle .btn svg,
+        .bd-language-toggle .btn svg {
+            color: #000;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+        
+        /* Специальные стили для темной темы */
+        [data-bs-theme="dark"] .bd-mode-toggle .btn,
+        [data-bs-theme="dark"] .bd-language-toggle .btn {
+            background: rgba(255, 255, 255, 0.98);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+        
+        [data-bs-theme="dark"] .bd-mode-toggle .btn:hover,
+        [data-bs-theme="dark"] .bd-language-toggle .btn:hover {
+            background: rgba(255, 255, 255, 1);
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        [data-bs-theme="dark"] .bd-mode-toggle .btn svg,
+        [data-bs-theme="dark"] .bd-language-toggle .btn svg {
+            color: #000;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+        
+        /* Стили для текста языка */
+        .bd-language-toggle .btn span {
+            color: #000;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            font-size: 14px;
+            line-height: 1;
+        }
+        
+        /* Убираем специальные стили высоты для кнопки языка, так как теперь используется общая высота */
+        
+        [data-bs-theme="dark"] .bd-language-toggle .btn span {
+            color: #000;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Стили для выпадающих меню */
+        .bd-mode-toggle .dropdown-menu,
+        .bd-language-toggle .dropdown-menu {
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+        }
+        
+        [data-bs-theme="dark"] .bd-mode-toggle .dropdown-menu,
+        [data-bs-theme="dark"] .bd-language-toggle .dropdown-menu {
+            background: rgba(255, 255, 255, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Обеспечиваем правильные размеры для переведенных элементов */
+        .nav-link {
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+        }
+        
+        .fs-4 {
+            font-size: 1.5rem !important;
+        }
+        
+        .dropdown-item {
+            font-size: 0.875rem;
+            padding: 0.25rem 1rem;
+        }
+        
+        /* Стили для иконок в выпадающих меню */
+        .bd-mode-toggle .dropdown-menu .bi,
+        .bd-language-toggle .dropdown-menu .bi {
+            color: #000 !important;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+        }
+        
+        /* Стили для иконок галочек в выпадающих меню */
+        .bd-mode-toggle .dropdown-menu .dropdown-item .bi:last-child,
+        .bd-language-toggle .dropdown-menu .dropdown-item .bi:last-child {
+            color: #000 !important;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+        }
+        
+        /* Стили для элементов выпадающего меню при наведении */
+        .bd-mode-toggle .dropdown-menu .dropdown-item:hover .bi,
+        .bd-language-toggle .dropdown-menu .dropdown-item:hover .bi {
+            color: #000 !important;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+        
+        /* Стили для активных элементов выпадающего меню */
+        .bd-mode-toggle .dropdown-menu .dropdown-item.active .bi,
+        .bd-language-toggle .dropdown-menu .dropdown-item.active .bi {
+            color: #000 !important;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+        }
+        
+        /* Стили для текста в выпадающих меню */
+        .bd-mode-toggle .dropdown-menu .dropdown-item,
+        .bd-language-toggle .dropdown-menu .dropdown-item {
+            color: #000 !important;
+            font-weight: 500;
+        }
+        
+        /* Стили для текста при наведении */
+        .bd-mode-toggle .dropdown-menu .dropdown-item:hover,
+        .bd-language-toggle .dropdown-menu .dropdown-item:hover {
+            color: #000 !important;
+            font-weight: 600;
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+                 /* Стили для активного текста */
+         .bd-mode-toggle .dropdown-menu .dropdown-item.active,
+         .bd-language-toggle .dropdown-menu .dropdown-item.active {
+             color: #000 !important;
+             font-weight: 700;
+             background-color: rgba(0, 0, 0, 0.1);
+         }
+         
+                   /* Стили для интерактивной аватарки */
+          .d-flex.align-items-center a img.rounded-circle {
+              transition: all 0.3s ease;
+              cursor: pointer;
+          }
+          
+          .d-flex.align-items-center a:hover img.rounded-circle {
+              transform: scale(1.1);
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+          }
     </style>
 </head>
 <body>
@@ -118,7 +328,7 @@
         <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"></path>
     </symbol>
 </svg>
-<div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-mode-toggle">
+<div class="dropdown position-fixed top-0 end-0 mt-3 me-3 bd-mode-toggle">
     <button class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center" id="bd-theme" type="button"
             aria-expanded="false" data-bs-toggle="dropdown" aria-label="Toggle theme (auto)">
         <svg class="bi my-1 theme-icon-active" aria-hidden="true">
@@ -165,6 +375,39 @@
         </li>
     </ul>
 </div>
+<!-- Language Toggle -->
+<div class="dropdown position-fixed top-0 end-0 mt-3 me-8 bd-language-toggle">
+    <button class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center" id="bd-language" type="button"
+            aria-expanded="false" data-bs-toggle="dropdown" aria-label="Toggle language">
+        
+        <span class="ms-1 fw-bold">{% if session.get('language', 'ru') == 'en' %}EN{% else %}RU{% endif %}</span>
+        <span class="visually-hidden" id="bd-language-text">Toggle language</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-language-text">
+        <li>
+            <a href="{{ url_for('main.set_language', language='ru') }}" class="dropdown-item d-flex align-items-center">
+                <span class="me-2">🇷🇺</span>
+                Русский
+                {% if session.get('language', 'ru') == 'ru' %}
+                <svg class="bi ms-auto" aria-hidden="true">
+                    <use href="#check2"></use>
+                </svg>
+                {% endif %}
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('main.set_language', language='en') }}" class="dropdown-item d-flex align-items-center">
+                <span class="me-2">🇺🇸</span>
+                English
+                {% if session.get('language', 'ru') == 'en' %}
+                <svg class="bi ms-auto" aria-hidden="true">
+                    <use href="#check2"></use>
+                </svg>
+                {% endif %}
+            </a>
+        </li>
+    </ul>
+</div>
 <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
     <symbol id="bootstrap" viewBox="0 0 118 94"><title>Bootstrap</title>
         <path fill-rule="evenodd" clip-rule="evenodd"
@@ -186,19 +429,32 @@
         <path fill-rule="evenodd"
               d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"></path>
     </symbol>
-    <symbol id="grid" viewBox="0 0 16 16">
-        <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zM2.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zM1 10.5A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3z"></path>
-    </symbol>
+         <symbol id="grid" viewBox="0 0 16 16">
+         <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zM2.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zM1 10.5A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3z"></path>
+     </symbol>
+     <symbol id="person-gear" viewBox="0 0 16 16">
+         <path d="M12.096 6.223A4.892 4.892 0 0 0 13.5 8a4.892 4.892 0 0 0-1.404-1.777c-.366-.386-.793-.72-1.243-1.006C9.302 4.702 8.706 4.5 8 4.5c-.706 0-1.302.202-1.853.717-.45.286-.877.62-1.243 1.006A4.892 4.892 0 0 0 2.5 8c0 1.406.484 2.777 1.404 3.777.366.386.793.72 1.243 1.006C6.698 12.798 7.294 13 8 13c.706 0 1.302-.202 1.853-.717.45-.286.877-.62 1.243-1.006A4.892 4.892 0 0 0 13.5 8a4.892 4.892 0 0 0-1.404-1.777z"/>
+         <path d="M8 1a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM3.732 12.732a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707.707L3.732 12.732zM12.268 12.268a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1-.707.707l-1.414-1.414z"/>
+     </symbol>
+     <symbol id="journal-text" viewBox="0 0 16 16">
+         <path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5zm0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
+         <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2z"/>
+         <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1z"/>
+     </symbol>
+     <symbol id="box-seam" viewBox="0 0 16 16">
+         <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5l7.5 2.927L15.5 3.5 8.186 1.113zM15 4.5l-7.5 2.927L1 4.5v7.5l7.5 2.927L15 12V4.5z"/>
+         <path d="M1 4.5v7.5l7.5 2.927L15 12V4.5L8.186 7.387 1 4.5z"/>
+     </symbol>
 </svg>
 <main class="d-flex flex-nowrap"><h1 class="visually-hidden">Sidebars examples</h1>
 
     <div class="divider vertical-rule"></div>
     <div class="d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary" style="width: 280px;">
-        <a class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+        <a href="{{ url_for('main.object_list') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
             <svg class="bi pe-none me-2" width="40" height="32" aria-hidden="true">
                 <use xlink:href="#bootstrap"></use>
             </svg>
-            <span class="fs-4">Sidebar</span>
+            <span class="fs-4">СтройКомплекс</span>
         </a>
         <hr>
         <ul class="nav nav-pills flex-column mb-auto">
@@ -209,7 +465,7 @@
                     <svg class="bi pe-none me-2" width="16" height="16" aria-hidden="true">
                         <use xlink:href="#home"></use>
                     </svg>
-                    Список объектов
+                    {{ gettext('Список объектов') }}
                 </a>
             </li>
             <!--                <li>-->
@@ -217,7 +473,7 @@
             <!--                        <svg class="bi pe-none me-2" width="16" height="16" aria-hidden="true">-->
             <!--                            <use xlink:href="#speedometer2"></use>-->
             <!--                        </svg>-->
-            <!--                        Календарь-->
+                         <!--                        {{ gettext('Календарь') }}-->
             <!--                    </a>-->
             <!--                </li>-->
             <li>
@@ -226,44 +482,81 @@
                     <svg class="bi pe-none me-2" width="16" height="16" aria-hidden="true">
                         <use xlink:href="#table"></use>
                     </svg>
-                    Календарь
+                    {{ gettext('Календарь') }}
                 </a>
             </li>
-            <li>
-                <a href="{{ url_for('main.others') }}"
-                   class="nav-link {{ 'active' if active_page == 'others' else 'link-body-emphasis' }}">
-                    <svg class="bi pe-none me-2" width="16" height="16" aria-hidden="true">
-                        <use xlink:href="#grid"></use>
-                    </svg>
-                    Прочее
-                </a>
-            </li>
-            <li>
-                <a href="{{ url_for('main.profile') }}"
-                   class="nav-link {{ 'active' if active_page == 'profile' else 'link-body-emphasis' }}">
-                    <svg class="bi pe-none me-2" width="16" height="16" aria-hidden="true">
-                        <use xlink:href="#people-circle"></use>
-                    </svg>
-                    Профиль
-                </a>
-            </li>
+                         <li>
+                 <a href="{{ url_for('main.others') }}"
+                    class="nav-link {{ 'active' if active_page == 'others' else 'link-body-emphasis' }}">
+                     <svg class="bi pe-none me-2" width="16" height="16" aria-hidden="true">
+                         <use xlink:href="#grid"></use>
+                     </svg>
+                     {{ gettext('Прочее') }}
+                 </a>
+             </li>
+                    {% if current_user.role == 'Инженер ПТО' %}
+       <li>
+           <a href="{{ url_for('main.users') }}"
+              class="nav-link {{ 'active' if active_page == 'users' else 'link-body-emphasis' }}">
+               <svg class="bi pe-none me-2" width="16" height="16" aria-hidden="true">
+                   <use xlink:href="#person-gear"></use>
+               </svg>
+               {{ gettext('Пользователи') }}
+           </a>
+       </li>
+       <li>
+           <a href="{{ url_for('activity_log.view_activity_log') }}"
+              class="nav-link {{ 'active' if active_page == 'activity-log' else 'link-body-emphasis' }}">
+               <svg class="bi pe-none me-2" width="16" height="16" aria-hidden="true">
+                   <use xlink:href="#journal-text"></use>
+               </svg>
+               {{ gettext('Журнал действий') }}
+           </a>
+       </li>
+       {% endif %}
+       
+       {% if current_user.role in ['Снабженец', 'Инженер ПТО'] %}
+       <li>
+           <a href="{{ url_for('supply.supply_dashboard') }}"
+              class="nav-link {{ 'active' if active_page == 'supply' else 'link-body-emphasis' }}">
+               <svg class="bi pe-none me-2" width="16" height="16" aria-hidden="true">
+                   <use xlink:href="#box-seam"></use>
+               </svg>
+               {{ gettext('Снабжение') }}
+           </a>
+       </li>
+       {% endif %}
+             <li>
+                 <a href="{{ url_for('main.profile') }}"
+                    class="nav-link {{ 'active' if active_page == 'profile' else 'link-body-emphasis' }}">
+                     <svg class="bi pe-none me-2" width="16" height="16" aria-hidden="true">
+                         <use xlink:href="#people-circle"></use>
+                     </svg>
+                     {{ gettext('Профиль') }}
+                 </a>
+             </li>
         </ul>
         <hr>
-        <div class="dropdown">
-            <a href="" class="d-flex align-items-center link-body-emphasis text-decoration-none
-                                       dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                <!--                    <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">-->
-                {% set avatar = (current_user.avatar | default('', true) | trim) %}
-                {% if avatar %}
-                <img src="{{ url_for('static', filename='uploads/avatars/' ~ avatar) }}" alt="" width="32" height="32"
-                     class="rounded-circle me-2">
-                {% else %}
-                <img src="{{ url_for('static', filename='img/default-avatar.png') }}" alt="" width="32" height="32"
-                     class="rounded-circle me-2">
-                {% endif %}
-                <strong>{{ current_user.secondname ~ " " ~ current_user.firstname if current_user.is_authenticated else
-                    'Guest' }}</strong>
-            </a>
+                 <div class="d-flex align-items-center">
+             {% set avatar = (current_user.avatar | default('', true) | trim) %}
+             {% if avatar %}
+             <a href="{{ url_for('main.profile') }}" class="me-2">
+                 <img src="{{ url_for('static', filename='uploads/avatars/' ~ avatar) }}" alt="" width="32" height="32"
+                      class="rounded-circle">
+             </a>
+             {% else %}
+             <a href="{{ url_for('main.profile') }}" class="me-2">
+                 <img src="{{ url_for('static', filename='img/default-avatar.png') }}" alt="" width="32" height="32"
+                      class="rounded-circle">
+             </a>
+             {% endif %}
+             
+             <div class="dropdown">
+                 <a href="" class="d-flex align-items-center link-body-emphasis text-decoration-none
+                                        dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                     <strong>{{ current_user.secondname ~ " " ~ current_user.firstname if current_user.is_authenticated else
+                         'Guest' }}</strong>
+                 </a>
             <ul class="dropdown-menu text-small shadow">
                 <!--                <li><a class="dropdown-item" href="object-list.html#">New project...</a></li>-->
                 <!--                <li><a class="dropdown-item" href="object-list.html#">Settings</a></li>-->
@@ -271,18 +564,17 @@
                 <!--                <li>-->
                 <!--                    <hr class="dropdown-divider">-->
                 <!--                </li>-->
-                <li><a class="dropdown-item" href="{{ url_for('user.logout') }}">Sign out</a></li>
-            </ul>
-        </div>
+                                 <li><a class="dropdown-item" href="{{ url_for('user.logout') }}">{{ gettext('Выйти') }}</a></li>
+             </ul>
+         </div>
+     </div>
     </div> <!--SIDEBAR ПЛАШКА-->
     <div class="divider vertical-rule"></div>
     <div class="flex-grow-1 p-4">
         {% block content %}{% endblock %}
     </div>
 </main>
-<script src="../../static/js/bootstrap.bundle.min.js"
-        integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
-        class="astro-vvvwv3sm"></script>
-<script src="../../static/js/sidebars.js" class="astro-vvvwv3sm"></script>
+<script src="/static/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/sidebars.js"></script>
 </body>
 </html>

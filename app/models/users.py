@@ -1,11 +1,13 @@
 from flask_login import UserMixin
+import uuid
+from datetime import datetime, timezone, timedelta
 
 from ..extensions import db
 
 class Users(db.Model, UserMixin):
     __tablename__ = 'users'
 
-    userid = db.Column(db.Integer, primary_key=True)
+    userid = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     login = db.Column(db.String(100), nullable=False)
     password = db.Column(db.String(100), nullable=False)
     firstname = db.Column(db.String(100), nullable=True)
@@ -14,6 +16,7 @@ class Users(db.Model, UserMixin):
     phonenumber = db.Column(db.String(100), nullable=True)
     role = db.Column(db.String(100), nullable=False)
     avatar = db.Column(db.String(100), nullable=True)
+    registration_date = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone(timedelta(hours=3))))
 
     def get_id(self):
         return str(self.userid)

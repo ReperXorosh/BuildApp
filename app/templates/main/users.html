@@ -1,0 +1,150 @@
+{% extends "main/layout.html" %}
+{% set active_page = 'users' %}
+
+{% block title %}Управление пользователями{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3" style="margin-top: 60px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Управление пользователями</h2>
+                 {% if current_user.role == 'Инженер ПТО' %}
+         <a href="{{ url_for('main.add_user') }}" class="btn btn-primary">
+             <svg class="bi me-2" width="16" height="16" fill="currentColor">
+                 <use href="#plus-circle"></use>
+             </svg>
+             Добавить пользователя
+         </a>
+         {% endif %}
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Логин</th>
+                            <th>ФИО</th>
+                            <th>Телефон</th>
+                            <th>Роль</th>
+                            <th>Дата регистрации</th>
+                            <th>Аватар</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td><code>{{ user.userid[:8] }}...</code></td>
+                            <td>
+                                <strong>{{ user.login }}</strong>
+                                {% if user.userid == current_user.userid %}
+                                    <span class="badge bg-primary ms-2">Вы</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.secondname or user.firstname %}
+                                    {{ (user.secondname or '') + ' ' + (user.firstname or '') + ' ' + (user.thirdname or '') }}
+                                {% else %}
+                                    <span class="text-muted">Не указано</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.phonenumber %}
+                                    <code class="text-primary">+7 ({{ user.phonenumber[:3] }}) {{ user.phonenumber[3:6] }}-{{ user.phonenumber[6:8] }}-{{ user.phonenumber[8:10] }}</code>
+                                {% else %}
+                                    <span class="text-muted">Не указан</span>
+                                {% endif %}
+                            </td>
+                                                                                      <td>
+                                 <span class="badge bg-{{ 'danger' if user.role == 'Инженер ПТО' else 'warning' if user.role in ['Ген.Директор', 'Зам.Директор'] else 'info' if user.role == 'Снабженец' else 'secondary' }}">
+                                     {{ user.role }}
+                                 </span>
+                             </td>
+                                                           <td>
+                                  <small class="text-muted">
+                                      {{ user.registration_date.strftime('%d.%m.%Y %H:%M:%S') if user.registration_date else 'Не указана' }}
+                                  </small>
+                              </td>
+                             <td>
+                                 {% if user.avatar %}
+                                     <img src="{{ url_for('static', filename='uploads/avatars/' ~ user.avatar) }}" 
+                                          alt="Avatar" class="rounded-circle" 
+                                          style="width: 32px; height: 32px; object-fit: cover;">
+                                 {% else %}
+                                     <img src="{{ url_for('static', filename='img/default-avatar.png') }}" 
+                                          alt="Default Avatar" class="rounded-circle" 
+                                          style="width: 32px; height: 32px; object-fit: cover;">
+                                 {% endif %}
+                             </td>
+                                                         <td>
+                                 {% if current_user.role == 'Инженер ПТО' %}
+                                 <div class="btn-group btn-group-sm" role="group">
+                                     <a href="{{ url_for('main.edit_user', user_id=user.userid) }}" class="btn btn-outline-primary" title="Редактировать">
+                                         <svg class="bi" width="16" height="16" fill="currentColor">
+                                             <use href="#pencil"></use>
+                                         </svg>
+                                     </a>
+                                     {% if user.userid != current_user.userid %}
+                                     <button type="button" class="btn btn-outline-danger" title="Удалить" 
+                                             onclick="confirmDelete('{{ user.userid }}', '{{ user.login }}')">
+                                         <svg class="bi" width="16" height="16" fill="currentColor">
+                                             <use href="#trash"></use>
+                                         </svg>
+                                     </button>
+                                     {% endif %}
+                                 </div>
+                                 {% else %}
+                                 <span class="text-muted">Нет прав</span>
+                                 {% endif %}
+                             </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SVG иконки -->
+<svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+    <symbol id="plus-circle" viewBox="0 0 16 16">
+        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+    </symbol>
+    <symbol id="pencil" viewBox="0 0 16 16">
+        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+    </symbol>
+    <symbol id="trash" viewBox="0 0 16 16">
+        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+    </symbol>
+</svg>
+
+<!-- Скрытая форма для удаления -->
+<form id="deleteForm" method="POST" style="display: none;">
+</form>
+
+<script>
+function confirmDelete(userId, userName) {
+    if (confirm('Вы уверены, что хотите удалить пользователя "' + userName + '"?\n\nЭто действие нельзя отменить!')) {
+        const form = document.getElementById('deleteForm');
+        form.action = '/delete_user/' + userId;
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

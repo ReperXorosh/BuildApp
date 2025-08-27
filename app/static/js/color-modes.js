@@ -74,6 +74,17 @@
           setStoredTheme(theme)
           setTheme(theme)
           showActiveTheme(theme, true)
+          
+          // Логируем смену темы
+          fetch('/log-theme-change', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ theme: theme })
+          }).catch(error => {
+            console.log('Ошибка логирования смены темы:', error);
+          });
         })
       })
   })

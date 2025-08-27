@@ -4,7 +4,7 @@ WORKDIR /app
 
 ADD . /app
 
-RUN apt install gcc -y
+RUN apt-get update && apt-get install -y gcc
 
 RUN pip install -r requirements.txt
 

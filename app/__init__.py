@@ -1,39 +1,30 @@
 import os
 
-from flask import Flask
+from flask import Flask, request, session
 from .extensions import db, login_manager
 from .config import Config
 
-from .routes.users import user
-from .routes.main import main
-from .routes.objects import objects
-
-def create_app(config_class=Config):
+def create_app():
     app = Flask(__name__)
-    app.config.from_object(config_class)
-
-    app.config.setdefault("MAX_CONTENT_LENGTH", 2 * 1024 * 1024)  # 2 МБ
-    app.config.setdefault(
-        "UPLOAD_FOLDER",
-        os.path.join(app.root_path, "static", "uploads", "avatars")
-    )
-    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-
-
-    app.register_blueprint(user)
-    app.register_blueprint(main)
-    app.register_blueprint(objects)
-
+    app.config.from_object(Config)
+    
     db.init_app(app)
     login_manager.init_app(app)
-
-
-    login_manager.login_view = "main.sign_in"  # куда редиректить неавторизованных
-    login_manager.login_message = "Вы не можете получить доступ к данной странице. Нужно сначала войти."
-    login_manager.login_message_category = "info"
-
-    with app.app_context():
-        db.create_all()
-
+    
+    login_manager.login_view = 'user.login'
+    # Убираем сообщение о необходимости входа в систему
+    # login_manager.login_message = 'Пожалуйста, войдите в систему для доступа к этой странице.'
+    # login_manager.login_message_category = 'info'
+    
+    from .routes.main import main
+    from .routes.users import user
+    from .routes.activity_log import activity_log
+    from .routes.supply import supply
+    
+    app.register_blueprint(main)
+    app.register_blueprint(user, url_prefix='/user')
+    app.register_blueprint(activity_log, url_prefix='/admin')
+    app.register_blueprint(supply, url_prefix='/supply')
+    
     return app
 
