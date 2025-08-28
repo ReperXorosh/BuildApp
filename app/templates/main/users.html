@@ -47,7 +47,7 @@
                     <tbody>
                         {% for user in users %}
                         <tr>
-                            <td><code>{{ user.userid[:8] }}...</code></td>
+                            <td><code>{{ user.userid }}...</code></td>
                             <td>
                                 <strong>{{ user.login }}</strong>
                                 {% if user.userid == current_user.userid %}
