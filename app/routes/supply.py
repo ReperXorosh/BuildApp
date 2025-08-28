@@ -24,7 +24,7 @@ def supply_dashboard():
     """Главная страница системы снабжения"""
     if not is_supplier_or_admin():
         flash('У вас нет прав для доступа к системе снабжения', 'error')
-        return redirect(url_for('main.object_list'))
+        return redirect(url_for('objects.object_list'))
     
     # Логируем просмотр страницы
     ActivityLog.log_action(
@@ -67,7 +67,7 @@ def materials_list():
     """Список материалов"""
     if not is_supplier_or_admin():
         flash('У вас нет прав для просмотра материалов', 'error')
-        return redirect(url_for('main.object_list'))
+        return redirect(url_for('objects.object_list'))
     
     materials = Material.query.order_by(Material.name).all()
     
@@ -89,7 +89,7 @@ def equipment_list():
     """Список техники"""
     if not is_supplier_or_admin():
         flash('У вас нет прав для просмотра техники', 'error')
-        return redirect(url_for('main.object_list'))
+        return redirect(url_for('objects.object_list'))
     
     equipment = Equipment.query.order_by(Equipment.name).all()
     
@@ -111,7 +111,7 @@ def orders_list():
     """Список заказов на снабжение"""
     if not is_supplier_or_admin():
         flash('У вас нет прав для просмотра заказов', 'error')
-        return redirect(url_for('main.object_list'))
+        return redirect(url_for('objects.object_list'))
     
     orders = SupplyOrder.query.order_by(SupplyOrder.created_at.desc()).all()
     

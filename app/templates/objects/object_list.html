@@ -1,0 +1,99 @@
+{% extends "main/layout.html" %}
+
+{% block title %}Список объектов{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-building me-2"></i>
+                    Список объектов
+                </h1>
+                <a href="{{ url_for('objects.add_object') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-1"></i>
+                    Добавить объект
+                </a>
+            </div>
+
+            {% if objects %}
+            <div class="row">
+                {% for obj in objects %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">{{ obj.name }}</h5>
+                            <span class="badge bg-{{ 'success' if obj.status == 'active' else 'secondary' if obj.status == 'inactive' else 'info' }}">
+                                {{ obj.status }}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            {% if obj.description %}
+                            <p class="card-text text-muted">{{ obj.description[:100] }}{% if obj.description|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                            
+                            {% if obj.location %}
+                            <p class="card-text">
+                                <i class="bi bi-geo-alt me-1"></i>
+                                <small class="text-muted">{{ obj.location }}</small>
+                            </p>
+                            {% endif %}
+                            
+                            <div class="row text-center mt-3">
+                                <div class="col-3">
+                                    <div class="border-end">
+                                        <h6 class="mb-1">{{ obj.supports|length }}</h6>
+                                        <small class="text-muted">Опора</small>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="border-end">
+                                        <h6 class="mb-1">{{ obj.trenches|length }}</h6>
+                                        <small class="text-muted">Траншея</small>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="border-end">
+                                        <h6 class="mb-1">{{ obj.reports|length }}</h6>
+                                        <small class="text-muted">Отчёт</small>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <h6 class="mb-1">{{ obj.checklists|length }}</h6>
+                                    <small class="text-muted">Чек-лист</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar me-1"></i>
+                                    {{ obj.created_at.strftime('%d.%m.%Y') }}
+                                </small>
+                                <a href="{{ url_for('objects.object_detail', object_id=obj.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye me-1"></i>
+                                    Подробнее
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-building display-1 text-muted"></i>
+                <h3 class="mt-3 text-muted">Объекты не найдены</h3>
+                <p class="text-muted">Создайте первый объект для начала работы</p>
+                <a href="{{ url_for('objects.add_object') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-1"></i>
+                    Добавить объект
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

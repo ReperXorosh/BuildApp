@@ -73,7 +73,7 @@ def login():
                 page_url=request.url,
                 method=request.method
             )
-            return redirect(url_for('main.object_list'))
+            return redirect(url_for('objects.object_list'))
         else:
             # Логируем неудачную попытку входа
             ActivityLog.log_action(

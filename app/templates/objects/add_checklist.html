@@ -1,0 +1,121 @@
+{% extends "main/layout.html" %}
+
+{% block title %}Добавить чек-лист - {{ object.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Заголовок -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        Добавить чек-лист
+                    </h1>
+                    <p class="text-muted mb-0">
+                        Объект: <a href="{{ url_for('objects.object_detail', object_id=object.id) }}">{{ object.name }}</a>
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('objects.checklists_list', object_id=object.id) }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Назад к списку
+                    </a>
+                </div>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-check2-square me-2"></i>
+                                Информация о чек-листе
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST">
+                                <div class="mb-3">
+                                    <label for="checklist_number" class="form-label">
+                                        <i class="bi bi-hash me-1"></i>
+                                        Номер чек-листа *
+                                    </label>
+                                    <input type="text" class="form-control" id="checklist_number" name="checklist_number" 
+                                           placeholder="Например: ЧЛ-001" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">
+                                        <i class="bi bi-type me-1"></i>
+                                        Заголовок чек-листа *
+                                    </label>
+                                    <input type="text" class="form-control" id="title" name="title" 
+                                           placeholder="Введите заголовок чек-листа" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="checklist_type" class="form-label">
+                                        <i class="bi bi-tag me-1"></i>
+                                        Тип чек-листа
+                                    </label>
+                                    <select class="form-select" id="checklist_type" name="checklist_type">
+                                        <option value="">Выберите тип</option>
+                                        <option value="Контроль качества">Контроль качества</option>
+                                        <option value="Проверка безопасности">Проверка безопасности</option>
+                                        <option value="Технический осмотр">Технический осмотр</option>
+                                        <option value="Приёмка работ">Приёмка работ</option>
+                                        <option value="Инвентаризация">Инвентаризация</option>
+                                        <option value="Другой">Другой</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="completion_date" class="form-label">
+                                        <i class="bi bi-calendar me-1"></i>
+                                        Дата завершения
+                                    </label>
+                                    <input type="date" class="form-control" id="completion_date" name="completion_date">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="status" class="form-label">
+                                        <i class="bi bi-flag me-1"></i>
+                                        Статус
+                                    </label>
+                                    <select class="form-select" id="status" name="status">
+                                        <option value="pending">Ожидает</option>
+                                        <option value="in_progress">В работе</option>
+                                        <option value="completed">Завершён</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="notes" class="form-label">
+                                        <i class="bi bi-text-paragraph me-1"></i>
+                                        Примечания
+                                    </label>
+                                    <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                              placeholder="Дополнительная информация о чек-листе"></textarea>
+                                </div>
+
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a href="{{ url_for('objects.checklists_list', object_id=object.id) }}" class="btn btn-outline-secondary me-md-2">
+                                        <i class="bi bi-x-lg me-1"></i>
+                                        Отмена
+                                    </a>
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="bi bi-check-lg me-1"></i>
+                                        Создать чек-лист
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

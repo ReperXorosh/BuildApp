@@ -1,0 +1,218 @@
+{% extends "main/layout.html" %}
+
+{% block title %}{{ object.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Заголовок объекта -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-building me-2"></i>
+                        {{ object.name }}
+                    </h1>
+                    {% if object.location %}
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-geo-alt me-1"></i>
+                        {{ object.location }}
+                    </p>
+                    {% endif %}
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('objects.object_list') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Назад к списку
+                    </a>
+                </div>
+            </div>
+
+            <!-- Описание объекта -->
+            {% if object.description %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Описание
+                    </h5>
+                    <p class="card-text">{{ object.description }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Статистика объекта -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="bi bi-pin-angle display-4 text-primary"></i>
+                            <h4 class="mt-2">{{ object.supports|length }}</h4>
+                            <p class="text-muted mb-0">Опора</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="bi bi-tools display-4 text-success"></i>
+                            <h4 class="mt-2">{{ object.trenches|length }}</h4>
+                            <p class="text-muted mb-0">Траншея</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="bi bi-file-earmark-text display-4 text-info"></i>
+                            <h4 class="mt-2">{{ object.reports|length }}</h4>
+                            <p class="text-muted mb-0">Отчёт</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="bi bi-check2-square display-4 text-warning"></i>
+                            <h4 class="mt-2">{{ object.checklists|length }}</h4>
+                            <p class="text-muted mb-0">Чек-лист</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Подпункты объекта -->
+            <div class="row">
+                <!-- Опора -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-pin-angle me-2"></i>
+                                Опора
+                            </h5>
+                            <a href="{{ url_for('objects.supports_list', object_id=object.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye me-1"></i>
+                                Просмотр ({{ object.supports|length }})
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Управление опорами объекта</p>
+                            <div class="d-grid">
+                                <a href="{{ url_for('objects.add_support', object_id=object.id) }}" class="btn btn-primary">
+                                    <i class="bi bi-plus-lg me-1"></i>
+                                    Добавить опору
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Траншея -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-tools me-2"></i>
+                                Траншея
+                            </h5>
+                            <a href="{{ url_for('objects.trenches_list', object_id=object.id) }}" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-eye me-1"></i>
+                                Просмотр ({{ object.trenches|length }})
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Управление траншеями объекта</p>
+                            <div class="d-grid">
+                                <a href="{{ url_for('objects.add_trench', object_id=object.id) }}" class="btn btn-success">
+                                    <i class="bi bi-plus-lg me-1"></i>
+                                    Добавить траншею
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Отчёт -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-file-earmark-text me-2"></i>
+                                Отчёт
+                            </h5>
+                            <a href="{{ url_for('objects.reports_list', object_id=object.id) }}" class="btn btn-sm btn-outline-info">
+                                <i class="bi bi-eye me-1"></i>
+                                Просмотр ({{ object.reports|length }})
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Управление отчётами объекта</p>
+                            <div class="d-grid">
+                                <a href="{{ url_for('objects.add_report', object_id=object.id) }}" class="btn btn-info">
+                                    <i class="bi bi-plus-lg me-1"></i>
+                                    Добавить отчёт
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Чек-лист -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-check2-square me-2"></i>
+                                Чек-лист
+                            </h5>
+                            <a href="{{ url_for('objects.checklists_list', object_id=object.id) }}" class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-eye me-1"></i>
+                                Просмотр ({{ object.checklists|length }})
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Управление чек-листами объекта</p>
+                            <div class="d-grid">
+                                <a href="{{ url_for('objects.add_checklist', object_id=object.id) }}" class="btn btn-warning">
+                                    <i class="bi bi-plus-lg me-1"></i>
+                                    Добавить чек-лист
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Информация об объекте -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Информация об объекте
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Статус:</strong> 
+                                <span class="badge bg-{{ 'success' if object.status == 'active' else 'secondary' if object.status == 'inactive' else 'info' }}">
+                                    {{ object.status }}
+                                </span>
+                            </p>
+                            <p><strong>Создан:</strong> {{ object.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Обновлён:</strong> {{ object.updated_at.strftime('%d.%m.%Y %H:%M') }}</p>
+                            {% if object.created_by %}
+                            <p><strong>Создал:</strong> {{ object.created_by }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

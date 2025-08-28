@@ -77,7 +77,7 @@ def set_language(language):
             method=request.method
         )
     
-    return redirect(request.referrer or url_for('main.object_list'))
+    return redirect(request.referrer or url_for('objects.object_list'))
 
 @main.route('/log-theme-change', methods=['POST'])
 @login_required
@@ -103,12 +103,6 @@ def log_theme_change():
 def sign_in():
     return render_template('main/sign-in.html')
 
-from ..models.objects import Objects
-from ..models.columns import Columns
-from ..models.trenches import Trenches
-from ..models.reports import Reports
-from ..models.models import Models
-from ..models.types import Types
 from ..models.users import Users
 from ..models.activity_log import ActivityLog
 
@@ -194,43 +188,7 @@ def format_phone_for_display(phone_number):
     return phone_number
 
 
-@main.route('/object-list')
-@login_required
-def object_list():
-    # Логируем просмотр страницы объектов
-    ActivityLog.log_action(
-        user_id=current_user.userid,
-        user_login=current_user.login,
-        action="Просмотр страницы",
-        description=f"Пользователь {current_user.login} просмотрел страницу списка объектов",
-        ip_address=request.remote_addr,
-        page_url=request.url,
-        method=request.method
-    )
-    
-    objects = Objects.query.all()
-    selected_id = request.args.get('objectid', type=str)
-    panel = request.args.get('panel', default='menu', type=str) # menu | columns | trenches | reports
-    # if not selected_id and objects:
-    #     selected_id = objects[0].objectid
 
-    columns = []
-    trenches = []
-    reports = []
-
-
-    if selected_id and panel == 'columns':
-        columns = Columns.query.filter_by(objectid=selected_id).all()
-        trenches = Trenches.query.filter_by(objectid=selected_id).all()
-    elif selected_id and panel == 'trenches':
-        trenches = Trenches.query.filter_by(objectid=selected_id).all()
-    elif selected_id and panel == 'reports':
-        reports = Reports.query.filter_by(objectid=selected_id).all()
-
-    return render_template('main/object-list.html',
-                           objects=objects, selected_id=selected_id,
-                           columns=columns, panel=panel,
-                           trenches=trenches, reports=reports)
 
 @main.route('/calendar')
 @login_required
@@ -268,7 +226,7 @@ def users():
     # Проверяем права администратора (Инженер ПТО)
     if current_user.role != 'Инженер ПТО':
         flash('У вас нет прав для просмотра пользователей', 'error')
-        return redirect(url_for('main.object_list'))
+        return redirect(url_for('objects.object_list'))
     
     # Логируем просмотр страницы пользователей
     ActivityLog.log_action(

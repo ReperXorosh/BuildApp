@@ -20,11 +20,13 @@ def create_app():
     from .routes.users import user
     from .routes.activity_log import activity_log
     from .routes.supply import supply
+    from .routes.objects import objects_bp
     
     app.register_blueprint(main)
     app.register_blueprint(user, url_prefix='/user')
     app.register_blueprint(activity_log, url_prefix='/admin')
     app.register_blueprint(supply, url_prefix='/supply')
+    app.register_blueprint(objects_bp, url_prefix='/objects')
     
     return app
 
