@@ -121,6 +121,24 @@
         .flex-grow-1 {
             margin-left: 280px !important;
             width: calc(100% - 280px) !important;
+            min-height: 100vh !important;
+            overflow-y: auto !important;
+        }
+        
+        /* Специальные стили для страниц с формами */
+        .add-report-page,
+        .add-user-page,
+        .edit-user-page {
+            min-height: auto !important;
+            padding-bottom: 20px !important;
+            overflow-y: visible !important;
+        }
+        
+        .add-report-page .container-fluid,
+        .add-user-page .container-fluid,
+        .edit-user-page .container-fluid {
+            min-height: auto !important;
+            padding-bottom: 20px !important;
         }
         
         /* Специальные стили для страницы редактирования пользователя */
