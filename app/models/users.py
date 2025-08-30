@@ -8,7 +8,7 @@ class Users(db.Model, UserMixin):
     __tablename__ = 'users'
 
     userid = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    login = db.Column(db.String(100), nullable=False)
+    login = db.Column(db.String(100), nullable=False, unique=True)
     password = db.Column(db.String(100), nullable=False)
     firstname = db.Column(db.String(100), nullable=True)
     secondname = db.Column(db.String(100), nullable=True)

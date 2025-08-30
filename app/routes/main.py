@@ -344,8 +344,25 @@ def add_user():
             role=role
         )
         
-        db.session.add(new_user)
-        db.session.commit()
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            # Проверяем, была ли ошибка связана с дублированием логина
+            if "UNIQUE constraint failed" in str(e) or "duplicate key" in str(e).lower():
+                flash('Пользователь с таким логином уже существует', 'error')
+            else:
+                flash('Ошибка при создании пользователя. Попробуйте еще раз.', 'error')
+            return render_template('main/add_user.html', 
+                                 form_data={
+                                     'login': login,
+                                     'firstname': firstname,
+                                     'secondname': secondname,
+                                     'thirdname': thirdname,
+                                     'phonenumber': phonenumber,
+                                     'role': role
+                                 })
         
         # Обрабатываем загрузку аватара
         file = request.files.get('avatar')
@@ -444,13 +461,10 @@ def edit_user(user_id):
                 phonenumber = ""  # Неверный формат
         
         # Проверяем, что логин не занят другим пользователем
-        existing_users = Users.query.filter_by(login=login).all()
-
-        for existing_user in existing_users:
-            if existing_user and str(existing_user.userid) != str(user_id):
-                # flash(str(existing_user.userid) + " " + str(user_id), 'error')
-                flash('Пользователь с таким логином уже существует', 'error')
-                return redirect(url_for('main.edit_user', user_id=user_id))
+        existing_user = Users.query.filter_by(login=login).first()
+        if existing_user and str(existing_user.userid) != str(user_id):
+            flash('Пользователь с таким логином уже существует', 'error')
+            return redirect(url_for('main.edit_user', user_id=user_id))
         
         # Обновляем данные пользователя
         user.login = login
@@ -463,6 +477,17 @@ def edit_user(user_id):
         # Обновляем пароль только если он указан
         if password:
             user.password = password
+        
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            # Проверяем, была ли ошибка связана с дублированием логина
+            if "UNIQUE constraint failed" in str(e) or "duplicate key" in str(e).lower():
+                flash('Пользователь с таким логином уже существует', 'error')
+            else:
+                flash('Ошибка при обновлении пользователя. Попробуйте еще раз.', 'error')
+            return redirect(url_for('main.edit_user', user_id=user_id))
         
         # Обрабатываем загрузку аватара
         file = request.files.get('avatar')
