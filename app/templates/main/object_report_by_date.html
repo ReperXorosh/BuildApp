@@ -1,0 +1,225 @@
+{% extends "main/layout.html" %}
+{% set active_page = 'reports' %}
+
+{% block title %}Отчёты {{ object_obj.name }} за {{ date.strftime('%d.%m.%Y') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="row">
+        <div class="col-12">
+            <div class="mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{{ url_for('main.reports') }}">
+                                <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                                    <use xlink:href="#clipboard-data"></use>
+                                </svg>
+                                Отчёты
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="{{ url_for('main.object_reports', object_id=object_obj.id) }}">{{ object_obj.name }}</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ date.strftime('%d.%m.%Y') }}</li>
+                    </ol>
+                </nav>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h3 mb-2">
+                            <svg class="bi me-2" width="24" height="24" fill="currentColor">
+                                <use xlink:href="#building"></use>
+                            </svg>
+                            {{ object_obj.name }}
+                        </h1>
+                        <p class="text-muted mb-0">
+                            Отчёты за {{ date.strftime('%d.%m.%Y') }}
+                            {% if object_obj.location %}
+                            <br>
+                            <svg class="bi me-1" width="14" height="14" fill="currentColor">
+                                <use xlink:href="#geo-alt"></use>
+                            </svg>
+                            {{ object_obj.location }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('main.object_reports', object_id=object_obj.id) }}" class="btn btn-outline-primary">
+                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                                <use xlink:href="#clipboard-data"></use>
+                            </svg>
+                            Все отчёты объекта
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Информация об объекте -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="card-title">Информация об объекте</h6>
+                            <dl class="row mb-0">
+                                <dt class="col-sm-4">Статус:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge bg-{{ 'success' if object_obj.status == 'active' else 'secondary' }}">
+                                        {{ object_obj.status }}
+                                    </span>
+                                </dd>
+                                {% if object_obj.description %}
+                                <dt class="col-sm-4">Описание:</dt>
+                                <dd class="col-sm-8">{{ object_obj.description }}</dd>
+                                {% endif %}
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="card-title">Статистика отчётов за {{ date.strftime('%d.%m.%Y') }}</h6>
+                            <dl class="row mb-0">
+                                <dt class="col-sm-6">Всего отчётов:</dt>
+                                <dd class="col-sm-6">
+                                    <span class="badge bg-primary">{{ reports|length }}</span>
+                                </dd>
+                                <dt class="col-sm-6">Одобренных:</dt>
+                                <dd class="col-sm-6">
+                                    {% set approved_count = reports | selectattr('status', 'equalto', 'approved') | list | length %}
+                                    <span class="badge bg-success">{{ approved_count }}</span>
+                                </dd>
+                                <dt class="col-sm-6">На рассмотрении:</dt>
+                                <dd class="col-sm-6">
+                                    {% set submitted_count = reports | selectattr('status', 'equalto', 'submitted') | list | length %}
+                                    <span class="badge bg-warning">{{ submitted_count }}</span>
+                                </dd>
+                                <dt class="col-sm-6">Черновиков:</dt>
+                                <dd class="col-sm-6">
+                                    {% set draft_count = reports | selectattr('status', 'equalto', 'draft') | list | length %}
+                                    <span class="badge bg-secondary">{{ draft_count }}</span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Отчёты за дату -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <svg class="bi me-2" width="20" height="20" fill="currentColor">
+                            <use xlink:href="#file-earmark-text"></use>
+                        </svg>
+                        Отчёты за {{ date.strftime('%d.%m.%Y') }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if reports %}
+                        <div class="row g-4">
+                            {% for report in reports %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card h-100 border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0">{{ report.title }}</h6>
+                                            <span class="badge bg-light text-dark">{{ report.report_type or 'Не указан' }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if report.content %}
+                                        <p class="card-text">{{ report.content }}</p>
+                                        {% else %}
+                                        <p class="card-text text-muted">Содержание отчёта не указано</p>
+                                        {% endif %}
+                                        
+                                        <div class="mt-3">
+                                            <h6 class="card-subtitle mb-2">Детали отчёта:</h6>
+                                            <dl class="row mb-0">
+                                                <dt class="col-sm-4">Номер:</dt>
+                                                <dd class="col-sm-8">{{ report.report_number }}</dd>
+                                                
+                                                <dt class="col-sm-4">Статус:</dt>
+                                                <dd class="col-sm-8">
+                                                    <span class="badge bg-{{ 'success' if report.status == 'approved' else 'warning' if report.status == 'submitted' else 'secondary' }}">
+                                                        {{ report.status }}
+                                                    </span>
+                                                </dd>
+                                                
+                                                {% if report.notes %}
+                                                <dt class="col-sm-4">Примечания:</dt>
+                                                <dd class="col-sm-8">{{ report.notes }}</dd>
+                                                {% endif %}
+                                                
+                                                <dt class="col-sm-4">Создан:</dt>
+                                                <dd class="col-sm-8">{{ report.created_at.strftime('%d.%m.%Y %H:%M') }}</dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            {% if report.file_path %}
+                                            <a href="{{ report.file_path }}" class="btn btn-outline-primary btn-sm" target="_blank">
+                                                <svg class="bi me-1" width="14" height="14" fill="currentColor">
+                                                    <use xlink:href="#download"></use>
+                                                </svg>
+                                                Скачать
+                                            </a>
+                                            {% else %}
+                                            <span class="text-muted small">Файл не прикреплён</span>
+                                            {% endif %}
+                                            
+                                            <span class="text-muted small">
+                                                ID: {{ report.id[:8] }}...
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <svg class="bi mb-3 text-muted" width="48" height="48" fill="currentColor">
+                                <use xlink:href="#file-earmark-text"></use>
+                            </svg>
+                            <h5 class="text-muted">Отчёты не найдены</h5>
+                            <p class="text-muted">Для этого объекта за выбранную дату нет отчётов.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Навигация -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('main.object_reports', object_id=object_obj.id) }}" class="btn btn-outline-primary">
+                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                                <use xlink:href="#arrow-left"></use>
+                            </svg>
+                            Все отчёты объекта
+                        </a>
+                        <a href="{{ url_for('main.reports_calendar') }}" class="btn btn-outline-success">
+                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                                <use xlink:href="#calendar"></use>
+                            </svg>
+                            Календарь отчётов
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

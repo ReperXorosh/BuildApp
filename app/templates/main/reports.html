@@ -14,156 +14,112 @@
                     </svg>
                     Отчёты
                 </h1>
-                <p class="text-muted">Система отчётности и аналитики</p>
+                <p class="text-muted">Система отчётности и аналитики по объектам</p>
             </div>
         </div>
     </div>
 
-    <!-- Карточки с типами отчётов -->
-    <div class="row g-4">
-        <!-- Отчёты по объектам -->
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm">
+    <!-- Навигация по отчётам -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
                 <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <svg class="bi me-2 text-primary" width="24" height="24" fill="currentColor">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="card-title">
+                                <svg class="bi me-2" width="20" height="20" fill="currentColor">
+                                    <use xlink:href="#building"></use>
+                                </svg>
+                                Список объектов
+                            </h5>
+                            <p class="card-text">Выберите объект для просмотра его отчётов по датам</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="card-title">
+                                <svg class="bi me-2" width="20" height="20" fill="currentColor">
+                                    <use xlink:href="#calendar"></use>
+                                </svg>
+                                Календарь отчётов
+                            </h5>
+                            <p class="card-text">Просматривайте объекты и отчёты по выбранной дате</p>
+                            <a href="{{ url_for('main.reports_calendar') }}" class="btn btn-outline-primary">
+                                <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                                    <use xlink:href="#calendar"></use>
+                                </svg>
+                                Открыть календарь
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Список объектов -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <svg class="bi me-2" width="20" height="20" fill="currentColor">
                             <use xlink:href="#building"></use>
                         </svg>
-                        <h5 class="card-title mb-0">Отчёты по объектам</h5>
-                    </div>
-                    <p class="card-text">Аналитика по строительным объектам, прогрессу работ и ресурсам.</p>
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-outline-primary btn-sm" disabled>
-                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
-                                <use xlink:href="#file-earmark-text"></use>
-                            </svg>
-                            Общий отчёт по объектам
-                        </button>
-                        <button class="btn btn-outline-primary btn-sm" disabled>
-                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
-                                <use xlink:href="#graph-up"></use>
-                            </svg>
-                            Прогресс выполнения
-                        </button>
-                    </div>
+                        Объекты с отчётами
+                    </h5>
                 </div>
-            </div>
-        </div>
-
-        <!-- Отчёты по пользователям -->
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm">
                 <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <svg class="bi me-2 text-success" width="24" height="24" fill="currentColor">
-                            <use xlink:href="#people"></use>
-                        </svg>
-                        <h5 class="card-title mb-0">Отчёты по пользователям</h5>
-                    </div>
-                    <p class="card-text">Аналитика активности пользователей и их работы в системе.</p>
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-outline-success btn-sm" disabled>
-                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
-                                <use xlink:href="#activity"></use>
+                    {% if objects %}
+                        <div class="row g-3">
+                            {% for object in objects %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card h-100 border-primary">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <svg class="bi me-2 text-primary" width="24" height="24" fill="currentColor">
+                                                <use xlink:href="#building"></use>
+                                            </svg>
+                                            <h6 class="card-title mb-0">{{ object.name }}</h6>
+                                        </div>
+                                        
+                                        {% if object.location %}
+                                        <p class="card-text small text-muted mb-2">
+                                            <svg class="bi me-1" width="14" height="14" fill="currentColor">
+                                                <use xlink:href="#geo-alt"></use>
+                                            </svg>
+                                            {{ object.location }}
+                                        </p>
+                                        {% endif %}
+                                        
+                                        {% if object.description %}
+                                        <p class="card-text small">{{ object.description[:100] }}{% if object.description|length > 100 %}...{% endif %}</p>
+                                        {% endif %}
+                                        
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-{{ 'success' if object.status == 'active' else 'secondary' }}">
+                                                {{ object.status }}
+                                            </span>
+                                            <a href="{{ url_for('main.object_reports', object_id=object.id) }}" 
+                                               class="btn btn-outline-primary btn-sm">
+                                                <svg class="bi me-1" width="14" height="14" fill="currentColor">
+                                                    <use xlink:href="#clipboard-data"></use>
+                                                </svg>
+                                                Отчёты
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <svg class="bi mb-3 text-muted" width="48" height="48" fill="currentColor">
+                                <use xlink:href="#building"></use>
                             </svg>
-                            Активность пользователей
-                        </button>
-                        <button class="btn btn-outline-success btn-sm" disabled>
-                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
-                                <use xlink:href="#person-check"></use>
-                            </svg>
-                            Статистика по ролям
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Отчёты по снабжению -->
-        {% if current_user.role != 'Снабженец' %}
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <svg class="bi me-2 text-warning" width="24" height="24" fill="currentColor">
-                            <use xlink:href="#box-seam"></use>
-                        </svg>
-                        <h5 class="card-title mb-0">Отчёты по снабжению</h5>
-                    </div>
-                    <p class="card-text">Аналитика по материалам, технике и заказам в системе снабжения.</p>
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-outline-warning btn-sm" disabled>
-                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
-                                <use xlink:href="#clipboard-data"></use>
-                            </svg>
-                            Отчёт по материалам
-                        </button>
-                        <button class="btn btn-outline-warning btn-sm" disabled>
-                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
-                                <use xlink:href="#truck"></use>
-                            </svg>
-                            Отчёт по технике
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Системные отчёты -->
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <svg class="bi me-2 text-info" width="24" height="24" fill="currentColor">
-                            <use xlink:href="#gear"></use>
-                        </svg>
-                        <h5 class="card-title mb-0">Системные отчёты</h5>
-                    </div>
-                    <p class="card-text">Технические отчёты и статистика работы системы.</p>
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-outline-info btn-sm" disabled>
-                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
-                                <use xlink:href="#server"></use>
-                            </svg>
-                            Статистика системы
-                        </button>
-                        <button class="btn btn-outline-info btn-sm" disabled>
-                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
-                                <use xlink:href="#shield-check"></use>
-                            </svg>
-                            Отчёт безопасности
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Экспорт данных -->
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <svg class="bi me-2 text-secondary" width="24" height="24" fill="currentColor">
-                            <use xlink:href="#download"></use>
-                        </svg>
-                        <h5 class="card-title mb-0">Экспорт данных</h5>
-                    </div>
-                    <p class="card-text">Экспорт данных в различных форматах для дальнейшего анализа.</p>
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-outline-secondary btn-sm" disabled>
-                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
-                                <use xlink:href="#file-earmark-excel"></use>
-                            </svg>
-                            Экспорт в Excel
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm" disabled>
-                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
-                                <use xlink:href="#file-earmark-pdf"></use>
-                            </svg>
-                            Экспорт в PDF
-                        </button>
-                    </div>
+                            <h5 class="text-muted">Объекты не найдены</h5>
+                            <p class="text-muted">В системе пока нет активных объектов с отчётами.</p>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -178,8 +134,12 @@
                         <use xlink:href="#info-circle"></use>
                     </svg>
                     <div>
-                        <strong>Информация:</strong> Функционал отчётов находится в разработке. 
-                        В ближайшее время будут добавлены различные типы отчётов и возможность их экспорта.
+                        <strong>Информация:</strong> 
+                        <ul class="mb-0 mt-2">
+                            <li>Нажмите на объект для просмотра всех отчётов по датам</li>
+                            <li>Используйте календарь для поиска объектов с отчётами за конкретную дату</li>
+                            <li>Отчёты отображаются в хронологическом порядке</li>
+                        </ul>
                     </div>
                 </div>
             </div>

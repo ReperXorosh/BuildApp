@@ -1,0 +1,195 @@
+{% extends "main/layout.html" %}
+{% set active_page = 'reports' %}
+
+{% block title %}Отчёты за {{ date.strftime('%d.%m.%Y') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="row">
+        <div class="col-12">
+            <div class="mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{{ url_for('main.reports') }}">
+                                <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                                    <use xlink:href="#clipboard-data"></use>
+                                </svg>
+                                Отчёты
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="{{ url_for('main.reports_calendar') }}">Календарь</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ date.strftime('%d.%m.%Y') }}</li>
+                    </ol>
+                </nav>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h3 mb-2">
+                            <svg class="bi me-2" width="24" height="24" fill="currentColor">
+                                <use xlink:href="#calendar"></use>
+                            </svg>
+                            Отчёты за {{ date.strftime('%d.%m.%Y') }}
+                        </h1>
+                        <p class="text-muted mb-0">
+                            Объекты с отчётами за выбранную дату
+                        </p>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('main.reports_calendar') }}" class="btn btn-outline-primary">
+                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                                <use xlink:href="#calendar"></use>
+                            </svg>
+                            Назад к календарю
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Статистика по дате -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-primary">{{ objects_with_reports|length }}</h4>
+                                <small class="text-muted">Объектов с отчётами</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                {% set total_reports = objects_with_reports.values() | map(attribute='reports') | map('length') | sum %}
+                                <h4 class="text-success">{{ total_reports }}</h4>
+                                <small class="text-muted">Всего отчётов</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                {% set approved_reports = objects_with_reports.values() | map(attribute='reports') | flatten | selectattr('status', 'equalto', 'approved') | list | length %}
+                                <h4 class="text-info">{{ approved_reports }}</h4>
+                                <small class="text-muted">Одобренных отчётов</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                {% set draft_reports = objects_with_reports.values() | map(attribute='reports') | flatten | selectattr('status', 'equalto', 'draft') | list | length %}
+                                <h4 class="text-warning">{{ draft_reports }}</h4>
+                                <small class="text-muted">Черновиков</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Объекты с отчётами -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <svg class="bi me-2" width="20" height="20" fill="currentColor">
+                            <use xlink:href="#building"></use>
+                        </svg>
+                        Объекты и их отчёты
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if objects_with_reports %}
+                        {% for object_id, data in objects_with_reports.items() %}
+                        <div class="mb-4">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">
+                                            <svg class="bi me-2" width="18" height="18" fill="currentColor">
+                                                <use xlink:href="#building"></use>
+                                            </svg>
+                                            {{ data.object.name }}
+                                        </h6>
+                                        <span class="badge bg-light text-dark">{{ data.reports|length }} отчётов</span>
+                                    </div>
+                                    {% if data.object.location %}
+                                    <small class="text-light">
+                                        <svg class="bi me-1" width="12" height="12" fill="currentColor">
+                                            <use xlink:href="#geo-alt"></use>
+                                        </svg>
+                                        {{ data.object.location }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        {% for report in data.reports %}
+                                        <div class="col-md-6 col-lg-4">
+                                            <div class="card h-100 border-info">
+                                                <div class="card-body">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <svg class="bi me-2 text-info" width="20" height="20" fill="currentColor">
+                                                            <use xlink:href="#file-earmark-text"></use>
+                                                        </svg>
+                                                        <h6 class="card-title mb-0">{{ report.title }}</h6>
+                                                    </div>
+                                                    
+                                                    <p class="card-text small text-muted mb-2">
+                                                        <strong>Тип:</strong> {{ report.report_type or 'Не указан' }}
+                                                    </p>
+                                                    
+                                                    {% if report.content %}
+                                                    <p class="card-text small">
+                                                        {{ report.content[:150] }}{% if report.content|length > 150 %}...{% endif %}
+                                                    </p>
+                                                    {% endif %}
+                                                    
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span class="badge bg-{{ 'success' if report.status == 'approved' else 'warning' if report.status == 'submitted' else 'secondary' }}">
+                                                            {{ report.status }}
+                                                        </span>
+                                                        <a href="{{ url_for('main.object_report_by_date', object_id=data.object.id, date=date.strftime('%Y-%m-%d')) }}" 
+                                                           class="btn btn-outline-info btn-sm">
+                                                            <svg class="bi me-1" width="14" height="14" fill="currentColor">
+                                                                <use xlink:href="#eye"></use>
+                                                            </svg>
+                                                            Просмотр
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <a href="{{ url_for('main.object_reports', object_id=data.object.id) }}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <svg class="bi me-1" width="14" height="14" fill="currentColor">
+                                            <use xlink:href="#clipboard-data"></use>
+                                        </svg>
+                                        Все отчёты объекта
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <svg class="bi mb-3 text-muted" width="48" height="48" fill="currentColor">
+                                <use xlink:href="#calendar"></use>
+                            </svg>
+                            <h5 class="text-muted">Отчёты не найдены</h5>
+                            <p class="text-muted">За выбранную дату нет отчётов.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

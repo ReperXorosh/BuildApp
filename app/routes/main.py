@@ -107,6 +107,7 @@ def sign_in():
 
 from ..models.users import Users
 from ..models.activity_log import ActivityLog
+from ..models.objects import Object, Report
 
 import re
 
@@ -667,6 +668,9 @@ def reports():
         flash('У вас нет прав для просмотра отчётов', 'error')
         return redirect(url_for('objects.object_list'))
     
+    # Получаем список всех объектов
+    objects = Object.query.filter_by(status='active').order_by(Object.name).all()
+    
     # Логируем просмотр страницы отчётов
     ActivityLog.log_action(
         user_id=current_user.userid,
@@ -678,7 +682,164 @@ def reports():
         method=request.method
     )
     
-    return render_template('main/reports.html')
+    return render_template('main/reports.html', objects=objects)
+
+@main.route('/reports/object/<object_id>')
+@login_required
+def object_reports(object_id):
+    # Проверяем, что пользователь не является снабженцем
+    if current_user.role == 'Снабженец':
+        flash('У вас нет прав для просмотра отчётов', 'error')
+        return redirect(url_for('objects.object_list'))
+    
+    # Получаем объект и его отчёты
+    object_obj = Object.query.get_or_404(object_id)
+    reports = Report.query.filter_by(object_id=object_id).order_by(Report.report_date.desc()).all()
+    
+    # Группируем отчёты по дате
+    reports_by_date = {}
+    for report in reports:
+        date_key = report.report_date.strftime('%Y-%m-%d')
+        if date_key not in reports_by_date:
+            reports_by_date[date_key] = []
+        reports_by_date[date_key].append(report)
+    
+    # Логируем просмотр отчётов объекта
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр отчётов объекта",
+        description=f"Пользователь {current_user.login} просматривает отчёты объекта {object_obj.name}",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return render_template('main/object_reports.html', 
+                         object_obj=object_obj, 
+                         reports_by_date=reports_by_date)
+
+@main.route('/reports/calendar')
+@login_required
+def reports_calendar():
+    # Проверяем, что пользователь не является снабженцем
+    if current_user.role == 'Снабженец':
+        flash('У вас нет прав для просмотра отчётов', 'error')
+        return redirect(url_for('objects.object_list'))
+    
+    # Получаем все отчёты с датами
+    reports = Report.query.order_by(Report.report_date).all()
+    
+    # Группируем объекты по датам отчётов
+    objects_by_date = {}
+    for report in reports:
+        date_key = report.report_date.strftime('%Y-%m-%d')
+        if date_key not in objects_by_date:
+            objects_by_date[date_key] = []
+        
+        # Добавляем объект, если его еще нет в списке для этой даты
+        object_obj = report.object
+        if not any(obj.id == object_obj.id for obj in objects_by_date[date_key]):
+            objects_by_date[date_key].append(object_obj)
+    
+    # Логируем просмотр календаря отчётов
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр календаря отчётов",
+        description=f"Пользователь {current_user.login} открыл календарь отчётов",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return render_template('main/reports_calendar.html', objects_by_date=objects_by_date)
+
+@main.route('/reports/date/<date>')
+@login_required
+def reports_by_date(date):
+    # Проверяем, что пользователь не является снабженцем
+    if current_user.role == 'Снабженец':
+        flash('У вас нет прав для просмотра отчётов', 'error')
+        return redirect(url_for('objects.object_list'))
+    
+    try:
+        # Парсим дату
+        from datetime import datetime
+        report_date = datetime.strptime(date, '%Y-%m-%d').date()
+        
+        # Получаем отчёты за эту дату
+        reports = Report.query.filter_by(report_date=report_date).all()
+        
+        # Группируем объекты с отчётами
+        objects_with_reports = {}
+        for report in reports:
+            object_obj = report.object
+            if object_obj.id not in objects_with_reports:
+                objects_with_reports[object_obj.id] = {
+                    'object': object_obj,
+                    'reports': []
+                }
+            objects_with_reports[object_obj.id]['reports'].append(report)
+        
+        # Логируем просмотр отчётов по дате
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Просмотр отчётов по дате",
+            description=f"Пользователь {current_user.login} просматривает отчёты за {date}",
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+        
+        return render_template('main/reports_by_date.html', 
+                             date=report_date,
+                             objects_with_reports=objects_with_reports)
+    
+    except ValueError:
+        flash('Неверный формат даты', 'error')
+        return redirect(url_for('main.reports'))
+
+@main.route('/reports/object/<object_id>/date/<date>')
+@login_required
+def object_report_by_date(object_id, date):
+    # Проверяем, что пользователь не является снабженцем
+    if current_user.role == 'Снабженец':
+        flash('У вас нет прав для просмотра отчётов', 'error')
+        return redirect(url_for('objects.object_list'))
+    
+    try:
+        # Парсим дату
+        from datetime import datetime
+        report_date = datetime.strptime(date, '%Y-%m-%d').date()
+        
+        # Получаем объект и отчёты за эту дату
+        object_obj = Object.query.get_or_404(object_id)
+        reports = Report.query.filter_by(
+            object_id=object_id, 
+            report_date=report_date
+        ).order_by(Report.created_at).all()
+        
+        # Логируем просмотр отчёта объекта по дате
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Просмотр отчёта объекта по дате",
+            description=f"Пользователь {current_user.login} просматривает отчёты объекта {object_obj.name} за {date}",
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+        
+        return render_template('main/object_report_by_date.html', 
+                             object_obj=object_obj,
+                             date=report_date,
+                             reports=reports)
+    
+    except ValueError:
+        flash('Неверный формат даты', 'error')
+        return redirect(url_for('main.object_reports', object_id=object_id))
 
 # @main.route('/layout')
 # def layout():
