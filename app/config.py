@@ -17,6 +17,17 @@ class Config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY') or os.urandom(24)
     SQLALCHEMY_TRACK_MODIFICATIONS = True
     
+    # Настройки для работы за прокси
+    PREFERRED_URL_SCHEME = 'http'
+    USE_X_FORWARDED_HOST = True
+    USE_X_FORWARDED_FOR = True
+    USE_X_FORWARDED_PROTO = True
+    
+    # Настройки сессий
+    SESSION_COOKIE_SECURE = False  # Установить True только для HTTPS
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    
     # Babel configuration
     LANGUAGES = ['ru', 'en']
     BABEL_DEFAULT_LOCALE = 'ru'
