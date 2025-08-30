@@ -5,6 +5,7 @@ from flask import Blueprint, render_template, session, redirect, url_for, reques
 from ..extensions import db
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash
 from ..extensions import db
 
 main = Blueprint('main', __name__)
@@ -339,7 +340,7 @@ def add_user():
         # Создаем нового пользователя
         new_user = Users(
             login=login,
-            password=password,
+            password=generate_password_hash(password),
             firstname=firstname,
             secondname=secondname,
             thirdname=thirdname,
@@ -479,7 +480,7 @@ def edit_user(user_id):
         
         # Обновляем пароль только если он указан
         if password:
-            user.password = password
+            user.password = generate_password_hash(password)
         
         try:
             db.session.commit()
