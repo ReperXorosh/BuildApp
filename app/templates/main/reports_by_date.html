@@ -71,15 +71,29 @@
                         </div>
                         <div class="col-md-3">
                             <div class="text-center">
-                                {% set approved_reports = objects_with_reports.values() | map(attribute='reports') | flatten | selectattr('status', 'equalto', 'approved') | list | length %}
-                                <h4 class="text-info">{{ approved_reports }}</h4>
+                                {% set approved_reports = namespace(count=0) %}
+                                {% for data in objects_with_reports.values() %}
+                                    {% for report in data.reports %}
+                                        {% if report.status == 'approved' %}
+                                            {% set approved_reports.count = approved_reports.count + 1 %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                                <h4 class="text-info">{{ approved_reports.count }}</h4>
                                 <small class="text-muted">Одобренных отчётов</small>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="text-center">
-                                {% set draft_reports = objects_with_reports.values() | map(attribute='reports') | flatten | selectattr('status', 'equalto', 'draft') | list | length %}
-                                <h4 class="text-warning">{{ draft_reports }}</h4>
+                                {% set draft_reports = namespace(count=0) %}
+                                {% for data in objects_with_reports.values() %}
+                                    {% for report in data.reports %}
+                                        {% if report.status == 'draft' %}
+                                            {% set draft_reports.count = draft_reports.count + 1 %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                                <h4 class="text-warning">{{ draft_reports.count }}</h4>
                                 <small class="text-muted">Черновиков</small>
                             </div>
                         </div>
