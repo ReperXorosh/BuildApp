@@ -444,12 +444,13 @@ def edit_user(user_id):
                 phonenumber = ""  # Неверный формат
         
         # Проверяем, что логин не занят другим пользователем
-        existing_user = Users.query.filter_by(login=login).first()
+        existing_users = Users.query.filter_by(login=login).all()
 
-        if existing_user and str(existing_user.userid) != str(user_id):
-            # flash(str(existing_user.userid) + " " + str(user_id), 'error')
-            flash('Пользователь с таким логином уже существует', 'error')
-            return redirect(url_for('main.edit_user', user_id=user_id))
+        for existing_user in existing_users:
+            if existing_user and str(existing_user.userid) != str(user_id):
+                # flash(str(existing_user.userid) + " " + str(user_id), 'error')
+                flash('Пользователь с таким логином уже существует', 'error')
+                return redirect(url_for('main.edit_user', user_id=user_id))
         
         # Обновляем данные пользователя
         user.login = login
