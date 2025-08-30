@@ -668,7 +668,7 @@ def reports():
         flash('У вас нет прав для просмотра отчётов', 'error')
         return redirect(url_for('objects.object_list'))
     
-    # Получаем список всех объектов
+пе    # Получаем список всех объектов
     objects = Object.query.filter_by(status='active').order_by(Object.name).all()
     
     # Логируем просмотр страницы отчётов
