@@ -12,4 +12,4 @@ RUN apt-get update && apt-get install -y gcc \
 # Теперь уже код приложения
 COPY . /app/
 
-CMD ["uwsgi", "app.ini"]
+CMD ["gunicorn", "app.ini"]
