@@ -12,4 +12,4 @@ RUN apt-get update && apt-get install -y gcc \
 # Теперь уже код приложения
 COPY . /app/
 
-CMD ["gunicorn", "app.ini"]
+CMD ["gunicorn", "__init__:app"]
