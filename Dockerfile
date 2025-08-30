@@ -12,4 +12,4 @@ RUN apt-get update && apt-get install -y gcc \
 # Теперь уже код приложения
 COPY . /app/
 
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8080", "run:application"]
+CMD ["gunicorn", "-w", "4", "--threads", "2", "-b", "0.0.0.0:8080", "run:application", "--log-level", "info", "--access-logfile", "-"]
