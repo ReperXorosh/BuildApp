@@ -446,8 +446,8 @@ def edit_user(user_id):
         # Проверяем, что логин не занят другим пользователем
         existing_user = Users.query.filter_by(login=login).first()
 
-        if existing_user and existing_user.user_id != user_id:
-            flash(str(existing_user.user_id) + " " + str(user_id), 'error')
+        if existing_user and existing_user.userid != user_id:
+            # flash(str(existing_user.user_id) + " " + str(user_id), 'error')
             flash('Пользователь с таким логином уже существует', 'error')
             return redirect(url_for('main.edit_user', user_id=user_id))
         
