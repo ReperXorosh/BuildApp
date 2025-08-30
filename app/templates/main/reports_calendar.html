@@ -145,15 +145,22 @@
                         </div>
                         <div class="col-md-3">
                             <div class="text-center">
-                                {% set total_objects = objects_by_date.values() | sum(attribute='length') %}
+                                {% set total_objects = objects_by_date.values() | map('length') | sum %}
                                 <h4 class="text-success">{{ total_objects }}</h4>
                                 <small class="text-muted">Всего объектов</small>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="text-center">
-                                {% set unique_objects = objects_by_date.values() | map('list') | flatten | unique | list | length %}
-                                <h4 class="text-info">{{ unique_objects }}</h4>
+                                {% set all_objects = [] %}
+                                {% for objects in objects_by_date.values() %}
+                                    {% for obj in objects %}
+                                        {% if obj not in all_objects %}
+                                            {% set _ = all_objects.append(obj) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                                <h4 class="text-info">{{ all_objects|length }}</h4>
                                 <small class="text-muted">Уникальных объектов</small>
                             </div>
                         </div>
