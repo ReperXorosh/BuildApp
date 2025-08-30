@@ -17,6 +17,7 @@ TRANSLATIONS = {
         'Прочее': 'Прочее',
         'Пользователи': 'Пользователи',
         'Профиль': 'Профиль',
+        'Отчёты': 'Отчёты',
         'Выйти': 'Выйти',
         'Вход в систему': 'Вход в систему',
         'Войдите в аккаунт': 'Войдите в аккаунт',
@@ -31,6 +32,7 @@ TRANSLATIONS = {
         'Прочее': 'Other',
         'Пользователи': 'Users',
         'Профиль': 'Profile',
+        'Отчёты': 'Reports',
         'Выйти': 'Sign Out',
         'Вход в систему': 'System Login',
         'Войдите в аккаунт': 'Sign in to your account',
@@ -656,6 +658,27 @@ def profile():
         flash('Профиль обновлён', 'success')
         return redirect(url_for('main.profile'))
     return render_template('main/profile.html')
+
+@main.route('/reports')
+@login_required
+def reports():
+    # Проверяем, что пользователь не является снабженцем
+    if current_user.role == 'Снабженец':
+        flash('У вас нет прав для просмотра отчётов', 'error')
+        return redirect(url_for('objects.object_list'))
+    
+    # Логируем просмотр страницы отчётов
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр отчётов",
+        description=f"Пользователь {current_user.login} открыл страницу отчётов",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return render_template('main/reports.html')
 
 # @main.route('/layout')
 # def layout():

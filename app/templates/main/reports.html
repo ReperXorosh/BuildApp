@@ -1,0 +1,189 @@
+{% extends "main/layout.html" %}
+{% set active_page = 'reports' %}
+
+{% block title %}Отчёты{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="row">
+        <div class="col-12">
+            <div class="mb-4">
+                <h1 class="h3 mb-3">
+                    <svg class="bi me-2" width="24" height="24" fill="currentColor">
+                        <use xlink:href="#clipboard-data"></use>
+                    </svg>
+                    Отчёты
+                </h1>
+                <p class="text-muted">Система отчётности и аналитики</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Карточки с типами отчётов -->
+    <div class="row g-4">
+        <!-- Отчёты по объектам -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <svg class="bi me-2 text-primary" width="24" height="24" fill="currentColor">
+                            <use xlink:href="#building"></use>
+                        </svg>
+                        <h5 class="card-title mb-0">Отчёты по объектам</h5>
+                    </div>
+                    <p class="card-text">Аналитика по строительным объектам, прогрессу работ и ресурсам.</p>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm" disabled>
+                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                                <use xlink:href="#file-earmark-text"></use>
+                            </svg>
+                            Общий отчёт по объектам
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" disabled>
+                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                                <use xlink:href="#graph-up"></use>
+                            </svg>
+                            Прогресс выполнения
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Отчёты по пользователям -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <svg class="bi me-2 text-success" width="24" height="24" fill="currentColor">
+                            <use xlink:href="#people"></use>
+                        </svg>
+                        <h5 class="card-title mb-0">Отчёты по пользователям</h5>
+                    </div>
+                    <p class="card-text">Аналитика активности пользователей и их работы в системе.</p>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-success btn-sm" disabled>
+                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                                <use xlink:href="#activity"></use>
+                            </svg>
+                            Активность пользователей
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" disabled>
+                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                                <use xlink:href="#person-check"></use>
+                            </svg>
+                            Статистика по ролям
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Отчёты по снабжению -->
+        {% if current_user.role != 'Снабженец' %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <svg class="bi me-2 text-warning" width="24" height="24" fill="currentColor">
+                            <use xlink:href="#box-seam"></use>
+                        </svg>
+                        <h5 class="card-title mb-0">Отчёты по снабжению</h5>
+                    </div>
+                    <p class="card-text">Аналитика по материалам, технике и заказам в системе снабжения.</p>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-warning btn-sm" disabled>
+                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                                <use xlink:href="#clipboard-data"></use>
+                            </svg>
+                            Отчёт по материалам
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm" disabled>
+                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                                <use xlink:href="#truck"></use>
+                            </svg>
+                            Отчёт по технике
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Системные отчёты -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <svg class="bi me-2 text-info" width="24" height="24" fill="currentColor">
+                            <use xlink:href="#gear"></use>
+                        </svg>
+                        <h5 class="card-title mb-0">Системные отчёты</h5>
+                    </div>
+                    <p class="card-text">Технические отчёты и статистика работы системы.</p>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-info btn-sm" disabled>
+                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                                <use xlink:href="#server"></use>
+                            </svg>
+                            Статистика системы
+                        </button>
+                        <button class="btn btn-outline-info btn-sm" disabled>
+                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                                <use xlink:href="#shield-check"></use>
+                            </svg>
+                            Отчёт безопасности
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экспорт данных -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <svg class="bi me-2 text-secondary" width="24" height="24" fill="currentColor">
+                            <use xlink:href="#download"></use>
+                        </svg>
+                        <h5 class="card-title mb-0">Экспорт данных</h5>
+                    </div>
+                    <p class="card-text">Экспорт данных в различных форматах для дальнейшего анализа.</p>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-secondary btn-sm" disabled>
+                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                                <use xlink:href="#file-earmark-excel"></use>
+                            </svg>
+                            Экспорт в Excel
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" disabled>
+                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                                <use xlink:href="#file-earmark-pdf"></use>
+                            </svg>
+                            Экспорт в PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Информационный блок -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info" role="alert">
+                <div class="d-flex align-items-center">
+                    <svg class="bi me-2" width="20" height="20" fill="currentColor">
+                        <use xlink:href="#info-circle"></use>
+                    </svg>
+                    <div>
+                        <strong>Информация:</strong> Функционал отчётов находится в разработке. 
+                        В ближайшее время будут добавлены различные типы отчётов и возможность их экспорта.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
