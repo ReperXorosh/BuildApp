@@ -37,11 +37,11 @@ class ActivityLog(db.Model):
         if self.created_at:
             if self.created_at.tzinfo is None:
                 # Если время без часового пояса, считаем его московским
-                moscow_tz = timezone(timedelta(hours=3))
-                moscow_time = self.created_at.replace(tzinfo=moscow_tz)
+                moscow_tz = pytz.timezone('Europe/Moscow')
+                moscow_time = moscow_tz.localize(self.created_at)
             else:
                 # Если время с часовым поясом, конвертируем в московское
-                moscow_tz = timezone(timedelta(hours=3))
+                moscow_tz = pytz.timezone('Europe/Moscow')
                 moscow_time = self.created_at.astimezone(moscow_tz)
         
         return {

@@ -35,19 +35,49 @@ def fix_registration_dates():
             updated_count = 0
             for user in users:
                 old_date = user.registration_date
-                user.registration_date = current_time
+                
+                # Если время без часового пояса, добавляем московский часовой пояс
+                if old_date and old_date.tzinfo is None:
+                    # Предполагаем, что существующее время уже в московском времени
+                    user.registration_date = moscow_tz.localize(old_date)
+                else:
+                    # Если время уже с часовым поясом, обновляем на текущее
+                    user.registration_date = current_time
+                
                 updated_count += 1
-                print(f"  ✅ {user.login}: {old_date} → {current_time}")
+                print(f"  ✅ {user.login}: {old_date} → {user.registration_date}")
             
             # Сохраняем изменения
             db.session.commit()
             
             print(f"\n✅ Обновлено {updated_count} пользователей")
-            print(f"🕐 Новое время регистрации: {current_time}")
+            print(f"🕐 Текущее московское время: {current_time}")
             
         except Exception as e:
             print(f"❌ Ошибка: {e}")
             db.session.rollback()
 
+def test_timezone():
+    """Тестирует работу с часовыми поясами"""
+    print("=== ТЕСТИРОВАНИЕ ЧАСОВЫХ ПОЯСОВ ===\n")
+    
+    # Московское время
+    moscow_tz = pytz.timezone('Europe/Moscow')
+    moscow_time = datetime.now(moscow_tz)
+    
+    # UTC время
+    utc_tz = pytz.UTC
+    utc_time = datetime.now(utc_tz)
+    
+    # Локальное время системы
+    local_time = datetime.now()
+    
+    print(f"🕐 Московское время: {moscow_time}")
+    print(f"🌍 UTC время: {utc_time}")
+    print(f"💻 Локальное время: {local_time}")
+    print(f"📊 Разница UTC-Москва: {utc_time.astimezone(moscow_tz) - moscow_time}")
+
 if __name__ == '__main__':
+    test_timezone()
+    print("\n" + "="*50 + "\n")
     fix_registration_dates()

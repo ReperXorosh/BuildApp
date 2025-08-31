@@ -75,7 +75,7 @@
                              </td>
                                                            <td>
                                   <small class="text-muted">
-                                      {{ user.registration_date.strftime('%d.%m.%Y %H:%M:%S') if user.registration_date else 'Не указана' }}
+                                      {{ user.registration_date | moscow_time }}
                                   </small>
                               </td>
                              <td>

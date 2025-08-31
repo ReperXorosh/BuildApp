@@ -1,4 +1,6 @@
 import os
+from datetime import datetime
+import pytz
 
 from flask import Flask, request, session
 from .extensions import db, login_manager
@@ -31,6 +33,24 @@ def create_app():
     app.register_blueprint(activity_log, url_prefix='/admin')
     app.register_blueprint(supply, url_prefix='/supply')
     app.register_blueprint(objects_bp, url_prefix='/objects')
+    
+    # Регистрируем фильтр для московского времени
+    @app.template_filter('moscow_time')
+    def moscow_time_filter(dt):
+        """Фильтр для отображения времени в московском часовом поясе"""
+        if dt is None:
+            return 'Не указано'
+        
+        moscow_tz = pytz.timezone('Europe/Moscow')
+        
+        # Если время без часового пояса, считаем его московским
+        if dt.tzinfo is None:
+            dt = moscow_tz.localize(dt)
+        else:
+            # Конвертируем в московское время
+            dt = dt.astimezone(moscow_tz)
+        
+        return dt.strftime('%d.%m.%Y %H:%M:%S')
     
     return app
 
