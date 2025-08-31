@@ -159,6 +159,15 @@
                                                 
                                                 <dt class="col-sm-4">Создан:</dt>
                                                 <dd class="col-sm-8">{{ report.created_at | moscow_time_short }}</dd>
+                                                
+                                                <dt class="col-sm-4">Создал:</dt>
+                                                <dd class="col-sm-8">
+                                                    {% if report.creator %}
+                                                        <span class="text-primary">{{ report.creator.login }}</span>
+                                                    {% else %}
+                                                        <span class="text-muted">Не указан</span>
+                                                    {% endif %}
+                                                </dd>
                                             </dl>
                                         </div>
                                     </div>

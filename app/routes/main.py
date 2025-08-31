@@ -764,9 +764,17 @@ def object_reports(object_id):
         flash('У вас нет прав для просмотра отчётов', 'error')
         return redirect(url_for('objects.object_list'))
     
-    # Получаем объект и его отчёты
+    # Получаем объект и его отчёты с информацией о создателях
     object_obj = Object.query.get_or_404(object_id)
     reports = Report.query.filter_by(object_id=object_id).order_by(Report.report_date.desc()).all()
+    
+    # Загружаем информацию о создателях отчётов
+    from ..models.users import Users
+    for report in reports:
+        if report.created_by:
+            report.creator = Users.query.get(report.created_by)
+        else:
+            report.creator = None
     
     # Группируем отчёты по дате
     reports_by_date = {}
@@ -799,8 +807,16 @@ def reports_calendar():
         flash('У вас нет прав для просмотра отчётов', 'error')
         return redirect(url_for('objects.object_list'))
     
-    # Получаем все отчёты с датами
+    # Получаем все отчёты с датами и информацией о создателях
     reports = Report.query.order_by(Report.report_date).all()
+    
+    # Загружаем информацию о создателях отчётов
+    from ..models.users import Users
+    for report in reports:
+        if report.created_by:
+            report.creator = Users.query.get(report.created_by)
+        else:
+            report.creator = None
     
     # Группируем объекты по датам отчётов
     objects_by_date = {}
@@ -840,8 +856,16 @@ def reports_by_date(date):
         from datetime import datetime
         report_date = datetime.strptime(date, '%Y-%m-%d').date()
         
-        # Получаем отчёты за эту дату
+        # Получаем отчёты за эту дату с информацией о создателях
         reports = Report.query.filter_by(report_date=report_date).all()
+        
+        # Загружаем информацию о создателях отчётов
+        from ..models.users import Users
+        for report in reports:
+            if report.created_by:
+                report.creator = Users.query.get(report.created_by)
+            else:
+                report.creator = None
         
         # Группируем объекты с отчётами
         objects_with_reports = {}
@@ -886,12 +910,20 @@ def object_report_by_date(object_id, date):
         from datetime import datetime
         report_date = datetime.strptime(date, '%Y-%m-%d').date()
         
-        # Получаем объект и отчёты за эту дату
+        # Получаем объект и отчёты за эту дату с информацией о создателях
         object_obj = Object.query.get_or_404(object_id)
         reports = Report.query.filter_by(
             object_id=object_id, 
             report_date=report_date
         ).order_by(Report.created_at).all()
+        
+        # Загружаем информацию о создателях отчётов
+        from ..models.users import Users
+        for report in reports:
+            if report.created_by:
+                report.creator = Users.query.get(report.created_by)
+            else:
+                report.creator = None
         
         # Логируем просмотр отчёта объекта по дате
         ActivityLog.log_action(

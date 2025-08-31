@@ -131,9 +131,17 @@
                                                 <h6 class="card-title mb-0">{{ report.title }}</h6>
                                             </div>
                                             
-                                            <p class="card-text small text-muted mb-2">
-                                                <strong>Тип:</strong> {{ report.report_type or 'Не указан' }}
-                                            </p>
+                                                                                         <p class="card-text small text-muted mb-2">
+                                                 <strong>Тип:</strong> {{ report.report_type or 'Не указан' }}
+                                             </p>
+                                             <p class="card-text small text-muted mb-2">
+                                                 <strong>Создал:</strong> 
+                                                 {% if report.creator %}
+                                                     <span class="text-primary">{{ report.creator.login }}</span>
+                                                 {% else %}
+                                                     <span class="text-muted">Не указан</span>
+                                                 {% endif %}
+                                             </p>
                                             
                                             {% if report.content %}
                                             <p class="card-text small">
