@@ -163,7 +163,10 @@
                                                 <dt class="col-sm-4">Создал:</dt>
                                                 <dd class="col-sm-8">
                                                     {% if report.creator %}
-                                                        <span class="text-primary">{{ report.creator.login }}</span>
+                                                        <a href="{{ url_for('main.view_user_profile', user_id=report.creator.userid) }}" 
+                                                           class="text-primary text-decoration-none fw-bold">
+                                                            {{ report.creator.login }}
+                                                        </a>
                                                     {% else %}
                                                         <span class="text-muted">Не указан</span>
                                                     {% endif %}

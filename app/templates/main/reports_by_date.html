@@ -158,7 +158,10 @@
                                                     <p class="card-text small text-muted mb-2">
                                                         <strong>Создал:</strong> 
                                                         {% if report.creator %}
-                                                            <span class="text-primary">{{ report.creator.login }}</span>
+                                                            <a href="{{ url_for('main.view_user_profile', user_id=report.creator.userid) }}" 
+                                                               class="text-primary text-decoration-none fw-bold">
+                                                                {{ report.creator.login }}
+                                                            </a>
                                                         {% else %}
                                                             <span class="text-muted">Не указан</span>
                                                         {% endif %}
