@@ -78,7 +78,7 @@
                             <dl class="row mb-0">
                                 <dt class="col-sm-6">Всего отчётов:</dt>
                                 <dd class="col-sm-6">
-                                    {% set total_reports = reports_by_date.values() | sum(attribute='length') %}
+                                    {% set total_reports = reports_by_date.values() | map('length') | sum %}
                                     <span class="badge bg-primary">{{ total_reports }}</span>
                                 </dd>
                                 <dt class="col-sm-6">Дат с отчётами:</dt>
