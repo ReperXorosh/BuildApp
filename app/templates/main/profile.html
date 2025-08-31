@@ -151,22 +151,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (avatarInput && editorContainer) {
         console.log('✅ Все элементы найдены');
-        
-        // Инициализируем редактор аватара
-        if (typeof AvatarEditor !== 'undefined') {
-            avatarEditor = new AvatarEditor('avatar-editor-container', 'avatar', 'avatar-preview');
-            console.log('✅ Редактор аватаров инициализирован');
-        } else {
-            console.error('❌ Класс AvatarEditor не найден');
-        }
+        console.log('🎨 Редактор аватаров готов к работе!');
     } else {
         console.error('❌ Не найдены необходимые элементы:', {
             avatarInput: !!avatarInput,
             editorContainer: !!editorContainer
         });
     }
-    
-    console.log('🎨 Редактор аватаров готов к работе!');
 });
 
 // Обработка выбора файла аватара
@@ -178,6 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const file = e.target.files[0];
             const editorContainer = document.getElementById('avatar-editor-container');
+            const preview = document.getElementById('avatar-preview');
             
             if (file) {
                 // Проверяем размер файла (максимум 2 МБ)
@@ -201,12 +193,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('✅ Контейнер редактора показан');
                 }
                 
+                // Создаем URL для предпросмотра и инициализируем редактор
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (preview) {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                    }
+                    
+                    // Инициализируем редактор аватара с URL изображения
+                    if (typeof AvatarEditor !== 'undefined') {
+                        avatarEditor = new AvatarEditor('avatar-editor-container', e.target.result);
+                        console.log('✅ Редактор аватаров инициализирован с изображением');
+                    } else {
+                        console.error('❌ Класс AvatarEditor не найден');
+                    }
+                };
+                reader.readAsDataURL(file);
+                
                 console.log('📁 Файл валиден, редактор готов к работе');
             } else {
                 // Скрываем контейнер редактора если файл не выбран
                 if (editorContainer) {
                     editorContainer.style.display = 'none';
                     console.log('✅ Контейнер редактора скрыт');
+                }
+                if (preview) {
+                    preview.style.display = 'none';
                 }
             }
         });
