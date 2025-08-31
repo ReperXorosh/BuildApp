@@ -34,8 +34,8 @@
                             <div class="form-text">Поддерживаемые форматы: PNG, JPG, JPEG. Максимальный размер: 2 МБ</div>
                         </div>
                         
-                        <!-- Контейнер для редактора аватара -->
-                        <div id="avatar-editor-container" class="mt-3">
+                        <!-- Контейнер для редактора аватара (скрыт по умолчанию) -->
+                        <div id="avatar-editor-container" class="mt-3" style="display: none;">
                             <!-- Предпросмотр аватара -->
                             <div class="text-center mb-3">
                                 <img id="avatar-preview" src="{{ url_for('static', filename='img/default-avatar.png') }}" 
@@ -150,14 +150,58 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🎨 Редактор аватаров готов к работе!');
 });
 
+// Обработка выбора файла аватара
+document.getElementById('avatar').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const editorContainer = document.getElementById('avatar-editor-container');
+    
+    if (file) {
+        // Проверяем размер файла (максимум 2 МБ)
+        if (file.size > 2 * 1024 * 1024) {
+            alert('Размер файла не должен превышать 2 МБ');
+            this.value = '';
+            return;
+        }
+        
+        // Проверяем тип файла
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!validTypes.includes(file.type)) {
+            alert('Поддерживаются только форматы: PNG, JPG, JPEG');
+            this.value = '';
+            return;
+        }
+        
+        // Показываем контейнер редактора
+        editorContainer.style.display = 'block';
+        
+        // Убеждаемся, что редактор инициализирован
+        if (!avatarEditor && typeof AvatarEditor !== 'undefined') {
+            avatarEditor = new AvatarEditor('avatar-editor-container', 'avatar', 'avatar-preview');
+        }
+        
+        console.log('📁 Файл выбран, редактор готов к работе');
+    } else {
+        // Скрываем контейнер редактора если файл не выбран
+        editorContainer.style.display = 'none';
+    }
+});
+
 // Обработка отправки формы аватара
 document.getElementById('avatar-form').addEventListener('submit', function(e) {
+    console.log('💾 Сохранение аватара...');
+    
     // Если есть редактор аватара и изображение было отредактировано
     if (avatarEditor && avatarEditor.image) {
+        console.log('🎨 Применяем изменения из редактора...');
         const editedImage = avatarEditor.getEditedImage();
         if (editedImage) {
             document.getElementById('edited_avatar').value = editedImage;
+            console.log('✅ Отредактированное изображение добавлено в форму');
+        } else {
+            console.log('⚠️ Не удалось получить отредактированное изображение');
         }
+    } else {
+        console.log('ℹ️ Редактор не активен, сохраняется оригинальный файл');
     }
 });
 </script>
