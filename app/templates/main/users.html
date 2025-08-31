@@ -49,7 +49,14 @@
                         <tr>
                             <td><code>{{ user.userid }}...</code></td>
                             <td>
-                                <strong>{{ user.login }}</strong>
+                                {% if current_user.role == 'Инженер ПТО' %}
+                                    <a href="{{ url_for('main.view_user_profile', user_id=user.userid) }}" 
+                                       class="text-decoration-none fw-bold text-primary">
+                                        {{ user.login }}
+                                    </a>
+                                {% else %}
+                                    <strong>{{ user.login }}</strong>
+                                {% endif %}
                                 {% if user.userid == current_user.userid %}
                                     <span class="badge bg-primary ms-2">Вы</span>
                                 {% endif %}
