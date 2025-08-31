@@ -111,6 +111,7 @@ def view_activity_log():
     page = request.args.get('page', 1, type=int)
     per_page = 50
     user_filter = request.args.get('user', '')
+    user_id_filter = request.args.get('user_id', '')
     action_filter = request.args.get('action', '')
     date_filter = request.args.get('date', '')
     
@@ -118,7 +119,11 @@ def view_activity_log():
     query = ActivityLog.query
     
     # Применяем фильтры
-    if user_filter:
+    if user_id_filter:
+        # Фильтрация по ID пользователя (точное совпадение)
+        query = query.filter(ActivityLog.user_id == user_id_filter)
+    elif user_filter:
+        # Фильтрация по логину пользователя (частичное совпадение)
         query = query.filter(ActivityLog.user_login.contains(user_filter))
     
     if action_filter:
@@ -157,11 +162,18 @@ def view_activity_log():
         ActivityLog.created_at >= datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     ).count()
     
+    # Получаем информацию о пользователе для фильтра
+    filtered_user = None
+    if user_id_filter:
+        filtered_user = Users.query.get(user_id_filter)
+    
     return render_template('main/activity_log.html',
                          activities=activities,
                          total_activities=total_activities,
                          today_activities=today_activities,
                          user_filter=user_filter,
+                         user_id_filter=user_id_filter,
+                         filtered_user=filtered_user,
                          action_filter=action_filter,
                          date_filter=date_filter)
 

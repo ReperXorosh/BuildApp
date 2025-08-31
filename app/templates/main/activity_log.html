@@ -7,7 +7,40 @@
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">{{ gettext('Журнал действий') }}</h1>
+                <div>
+                    <h1 class="h2">{{ gettext('Журнал действий') }}</h1>
+                    {% if user_id_filter and filtered_user %}
+                    <p class="text-muted mb-0">
+                        <svg class="bi me-1" width="14" height="14" fill="currentColor">
+                            <use href="#funnel"></use>
+                        </svg>
+                        Фильтр: действия пользователя 
+                        <strong>{{ filtered_user.login }}</strong>
+                        {% if filtered_user.firstname or filtered_user.secondname %}
+                            ({{ filtered_user.secondname or '' }} {{ filtered_user.firstname or '' }})
+                        {% endif %}
+                        <a href="{{ url_for('activity_log.view_activity_log') }}" class="btn btn-sm btn-outline-secondary ms-2">
+                            <svg class="bi me-1" width="12" height="12" fill="currentColor">
+                                <use href="#x-circle"></use>
+                            </svg>
+                            Сбросить фильтр
+                        </a>
+                    </p>
+                    {% elif user_id_filter %}
+                    <p class="text-muted mb-0">
+                        <svg class="bi me-1" width="14" height="14" fill="currentColor">
+                            <use href="#funnel"></use>
+                        </svg>
+                        Фильтр: действия пользователя с ID {{ user_id_filter }}
+                        <a href="{{ url_for('activity_log.view_activity_log') }}" class="btn btn-sm btn-outline-secondary ms-2">
+                            <svg class="bi me-1" width="12" height="12" fill="currentColor">
+                                <use href="#x-circle"></use>
+                            </svg>
+                            Сбросить фильтр
+                        </a>
+                    </p>
+                    {% endif %}
+                </div>
                 <div class="btn-toolbar mb-2 mb-md-0" style="margin-right: 8rem !important; padding-right: 2rem;">
                     <div class="btn-group me-3">
                         <a href="{{ url_for('activity_log.export_activity_log') }}" class="btn btn-sm btn-outline-secondary">
@@ -49,6 +82,9 @@
                         <div class="col-md-3">
                             <label for="user" class="form-label">{{ gettext('Пользователь') }}</label>
                             <input type="text" class="form-control" id="user" name="user" value="{{ user_filter }}" placeholder="{{ gettext('Поиск по пользователю') }}">
+                            {% if user_id_filter %}
+                            <input type="hidden" name="user_id" value="{{ user_id_filter }}">
+                            {% endif %}
                         </div>
                         <div class="col-md-3">
                             <label for="action" class="form-label">{{ gettext('Действие') }}</label>
@@ -658,6 +694,24 @@ document.addEventListener('DOMContentLoaded', function() {
             tableContainer.style.height = tableHeight + 'px';
         }
     });
+});
+
+// Добавляем SVG иконки если их нет
+document.addEventListener('DOMContentLoaded', function() {
+    if (!document.querySelector('#funnel')) {
+        const svgIcons = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+                <symbol id="funnel" viewBox="0 0 16 16">
+                    <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.317.214l-4 1.5A.5.5 0 0 1 5 15V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2z"/>
+                </symbol>
+                <symbol id="x-circle" viewBox="0 0 16 16">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                    <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                </symbol>
+            </svg>
+        `;
+        document.body.insertAdjacentHTML('beforeend', svgIcons);
+    }
 });
 </script>
 {% endblock %}
