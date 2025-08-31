@@ -70,9 +70,32 @@
                     
                     <!-- Статус активности -->
                     <div class="mb-3">
-                        <small class="text-muted">
+                        <div class="d-flex align-items-center justify-content-center mb-2">
+                            <div class="me-2">
+                                <div class="position-relative">
+                                    <div class="position-absolute top-0 start-100 translate-middle">
+                                        <span class="badge rounded-pill bg-{{ 'success' if user.is_online else 'secondary' }}">
+                                            <span class="visually-hidden">Статус</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="badge bg-{{ 'success' if user.is_online else 'secondary' }} px-3 py-2">
+                                <svg class="bi me-1" width="12" height="12" fill="currentColor">
+                                    <use href="#{{ 'circle-fill' if user.is_online else 'circle' }}"></use>
+                                </svg>
+                                {{ 'В сети' if user.is_online else 'Не в сети' }}
+                            </span>
+                        </div>
+                        <small class="text-muted d-block text-center">
                             <svg class="bi me-1" width="12" height="12" fill="currentColor">
                                 <use href="#clock"></use>
+                            </svg>
+                            {{ user.get_online_status() }}
+                        </small>
+                        <small class="text-muted d-block text-center">
+                            <svg class="bi me-1" width="12" height="12" fill="currentColor">
+                                <use href="#calendar"></use>
                             </svg>
                             Зарегистрирован: {{ user.registration_date | moscow_time_short if user.registration_date else 'Не указано' }}
                         </small>
@@ -186,7 +209,21 @@
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Последняя активность</label>
                             <p class="form-control-plaintext">
-                                <span class="text-muted">Информация недоступна</span>
+                                {% if user.last_activity %}
+                                    <span class="text-primary">{{ user.last_activity | moscow_time }}</span>
+                                {% else %}
+                                    <span class="text-muted">Никогда не был активен</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Последний вход</label>
+                            <p class="form-control-plaintext">
+                                {% if user.last_login %}
+                                    <span class="text-primary">{{ user.last_login | moscow_time }}</span>
+                                {% else %}
+                                    <span class="text-muted">Никогда не входил</span>
+                                {% endif %}
                             </p>
                         </div>
                     </div>
@@ -218,6 +255,15 @@
     <symbol id="clock" viewBox="0 0 16 16">
         <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
         <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+    </symbol>
+    <symbol id="circle" viewBox="0 0 16 16">
+        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+    </symbol>
+    <symbol id="circle-fill" viewBox="0 0 16 16">
+        <circle cx="8" cy="8" r="8"/>
+    </symbol>
+    <symbol id="calendar" viewBox="0 0 16 16">
+        <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
     </symbol>
 </svg>
 

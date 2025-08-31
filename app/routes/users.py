@@ -62,7 +62,13 @@ def login():
         user = Users.query.filter_by(login=login).first()
         # if user:
         if user and check_password_hash(user.password, password):
+            # Обновляем информацию о входе пользователя
+            from ..utils.timezone_utils import get_moscow_now
+            user.last_login = get_moscow_now()
+            user.mark_online()
+            
             login_user(user)
+            
             # Логируем успешный вход
             ActivityLog.log_action(
                 user_id=user.userid,
@@ -93,6 +99,9 @@ def login():
 def logout():
     # Логируем выход из системы
     if current_user.is_authenticated:
+        # Отмечаем пользователя как не в сети
+        current_user.mark_offline()
+        
         ActivityLog.log_action(
             user_id=current_user.userid,
             user_login=current_user.login,
