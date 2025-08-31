@@ -699,6 +699,36 @@ def profile():
         return redirect(url_for('main.profile'))
     return render_template('main/profile.html')
 
+@main.route('/user/<user_id>')
+@login_required
+def view_user_profile(user_id):
+    """Просмотр профиля другого пользователя (только для администраторов)"""
+    from ..models.users import User
+    
+    # Проверяем права доступа (только Инженер ПТО может просматривать профили других пользователей)
+    if current_user.role != 'Инженер ПТО':
+        flash('У вас нет прав для просмотра профилей других пользователей', 'danger')
+        return redirect(url_for('main.users'))
+    
+    # Получаем пользователя
+    user = User.query.get(user_id)
+    if not user:
+        flash('Пользователь не найден', 'danger')
+        return redirect(url_for('main.users'))
+    
+    # Логируем просмотр профиля
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр профиля пользователя",
+        description=f"Администратор {current_user.login} просматривает профиль пользователя {user.login}",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return render_template('main/view_user_profile.html', user=user)
+
 @main.route('/reports')
 @login_required
 def reports():

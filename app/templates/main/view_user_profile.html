@@ -1,0 +1,237 @@
+{% extends "main/layout.html" %}
+{% set active_page = 'users' %}
+
+{% block title %}Профиль пользователя {{ user.login }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Профиль пользователя</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('main.users') }}">Пользователи</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ user.login }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{{ url_for('main.users') }}" class="btn btn-outline-secondary me-2">
+                <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                    <use href="#arrow-left"></use>
+                </svg>
+                Назад к списку
+            </a>
+            {% if current_user.role == 'Инженер ПТО' %}
+            <a href="{{ url_for('main.edit_user', user_id=user.userid) }}" class="btn btn-primary">
+                <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                    <use href="#pencil"></use>
+                </svg>
+                Редактировать
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="row g-4">
+        <!-- Левая колонка: аватар и основная информация -->
+        <div class="col-12 col-md-4 col-lg-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <!-- Аватар пользователя -->
+                    {% if user.avatar %}
+                    <img src="{{ url_for('static', filename='uploads/avatars/' ~ user.avatar) }}"
+                         alt="Avatar" class="rounded-circle mb-3"
+                         style="width:160px;height:160px;object-fit:cover;">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='img/default-avatar.png') }}"
+                         alt="Avatar" class="rounded-circle mb-3"
+                         style="width:160px;height:160px;object-fit:cover;">
+                    {% endif %}
+
+                    <!-- Основная информация -->
+                    <h5 class="card-title">{{ user.login }}</h5>
+                    <p class="text-muted mb-3">
+                        <span class="badge bg-{{ 'danger' if user.role == 'Инженер ПТО' else 'warning' if user.role in ['Ген.Директор', 'Зам.Директор'] else 'info' if user.role == 'Снабженец' else 'secondary' }}">
+                            {{ user.role }}
+                        </span>
+                    </p>
+                    
+                    <!-- Статус активности -->
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <svg class="bi me-1" width="12" height="12" fill="currentColor">
+                                <use href="#clock"></use>
+                            </svg>
+                            Зарегистрирован: {{ user.registration_date | moscow_time_short if user.registration_date else 'Не указано' }}
+                        </small>
+                    </div>
+
+                    <!-- Дополнительные действия -->
+                    {% if current_user.role == 'Инженер ПТО' and user.userid != current_user.userid %}
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-outline-danger btn-sm" 
+                                onclick="confirmDelete('{{ user.userid }}', '{{ user.login }}')">
+                            <svg class="bi me-1" width="14" height="14" fill="currentColor">
+                                <use href="#trash"></use>
+                            </svg>
+                            Удалить пользователя
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Правая колонка: детальная информация -->
+        <div class="col-12 col-md-8 col-lg-9">
+            <div class="card shadow-sm mb-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <svg class="bi me-2" width="20" height="20" fill="currentColor">
+                            <use href="#person"></use>
+                        </svg>
+                        Личная информация
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Фамилия</label>
+                            <p class="form-control-plaintext">
+                                {{ user.secondname or 'Не указано' }}
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Имя</label>
+                            <p class="form-control-plaintext">
+                                {{ user.firstname or 'Не указано' }}
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Отчество</label>
+                            <p class="form-control-plaintext">
+                                {{ user.thirdname or 'Не указано' }}
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Телефон</label>
+                            <p class="form-control-plaintext">
+                                {% if user.phonenumber %}
+                                    <code class="text-primary">+7 ({{ user.phonenumber[:3] }}) {{ user.phonenumber[3:6] }}-{{ user.phonenumber[6:8] }}-{{ user.phonenumber[8:10] }}</code>
+                                {% else %}
+                                    <span class="text-muted">Не указан</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">ID пользователя</label>
+                            <p class="form-control-plaintext">
+                                <code>{{ user.userid }}</code>
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Дата регистрации</label>
+                            <p class="form-control-plaintext">
+                                {{ user.registration_date | moscow_time if user.registration_date else 'Не указано' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Информация о системе -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <svg class="bi me-2" width="20" height="20" fill="currentColor">
+                            <use href="#gear"></use>
+                        </svg>
+                        Системная информация
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Роль в системе</label>
+                            <p class="form-control-plaintext">
+                                <span class="badge bg-{{ 'danger' if user.role == 'Инженер ПТО' else 'warning' if user.role in ['Ген.Директор', 'Зам.Директор'] else 'info' if user.role == 'Снабженец' else 'secondary' }}">
+                                    {{ user.role }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Логин</label>
+                            <p class="form-control-plaintext">
+                                <code>{{ user.login }}</code>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Статус аккаунта</label>
+                            <p class="form-control-plaintext">
+                                <span class="badge bg-success">Активен</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Последняя активность</label>
+                            <p class="form-control-plaintext">
+                                <span class="text-muted">Информация недоступна</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SVG иконки -->
+<svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+    <symbol id="arrow-left" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+    </symbol>
+    <symbol id="pencil" viewBox="0 0 16 16">
+        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+    </symbol>
+    <symbol id="trash" viewBox="0 0 16 16">
+        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+    </symbol>
+    <symbol id="person" viewBox="0 0 16 16">
+        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/>
+    </symbol>
+    <symbol id="gear" viewBox="0 0 16 16">
+        <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
+        <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/>
+    </symbol>
+    <symbol id="clock" viewBox="0 0 16 16">
+        <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+        <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+    </symbol>
+</svg>
+
+<!-- Скрытая форма для удаления -->
+<form id="deleteForm" method="POST" style="display: none;">
+</form>
+
+<script>
+function confirmDelete(userId, userName) {
+    if (confirm('Вы уверены, что хотите удалить пользователя "' + userName + '"?\n\nЭто действие нельзя отменить!')) {
+        const form = document.getElementById('deleteForm');
+        form.action = '/delete_user/' + userId;
+        form.submit();
+    }
+}
+</script>
+{% endblock %}
