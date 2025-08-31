@@ -2,11 +2,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 import pytz
 from app.extensions import db
-
-def get_moscow_time():
-    """Возвращает текущее время в московском часовом поясе"""
-    moscow_tz = pytz.timezone('Europe/Moscow')
-    return datetime.now(moscow_tz)
+from app.utils.timezone_utils import get_moscow_now, to_moscow_time
 
 class ActivityLog(db.Model):
     """Модель журнала действий пользователей"""
@@ -22,7 +18,7 @@ class ActivityLog(db.Model):
     page_url = db.Column(db.String(500), nullable=True)  # URL страницы
     method = db.Column(db.String(10), nullable=True)  # HTTP метод
     status_code = db.Column(db.Integer, nullable=True)  # HTTP статус код
-    created_at = db.Column(db.DateTime, default=get_moscow_time, nullable=False)
+    created_at = db.Column(db.DateTime, default=get_moscow_now, nullable=False)
     
     # Связь с пользователем
     user = db.relationship('Users', backref='activity_logs')
@@ -33,17 +29,7 @@ class ActivityLog(db.Model):
     def to_dict(self):
         """Преобразует запись в словарь"""
         # Форматируем время в московском формате
-        moscow_time = None
-        if self.created_at:
-            if self.created_at.tzinfo is None:
-                # Если время без часового пояса, считаем его UTC и конвертируем в московское
-                utc_tz = pytz.UTC
-                moscow_tz = pytz.timezone('Europe/Moscow')
-                moscow_time = utc_tz.localize(self.created_at).astimezone(moscow_tz)
-            else:
-                # Если время с часовым поясом, конвертируем в московское
-                moscow_tz = pytz.timezone('Europe/Moscow')
-                moscow_time = self.created_at.astimezone(moscow_tz)
+        moscow_time = to_moscow_time(self.created_at)
         
         return {
             'id': self.id,

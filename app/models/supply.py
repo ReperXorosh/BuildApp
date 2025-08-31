@@ -2,10 +2,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 import pytz
 from app.extensions import db
-
-def get_moscow_time():
-    moscow_tz = pytz.timezone('Europe/Moscow')
-    return datetime.now(moscow_tz)
+from app.utils.timezone_utils import get_moscow_now
 
 class Material(db.Model):
     """Модель для материалов"""
@@ -19,8 +16,8 @@ class Material(db.Model):
     min_quantity = db.Column(db.Float, default=0.0)  # минимальный запас
     supplier = db.Column(db.String(200), nullable=True)
     price_per_unit = db.Column(db.Float, nullable=True)
-    created_at = db.Column(db.DateTime, default=get_moscow_time, nullable=False)
-    updated_at = db.Column(db.DateTime, default=get_moscow_time, onupdate=get_moscow_time)
+    created_at = db.Column(db.DateTime, default=get_moscow_now, nullable=False)
+    updated_at = db.Column(db.DateTime, default=get_moscow_now, onupdate=get_moscow_now)
     
     def to_dict(self):
         return {
@@ -50,8 +47,8 @@ class Equipment(db.Model):
     supplier = db.Column(db.String(200), nullable=True)
     purchase_date = db.Column(db.Date, nullable=True)
     warranty_until = db.Column(db.Date, nullable=True)
-    created_at = db.Column(db.DateTime, default=get_moscow_time, nullable=False)
-    updated_at = db.Column(db.DateTime, default=get_moscow_time, onupdate=get_moscow_time)
+    created_at = db.Column(db.DateTime, default=get_moscow_now, nullable=False)
+    updated_at = db.Column(db.DateTime, default=get_moscow_now, onupdate=get_moscow_now)
     
     def to_dict(self):
         return {
@@ -82,8 +79,8 @@ class SupplyOrder(db.Model):
     supplier = db.Column(db.String(200), nullable=True)
     total_amount = db.Column(db.Float, default=0.0)
     notes = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=get_moscow_time, nullable=False)
-    updated_at = db.Column(db.DateTime, default=get_moscow_time, onupdate=get_moscow_time)
+    created_at = db.Column(db.DateTime, default=get_moscow_now, nullable=False)
+    updated_at = db.Column(db.DateTime, default=get_moscow_now, onupdate=get_moscow_now)
     delivery_date = db.Column(db.Date, nullable=True)
     
     # Связи

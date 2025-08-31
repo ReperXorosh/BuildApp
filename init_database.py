@@ -11,6 +11,7 @@ from app.models.activity_log import ActivityLog
 from werkzeug.security import generate_password_hash
 from datetime import datetime, timezone, timedelta
 import pytz
+from app.utils.timezone_utils import get_moscow_now
 
 def init_database():
     """Инициализирует базу данных"""
@@ -31,8 +32,7 @@ def init_database():
                 return
             
             # Московское время
-            moscow_tz = pytz.timezone('Europe/Moscow')
-            current_time = datetime.now(moscow_tz)
+            current_time = get_moscow_now()
             
             # Создаем пользователей по умолчанию
             default_users = [
