@@ -28,6 +28,62 @@
         {% endif %}
     {% endwith %}
 
+    <!-- Форма поиска -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('main.users') }}" class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label for="search" class="form-label">
+                        <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                            <use href="#search"></use>
+                        </svg>
+                        Поиск пользователей
+                    </label>
+                    <input type="text" 
+                           class="form-control" 
+                           id="search" 
+                           name="search" 
+                           value="{{ search_query or '' }}"
+                           placeholder="Введите логин, имя, фамилию или отчество...">
+                    <div class="form-text">Поиск по логину, имени, фамилии или отчеству</div>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                            <use href="#search"></use>
+                        </svg>
+                        Найти
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <a href="{{ url_for('main.users') }}" class="btn btn-outline-secondary w-100">
+                        <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                            <use href="#x-circle"></use>
+                        </svg>
+                        Сбросить
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Результаты поиска -->
+    {% if search_query %}
+    <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+        <svg class="bi me-2" width="16" height="16" fill="currentColor">
+            <use href="#info-circle"></use>
+        </svg>
+        <strong>Результаты поиска:</strong> Найдено {{ users|length }} пользователей по запросу "{{ search_query }}"
+        <a href="{{ url_for('main.users') }}" class="btn btn-sm btn-outline-info ms-2">
+            <svg class="bi me-1" width="12" height="12" fill="currentColor">
+                <use href="#x-circle"></use>
+            </svg>
+            Показать всех
+        </a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
     <div class="card shadow-sm">
         <div class="card-body">
             <div class="table-responsive">
@@ -138,6 +194,17 @@
     <symbol id="trash" viewBox="0 0 16 16">
         <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
         <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+    </symbol>
+    <symbol id="search" viewBox="0 0 16 16">
+        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+    </symbol>
+    <symbol id="x-circle" viewBox="0 0 16 16">
+        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+    </symbol>
+    <symbol id="info-circle" viewBox="0 0 16 16">
+        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+        <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
     </symbol>
 </svg>
 

@@ -232,20 +232,37 @@ def users():
         flash('У вас нет прав для просмотра пользователей', 'error')
         return redirect(url_for('objects.object_list'))
     
+    # Получаем параметр поиска
+    search_query = request.args.get('search', '').strip()
+    
     # Логируем просмотр страницы пользователей
     ActivityLog.log_action(
         user_id=current_user.userid,
         user_login=current_user.login,
         action="Просмотр страницы",
-        description=f"Пользователь {current_user.login} просмотрел страницу управления пользователями",
+        description=f"Пользователь {current_user.login} просмотрел страницу управления пользователями" + (f" (поиск: {search_query})" if search_query else ""),
         ip_address=request.remote_addr,
         page_url=request.url,
         method=request.method
     )
     
-    # Получаем всех пользователей из базы данных
-    all_users = Users.query.all()
-    return render_template('main/users.html', users=all_users)
+    # Получаем пользователей с фильтрацией по поиску
+    if search_query:
+        # Поиск по логину, имени, фамилии или отчеству
+        search_filter = f"%{search_query}%"
+        all_users = Users.query.filter(
+            db.or_(
+                Users.login.ilike(search_filter),
+                Users.firstname.ilike(search_filter),
+                Users.secondname.ilike(search_filter),
+                Users.thirdname.ilike(search_filter)
+            )
+        ).all()
+    else:
+        # Получаем всех пользователей из базы данных
+        all_users = Users.query.all()
+    
+    return render_template('main/users.html', users=all_users, search_query=search_query)
 
 @main.route('/add_user', methods=['GET', 'POST'])
 @login_required
