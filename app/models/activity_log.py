@@ -36,9 +36,10 @@ class ActivityLog(db.Model):
         moscow_time = None
         if self.created_at:
             if self.created_at.tzinfo is None:
-                # Если время без часового пояса, считаем его московским
+                # Если время без часового пояса, считаем его UTC и конвертируем в московское
+                utc_tz = pytz.UTC
                 moscow_tz = pytz.timezone('Europe/Moscow')
-                moscow_time = moscow_tz.localize(self.created_at)
+                moscow_time = utc_tz.localize(self.created_at).astimezone(moscow_tz)
             else:
                 # Если время с часовым поясом, конвертируем в московское
                 moscow_tz = pytz.timezone('Europe/Moscow')

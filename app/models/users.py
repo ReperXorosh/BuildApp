@@ -5,6 +5,11 @@ import pytz
 
 from ..extensions import db
 
+def get_moscow_time():
+    """Возвращает текущее время в московском часовом поясе"""
+    moscow_tz = pytz.timezone('Europe/Moscow')
+    return datetime.now(moscow_tz)
+
 class Users(db.Model, UserMixin):
     __tablename__ = 'users'
 
@@ -17,7 +22,7 @@ class Users(db.Model, UserMixin):
     phonenumber = db.Column(db.String(100), nullable=True)
     role = db.Column(db.String(100), nullable=False)
     avatar = db.Column(db.String(100), nullable=True)
-    registration_date = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(pytz.timezone('Europe/Moscow')))
+    registration_date = db.Column(db.DateTime, nullable=False, default=get_moscow_time)
 
     def get_id(self):
         return str(self.userid)

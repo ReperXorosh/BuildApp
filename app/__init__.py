@@ -43,11 +43,14 @@ def create_app():
         
         moscow_tz = pytz.timezone('Europe/Moscow')
         
-        # Если время без часового пояса, считаем его московским
+        # Если время без часового пояса, считаем его UTC и конвертируем в московское
         if dt.tzinfo is None:
-            dt = moscow_tz.localize(dt)
+            # Предполагаем, что время в UTC (как сохраняется в базе данных)
+            utc_tz = pytz.UTC
+            dt = utc_tz.localize(dt)
+            dt = dt.astimezone(moscow_tz)
         else:
-            # Конвертируем в московское время
+            # Если время уже с часовым поясом, конвертируем в московское
             dt = dt.astimezone(moscow_tz)
         
         return dt.strftime('%d.%m.%Y %H:%M:%S')
