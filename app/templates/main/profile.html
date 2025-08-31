@@ -42,6 +42,7 @@
                                      alt="Предпросмотр аватара" class="rounded-circle" 
                                      style="width: 64px; height: 64px; object-fit: cover;">
                             </div>
+                            <!-- Здесь будет создан canvas редактора -->
                         </div>
                         
                         <button class="btn btn-primary w-100" type="submit" id="save-avatar-btn">Сохранить фото</button>
@@ -130,24 +131,90 @@
 <!-- Подключаем редактор аватаров -->
 <script src="{{ url_for('static', filename='js/avatar-editor.js') }}"></script>
 
-<!-- Отключаем автоматическую инициализацию для страницы профиля -->
-<script>
-// Переопределяем автоматическую инициализацию для страницы профиля
-document.addEventListener('DOMContentLoaded', function() {
-    // Отключаем автоматическую инициализацию из avatar-editor.js
-    if (window.avatarEditor) {
-        window.avatarEditor = null;
-    }
-});
-</script>
-
 <script>
 // Глобальная переменная для доступа к редактору
 let avatarEditor = null;
 
+// Функция для создания редактора аватаров
+function createAvatarEditor() {
+    console.log('🔧 Создание редактора аватаров...');
+    
+    try {
+        // Проверяем наличие всех необходимых элементов
+        const container = document.getElementById('avatar-editor-container');
+        const input = document.getElementById('avatar');
+        const preview = document.getElementById('avatar-preview');
+        
+        if (!container || !input || !preview) {
+            console.error('❌ Не найдены необходимые элементы для редактора');
+            return false;
+        }
+        
+        // Проверяем наличие класса AvatarEditor
+        if (typeof AvatarEditor === 'undefined') {
+            console.error('❌ Класс AvatarEditor не найден');
+            return false;
+        }
+        
+        // Удаляем старый редактор если он есть
+        if (avatarEditor) {
+            console.log('🗑️ Удаляем старый редактор...');
+            avatarEditor = null;
+        }
+        
+        // Создаем новый редактор
+        avatarEditor = new AvatarEditor('avatar-editor-container', 'avatar', 'avatar-preview');
+        console.log('✅ Редактор аватаров успешно создан');
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Ошибка при создании редактора:', error);
+        return false;
+    }
+}
+
+// Функция для показа редактора
+function showAvatarEditor() {
+    console.log('👁️ Показ редактора аватаров...');
+    
+    const container = document.getElementById('avatar-editor-container');
+    if (container) {
+        container.style.display = 'block';
+        console.log('✅ Контейнер редактора показан');
+        return true;
+    } else {
+        console.error('❌ Контейнер редактора не найден');
+        return false;
+    }
+}
+
+// Функция для скрытия редактора
+function hideAvatarEditor() {
+    console.log('🙈 Скрытие редактора аватаров...');
+    
+    const container = document.getElementById('avatar-editor-container');
+    const preview = document.getElementById('avatar-preview');
+    
+    if (container) {
+        container.style.display = 'none';
+        console.log('✅ Контейнер редактора скрыт');
+    }
+    
+    if (preview) {
+        preview.style.display = 'none';
+        console.log('✅ Предпросмотр скрыт');
+    }
+}
+
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Инициализация страницы профиля...');
+    
+    // Отключаем автоматическую инициализацию из avatar-editor.js
+    if (window.avatarEditor) {
+        console.log('🔄 Отключаем автоматическую инициализацию...');
+        window.avatarEditor = null;
+    }
     
     // Устанавливаем дефолтный источник для предпросмотра
     const preview = document.getElementById('avatar-preview');
@@ -176,11 +243,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const avatarInput = document.getElementById('avatar');
     if (avatarInput) {
         avatarInput.addEventListener('change', function(e) {
-            console.log('📁 Файл выбран:', e.target.files[0]?.name);
-            
             const file = e.target.files[0];
-            const editorContainer = document.getElementById('avatar-editor-container');
-            const preview = document.getElementById('avatar-preview');
+            console.log('📁 Файл выбран:', file?.name);
             
             if (file) {
                 // Проверяем размер файла (максимум 2 МБ)
@@ -198,48 +262,51 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
+                console.log('✅ Файл прошел валидацию');
+                
                 // Показываем контейнер редактора
-                if (editorContainer) {
-                    editorContainer.style.display = 'block';
-                    console.log('✅ Контейнер редактора показан');
+                if (!showAvatarEditor()) {
+                    console.error('❌ Не удалось показать редактор');
+                    return;
                 }
                 
-                // Создаем URL для предпросмотра и инициализируем редактор
+                // Создаем URL для предпросмотра
                 const reader = new FileReader();
                 reader.onload = function(e) {
+                    console.log('📖 Файл прочитан, создаем редактор...');
+                    
+                    const preview = document.getElementById('avatar-preview');
                     if (preview) {
                         preview.src = e.target.result;
                         preview.style.display = 'block';
+                        console.log('✅ Предпросмотр обновлен');
                     }
                     
-                    // Инициализируем редактор аватара с правильным конструктором
-                    if (typeof AvatarEditor !== 'undefined') {
-                        // Удаляем старый редактор если он есть
-                        if (avatarEditor) {
-                            avatarEditor = null;
+                    // Создаем редактор с небольшой задержкой для стабильности
+                    setTimeout(function() {
+                        if (createAvatarEditor()) {
+                            console.log('🎉 Редактор аватаров готов к работе!');
+                        } else {
+                            console.error('❌ Не удалось создать редактор');
+                            hideAvatarEditor();
                         }
-                        
-                        // Создаем новый редактор с правильными параметрами
-                        avatarEditor = new AvatarEditor('avatar-editor-container', 'avatar', 'avatar-preview');
-                        console.log('✅ Редактор аватаров инициализирован');
-                    } else {
-                        console.error('❌ Класс AvatarEditor не найден');
-                    }
+                    }, 100);
                 };
+                
+                reader.onerror = function() {
+                    console.error('❌ Ошибка при чтении файла');
+                    alert('Ошибка при чтении файла');
+                };
+                
                 reader.readAsDataURL(file);
                 
-                console.log('📁 Файл валиден, редактор готов к работе');
             } else {
-                // Скрываем контейнер редактора если файл не выбран
-                if (editorContainer) {
-                    editorContainer.style.display = 'none';
-                    console.log('✅ Контейнер редактора скрыт');
-                }
-                if (preview) {
-                    preview.style.display = 'none';
-                }
+                console.log('📁 Файл не выбран, скрываем редактор');
+                hideAvatarEditor();
             }
         });
+    } else {
+        console.error('❌ Поле выбора файла не найдено');
     }
 });
 
@@ -253,18 +320,27 @@ document.addEventListener('DOMContentLoaded', function() {
             // Если есть редактор аватара и изображение было отредактировано
             if (avatarEditor && avatarEditor.image) {
                 console.log('🎨 Применяем изменения из редактора...');
-                const editedImage = avatarEditor.getEditedImage();
-                if (editedImage) {
-                    document.getElementById('edited_avatar').value = editedImage;
-                    console.log('✅ Отредактированное изображение добавлено в форму');
-                } else {
-                    console.log('⚠️ Не удалось получить отредактированное изображение');
+                try {
+                    const editedImage = avatarEditor.getEditedImage();
+                    if (editedImage) {
+                        document.getElementById('edited_avatar').value = editedImage;
+                        console.log('✅ Отредактированное изображение добавлено в форму');
+                    } else {
+                        console.log('⚠️ Не удалось получить отредактированное изображение');
+                    }
+                } catch (error) {
+                    console.error('❌ Ошибка при получении отредактированного изображения:', error);
                 }
             } else {
                 console.log('ℹ️ Редактор не активен, сохраняется оригинальный файл');
             }
         });
+    } else {
+        console.error('❌ Форма аватара не найдена');
     }
 });
+
+// Дополнительная отладка
+console.log('🔍 Скрипт редактора аватаров загружен');
 </script>
 {% endblock %}
