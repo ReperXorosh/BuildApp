@@ -1,7 +1,7 @@
 {% extends "main/layout.html" %}
 {% set active_page = 'reports' %}
 
-{% block title %}Отчёты за {{ date.strftime('%d.%m.%Y') }}{% endblock %}
+{% block title %}Отчёты за {{ date | moscow_date }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-3">
@@ -21,7 +21,7 @@
                         <li class="breadcrumb-item">
                             <a href="{{ url_for('main.reports_calendar') }}">Календарь</a>
                         </li>
-                        <li class="breadcrumb-item active" aria-current="page">{{ date.strftime('%d.%m.%Y') }}</li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ date | moscow_date }}</li>
                     </ol>
                 </nav>
                 
@@ -31,7 +31,7 @@
                             <svg class="bi me-2" width="24" height="24" fill="currentColor">
                                 <use xlink:href="#calendar"></use>
                             </svg>
-                            Отчёты за {{ date.strftime('%d.%m.%Y') }}
+                            Отчёты за {{ date | moscow_date }}
                         </h1>
                         <p class="text-muted mb-0">
                             Объекты с отчётами за выбранную дату
@@ -166,7 +166,7 @@
                                                         <span class="badge bg-{{ 'success' if report.status == 'approved' else 'warning' if report.status == 'submitted' else 'secondary' }}">
                                                             {{ report.status }}
                                                         </span>
-                                                        <a href="{{ url_for('main.object_report_by_date', object_id=data.object.id, date=date.strftime('%Y-%m-%d')) }}" 
+                                                        <a href="{{ url_for('main.object_report_by_date', object_id=data.object.id, date=date | moscow_date | replace('.', '-')) }}" 
                                                            class="btn btn-outline-info btn-sm">
                                                             <svg class="bi me-1" width="14" height="14" fill="currentColor">
                                                                 <use xlink:href="#eye"></use>

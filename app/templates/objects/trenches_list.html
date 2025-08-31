@@ -82,7 +82,7 @@
                                     <td>{{ trench.soil_type or '-' }}</td>
                                     <td>
                                         {% if trench.excavation_date %}
-                                            {{ trench.excavation_date.strftime('%d.%m.%Y') }}
+                                            {{ trench.excavation_date | moscow_date }}
                                         {% else %}
                                             -
                                         {% endif %}

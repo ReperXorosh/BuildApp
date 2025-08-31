@@ -59,7 +59,7 @@
                             <p class="card-text">
                                 <small class="text-muted">
                                     <i class="bi bi-calendar me-1"></i>
-                                    Завершение: {{ checklist.completion_date.strftime('%d.%m.%Y') }}
+                                    Завершение: {{ checklist.completion_date | moscow_date }}
                                 </small>
                             </p>
                             {% endif %}
@@ -74,7 +74,7 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <small class="text-muted">
                                     <i class="bi bi-calendar me-1"></i>
-                                    {{ checklist.created_at.strftime('%d.%m.%Y') }}
+                                    {{ checklist.created_at | moscow_date }}
                                 </small>
                                 <div class="btn-group btn-group-sm">
                                     <button type="button" class="btn btn-outline-primary" title="Просмотр">

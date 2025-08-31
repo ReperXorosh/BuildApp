@@ -78,7 +78,7 @@
                             <div class="col-md-4">
                                 <label class="form-label">Дата регистрации</label>
                                 <input type="text" class="form-control"
-                                       value="{{ current_user.registerdate.strftime('%d.%m.%Y %H:%M') if current_user.registerdate else '—' }}"
+                                       value="{{ current_user.registerdate | moscow_time_short if current_user.registerdate else '—' }}"
                                        disabled>
                             </div>
 

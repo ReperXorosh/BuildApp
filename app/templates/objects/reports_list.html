@@ -67,7 +67,7 @@
                                     <td>{{ report.report_type or '-' }}</td>
                                     <td>
                                         {% if report.report_date %}
-                                            {{ report.report_date.strftime('%d.%m.%Y') }}
+                                            {{ report.report_date | moscow_date }}
                                         {% else %}
                                             -
                                         {% endif %}

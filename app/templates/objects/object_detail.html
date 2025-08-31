@@ -200,10 +200,10 @@
                                     {{ object.status }}
                                 </span>
                             </p>
-                            <p><strong>Создан:</strong> {{ object.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+                            <p><strong>Создан:</strong> {{ object.created_at | moscow_time_short }}</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Обновлён:</strong> {{ object.updated_at.strftime('%d.%m.%Y %H:%M') }}</p>
+                            <p><strong>Обновлён:</strong> {{ object.updated_at | moscow_time_short }}</p>
                             {% if object.created_by %}
                             <p><strong>Создал:</strong> {{ object.created_by }}</p>
                             {% endif %}

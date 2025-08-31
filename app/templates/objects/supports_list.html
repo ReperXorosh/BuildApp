@@ -68,7 +68,7 @@
                                     <td>{{ support.material or '-' }}</td>
                                     <td>
                                         {% if support.installation_date %}
-                                            {{ support.installation_date.strftime('%d.%m.%Y') }}
+                                            {{ support.installation_date | moscow_date }}
                                         {% else %}
                                             -
                                         {% endif %}

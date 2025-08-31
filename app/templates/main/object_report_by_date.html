@@ -1,7 +1,7 @@
 {% extends "main/layout.html" %}
 {% set active_page = 'reports' %}
 
-{% block title %}Отчёты {{ object_obj.name }} за {{ date.strftime('%d.%m.%Y') }}{% endblock %}
+{% block title %}Отчёты {{ object_obj.name }} за {{ date | moscow_date }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-3">
@@ -21,7 +21,7 @@
                         <li class="breadcrumb-item">
                             <a href="{{ url_for('main.object_reports', object_id=object_obj.id) }}">{{ object_obj.name }}</a>
                         </li>
-                        <li class="breadcrumb-item active" aria-current="page">{{ date.strftime('%d.%m.%Y') }}</li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ date | moscow_date }}</li>
                     </ol>
                 </nav>
                 
@@ -34,7 +34,7 @@
                             {{ object_obj.name }}
                         </h1>
                         <p class="text-muted mb-0">
-                            Отчёты за {{ date.strftime('%d.%m.%Y') }}
+                            Отчёты за {{ date | moscow_date }}
                             {% if object_obj.location %}
                             <br>
                             <svg class="bi me-1" width="14" height="14" fill="currentColor">
@@ -79,7 +79,7 @@
                             </dl>
                         </div>
                         <div class="col-md-6">
-                            <h6 class="card-title">Статистика отчётов за {{ date.strftime('%d.%m.%Y') }}</h6>
+                            <h6 class="card-title">Статистика отчётов за {{ date | moscow_date }}</h6>
                             <dl class="row mb-0">
                                 <dt class="col-sm-6">Всего отчётов:</dt>
                                 <dd class="col-sm-6">
@@ -117,7 +117,7 @@
                         <svg class="bi me-2" width="20" height="20" fill="currentColor">
                             <use xlink:href="#file-earmark-text"></use>
                         </svg>
-                        Отчёты за {{ date.strftime('%d.%m.%Y') }}
+                        Отчёты за {{ date | moscow_date }}
                     </h5>
                 </div>
                 <div class="card-body">
@@ -158,7 +158,7 @@
                                                 {% endif %}
                                                 
                                                 <dt class="col-sm-4">Создан:</dt>
-                                                <dd class="col-sm-8">{{ report.created_at.strftime('%d.%m.%Y %H:%M') }}</dd>
+                                                <dd class="col-sm-8">{{ report.created_at | moscow_time_short }}</dd>
                                             </dl>
                                         </div>
                                     </div>

@@ -99,7 +99,7 @@
                                 <tr>
                                     <td>
                                         <small class="text-muted">
-                                            {{ format_moscow_time(activity.created_at) }}
+                                            {{ activity.created_at | moscow_time }}
                                         </small>
                                     </td>
                                     <td>

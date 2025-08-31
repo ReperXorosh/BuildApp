@@ -58,7 +58,7 @@
                                         <td>{{ order.requested_user.login if order.requested_user else '-' }}</td>
                                         <td>{{ order.supplier or '-' }}</td>
                                         <td>{{ order.total_amount or '0' }} ₽</td>
-                                        <td>{{ order.created_at.strftime('%d.%m.%Y %H:%M') if order.created_at else '-' }}</td>
+                                        <td>{{ order.created_at | moscow_time_short if order.created_at else '-' }}</td>
                                         <td>
                                             <button class="btn btn-sm btn-outline-primary">Просмотр</button>
                                         </td>
