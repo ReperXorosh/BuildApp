@@ -16,7 +16,7 @@ services:
       context: .
     container_name: flask
     volumes:
-      - ~/.uploads/images/flask-yt:/app/app/static/upload
+      - ~/.uploads/images/flask-yt:/app/app/static/uploads
     env_file:
       - .env
     environment:
