@@ -624,8 +624,47 @@ def profile():
         current_user.role = request.form.get('role') or current_user.role
 
 
+        # Обработка аватара
+        edited_avatar = request.form.get('edited_avatar')
         file = request.files.get('avatar')
-        if file and file.filename and allowed_file(file.filename):
+        
+        if edited_avatar and edited_avatar.startswith('data:image'):
+            # Сохраняем отредактированный аватар
+            upload_dir = current_app.config['UPLOAD_FOLDER']
+            os.makedirs(upload_dir, exist_ok=True)
+            
+            # Извлекаем данные изображения из base64
+            import base64
+            header, encoded = edited_avatar.split(",", 1)
+            data = base64.b64decode(encoded)
+            
+            # Определяем расширение файла
+            if 'image/jpeg' in header or 'image/jpg' in header:
+                ext = '.jpg'
+            elif 'image/png' in header:
+                ext = '.png'
+            else:
+                ext = '.jpg'  # По умолчанию
+            
+            filename = secure_filename(f"{current_user.userid}_{uuid4().hex}{ext}")
+            fullpath = os.path.join(upload_dir, filename)
+            
+            with open(fullpath, 'wb') as f:
+                f.write(data)
+            
+            # Удаляем старый аватар
+            if current_user.avatar:
+                old = os.path.join(upload_dir, current_user.avatar)
+                try:
+                    if os.path.exists(old):
+                        os.remove(old)
+                except Exception:
+                    pass
+            
+            current_user.avatar = filename
+            
+        elif file and file.filename and allowed_file(file.filename):
+            # Обычная загрузка файла (без редактирования)
             upload_dir = current_app.config['UPLOAD_FOLDER']
             os.makedirs(upload_dir, exist_ok=True)
 
@@ -633,7 +672,6 @@ def profile():
             filename = secure_filename(f"{current_user.userid}_{uuid4().hex}{ext}")
             fullpath = os.path.join(upload_dir, filename)
             file.save(fullpath)
-
 
             if current_user.avatar:
                 old = os.path.join(upload_dir, current_user.avatar)
