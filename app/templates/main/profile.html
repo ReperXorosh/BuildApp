@@ -130,6 +130,17 @@
 <!-- Подключаем редактор аватаров -->
 <script src="{{ url_for('static', filename='js/avatar-editor.js') }}"></script>
 
+<!-- Отключаем автоматическую инициализацию для страницы профиля -->
+<script>
+// Переопределяем автоматическую инициализацию для страницы профиля
+document.addEventListener('DOMContentLoaded', function() {
+    // Отключаем автоматическую инициализацию из avatar-editor.js
+    if (window.avatarEditor) {
+        window.avatarEditor = null;
+    }
+});
+</script>
+
 <script>
 // Глобальная переменная для доступа к редактору
 let avatarEditor = null;
@@ -201,10 +212,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         preview.style.display = 'block';
                     }
                     
-                    // Инициализируем редактор аватара с URL изображения
+                    // Инициализируем редактор аватара с правильным конструктором
                     if (typeof AvatarEditor !== 'undefined') {
-                        avatarEditor = new AvatarEditor('avatar-editor-container', e.target.result);
-                        console.log('✅ Редактор аватаров инициализирован с изображением');
+                        // Удаляем старый редактор если он есть
+                        if (avatarEditor) {
+                            avatarEditor = null;
+                        }
+                        
+                        // Создаем новый редактор с правильными параметрами
+                        avatarEditor = new AvatarEditor('avatar-editor-container', 'avatar', 'avatar-preview');
+                        console.log('✅ Редактор аватаров инициализирован');
                     } else {
                         console.error('❌ Класс AvatarEditor не найден');
                     }
