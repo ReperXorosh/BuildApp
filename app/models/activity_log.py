@@ -1,10 +1,11 @@
 import uuid
 from datetime import datetime, timezone, timedelta
+import pytz
 from app.extensions import db
 
 def get_moscow_time():
     """Возвращает текущее время в московском часовом поясе"""
-    moscow_tz = timezone(timedelta(hours=3))  # UTC+3 для Москвы
+    moscow_tz = pytz.timezone('Europe/Moscow')
     return datetime.now(moscow_tz)
 
 class ActivityLog(db.Model):

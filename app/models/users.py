@@ -1,6 +1,7 @@
 from flask_login import UserMixin
 import uuid
 from datetime import datetime, timezone, timedelta
+import pytz
 
 from ..extensions import db
 
@@ -16,7 +17,7 @@ class Users(db.Model, UserMixin):
     phonenumber = db.Column(db.String(100), nullable=True)
     role = db.Column(db.String(100), nullable=False)
     avatar = db.Column(db.String(100), nullable=True)
-    registration_date = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone(timedelta(hours=3))))
+    registration_date = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(pytz.timezone('Europe/Moscow')))
 
     def get_id(self):
         return str(self.userid)

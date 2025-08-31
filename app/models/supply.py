@@ -1,9 +1,10 @@
 import uuid
 from datetime import datetime, timezone, timedelta
+import pytz
 from app.extensions import db
 
 def get_moscow_time():
-    moscow_tz = timezone(timedelta(hours=3))
+    moscow_tz = pytz.timezone('Europe/Moscow')
     return datetime.now(moscow_tz)
 
 class Material(db.Model):
