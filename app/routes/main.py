@@ -703,7 +703,7 @@ def profile():
 @login_required
 def view_user_profile(user_id):
     """Просмотр профиля другого пользователя (только для администраторов)"""
-    from ..models.users import User
+    from ..models.users import Users
     
     # Проверяем права доступа (только Инженер ПТО может просматривать профили других пользователей)
     if current_user.role != 'Инженер ПТО':
@@ -711,7 +711,7 @@ def view_user_profile(user_id):
         return redirect(url_for('main.users'))
     
     # Получаем пользователя
-    user = User.query.get(user_id)
+    user = Users.query.get(user_id)
     if not user:
         flash('Пользователь не найден', 'danger')
         return redirect(url_for('main.users'))
