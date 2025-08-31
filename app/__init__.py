@@ -57,7 +57,7 @@ def create_app():
         if dt is None:
             return 'Не указано'
         
-        from app.utils.timezone_utils import to_moscow_time
+        from app.utils.timezone_utils import to_moscow_time, get_moscow_now
         moscow_time = to_moscow_time(dt)
         now = get_moscow_now()
         
@@ -78,6 +78,7 @@ def create_app():
     @app.context_processor
     def inject_moscow_time():
         """Добавляет московское время в контекст всех шаблонов"""
+        from app.utils.timezone_utils import get_moscow_now
         return {
             'moscow_now': get_moscow_now(),
             'moscow_timezone': 'Europe/Moscow'
