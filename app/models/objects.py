@@ -115,7 +115,7 @@ class PlannedWork(db.Model):
     """Модель запланированной работы"""
     __tablename__ = 'planned_works'
     
-    planned_works_id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = db.Column("planned_works_id", db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     object_id = db.Column(db.String(36), db.ForeignKey('objects.id'), nullable=False)
     work_type = db.Column(db.String(100), nullable=False)  # 'support_installation', 'trench_excavation', etc.
     work_title = db.Column(db.String(255), nullable=False)
