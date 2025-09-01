@@ -570,6 +570,9 @@ def execute_planned_work(object_id, work_id):
         
         db.session.add(work_execution)
         
+        # Сначала фиксируем work_execution в базе
+        db.session.flush()
+        
         # Обновляем статус запланированной работы
         planned_work.status = 'completed'
         planned_work.updated_at = datetime.utcnow()
