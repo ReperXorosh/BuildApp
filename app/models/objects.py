@@ -139,8 +139,8 @@ class WorkExecution(db.Model):
     """Модель выполнения работы"""
     __tablename__ = 'work_executions'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    planned_work_id = db.Column(db.String(36), db.ForeignKey('planned_works.id'), nullable=False)
+    work_executions_id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    planned_work_id = db.Column(db.String(36), db.ForeignKey('planned_works.planned_works_id'), nullable=False)
     execution_date = db.Column(db.Date, nullable=False)
     start_time = db.Column(db.Time)
     end_time = db.Column(db.Time)
