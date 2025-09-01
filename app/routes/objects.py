@@ -515,6 +515,12 @@ def execute_planned_work(object_id, work_id):
         quality_rating = request.form.get('quality_rating')
         issues_encountered = request.form.get('issues_encountered', '').strip()
         
+        # Преобразуем пустые строки в None
+        if not completion_notes:
+            completion_notes = None
+        if not issues_encountered:
+            issues_encountered = None
+        
         if not execution_date:
             flash('Дата выполнения обязательна для заполнения', 'error')
             return render_template('objects/execute_planned_work.html', object=obj, planned_work=planned_work, today_date=datetime.now().strftime('%Y-%m-%d'))
@@ -527,31 +533,39 @@ def execute_planned_work(object_id, work_id):
             return render_template('objects/execute_planned_work.html', object=obj, planned_work=planned_work, today_date=datetime.now().strftime('%Y-%m-%d'))
         
         # Преобразуем время
-        if start_time:
+        if start_time and start_time.strip():
             try:
                 start_time = datetime.strptime(start_time, '%H:%M').time()
             except ValueError:
                 start_time = None
+        else:
+            start_time = None
         
-        if end_time:
+        if end_time and end_time.strip():
             try:
                 end_time = datetime.strptime(end_time, '%H:%M').time()
             except ValueError:
                 end_time = None
+        else:
+            end_time = None
         
         # Преобразуем часы
-        if actual_hours:
+        if actual_hours and actual_hours.strip():
             try:
                 actual_hours = float(actual_hours)
             except ValueError:
                 actual_hours = None
+        else:
+            actual_hours = None
         
         # Преобразуем рейтинг
-        if quality_rating:
+        if quality_rating and quality_rating.strip():
             try:
                 quality_rating = int(quality_rating)
             except ValueError:
                 quality_rating = None
+        else:
+            quality_rating = None
         
         # Создаем выполнение работы
         work_execution = WorkExecution(
