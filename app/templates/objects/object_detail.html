@@ -43,7 +43,7 @@
 
             <!-- Статистика объекта -->
             <div class="row mb-4">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="card text-center">
                         <div class="card-body">
                             <i class="bi bi-pin-angle display-4 text-primary"></i>
@@ -52,7 +52,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="card text-center">
                         <div class="card-body">
                             <i class="bi bi-tools display-4 text-success"></i>
@@ -61,7 +61,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="card text-center">
                         <div class="card-body">
                             <i class="bi bi-file-earmark-text display-4 text-info"></i>
@@ -70,12 +70,30 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="card text-center">
                         <div class="card-body">
                             <i class="bi bi-check2-square display-4 text-warning"></i>
                             <h4 class="mt-2">{{ object.checklists|length }}</h4>
                             <p class="text-muted mb-0">Чек-лист</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="bi bi-calendar-check display-4 text-danger"></i>
+                            <h4 class="mt-2">{{ object.planned_works|length }}</h4>
+                            <p class="text-muted mb-0">Запланированные работы</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="bi bi-bar-chart display-4 text-secondary"></i>
+                            <h4 class="mt-2">{{ object.planned_works|selectattr('status', 'equalto', 'completed')|list|length }}</h4>
+                            <p class="text-muted mb-0">Выполнено</p>
                         </div>
                     </div>
                 </div>
@@ -177,6 +195,31 @@
                                 <a href="{{ url_for('objects.add_checklist', object_id=object.id) }}" class="btn btn-warning">
                                     <i class="bi bi-plus-lg me-1"></i>
                                     Добавить чек-лист
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Запланированные работы -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-calendar-check me-2"></i>
+                                Запланированные работы
+                            </h5>
+                            <a href="{{ url_for('objects.planned_works_list', object_id=object.id) }}" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-eye me-1"></i>
+                                Просмотр ({{ object.planned_works|length }})
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Планирование и контроль выполнения работ</p>
+                            <div class="d-grid">
+                                <a href="{{ url_for('objects.add_planned_work', object_id=object.id) }}" class="btn btn-danger">
+                                    <i class="bi bi-plus-lg me-1"></i>
+                                    Добавить работу
                                 </a>
                             </div>
                         </div>

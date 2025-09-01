@@ -1,0 +1,163 @@
+{% extends "main/layout.html" %}
+
+{% block title %}Добавить запланированную работу - {{ object.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Добавить запланированную работу
+                </h1>
+                <a href="{{ url_for('objects.planned_works_list', object_id=object.id) }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Назад к работам
+                </a>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-calendar-check me-2"></i>
+                                Планирование работы для объекта "{{ object.name }}"
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="work_type" class="form-label">
+                                                <i class="bi bi-tag me-1"></i>
+                                                Тип работы *
+                                            </label>
+                                            <select class="form-select" id="work_type" name="work_type" required>
+                                                <option value="">Выберите тип работы</option>
+                                                <option value="support_installation">Установка опоры</option>
+                                                <option value="trench_excavation">Рытье траншеи</option>
+                                                <option value="cable_laying">Укладка кабеля</option>
+                                                <option value="equipment_installation">Монтаж оборудования</option>
+                                                <option value="testing">Тестирование</option>
+                                                <option value="maintenance">Обслуживание</option>
+                                                <option value="repair">Ремонт</option>
+                                                <option value="inspection">Осмотр</option>
+                                                <option value="other">Другое</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="priority" class="form-label">
+                                                <i class="bi bi-flag me-1"></i>
+                                                Приоритет
+                                            </label>
+                                            <select class="form-select" id="priority" name="priority">
+                                                <option value="low">Низкий</option>
+                                                <option value="medium" selected>Средний</option>
+                                                <option value="high">Высокий</option>
+                                                <option value="urgent">Срочно</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="work_title" class="form-label">
+                                        <i class="bi bi-pencil me-1"></i>
+                                        Заголовок работы *
+                                    </label>
+                                    <input type="text" class="form-control" id="work_title" name="work_title" 
+                                           placeholder="Например: Установка опоры №5" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">
+                                        <i class="bi bi-text-paragraph me-1"></i>
+                                        Описание работы
+                                    </label>
+                                    <textarea class="form-control" id="description" name="description" rows="4" 
+                                              placeholder="Подробное описание того, что нужно сделать"></textarea>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="planned_date" class="form-label">
+                                                <i class="bi bi-calendar me-1"></i>
+                                                Планируемая дата *
+                                            </label>
+                                            <input type="date" class="form-control" id="planned_date" name="planned_date" 
+                                                   value="{{ today_date }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="estimated_hours" class="form-label">
+                                                <i class="bi bi-clock me-1"></i>
+                                                Планируемые часы
+                                            </label>
+                                            <input type="number" class="form-control" id="estimated_hours" name="estimated_hours" 
+                                                   placeholder="0.0" step="0.5" min="0">
+                                            <div class="form-text">Укажите предполагаемое время выполнения в часах</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="location_details" class="form-label">
+                                        <i class="bi bi-geo-alt me-1"></i>
+                                        Детали местоположения
+                                    </label>
+                                    <input type="text" class="form-control" id="location_details" name="location_details" 
+                                           placeholder="Конкретное место на объекте, координаты и т.д.">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="materials_required" class="form-label">
+                                        <i class="bi bi-tools me-1"></i>
+                                        Требуемые материалы
+                                    </label>
+                                    <textarea class="form-control" id="materials_required" name="materials_required" rows="3" 
+                                              placeholder="Список необходимых материалов, инструментов, оборудования"></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="notes" class="form-label">
+                                        <i class="bi bi-sticky me-1"></i>
+                                        Дополнительные заметки
+                                    </label>
+                                    <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                              placeholder="Любая дополнительная информация, особые требования и т.д."></textarea>
+                                </div>
+
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a href="{{ url_for('objects.planned_works_list', object_id=object.id) }}" class="btn btn-outline-secondary me-md-2">
+                                        <i class="bi bi-x-lg me-1"></i>
+                                        Отмена
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-lg me-1"></i>
+                                        Создать запланированную работу
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Устанавливаем минимальную дату как сегодня
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('planned_date').min = today;
+});
+</script>
+{% endblock %}

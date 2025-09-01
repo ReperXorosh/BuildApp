@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from app.extensions import db
-from app.models.objects import Object, Support, Trench, Report, Checklist, ChecklistItem
+from app.models.objects import Object, Support, Trench, Report, Checklist, ChecklistItem, PlannedWork, WorkExecution, WorkComparison
 from app.models.activity_log import ActivityLog
 from datetime import datetime
 import uuid
@@ -409,4 +409,269 @@ def add_checklist(object_id):
         return redirect(url_for('objects.checklists_list', object_id=object_id))
     
     return render_template('objects/add_checklist.html', object=obj)
+
+
+# Маршруты для запланированных работ
+@objects_bp.route('/objects/<object_id>/planned-works')
+@login_required
+def planned_works_list(object_id):
+    """Список запланированных работ объекта"""
+    obj = Object.query.get_or_404(object_id)
+    planned_works = PlannedWork.query.filter_by(object_id=object_id).order_by(PlannedWork.planned_date.asc()).all()
+    
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр запланированных работ",
+        description=f"Пользователь {current_user.login} просмотрел запланированные работы объекта '{obj.name}'",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return render_template('objects/planned_works_list.html', object=obj, planned_works=planned_works)
+
+@objects_bp.route('/objects/<object_id>/planned-works/add', methods=['GET', 'POST'])
+@login_required
+def add_planned_work(object_id):
+    """Добавление запланированной работы"""
+    obj = Object.query.get_or_404(object_id)
+    
+    if request.method == 'POST':
+        work_type = request.form.get('work_type', '').strip()
+        work_title = request.form.get('work_title', '').strip()
+        description = request.form.get('description', '').strip()
+        planned_date = request.form.get('planned_date')
+        priority = request.form.get('priority', 'medium')
+        estimated_hours = request.form.get('estimated_hours')
+        materials_required = request.form.get('materials_required', '').strip()
+        location_details = request.form.get('location_details', '').strip()
+        notes = request.form.get('notes', '').strip()
+        
+        if not work_type or not work_title or not planned_date:
+            flash('Тип работы, заголовок и планируемая дата обязательны для заполнения', 'error')
+            return render_template('objects/add_planned_work.html', object=obj, today_date=datetime.now().strftime('%Y-%m-%d'))
+        
+        # Преобразуем дату
+        try:
+            planned_date = datetime.strptime(planned_date, '%Y-%m-%d').date()
+        except ValueError:
+            flash('Неверный формат даты', 'error')
+            return render_template('objects/add_planned_work.html', object=obj, today_date=datetime.now().strftime('%Y-%m-%d'))
+        
+        # Преобразуем часы
+        if estimated_hours:
+            try:
+                estimated_hours = float(estimated_hours)
+            except ValueError:
+                estimated_hours = None
+        
+        new_planned_work = PlannedWork(
+            id=str(uuid.uuid4()),
+            object_id=object_id,
+            work_type=work_type,
+            work_title=work_title,
+            description=description,
+            planned_date=planned_date,
+            priority=priority,
+            estimated_hours=estimated_hours,
+            materials_required=materials_required,
+            location_details=location_details,
+            notes=notes,
+            created_by=current_user.userid
+        )
+        
+        db.session.add(new_planned_work)
+        db.session.commit()
+        
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Добавление запланированной работы",
+            description=f"Пользователь {current_user.login} добавил запланированную работу '{work_title}' к объекту '{obj.name}'",
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+        
+        flash('Запланированная работа успешно добавлена', 'success')
+        return redirect(url_for('objects.planned_works_list', object_id=object_id))
+    
+    return render_template('objects/add_planned_work.html', object=obj, today_date=datetime.now().strftime('%Y-%m-%d'))
+
+@objects_bp.route('/objects/<object_id>/planned-works/<work_id>/execute', methods=['GET', 'POST'])
+@login_required
+def execute_planned_work(object_id, work_id):
+    """Выполнение запланированной работы"""
+    obj = Object.query.get_or_404(object_id)
+    planned_work = PlannedWork.query.get_or_404(work_id)
+    
+    if request.method == 'POST':
+        execution_date = request.form.get('execution_date')
+        start_time = request.form.get('start_time')
+        end_time = request.form.get('end_time')
+        actual_hours = request.form.get('actual_hours')
+        completion_notes = request.form.get('completion_notes', '').strip()
+        quality_rating = request.form.get('quality_rating')
+        issues_encountered = request.form.get('issues_encountered', '').strip()
+        
+        if not execution_date:
+            flash('Дата выполнения обязательна для заполнения', 'error')
+            return render_template('objects/execute_planned_work.html', object=obj, planned_work=planned_work, today_date=datetime.now().strftime('%Y-%m-%d'))
+        
+        # Преобразуем дату
+        try:
+            execution_date = datetime.strptime(execution_date, '%Y-%m-%d').date()
+        except ValueError:
+            flash('Неверный формат даты', 'error')
+            return render_template('objects/execute_planned_work.html', object=obj, planned_work=planned_work, today_date=datetime.now().strftime('%Y-%m-%d'))
+        
+        # Преобразуем время
+        if start_time:
+            try:
+                start_time = datetime.strptime(start_time, '%H:%M').time()
+            except ValueError:
+                start_time = None
+        
+        if end_time:
+            try:
+                end_time = datetime.strptime(end_time, '%H:%M').time()
+            except ValueError:
+                end_time = None
+        
+        # Преобразуем часы
+        if actual_hours:
+            try:
+                actual_hours = float(actual_hours)
+            except ValueError:
+                actual_hours = None
+        
+        # Преобразуем рейтинг
+        if quality_rating:
+            try:
+                quality_rating = int(quality_rating)
+            except ValueError:
+                quality_rating = None
+        
+        # Создаем выполнение работы
+        work_execution = WorkExecution(
+            id=str(uuid.uuid4()),
+            planned_work_id=work_id,
+            execution_date=execution_date,
+            start_time=start_time,
+            end_time=end_time,
+            actual_hours=actual_hours,
+            status='completed',
+            completion_notes=completion_notes,
+            quality_rating=quality_rating,
+            issues_encountered=issues_encountered,
+            executed_by=current_user.userid
+        )
+        
+        db.session.add(work_execution)
+        
+        # Обновляем статус запланированной работы
+        planned_work.status = 'completed'
+        planned_work.updated_at = datetime.utcnow()
+        
+        # Создаем сравнение плана и факта
+        comparison = create_work_comparison(planned_work, work_execution)
+        db.session.add(comparison)
+        
+        db.session.commit()
+        
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Выполнение запланированной работы",
+            description=f"Пользователь {current_user.login} выполнил работу '{planned_work.work_title}' на объекте '{obj.name}'",
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+        
+        flash('Работа успешно выполнена и зафиксирована', 'success')
+        return redirect(url_for('objects.planned_works_list', object_id=object_id))
+    
+    return render_template('objects/execute_planned_work.html', object=obj, planned_work=planned_work, today_date=datetime.now().strftime('%Y-%m-%d'))
+
+@objects_bp.route('/objects/<object_id>/planned-works/<work_id>/comparison')
+@login_required
+def work_comparison(object_id, work_id):
+    """Просмотр сравнения плана и факта выполнения работы"""
+    obj = Object.query.get_or_404(object_id)
+    planned_work = PlannedWork.query.get_or_404(work_id)
+    
+    # Получаем последнее выполнение работы
+    work_execution = WorkExecution.query.filter_by(planned_work_id=work_id).order_by(WorkExecution.created_at.desc()).first()
+    
+    if not work_execution:
+        flash('Работа еще не выполнялась', 'info')
+        return redirect(url_for('objects.planned_works_list', object_id=object_id))
+    
+    # Получаем сравнение
+    comparison = WorkComparison.query.filter_by(
+        planned_work_id=work_id,
+        work_execution_id=work_execution.id
+    ).first()
+    
+    if not comparison:
+        # Создаем сравнение если его нет
+        comparison = create_work_comparison(planned_work, work_execution)
+        db.session.add(comparison)
+        db.session.commit()
+    
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр сравнения плана и факта",
+        description=f"Пользователь {current_user.login} просмотрел сравнение плана и факта для работы '{planned_work.work_title}'",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return render_template('objects/work_comparison.html', 
+                         object=obj, 
+                         planned_work=planned_work, 
+                         work_execution=work_execution, 
+                         comparison=comparison)
+
+def create_work_comparison(planned_work, work_execution):
+    """Создает сравнение плана и факта выполнения работы"""
+    from datetime import date
+    
+    # Вычисляем отклонения
+    date_deviation = (work_execution.execution_date - planned_work.planned_date).days
+    
+    hours_deviation = 0
+    if planned_work.estimated_hours and work_execution.actual_hours:
+        hours_deviation = work_execution.actual_hours - planned_work.estimated_hours
+    
+    # Определяем процент выполнения
+    completion_rate = 100.0  # Если работа выполнена, то 100%
+    
+    # Определяем оценку качества
+    quality_score = work_execution.quality_rating or 0
+    
+    comparison = WorkComparison(
+        id=str(uuid.uuid4()),
+        planned_work_id=planned_work.id,
+        work_execution_id=work_execution.id,
+        planned_work_type=planned_work.work_type,
+        planned_work_title=planned_work.work_title,
+        planned_date=planned_work.planned_date,
+        planned_hours=planned_work.estimated_hours,
+        actual_work_type=planned_work.work_type,  # Предполагаем, что тип не изменился
+        actual_work_title=planned_work.work_title,  # Предполагаем, что заголовок не изменился
+        actual_date=work_execution.execution_date,
+        actual_hours=work_execution.actual_hours,
+        date_deviation_days=date_deviation,
+        hours_deviation=hours_deviation,
+        completion_rate=completion_rate,
+        quality_score=quality_score,
+        comparison_status='completed'
+    )
+    
+    return comparison
 

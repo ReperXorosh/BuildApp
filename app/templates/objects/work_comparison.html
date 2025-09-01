@@ -1,0 +1,314 @@
+{% extends "main/layout.html" %}
+
+{% block title %}Сравнение плана и факта - {{ planned_work.work_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-bar-chart me-2"></i>
+                    Сравнение плана и факта
+                </h1>
+                <a href="{{ url_for('objects.planned_works_list', object_id=object.id) }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Назад к работам
+                </a>
+            </div>
+
+            <!-- Заголовок работы -->
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <h4 class="card-title">{{ planned_work.work_title }}</h4>
+                    <p class="text-muted mb-0">Объект: {{ object.name }}</p>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- План -->
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-calendar-check me-2"></i>
+                                План
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <strong>Тип работы:</strong><br>
+                                        <span class="badge bg-secondary">{{ planned_work.work_type }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <strong>Приоритет:</strong><br>
+                                        {% if planned_work.priority == 'urgent' %}
+                                            <span class="badge bg-danger">Срочно</span>
+                                        {% elif planned_work.priority == 'high' %}
+                                            <span class="badge bg-warning">Высокий</span>
+                                        {% elif planned_work.priority == 'medium' %}
+                                            <span class="badge bg-info">Средний</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Низкий</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <strong>Планируемая дата:</strong><br>
+                                <span class="badge bg-outline-primary fs-6">{{ planned_work.planned_date.strftime('%d.%m.%Y') }}</span>
+                            </div>
+                            
+                            {% if planned_work.estimated_hours %}
+                            <div class="mb-3">
+                                <strong>Планируемые часы:</strong><br>
+                                <span class="badge bg-outline-info fs-6">{{ planned_work.estimated_hours }} ч</span>
+                            </div>
+                            {% endif %}
+                            
+                            {% if planned_work.description %}
+                            <div class="mb-3">
+                                <strong>Описание:</strong><br>
+                                <small class="text-muted">{{ planned_work.description }}</small>
+                            </div>
+                            {% endif %}
+                            
+                            {% if planned_work.materials_required %}
+                            <div class="mb-3">
+                                <strong>Требуемые материалы:</strong><br>
+                                <small class="text-muted">{{ planned_work.materials_required }}</small>
+                            </div>
+                            {% endif %}
+                            
+                            {% if planned_work.location_details %}
+                            <div class="mb-3">
+                                <strong>Местоположение:</strong><br>
+                                <small class="text-muted">{{ planned_work.location_details }}</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Факт -->
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-check-circle me-2"></i>
+                                Факт выполнения
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <strong>Дата выполнения:</strong><br>
+                                        <span class="badge bg-outline-success fs-6">{{ work_execution.execution_date.strftime('%d.%m.%Y') }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <strong>Статус:</strong><br>
+                                        <span class="badge bg-success">Завершено</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if work_execution.actual_hours %}
+                            <div class="mb-3">
+                                <strong>Фактические часы:</strong><br>
+                                <span class="badge bg-outline-success fs-6">{{ work_execution.actual_hours }} ч</span>
+                            </div>
+                            {% endif %}
+                            
+                            {% if work_execution.start_time and work_execution.end_time %}
+                            <div class="mb-3">
+                                <strong>Время работы:</strong><br>
+                                <small class="text-muted">
+                                    {{ work_execution.start_time.strftime('%H:%M') }} - {{ work_execution.end_time.strftime('%H:%M') }}
+                                </small>
+                            </div>
+                            {% endif %}
+                            
+                            {% if work_execution.completion_notes %}
+                            <div class="mb-3">
+                                <strong>Заметки о выполнении:</strong><br>
+                                <small class="text-muted">{{ work_execution.completion_notes }}</small>
+                            </div>
+                            {% endif %}
+                            
+                            {% if work_execution.quality_rating %}
+                            <div class="mb-3">
+                                <strong>Оценка качества:</strong><br>
+                                <span class="text-warning">
+                                    {% for i in range(work_execution.quality_rating) %}⭐{% endfor %}
+                                </span>
+                                <small class="text-muted">({{ work_execution.quality_rating }}/5)</small>
+                            </div>
+                            {% endif %}
+                            
+                            {% if work_execution.issues_encountered %}
+                            <div class="mb-3">
+                                <strong>Проблемы при выполнении:</strong><br>
+                                <small class="text-muted">{{ work_execution.issues_encountered }}</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Анализ отклонений -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-graph-up me-2"></i>
+                                Анализ отклонений
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <div class="mb-2">
+                                            <i class="bi bi-calendar-x fs-1 text-primary"></i>
+                                        </div>
+                                        <h5 class="mb-1">
+                                            {% if comparison.date_deviation_days > 0 %}
+                                                <span class="text-danger">+{{ comparison.date_deviation_days }}</span>
+                                            {% elif comparison.date_deviation_days < 0 %}
+                                                <span class="text-success">{{ comparison.date_deviation_days }}</span>
+                                            {% else %}
+                                                <span class="text-success">0</span>
+                                            {% endif %}
+                                        </h5>
+                                        <p class="text-muted mb-0">дней</p>
+                                        <small class="text-muted">отклонение по дате</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <div class="mb-2">
+                                            <i class="bi bi-clock fs-1 text-warning"></i>
+                                        </div>
+                                        <h5 class="mb-1">
+                                            {% if comparison.hours_deviation > 0 %}
+                                                <span class="text-danger">+{{ comparison.hours_deviation }}</span>
+                                            {% elif comparison.hours_deviation < 0 %}
+                                                <span class="text-success">{{ comparison.hours_deviation }}</span>
+                                            {% else %}
+                                                <span class="text-success">0</span>
+                                            {% endif %}
+                                        </h5>
+                                        <p class="text-muted mb-0">часов</p>
+                                        <small class="text-muted">отклонение по времени</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <div class="mb-2">
+                                            <i class="bi bi-percent fs-1 text-success"></i>
+                                        </div>
+                                        <h5 class="mb-1 text-success">{{ comparison.completion_rate }}%</h5>
+                                        <p class="text-muted mb-0">выполнение</p>
+                                        <small class="text-muted">процент выполнения</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <div class="mb-2">
+                                            <i class="bi bi-star fs-1 text-warning"></i>
+                                        </div>
+                                        <h5 class="mb-1 text-warning">{{ comparison.quality_score }}/5</h5>
+                                        <p class="text-muted mb-0">качество</p>
+                                        <small class="text-muted">оценка качества</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <hr>
+                            
+                            <!-- Детальный анализ -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6><i class="bi bi-calendar-check me-2"></i>Анализ по датам</h6>
+                                    {% if comparison.date_deviation_days == 0 %}
+                                        <div class="alert alert-success">
+                                            <i class="bi bi-check-circle me-2"></i>
+                                            Работа выполнена точно в срок!
+                                        </div>
+                                    {% elif comparison.date_deviation_days > 0 %}
+                                        <div class="alert alert-warning">
+                                            <i class="bi bi-exclamation-triangle me-2"></i>
+                                            Работа выполнена с задержкой на {{ comparison.date_deviation_days }} дней
+                                        </div>
+                                    {% else %}
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            Работа выполнена досрочно на {{ comparison.date_deviation_days|abs }} дней
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6><i class="bi bi-clock me-2"></i>Анализ по времени</h6>
+                                    {% if comparison.hours_deviation == 0 %}
+                                        <div class="alert alert-success">
+                                            <i class="bi bi-check-circle me-2"></i>
+                                            Время выполнения соответствует плану!
+                                        </div>
+                                    {% elif comparison.hours_deviation > 0 %}
+                                        <div class="alert alert-warning">
+                                            <i class="bi bi-exclamation-triangle me-2"></i>
+                                            Превышение времени на {{ comparison.hours_deviation }} часов
+                                        </div>
+                                    {% else %}
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            Экономия времени на {{ comparison.hours_deviation|abs }} часов
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if comparison.notes %}
+                            <div class="mt-3">
+                                <h6><i class="bi bi-sticky me-2"></i>Дополнительные заметки</h6>
+                                <div class="alert alert-light">
+                                    {{ comparison.notes }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Кнопки действий -->
+            <div class="row mt-4">
+                <div class="col-12 text-center">
+                    <a href="{{ url_for('objects.planned_works_list', object_id=object.id) }}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Назад к работам
+                    </a>
+                    <a href="{{ url_for('objects.object_detail', object_id=object.id) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-building me-1"></i>
+                        К объекту
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
