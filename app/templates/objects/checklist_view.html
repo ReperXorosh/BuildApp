@@ -1,0 +1,294 @@
+{% extends "main/layout.html" %}
+
+{% block title %}Чек-лист объекта {{ object.name }}{% endblock %}
+
+{% block content %}
+<style>
+    .checklist-container {
+        margin-top: 80px;
+    }
+    
+    .checklist-header {
+        background: var(--bs-secondary-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: 0.375rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .checklist-stats {
+        display: flex;
+        gap: 2rem;
+        margin-top: 1rem;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+        background: var(--bs-body-bg);
+        border-radius: 0.375rem;
+        border: 1px solid var(--bs-border-color);
+        min-width: 120px;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--bs-primary);
+    }
+    
+    .stat-label {
+        color: var(--bs-secondary-color);
+        font-size: 0.875rem;
+    }
+    
+    .checklist-item {
+        background: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: 0.375rem;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .checklist-item:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-color: var(--bs-primary);
+    }
+    
+    .checklist-item.completed {
+        background: rgba(25, 135, 84, 0.1);
+        border-color: rgba(25, 135, 84, 0.3);
+    }
+    
+    .checklist-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .item-text {
+        font-weight: 500;
+        color: var(--bs-body-color);
+        flex-grow: 1;
+        margin-right: 1rem;
+    }
+    
+    .item-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .completion-info {
+        font-size: 0.875rem;
+        color: var(--bs-secondary-color);
+        margin-top: 0.5rem;
+    }
+    
+    .btn-sm {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .empty-checklist {
+        text-align: center;
+        padding: 3rem;
+        color: var(--bs-secondary-color);
+    }
+    
+    .empty-checklist i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+</style>
+
+<div class="container-fluid checklist-container">
+    <div class="row">
+        <div class="col-12">
+            <!-- Заголовок -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="bi bi-list-check me-2"></i>
+                        Чек-лист объекта
+                    </h1>
+                    <p class="text-muted mb-0">{{ object.name }}</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('objects.object_detail', object_id=object.id) }}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Назад к объекту
+                    </a>
+                    {% if current_user.role == 'Инженер ПТО' %}
+                    <a href="{{ url_for('objects.add_checklist_item', object_id=object.id) }}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i>
+                        Добавить позицию
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Статистика чек-листа -->
+            <div class="checklist-header">
+                <h4 class="mb-3">
+                    <i class="bi bi-info-circle me-2"></i>
+                    {{ checklist.title }}
+                </h4>
+                <div class="checklist-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ checklist.total_items }}</div>
+                        <div class="stat-label">Всего позиций</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ checklist.completed_items }}</div>
+                        <div class="stat-label">Выполнено</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ checklist.total_items - checklist.completed_items }}</div>
+                        <div class="stat-label">Осталось</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">
+                            {% if checklist.total_items > 0 %}
+                                {{ ((checklist.completed_items / checklist.total_items) * 100) | round(1) }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </div>
+                        <div class="stat-label">Выполнено</div>
+                    </div>
+                </div>
+                
+                <!-- Статус чек-листа -->
+                <div class="mt-3">
+                    <span class="badge bg-{{ 'success' if checklist.status == 'completed' else 'warning' if checklist.status == 'in_progress' else 'secondary' }} fs-6">
+                        {% if checklist.status == 'completed' %}
+                            <i class="bi bi-check-circle me-1"></i>Завершен
+                        {% elif checklist.status == 'in_progress' %}
+                            <i class="bi bi-clock me-1"></i>В работе
+                        {% else %}
+                            <i class="bi bi-hourglass me-1"></i>Ожидает
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Список позиций -->
+            {% if checklist.items %}
+                <div class="row">
+                    <div class="col-12">
+                        <h5 class="mb-3">
+                            <i class="bi bi-list-ul me-2"></i>
+                            Позиции чек-листа
+                        </h5>
+                        
+                        {% for item in checklist.items %}
+                        <div class="checklist-item {% if item.is_completed %}completed{% endif %}" id="item-{{ item.id }}">
+                            <div class="checklist-item-header">
+                                <div class="item-text">
+                                    <span class="me-2">{{ loop.index }}.</span>
+                                    {{ item.item_text }}
+                                </div>
+                                <div class="item-actions">
+                                    <!-- Кнопка переключения статуса -->
+                                    <button class="btn btn-sm btn-{{ 'success' if item.is_completed else 'outline-success' }}" 
+                                            onclick="toggleItem('{{ item.id }}', '{{ object.id }}')"
+                                            title="{{ 'Отметить как невыполненную' if item.is_completed else 'Отметить как выполненную' }}">
+                                        <i class="bi bi-{{ 'check-circle-fill' if item.is_completed else 'circle' }}"></i>
+                                        {{ 'Выполнено' if item.is_completed else 'Выполнить' }}
+                                    </button>
+                                    
+                                    {% if current_user.role == 'Инженер ПТО' %}
+                                    <!-- Кнопки редактирования для инженера ПТО -->
+                                    <a href="{{ url_for('objects.edit_checklist_item', object_id=object.id, item_id=item.id) }}" 
+                                       class="btn btn-sm btn-outline-primary" title="Редактировать">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    
+                                    <button class="btn btn-sm btn-outline-danger" 
+                                            onclick="deleteItem('{{ item.id }}', '{{ object.id }}')"
+                                            title="Удалить">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if item.notes %}
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <i class="bi bi-chat-text me-1"></i>
+                                    {{ item.notes }}
+                                </small>
+                            </div>
+                            {% endif %}
+                            
+                            {% if item.is_completed %}
+                            <div class="completion-info">
+                                <i class="bi bi-check-circle me-1"></i>
+                                Выполнено 
+                                {% if item.completed_at %}
+                                    {{ item.completed_at | moscow_date }}
+                                {% endif %}
+                                {% if item.completed_by %}
+                                    пользователем {{ item.completed_by }}
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="empty-checklist">
+                    <i class="bi bi-list-check"></i>
+                    <h4>Чек-лист пуст</h4>
+                    <p>В чек-листе пока нет позиций для проверки</p>
+                    {% if current_user.role == 'Инженер ПТО' %}
+                    <a href="{{ url_for('objects.add_checklist_item', object_id=object.id) }}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i>
+                        Добавить первую позицию
+                    </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleItem(itemId, objectId) {
+    fetch(`/objects/${objectId}/checklist/${itemId}/toggle`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Перезагружаем страницу для обновления данных
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        alert('Произошла ошибка при изменении статуса');
+    });
+}
+
+function deleteItem(itemId, objectId) {
+    if (confirm('Вы уверены, что хотите удалить эту позицию?')) {
+        // Создаем форму для отправки POST запроса
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/objects/${objectId}/checklist/${itemId}/delete`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "main/layout.html" %}
+
+{% block title %}Добавить позицию в чек-лист{% endblock %}
+
+{% block content %}
+<style>
+    .form-container {
+        margin-top: 80px;
+    }
+    
+    .form-card {
+        background: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .form-header {
+        background: var(--bs-secondary-bg);
+        border-bottom: 1px solid var(--bs-border-color);
+        padding: 1.5rem;
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+    
+    .form-body {
+        padding: 2rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: var(--bs-body-color);
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control:focus {
+        border-color: var(--bs-primary);
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .btn-group {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+    }
+</style>
+
+<div class="container form-container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-card">
+                <div class="form-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="h4 mb-1">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                Добавить позицию в чек-лист
+                            </h2>
+                            <p class="text-muted mb-0">Объект: {{ object.name }}</p>
+                        </div>
+                        <a href="{{ url_for('objects.checklist_view', object_id=object.id) }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>
+                            Назад к чек-листу
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="form-body">
+                    <form method="POST">
+                        <div class="mb-4">
+                            <label for="item_text" class="form-label">
+                                <i class="bi bi-list-ul me-1"></i>
+                                Текст позиции *
+                            </label>
+                            <textarea 
+                                class="form-control" 
+                                id="item_text" 
+                                name="item_text" 
+                                rows="4" 
+                                placeholder="Опишите, что нужно проверить или выполнить..."
+                                required
+                            ></textarea>
+                            <div class="form-text">
+                                Опишите конкретную задачу или пункт для проверки
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="notes" class="form-label">
+                                <i class="bi bi-chat-text me-1"></i>
+                                Дополнительные заметки
+                            </label>
+                            <textarea 
+                                class="form-control" 
+                                id="notes" 
+                                name="notes" 
+                                rows="3" 
+                                placeholder="Дополнительная информация, требования или комментарии..."
+                            ></textarea>
+                            <div class="form-text">
+                                Необязательная информация для уточнения позиции
+                            </div>
+                        </div>
+                        
+                        <div class="btn-group">
+                            <a href="{{ url_for('objects.checklist_view', object_id=object.id) }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg me-1"></i>
+                                Отмена
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-lg me-1"></i>
+                                Добавить позицию
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

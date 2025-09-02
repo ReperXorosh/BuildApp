@@ -182,12 +182,12 @@
                                         <small class="stats-label">Отчёт</small>
                                     </div>
                                 </div>
-                                <div class="col-3">
-                                    <div class="d-flex flex-column justify-content-center" style="height: 100%;">
-                                        <h6 class="mb-1 stats-number">{{ obj.planned_works|length }}</h6>
-                                        <small class="stats-label">Работы</small>
-                                    </div>
-                                </div>
+                                                                 <div class="col-3">
+                                     <div class="d-flex flex-column justify-content-center" style="height: 100%;">
+                                         <h6 class="mb-1 stats-number">{{ obj.checklist.items|length if obj.checklist else 0 }}</h6>
+                                         <small class="stats-label">Чек-лист</small>
+                                     </div>
+                                 </div>
                             </div>
                         </div>
                         <div class="card-footer">

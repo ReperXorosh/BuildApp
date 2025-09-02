@@ -19,7 +19,7 @@ class Object(db.Model):
     supports = db.relationship('Support', backref='object', lazy=True, cascade='all, delete-orphan')
     trenches = db.relationship('Trench', backref='object', lazy=True, cascade='all, delete-orphan')
     reports = db.relationship('Report', backref='object', lazy=True, cascade='all, delete-orphan')
-    checklists = db.relationship('Checklist', backref='object', lazy=True, cascade='all, delete-orphan')
+    checklist = db.relationship('Checklist', backref='object', lazy=True, uselist=False, cascade='all, delete-orphan')
     planned_works = db.relationship('PlannedWork', backref='object', lazy=True, cascade='all, delete-orphan')
 
 class Support(db.Model):
@@ -80,11 +80,8 @@ class Checklist(db.Model):
     __tablename__ = 'checklists'
     
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    object_id = db.Column(db.String(36), db.ForeignKey('objects.id'), nullable=False)
-    checklist_number = db.Column(db.String(50), nullable=False)
-    title = db.Column(db.String(255), nullable=False)
-    checklist_type = db.Column(db.String(100))  # тип чек-листа
-    completion_date = db.Column(db.Date)
+    object_id = db.Column(db.String(36), db.ForeignKey('objects.id'), nullable=False, unique=True)
+    title = db.Column(db.String(255), default='Чек-лист объекта')
     status = db.Column(db.String(50), default='pending')  # pending, in_progress, completed
     total_items = db.Column(db.Integer, default=0)
     completed_items = db.Column(db.Integer, default=0)
@@ -94,7 +91,40 @@ class Checklist(db.Model):
     created_by = db.Column(db.String(36), db.ForeignKey('users.userid'))
     
     # Связь с элементами чек-листа
-    items = db.relationship('ChecklistItem', backref='checklist', lazy=True, cascade='all, delete-orphan')
+    items = db.relationship('ChecklistItem', backref='checklist', lazy=True, cascade='all, delete-orphan', order_by='ChecklistItem.order_index')
+    
+    def __init__(self, **kwargs):
+        super(Checklist, self).__init__(**kwargs)
+        if not self.title:
+            self.title = 'Чек-лист объекта'
+    
+    def add_item(self, item_text, order_index=None):
+        """Добавляет новый элемент в чек-лист"""
+        if order_index is None:
+            order_index = len(self.items) + 1
+        
+        item = ChecklistItem(
+            checklist_id=self.id,
+            item_text=item_text,
+            order_index=order_index
+        )
+        self.items.append(item)
+        self.total_items = len(self.items)
+        return item
+    
+    def update_completion_status(self):
+        """Обновляет статус завершения чек-листа"""
+        completed = sum(1 for item in self.items if item.is_completed)
+        self.completed_items = completed
+        
+        if self.total_items > 0:
+            completion_rate = (completed / self.total_items) * 100
+            if completion_rate == 100:
+                self.status = 'completed'
+            elif completion_rate > 0:
+                self.status = 'in_progress'
+            else:
+                self.status = 'pending'
 
 class ChecklistItem(db.Model):
     """Модель элемента чек-листа"""
@@ -110,6 +140,28 @@ class ChecklistItem(db.Model):
     order_index = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def complete(self, user_id, notes=None):
+        """Отмечает элемент как выполненный"""
+        self.is_completed = True
+        self.completed_at = datetime.utcnow()
+        self.completed_by = user_id
+        if notes:
+            self.notes = notes
+        
+        # Обновляем статус чек-листа
+        if self.checklist:
+            self.checklist.update_completion_status()
+    
+    def uncomplete(self):
+        """Отмечает элемент как невыполненный"""
+        self.is_completed = False
+        self.completed_at = None
+        self.completed_by = None
+        
+        # Обновляем статус чек-листа
+        if self.checklist:
+            self.checklist.update_completion_status()
 
 class PlannedWork(db.Model):
     """Модель запланированной работы"""
