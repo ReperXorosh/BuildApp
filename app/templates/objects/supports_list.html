@@ -11,7 +11,7 @@
                 <div>
                     <h1 class="h3 mb-1">
                         <i class="bi bi-pin-angle me-2"></i>
-                        Опора
+                        Опора по проекту
                     </h1>
                     <p class="text-muted mb-0">
                         Объект: <a href="{{ url_for('objects.object_detail', object_id=object.id) }}">{{ object.name }}</a>
@@ -22,10 +22,12 @@
                         <i class="bi bi-arrow-left me-1"></i>
                         Назад к объекту
                     </a>
+                    {% if current_user.role == 'Инженер ПТО' %}
                     <a href="{{ url_for('objects.add_support', object_id=object.id) }}" class="btn btn-primary">
                         <i class="bi bi-plus-lg me-1"></i>
                         Добавить опору
                     </a>
+                    {% endif %}
                 </div>
             </div>
 
@@ -34,7 +36,7 @@
                 <div class="card-header">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-list me-2"></i>
-                        Список опор ({{ supports|length }})
+                        Список опор по проекту ({{ supports|length }})
                     </h5>
                 </div>
                 <div class="card-body p-0">
@@ -80,12 +82,16 @@
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <button type="button" class="btn btn-outline-primary" title="Просмотр">
+                                            <a href="{{ url_for('objects.support_detail', object_id=object.id, support_id=support.id) }}" 
+                                               class="btn btn-outline-primary" title="Просмотр деталей">
                                                 <i class="bi bi-eye"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-outline-warning" title="Редактировать">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
+                                            </a>
+                                            {% if support.status != 'completed' %}
+                                            <a href="{{ url_for('objects.confirm_support_installation', object_id=object.id, support_id=support.id) }}" 
+                                               class="btn btn-outline-success" title="Подтвердить установку">
+                                                <i class="bi bi-check-circle"></i>
+                                            </a>
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>
@@ -99,11 +105,15 @@
             <div class="text-center py-5">
                 <i class="bi bi-pin-angle display-1 text-muted"></i>
                 <h3 class="mt-3 text-muted">Опора не найдены</h3>
+                {% if current_user.role == 'Инженер ПТО' %}
                 <p class="text-muted">Создайте первую опору для объекта</p>
                 <a href="{{ url_for('objects.add_support', object_id=object.id) }}" class="btn btn-primary">
                     <i class="bi bi-plus-lg me-1"></i>
                     Добавить опору
                 </a>
+                {% else %}
+                <p class="text-muted">Опора по проекту еще не добавлены инженером ПТО</p>
+                {% endif %}
             </div>
             {% endif %}
         </div>

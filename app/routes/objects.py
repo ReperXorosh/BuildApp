@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort
 from flask_login import login_required, current_user
 from app.extensions import db
 from app.models.objects import Object, Support, Trench, Report, Checklist, ChecklistItem, PlannedWork, WorkExecution, WorkComparison
@@ -144,27 +144,24 @@ def supports_list(object_id):
 @objects_bp.route('/objects/<object_id>/supports/add', methods=['GET', 'POST'])
 @login_required
 def add_support(object_id):
-    """Добавление опоры"""
+    """Добавление опоры (только для инженера ПТО)"""
     obj = Object.query.get_or_404(object_id)
+    
+    # Проверяем права доступа - только инженер ПТО может добавлять опоры
+    if current_user.role != 'Инженер ПТО':
+        flash('У вас нет прав для добавления опор. Только инженер ПТО может добавлять опоры по проекту.', 'error')
+        return redirect(url_for('objects.supports_list', object_id=object_id))
     
     if request.method == 'POST':
         support_number = request.form.get('support_number', '').strip()
         support_type = request.form.get('support_type', '').strip()
         height = request.form.get('height')
         material = request.form.get('material', '').strip()
-        installation_date = request.form.get('installation_date')
         notes = request.form.get('notes', '').strip()
         
         if not support_number:
             flash('Номер опоры обязателен для заполнения', 'error')
             return render_template('objects/add_support.html', object=obj)
-        
-        # Преобразуем дату
-        if installation_date:
-            try:
-                installation_date = datetime.strptime(installation_date, '%Y-%m-%d').date()
-            except ValueError:
-                installation_date = None
         
         # Преобразуем высоту
         if height:
@@ -180,7 +177,8 @@ def add_support(object_id):
             support_type=support_type,
             height=height,
             material=material,
-            installation_date=installation_date,
+            installation_date=None,  # Дата установки будет заполняться при подтверждении
+            status='planned',  # Статус по умолчанию - запланировано
             notes=notes,
             created_by=current_user.userid
         )
@@ -191,17 +189,93 @@ def add_support(object_id):
         ActivityLog.log_action(
             user_id=current_user.userid,
             user_login=current_user.login,
-            action="Добавление опоры",
-            description=f"Пользователь {current_user.login} добавил опору {support_number} к объекту '{obj.name}'",
+            action="Добавление опоры по проекту",
+            description=f"Инженер ПТО {current_user.login} добавил опору {support_number} к объекту '{obj.name}'",
             ip_address=request.remote_addr,
             page_url=request.url,
             method=request.method
         )
         
-        flash('Опора успешно добавлена', 'success')
+        flash('Опора по проекту успешно добавлена', 'success')
         return redirect(url_for('objects.supports_list', object_id=object_id))
     
     return render_template('objects/add_support.html', object=obj)
+
+@objects_bp.route('/objects/<object_id>/supports/<support_id>')
+@login_required
+def support_detail(object_id, support_id):
+    """Просмотр деталей опоры"""
+    obj = Object.query.get_or_404(object_id)
+    support = Support.query.get_or_404(support_id)
+    
+    if support.object_id != object_id:
+        abort(404)
+    
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр деталей опоры",
+        description=f"Пользователь {current_user.login} просмотрел детали опоры {support.support_number}",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return render_template('objects/support_detail.html', object=obj, support=support)
+
+@objects_bp.route('/objects/<object_id>/supports/<support_id>/confirm-installation', methods=['GET', 'POST'])
+@login_required
+def confirm_support_installation(object_id, support_id):
+    """Подтверждение установки опоры"""
+    obj = Object.query.get_or_404(object_id)
+    support = Support.query.get_or_404(support_id)
+    
+    if support.object_id != object_id:
+        abort(404)
+    
+    if support.status == 'completed':
+        flash('Эта опора уже установлена', 'info')
+        return redirect(url_for('objects.support_detail', object_id=object_id, support_id=support_id))
+    
+    if request.method == 'POST':
+        installation_date = request.form.get('installation_date')
+        installation_notes = request.form.get('installation_notes', '').strip()
+        
+        # Проверяем, что дата указана
+        if not installation_date:
+            flash('Дата установки обязательна для заполнения', 'error')
+            return render_template('objects/confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
+        
+        try:
+            installation_date = datetime.strptime(installation_date, '%Y-%m-%d').date()
+        except ValueError:
+            flash('Некорректный формат даты', 'error')
+            return render_template('objects/confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
+        
+        # Обновляем статус опоры
+        support.status = 'completed'
+        support.installation_date = installation_date
+        support.notes = (support.notes or '') + f'\n\nУстановка подтверждена: {installation_date.strftime("%d.%m.%Y")}'
+        if installation_notes:
+            support.notes += f'\nПримечания по установке: {installation_notes}'
+        support.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Подтверждение установки опоры",
+            description=f"Пользователь {current_user.login} подтвердил установку опоры {support.support_number}",
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+        
+        flash('Установка опоры успешно подтверждена', 'success')
+        return redirect(url_for('objects.support_detail', object_id=object_id, support_id=support_id))
+    
+    return render_template('objects/confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
 
 # Маршруты для траншей
 @objects_bp.route('/objects/<object_id>/trenches')

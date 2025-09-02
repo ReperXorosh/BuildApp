@@ -1,0 +1,148 @@
+{% extends "main/layout.html" %}
+
+{% block title %}Подтверждение установки опоры {{ support.support_number }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Заголовок -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Подтверждение установки опоры по проекту
+                    </h1>
+                    <p class="text-muted mb-0">
+                        Опора: <a href="{{ url_for('objects.support_detail', object_id=object.id, support_id=support.id) }}">{{ support.support_number }}</a><br>
+                        Объект: <a href="{{ url_for('objects.object_detail', object_id=object.id) }}">{{ object.name }}</a>
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('objects.support_detail', object_id=object.id, support_id=support.id) }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Назад к опоре
+                    </a>
+                </div>
+            </div>
+
+            <!-- Информация об опоре -->
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Информация об опоре
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-4">Номер:</dt>
+                                <dd class="col-sm-8"><strong>{{ support.support_number }}</strong></dd>
+                                
+                                <dt class="col-sm-4">Тип:</dt>
+                                <dd class="col-sm-8">{{ support.support_type or 'Не указан' }}</dd>
+                                
+                                <dt class="col-sm-4">Высота:</dt>
+                                <dd class="col-sm-8">
+                                    {% if support.height %}
+                                        {{ support.height }} м
+                                    {% else %}
+                                        Не указана
+                                    {% endif %}
+                                </dd>
+                                
+                                <dt class="col-sm-4">Материал:</dt>
+                                <dd class="col-sm-8">{{ support.material or 'Не указан' }}</dd>
+                                
+                                <dt class="col-sm-4">Статус:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge bg-{{ 'success' if support.status == 'completed' else 'warning' if support.status == 'in_progress' else 'secondary' }}">
+                                        {% if support.status == 'completed' %}
+                                            Установлена
+                                        {% elif support.status == 'in_progress' %}
+                                            В процессе
+                                        {% else %}
+                                            Запланирована
+                                        {% endif %}
+                                    </span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                                                    <h5 class="card-title mb-0">
+                            <i class="bi bi-check-circle me-2"></i>
+                            Подтверждение установки опоры
+                        </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if support.status == 'completed' %}
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>Эта опора уже установлена!</strong><br>
+                                Дата установки: {{ support.installation_date | moscow_date }}
+                            </div>
+                            {% else %}
+                            <form method="POST">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="installation_date" class="form-label">
+                                                <i class="bi bi-calendar me-1"></i>
+                                                Дата установки <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="date" 
+                                                   class="form-control" 
+                                                   id="installation_date" 
+                                                   name="installation_date" 
+                                                   value="{{ today_date or '' }}"
+                                                   required>
+                                            <div class="form-text">Укажите дату фактической установки опоры</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="installation_notes" class="form-label">
+                                        <i class="bi bi-pencil me-1"></i>
+                                        Примечания по установке
+                                    </label>
+                                    <textarea class="form-control" 
+                                              id="installation_notes" 
+                                              name="installation_notes" 
+                                              rows="3"
+                                              placeholder="Дополнительная информация о процессе установки..."></textarea>
+                                    <div class="form-text">Необязательно. Можно указать особенности установки, использованные материалы и т.д.</div>
+                                </div>
+                                
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    <strong>Внимание!</strong> После подтверждения установки статус опоры изменится на "Установлена" и её нельзя будет изменить.
+                                </div>
+                                
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        Подтвердить установку
+                                    </button>
+                                    <a href="{{ url_for('objects.support_detail', object_id=object.id, support_id=support.id) }}" 
+                                       class="btn btn-outline-secondary">
+                                        Отмена
+                                    </a>
+                                </div>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
