@@ -843,17 +843,17 @@ def work_comparison(object_id, work_id):
         comparison = create_work_comparison(planned_work, work_execution)
         db.session.add(comparison)
         db.session.commit()
-    
-    ActivityLog.log_action(
-        user_id=current_user.userid,
-        user_login=current_user.login,
+        
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
         action="Просмотр сравнения плана и факта",
         description=f"Пользователь {current_user.login} просмотрел сравнение плана и факта для работы '{planned_work.work_title}'",
-        ip_address=request.remote_addr,
-        page_url=request.url,
-        method=request.method
-    )
-    
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+        
     return render_template('objects/work_comparison.html', 
                          object=obj, 
                          planned_work=planned_work, 
