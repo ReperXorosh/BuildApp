@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Утилиты для работы с московским временем
 Централизованная система для корректного отображения времени в приложении
@@ -29,7 +29,7 @@ def to_moscow_time(dt):
         return None
     
     # Если время без часового пояса, считаем его UTC (как сохраняется в базе данных)
-    if dt.tzinfo is None:
+    # Если это date объект, конвертируем его в datetime`n    if isinstance(dt, datetime.date) and not isinstance(dt, datetime.datetime):`n        # Преобразуем date в datetime (например, начало дня)`n        dt = datetime.combine(dt, datetime.min.time())`n    `n    # Если время без часового пояса, считаем его UTC (как сохраняется в базе данных)`n    if dt.tzinfo is None:
         dt = UTC_TZ.localize(dt)
     
     # Конвертируем в московское время
@@ -148,3 +148,4 @@ def get_moscow_month_range(date=None):
         end_of_month = date.replace(month=date.month + 1, day=1) - timedelta(microseconds=1)
     
     return start_of_month, end_of_month
+
