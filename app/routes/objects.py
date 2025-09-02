@@ -499,6 +499,8 @@ def add_checklist_item(object_id):
         new_item = ChecklistItem(
             checklist_id=obj.checklist.id,
             item_text=item_text,
+            unit=request.form.get('unit', 'шт'),
+            quantity=float(request.form.get('quantity', 1.0)),
             notes=notes,
             order_index=len(obj.checklist.items) + 1
         )

@@ -69,7 +69,7 @@
                         <div class="mb-4">
                             <label for="item_text" class="form-label">
                                 <i class="bi bi-list-ul me-1"></i>
-                                Текст позиции *
+                                Наименование позиции *
                             </label>
                             <textarea 
                                 class="form-control" 
@@ -81,6 +81,49 @@
                             ></textarea>
                             <div class="form-text">
                                 Опишите конкретную задачу или пункт для проверки
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="unit" class="form-label">
+                                    <i class="bi bi-rulers me-1"></i>
+                                    Единица измерения
+                                </label>
+                                <select class="form-select" id="unit" name="unit">
+                                    <option value="шт" selected>шт (штуки)</option>
+                                    <option value="м">м (метры)</option>
+                                    <option value="м2">м² (квадратные метры)</option>
+                                    <option value="м3">м³ (кубические метры)</option>
+                                    <option value="кг">кг (килограммы)</option>
+                                    <option value="л">л (литры)</option>
+                                    <option value="км">км (километры)</option>
+                                    <option value="га">га (гектары)</option>
+                                    <option value="компл">компл (комплекты)</option>
+                                    <option value="пар">пар (пары)</option>
+                                </select>
+                                <div class="form-text">
+                                    Выберите единицу измерения для данной позиции
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="quantity" class="form-label">
+                                    <i class="bi bi-123 me-1"></i>
+                                    Количество
+                                </label>
+                                <input 
+                                    type="number" 
+                                    class="form-control" 
+                                    id="quantity" 
+                                    name="quantity" 
+                                    value="1" 
+                                    min="0.01" 
+                                    step="0.01"
+                                    placeholder="1.0"
+                                />
+                                <div class="form-text">
+                                    Укажите количество для данной позиции
+                                </div>
                             </div>
                         </div>
                         
