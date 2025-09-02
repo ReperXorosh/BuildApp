@@ -438,78 +438,158 @@ def add_report(object_id):
     
     return render_template('objects/add_report.html', object=obj, today_date=datetime.now().strftime('%Y-%m-%d'))
 
-# Маршруты для чек-листов
-@objects_bp.route('/<uuid:object_id>/checklists')
+
+
+@objects_bp.route('/<uuid:object_id>/checklist')
 @login_required
-def checklists_list(object_id):
-    """Список чек-листов объекта"""
+def checklist_view(object_id):
+    """View checklist for a specific object"""
     obj = Object.query.get_or_404(object_id)
-    checklists = Checklist.query.filter_by(object_id=object_id).order_by(Checklist.created_at.desc()).all()
+    
+    # Get or create checklist for the object
+    if not obj.checklist:
+        checklist = Checklist(object_id=obj.id)
+        db.session.add(checklist)
+        db.session.commit()
+        obj.checklist = checklist
     
     ActivityLog.log_action(
         user_id=current_user.userid,
         user_login=current_user.login,
-        action="Просмотр чек-листов",
-        description=f"Пользователь {current_user.login} просмотрел чек-листы объекта '{obj.name}'",
+        action="Просмотр чек-листа",
+        description=f"Пользователь {current_user.login} просмотрел чек-лист объекта '{obj.name}'",
         ip_address=request.remote_addr,
         page_url=request.url,
         method=request.method
     )
     
-    return render_template('objects/checklists_list.html', object=obj, checklists=checklists)
+    return render_template('objects/checklist_view.html', object=obj, checklist=obj.checklist)
 
-@objects_bp.route('/<uuid:object_id>/checklists/add', methods=['GET', 'POST'])
+@objects_bp.route('/<uuid:object_id>/checklist/add-item', methods=['GET', 'POST'])
 @login_required
-def add_checklist(object_id):
-    """Добавление чек-листа"""
+def add_checklist_item(object_id):
+    """Add a new checklist item (PTO Engineer only)"""
+    if current_user.role != 'Инженер ПТО':
+        abort(403)
+    
     obj = Object.query.get_or_404(object_id)
     
     if request.method == 'POST':
-        checklist_number = request.form.get('checklist_number', '').strip()
-        title = request.form.get('title', '').strip()
-        checklist_type = request.form.get('checklist_type', '').strip()
-        completion_date = request.form.get('completion_date')
+        item_text = request.form.get('item_text', '').strip()
         notes = request.form.get('notes', '').strip()
         
-        if not checklist_number or not title:
-            flash('Номер чек-листа и заголовок обязательны для заполнения', 'error')
-            return render_template('objects/add_checklist.html', object=obj)
+        if not item_text:
+            flash('Текст позиции обязателен для заполнения', 'error')
+            return render_template('objects/add_checklist_item.html', object=obj)
         
-        # Преобразуем дату
-        if completion_date:
-            try:
-                completion_date = datetime.strptime(completion_date, '%Y-%m-%d').date()
-            except ValueError:
-                completion_date = None
+        # Get or create checklist for the object
+        if not obj.checklist:
+            checklist = Checklist(object_id=obj.id)
+            db.session.add(checklist)
+            db.session.commit()
+            obj.checklist = checklist
         
-        new_checklist = Checklist(
-            id=str(uuid.uuid4()),
-            object_id=object_id,
-            checklist_number=checklist_number,
-            title=title,
-            checklist_type=checklist_type,
-            completion_date=completion_date,
+        # Create new checklist item
+        new_item = ChecklistItem(
+            checklist_id=obj.checklist.id,
+            item_text=item_text,
             notes=notes,
-            created_by=current_user.userid
+            order_index=len(obj.checklist.items) + 1
         )
         
-        db.session.add(new_checklist)
+        db.session.add(new_item)
         db.session.commit()
         
         ActivityLog.log_action(
             user_id=current_user.userid,
             user_login=current_user.login,
-            action="Добавление чек-листа",
-            description=f"Пользователь {current_user.login} добавил чек-лист {checklist_number} к объекту '{obj.name}'",
+            action="Добавление позиции чек-листа",
+            description=f"Пользователь {current_user.login} добавил позицию в чек-лист объекта '{obj.name}'",
             ip_address=request.remote_addr,
             page_url=request.url,
             method=request.method
         )
         
-        flash('Чек-лист успешно добавлен', 'success')
-        return redirect(url_for('objects.checklists_list', object_id=object_id))
+        flash('Позиция чек-листа успешно добавлена', 'success')
+        return redirect(url_for('objects.checklist_view', object_id=object_id))
     
-    return render_template('objects/add_checklist.html', object=obj)
+    return render_template('objects/add_checklist_item.html', object=obj)
+
+@objects_bp.route('/<uuid:object_id>/checklist/<uuid:item_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_checklist_item(object_id, item_id):
+    """Edit a checklist item (PTO Engineer only)"""
+    if current_user.role != 'Инженер ПТО':
+        abort(403)
+    
+    obj = Object.query.get_or_404(object_id)
+    item = ChecklistItem.query.get_or_404(item_id)
+    
+    if item.checklist.object_id != object_id:
+        abort(404)
+    
+    if request.method == 'POST':
+        item_text = request.form.get('item_text', '').strip()
+        notes = request.form.get('notes', '').strip()
+        
+        if not item_text:
+            flash('Текст позиции обязателен для заполнения', 'error')
+            return render_template('objects/edit_checklist_item.html', object=obj, item=item)
+        
+        item.item_text = item_text
+        item.notes = notes
+        item.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Редактирование позиции чек-листа",
+            description=f"Пользователь {current_user.login} отредактировал позицию в чек-листе объекта '{obj.name}'",
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+        
+        flash('Позиция чек-листа успешно обновлена', 'success')
+        return redirect(url_for('objects.checklist_view', object_id=object_id))
+    
+    return render_template('objects/edit_checklist_item.html', object=obj, item=item)
+
+@objects_bp.route('/<uuid:object_id>/checklist/<uuid:item_id>/toggle', methods=['POST'])
+@login_required
+def toggle_checklist_item(object_id, item_id):
+    """Toggle checklist item completion status"""
+    obj = Object.query.get_or_404(object_id)
+    item = ChecklistItem.query.get_or_404(item_id)
+    
+    if item.checklist.object_id != object_id:
+        abort(404)
+    
+    # Toggle completion status
+    if item.is_completed:
+        item.uncomplete()
+    else:
+        item.complete()
+    
+    db.session.commit()
+    
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Изменение статуса позиции чек-листа",
+        description=f"Пользователь {current_user.login} изменил статус позиции в чек-листе объекта '{obj.name}'",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return jsonify({
+        'success': True,
+        'is_completed': item.is_completed,
+        'completion_date': item.completion_date.strftime('%d.%m.%Y') if item.completion_date else None
+    })
 
 @objects_bp.route('/<uuid:object_id>/checklist/<uuid:item_id>/delete', methods=['POST'])
 @login_required

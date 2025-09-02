@@ -141,11 +141,12 @@ class ChecklistItem(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    def complete(self, user_id, notes=None):
+    def complete(self, user_id=None, notes=None):
         """Отмечает элемент как выполненный"""
         self.is_completed = True
         self.completed_at = datetime.utcnow()
-        self.completed_by = user_id
+        if user_id:
+            self.completed_by = user_id
         if notes:
             self.notes = notes
         
