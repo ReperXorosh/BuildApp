@@ -6,26 +6,39 @@
 <style>
     .card {
         transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        border: 1px solid #dee2e6;
+        border: 1px solid rgba(108, 117, 125, 0.3);
+        background: var(--bs-body-bg);
     }
     
     .card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        border-color: rgba(108, 117, 125, 0.5);
     }
     
     .card-header {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-bottom: 2px solid #dee2e6;
+        background: var(--bs-secondary-bg);
+        border-bottom: 1px solid rgba(108, 117, 125, 0.3);
+        padding: 1rem 1.25rem;
+    }
+    
+    .card-title {
+        color: var(--bs-body-color) !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
     
     .card-body {
         padding: 1.25rem;
+        background: var(--bs-body-bg);
     }
     
     .border-end {
-        border-right: 2px solid #dee2e6 !important;
+        border-right: 1px solid rgba(108, 117, 125, 0.3) !important;
         padding: 0.5rem 0;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
     
     .border-end:last-child {
@@ -33,8 +46,8 @@
     }
     
     .card-footer {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-top: 2px solid #dee2e6;
+        background: var(--bs-secondary-bg);
+        border-top: 1px solid rgba(108, 117, 125, 0.3);
         padding: 1rem;
     }
     
@@ -42,10 +55,72 @@
         font-size: 0.875rem;
         padding: 0.375rem 0.75rem;
         border-radius: 0.375rem;
+        background: var(--bs-body-bg) !important;
+        border: 1px solid var(--bs-border-color) !important;
+        color: var(--bs-body-color) !important;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .btn-sm:hover {
+        background: var(--bs-primary) !important;
+        color: white !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
     
     .text-muted strong {
-        color: #495057 !important;
+        color: var(--bs-body-color) !important;
+        font-weight: 600;
+    }
+    
+    .stats-number {
+        color: var(--bs-primary) !important;
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    .stats-label {
+        color: var(--bs-secondary-color) !important;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .date-creation {
+        color: var(--bs-body-color) !important;
+        font-weight: 600;
+        background: var(--bs-body-bg);
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        border: 1px solid var(--bs-border-color);
+    }
+    
+    /* Темная тема */
+    [data-bs-theme="dark"] .card {
+        border-color: rgba(255, 255, 255, 0.1);
+        background: var(--bs-dark);
+    }
+    
+    [data-bs-theme="dark"] .card-header,
+    [data-bs-theme="dark"] .card-footer {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    [data-bs-theme="dark"] .btn-sm {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border-color: rgba(255, 255, 255, 0.2) !important;
+        color: var(--bs-light) !important;
+    }
+    
+    [data-bs-theme="dark"] .btn-sm:hover {
+        background: var(--bs-primary) !important;
+        border-color: var(--bs-primary) !important;
+    }
+    
+    [data-bs-theme="dark"] .date-creation {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: var(--bs-light) !important;
     }
 </style>
 
@@ -92,56 +167,56 @@
                             </p>
                             {% endif %}
                             
-                            <div class="row text-center mt-auto">
+                            <div class="row text-center mt-auto" style="min-height: 80px;">
                                 <div class="col-2">
-                                    <div class="border-end border-secondary">
-                                        <h6 class="mb-1 fw-bold">{{ obj.supports|length }}</h6>
-                                        <small class="text-muted d-block">Опора</small>
+                                    <div class="border-end">
+                                        <h6 class="mb-1 stats-number">{{ obj.supports|length }}</h6>
+                                        <small class="stats-label">Опора</small>
                                     </div>
                                 </div>
                                 <div class="col-2">
-                                    <div class="border-end border-secondary">
-                                        <h6 class="mb-1 fw-bold">{{ obj.trenches|length }}</h6>
-                                        <small class="text-muted d-block">Траншея</small>
+                                    <div class="border-end">
+                                        <h6 class="mb-1 stats-number">{{ obj.trenches|length }}</h6>
+                                        <small class="stats-label">Траншея</small>
                                     </div>
                                 </div>
                                 <div class="col-2">
-                                    <div class="border-end border-secondary">
-                                        <h6 class="mb-1 fw-bold">{{ obj.reports|length }}</h6>
-                                        <small class="text-muted d-block">Отчёт</small>
+                                    <div class="border-end">
+                                        <h6 class="mb-1 stats-number">{{ obj.reports|length }}</h6>
+                                        <small class="stats-label">Отчёт</small>
                                     </div>
                                 </div>
                                 <div class="col-2">
-                                    <div class="border-end border-secondary">
-                                        <h6 class="mb-1 fw-bold">{{ obj.checklists|length }}</h6>
-                                        <small class="text-muted d-block">Чек-лист</small>
+                                    <div class="border-end">
+                                        <h6 class="mb-1 stats-number">{{ obj.checklists|length }}</h6>
+                                        <small class="stats-label">Чек-лист</small>
                                     </div>
                                 </div>
                                 <div class="col-2">
-                                    <div class="border-end border-secondary">
-                                        <h6 class="mb-1 fw-bold">{{ obj.planned_works|length }}</h6>
-                                        <small class="text-muted d-block">Работы</small>
+                                    <div class="border-end">
+                                        <h6 class="mb-1 stats-number">{{ obj.planned_works|length }}</h6>
+                                        <small class="stats-label">Работы</small>
                                     </div>
                                 </div>
                                 <div class="col-2">
-                                    <h6 class="mb-1 fw-bold">{{ obj.planned_works|selectattr('status', 'equalto', 'completed')|list|length }}</h6>
-                                    <small class="text-muted d-block">Выполнено</small>
+                                    <div class="d-flex flex-column justify-content-center" style="height: 100%;">
+                                        <h6 class="mb-1 stats-number">{{ obj.planned_works|selectattr('status', 'equalto', 'completed')|list|length }}</h6>
+                                        <small class="stats-label">Выполнено</small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div class="card-footer">
                             <div class="d-flex justify-content-between align-items-center">
-                                <small class="text-muted">
+                                <div class="date-creation">
                                     <i class="bi bi-calendar me-1"></i>
                                     <strong>Дата создания:</strong> {{ obj.created_at | moscow_date }}
-                                </small>
+                                </div>
                                 <div>
-                                    {% if obj.planned_works|length > 0 %}
                                     <a href="{{ url_for('objects.planned_works_list', object_id=obj.id) }}" class="btn btn-sm btn-outline-primary me-2" title="Запланированные работы">
                                         <i class="bi bi-calendar-check me-1"></i>
                                         Запланированные работы
                                     </a>
-                                    {% endif %}
                                     <a href="{{ url_for('objects.object_detail', object_id=obj.id) }}" class="btn btn-sm btn-outline-primary">
                                         <i class="bi bi-eye me-1"></i>
                                         Подробнее
