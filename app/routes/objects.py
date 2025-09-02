@@ -34,6 +34,33 @@ def object_list():
     
     return render_template('objects/object_list.html', objects=objects)
 
+@objects_bp.route('/planned-works-overview')
+@login_required
+def planned_works_overview():
+    """Обзор всех запланированных работ по объектам"""
+    # Получаем все объекты с их запланированными работами
+    objects = Object.query.all()
+    
+    # Подсчитываем статистику по каждому объекту
+    for obj in objects:
+        obj.planned_works_count = len(obj.planned_works)
+        obj.completed_works_count = len([w for w in obj.planned_works if w.status == 'completed'])
+        obj.pending_works_count = len([w for w in obj.planned_works if w.status == 'planned'])
+        obj.in_progress_works_count = len([w for w in obj.planned_works if w.status == 'in_progress'])
+    
+    # Логируем просмотр обзора запланированных работ
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр обзора запланированных работ",
+        description=f"Пользователь {current_user.login} просмотрел обзор запланированных работ",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return render_template('objects/planned_works_overview.html', objects=objects)
+
 @objects_bp.route('/objects/add', methods=['GET', 'POST'])
 @login_required
 def add_object():

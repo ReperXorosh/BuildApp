@@ -11,10 +11,16 @@
                     <i class="bi bi-building me-2"></i>
                     Список объектов
                 </h1>
-                <a href="{{ url_for('objects.add_object') }}" class="btn btn-primary">
-                    <i class="bi bi-plus-lg me-1"></i>
-                    Добавить объект
-                </a>
+                <div>
+                    <a href="{{ url_for('objects.planned_works_overview') }}" class="btn btn-outline-info me-2">
+                        <i class="bi bi-calendar-check me-1"></i>
+                        Запланированные работы
+                    </a>
+                    <a href="{{ url_for('objects.add_object') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i>
+                        Добавить объект
+                    </a>
+                </div>
             </div>
 
             {% if objects %}
@@ -41,27 +47,39 @@
                             {% endif %}
                             
                             <div class="row text-center mt-3">
-                                <div class="col-3">
+                                <div class="col-2">
                                     <div class="border-end">
                                         <h6 class="mb-1">{{ obj.supports|length }}</h6>
                                         <small class="text-muted">Опора</small>
                                     </div>
                                 </div>
-                                <div class="col-3">
+                                <div class="col-2">
                                     <div class="border-end">
                                         <h6 class="mb-1">{{ obj.trenches|length }}</h6>
                                         <small class="text-muted">Траншея</small>
                                     </div>
                                 </div>
-                                <div class="col-3">
+                                <div class="col-2">
                                     <div class="border-end">
                                         <h6 class="mb-1">{{ obj.reports|length }}</h6>
                                         <small class="text-muted">Отчёт</small>
                                     </div>
                                 </div>
-                                <div class="col-3">
-                                    <h6 class="mb-1">{{ obj.checklists|length }}</h6>
-                                    <small class="text-muted">Чек-лист</small>
+                                <div class="col-2">
+                                    <div class="border-end">
+                                        <h6 class="mb-1">{{ obj.checklists|length }}</h6>
+                                        <small class="text-muted">Чек-лист</small>
+                                    </div>
+                                </div>
+                                <div class="col-2">
+                                    <div class="border-end">
+                                        <h6 class="mb-1">{{ obj.planned_works|length }}</h6>
+                                        <small class="text-muted">Работы</small>
+                                    </div>
+                                </div>
+                                <div class="col-2">
+                                    <h6 class="mb-1">{{ obj.planned_works|selectattr('status', 'equalto', 'completed')|list|length }}</h6>
+                                    <small class="text-muted">Выполнено</small>
                                 </div>
                             </div>
                         </div>
@@ -71,10 +89,17 @@
                                     <i class="bi bi-calendar me-1"></i>
                                     {{ obj.created_at | moscow_date }}
                                 </small>
-                                <a href="{{ url_for('objects.object_detail', object_id=obj.id) }}" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-eye me-1"></i>
-                                    Подробнее
-                                </a>
+                                <div>
+                                    {% if obj.planned_works|length > 0 %}
+                                    <a href="{{ url_for('objects.planned_works_list', object_id=obj.id) }}" class="btn btn-sm btn-outline-info me-1" title="Запланированные работы">
+                                        <i class="bi bi-calendar-check"></i>
+                                    </a>
+                                    {% endif %}
+                                    <a href="{{ url_for('objects.object_detail', object_id=obj.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye me-1"></i>
+                                        Подробнее
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>

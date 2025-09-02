@@ -540,6 +540,12 @@
         <symbol id="arrow-left" viewBox="0 0 16 16">
             <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
         </symbol>
+        
+        <!-- Calendar-check icon -->
+        <symbol id="calendar-check" viewBox="0 0 16 16">
+            <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+        </symbol>
 </svg>
 <main class="d-flex flex-nowrap"><h1 class="visually-hidden">Sidebars examples</h1>
 
@@ -561,6 +567,15 @@
                         <use xlink:href="#home"></use>
                     </svg>
                     {{ gettext('Список объектов') }}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('objects.planned_works_overview') }}"
+                   class="nav-link {{ 'active' if active_page == 'planned-works' else 'link-body-emphasis' }}">
+                    <svg class="bi pe-none me-2" width="16" height="16" aria-hidden="true">
+                        <use xlink:href="#calendar-check"></use>
+                    </svg>
+                    {{ gettext('Запланированные работы') }}
                 </a>
             </li>
             <!--                <li>-->
