@@ -86,12 +86,9 @@
     }
     
     .date-creation {
-        color: var(--bs-body-color) !important;
-        font-weight: 600;
-        background: var(--bs-body-bg);
-        padding: 0.25rem 0.5rem;
-        border-radius: 0.25rem;
-        border: 1px solid var(--bs-border-color);
+        color: var(--bs-secondary-color) !important;
+        font-weight: 400;
+        padding: 0.25rem 0;
     }
     
     /* Темная тема */
@@ -118,9 +115,7 @@
     }
     
     [data-bs-theme="dark"] .date-creation {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.2);
-        color: var(--bs-light) !important;
+        color: var(--bs-secondary-color) !important;
     }
 </style>
 
@@ -168,41 +163,27 @@
                             {% endif %}
                             
                             <div class="row text-center mt-auto" style="min-height: 80px;">
-                                <div class="col-2">
+                                <div class="col-3">
                                     <div class="border-end">
                                         <h6 class="mb-1 stats-number">{{ obj.supports|length }}</h6>
                                         <small class="stats-label">Опора</small>
                                     </div>
                                 </div>
-                                <div class="col-2">
+                                <div class="col-3">
                                     <div class="border-end">
                                         <h6 class="mb-1 stats-number">{{ obj.trenches|length }}</h6>
                                         <small class="stats-label">Траншея</small>
                                     </div>
                                 </div>
-                                <div class="col-2">
+                                <div class="col-3">
                                     <div class="border-end">
                                         <h6 class="mb-1 stats-number">{{ obj.reports|length }}</h6>
                                         <small class="stats-label">Отчёт</small>
                                     </div>
                                 </div>
-                                <div class="col-2">
-                                    <div class="border-end">
-                                        <h6 class="mb-1 stats-number">{{ obj.checklists|length }}</h6>
-                                        <small class="stats-label">Чек-лист</small>
-                                    </div>
-                                </div>
-                                <div class="col-2">
-                                    <div class="border-end">
-                                        <h6 class="mb-1 stats-number">{{ obj.planned_works|length }}</h6>
-                                        <small class="stats-label">Работы</small>
-                                    </div>
-                                </div>
-                                <div class="col-2">
-                                    <div class="d-flex flex-column justify-content-center" style="height: 100%;">
-                                        <h6 class="mb-1 stats-number">{{ obj.planned_works|selectattr('status', 'equalto', 'completed')|list|length }}</h6>
-                                        <small class="stats-label">Выполнено</small>
-                                    </div>
+                                <div class="col-3">
+                                    <h6 class="mb-1 stats-number">{{ obj.planned_works|length }}</h6>
+                                    <small class="stats-label">Работы</small>
                                 </div>
                             </div>
                         </div>
@@ -213,13 +194,13 @@
                                     <strong>Дата создания:</strong> {{ obj.created_at | moscow_date }}
                                 </div>
                                 <div>
-                                    <a href="{{ url_for('objects.planned_works_list', object_id=obj.id) }}" class="btn btn-sm btn-outline-primary me-2" title="Запланированные работы">
-                                        <i class="bi bi-calendar-check me-1"></i>
-                                        Запланированные работы
-                                    </a>
-                                    <a href="{{ url_for('objects.object_detail', object_id=obj.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <a href="{{ url_for('objects.object_detail', object_id=obj.id) }}" class="btn btn-sm btn-outline-primary me-3" title="Подробнее">
                                         <i class="bi bi-eye me-1"></i>
                                         Подробнее
+                                    </a>
+                                    <a href="{{ url_for('objects.planned_works_list', object_id=obj.id) }}" class="btn btn-sm btn-outline-primary" title="Запланированные работы">
+                                        <i class="bi bi-calendar-check me-1"></i>
+                                        Запланированные работы
                                     </a>
                                 </div>
                             </div>
