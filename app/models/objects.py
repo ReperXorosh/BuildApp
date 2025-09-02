@@ -22,6 +22,9 @@ class Object(db.Model):
     checklist = db.relationship('Checklist', backref='object', lazy=True, uselist=False, cascade='all, delete-orphan')
     planned_works = db.relationship('PlannedWork', backref='object', lazy=True, cascade='all, delete-orphan')
 
+    # Добавить связь с пользователем
+    creator = db.relationship('User', foreign_keys=[created_by], backref='created_objects')
+
 class Support(db.Model):
     """Модель опоры"""
     __tablename__ = 'supports'

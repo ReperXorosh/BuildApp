@@ -255,7 +255,13 @@
                         <div class="col-md-6">
                             <p><strong>Обновлён:</strong> {{ object.updated_at | moscow_time_short }}</p>
                             {% if object.created_by %}
-                            <p><strong>Создал:</strong> {{ object.created_by }}</p>
+                            <p><strong>Создал:</strong> 
+                                {% if object.creator %}
+                                    {{ object.creator.login }}
+                                {% else %}
+                                    {{ object.created_by }}
+                                {% endif %}
+                            </p>
                             {% endif %}
                         </div>
                     </div>
