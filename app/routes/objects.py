@@ -511,6 +511,25 @@ def add_checklist(object_id):
     
     return render_template('objects/add_checklist.html', object=obj)
 
+@objects_bp.route('/<uuid:object_id>/checklist/<uuid:item_id>/delete', methods=['POST'])
+@login_required
+def delete_checklist_item(object_id, item_id):
+    """Delete a checklist item (PTO Engineer only)"""
+    if current_user.role != 'Инженер ПТО':
+        abort(403)
+    
+    object = Object.query.get_or_404(object_id)
+    item = ChecklistItem.query.get_or_404(item_id)
+    
+    if item.checklist.object_id != object.id:
+        abort(404)
+    
+    db.session.delete(item)
+    db.session.commit()
+    
+    flash('Позиция чек-листа удалена', 'success')
+    return redirect(url_for('objects.checklist_view', object_id=object.id))
+
 
 # Маршруты для запланированных работ
 @objects_bp.route('/<uuid:object_id>/planned-works')
