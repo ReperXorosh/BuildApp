@@ -91,7 +91,7 @@
                                 </small>
                                 <div>
                                     {% if obj.planned_works|length > 0 %}
-                                    <a href="{{ url_for('objects.planned_works_list', object_id=obj.id) }}" class="btn btn-sm btn-outline-info me-1" title="Запланированные работы">
+                                    <a href="{{ url_for('objects.planned_works_list', object_id=obj.id) }}" class="btn btn-sm btn-outline-primary me-1" title="Запланированные работы">
                                         <i class="bi bi-calendar-check"></i>
                                     </a>
                                     {% endif %}
