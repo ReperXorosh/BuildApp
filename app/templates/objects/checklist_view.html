@@ -103,6 +103,19 @@
         margin-bottom: 1rem;
         opacity: 0.5;
     }
+
+    .item-details {
+        display: inline-block;
+        background: var(--bs-light);
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.85em;
+    }
+    
+    .item-details small {
+        color: var(--bs-secondary) !important;
+        font-weight: 500;
+    }
 </style>
 
 <div class="container-fluid checklist-container">
@@ -191,6 +204,17 @@
                                 <div class="item-text">
                                     <span class="me-2">{{ loop.index }}.</span>
                                     {{ item.item_text }}
+                                    {% if item.unit or item.quantity %}
+                                        <span class="item-details ms-2">
+                                            <small class="text-muted">
+                                                {% if item.quantity and item.quantity != 1.0 %}
+                                                    {{ item.quantity }} {{ item.unit or 'шт' }}
+                                                {% elif item.unit and item.unit != 'шт' %}
+                                                    {{ item.unit }}
+                                                {% endif %}
+                                            </small>
+                                        </span>
+                                    {% endif %}
                                 </div>
                                 <div class="item-actions">
                                     <!-- Кнопка переключения статуса -->
