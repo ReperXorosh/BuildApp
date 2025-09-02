@@ -106,15 +106,35 @@
 
     .item-details {
         display: inline-block;
-        background: var(--bs-light);
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.85em;
+        margin-left: 1rem;
     }
     
-    .item-details small {
-        color: var(--bs-secondary) !important;
+    .unit-badge, .quantity-badge {
+        display: inline-block;
+        background: var(--bs-light);
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.9em;
+        color: var(--bs-secondary);
         font-weight: 500;
+        border: 1px solid var(--bs-border-color);
+    }
+    
+    .unit-badge {
+        margin-right: 0.75rem;
+    }
+    
+    .quantity-badge {
+        background: var(--bs-primary-bg-subtle);
+        color: var(--bs-primary);
+        border-color: var(--bs-primary-border-subtle);
+    }
+    
+    .checklist-item-header .item-text {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
     }
 </style>
 
@@ -202,17 +222,16 @@
                         <div class="checklist-item {% if item.is_completed %}completed{% endif %}" id="item-{{ item.id }}">
                             <div class="checklist-item-header">
                                 <div class="item-text">
-                                    <span class="me-2">{{ loop.index }}.</span>
+                                    <span class="me-3">{{ loop.index }}.</span>
                                     {{ item.item_text }}
                                     {% if item.unit or item.quantity %}
-                                        <span class="item-details ms-2">
-                                            <small class="text-muted">
-                                                {% if item.quantity and item.quantity != 1.0 %}
-                                                    {{ item.quantity }} {{ item.unit or 'шт' }}
-                                                {% elif item.unit and item.unit != 'шт' %}
-                                                    {{ item.unit }}
-                                                {% endif %}
-                                            </small>
+                                        <span class="item-details ms-3">
+                                            {% if item.unit and item.unit != 'шт' %}
+                                                <span class="unit-badge me-2">{{ item.unit }}</span>
+                                            {% endif %}
+                                            {% if item.quantity and item.quantity != 1.0 %}
+                                                <span class="quantity-badge">{{ item.quantity }}</span>
+                                            {% endif %}
                                         </span>
                                     {% endif %}
                                 </div>
