@@ -448,7 +448,10 @@ def checklist_view(object_id):
     
     # Get or create checklist for the object
     if not obj.checklist:
-        checklist = Checklist(object_id=obj.id)
+        checklist = Checklist(
+            object_id=obj.id,
+            created_by=current_user.userid
+        )
         db.session.add(checklist)
         db.session.commit()
         obj.checklist = checklist
@@ -484,7 +487,10 @@ def add_checklist_item(object_id):
         
         # Get or create checklist for the object
         if not obj.checklist:
-            checklist = Checklist(object_id=obj.id)
+            checklist = Checklist(
+                object_id=obj.id,
+                created_by=current_user.userid
+            )
             db.session.add(checklist)
             db.session.commit()
             obj.checklist = checklist
@@ -571,7 +577,7 @@ def toggle_checklist_item(object_id, item_id):
     if item.is_completed:
         item.uncomplete()
     else:
-        item.complete()
+        item.complete(user_id=current_user.userid)
     
     db.session.commit()
     

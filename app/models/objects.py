@@ -81,6 +81,7 @@ class Checklist(db.Model):
     
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     object_id = db.Column(db.String(36), db.ForeignKey('objects.id'), nullable=False, unique=True)
+    checklist_number = db.Column(db.String(50), nullable=False)  # Добавляем поле для номера чек-листа
     title = db.Column(db.String(255), default='Чек-лист объекта')
     status = db.Column(db.String(50), default='pending')  # pending, in_progress, completed
     total_items = db.Column(db.Integer, default=0)
@@ -97,6 +98,9 @@ class Checklist(db.Model):
         super(Checklist, self).__init__(**kwargs)
         if not self.title:
             self.title = 'Чек-лист объекта'
+        if not self.checklist_number:
+            # Генерируем автоматический номер чек-листа
+            self.checklist_number = f"ЧЛ-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
     
     def add_item(self, item_text, order_index=None):
         """Добавляет новый элемент в чек-лист"""
