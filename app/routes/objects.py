@@ -15,7 +15,7 @@ def inject_gettext():
         return text
     return dict(gettext=gettext)
 
-@objects_bp.route('/objects')
+@objects_bp.route('/')
 @login_required
 def object_list():
     """Список всех объектов"""
@@ -61,7 +61,7 @@ def planned_works_overview():
     
     return render_template('objects/planned_works_overview.html', objects=objects)
 
-@objects_bp.route('/objects/add', methods=['GET', 'POST'])
+@objects_bp.route('/add', methods=['GET', 'POST'])
 @login_required
 def add_object():
     """Добавление нового объекта"""
@@ -102,7 +102,7 @@ def add_object():
     
     return render_template('objects/add_object.html')
 
-@objects_bp.route('/objects/<object_id>')
+@objects_bp.route('/<object_id>')
 @login_required
 def object_detail(object_id):
     """Детальная информация об объекте"""
@@ -122,7 +122,7 @@ def object_detail(object_id):
     return render_template('objects/object_detail.html', object=obj)
 
 # Маршруты для опор
-@objects_bp.route('/objects/<object_id>/supports')
+@objects_bp.route('/<object_id>/supports')
 @login_required
 def supports_list(object_id):
     """Список опор объекта"""
@@ -141,7 +141,7 @@ def supports_list(object_id):
     
     return render_template('objects/supports_list.html', object=obj, supports=supports)
 
-@objects_bp.route('/objects/<object_id>/supports/add', methods=['GET', 'POST'])
+@objects_bp.route('/<object_id>/supports/add', methods=['GET', 'POST'])
 @login_required
 def add_support(object_id):
     """Добавление опоры (только для инженера ПТО)"""
@@ -201,7 +201,7 @@ def add_support(object_id):
     
     return render_template('objects/add_support.html', object=obj)
 
-@objects_bp.route('/objects/<object_id>/supports/<support_id>')
+@objects_bp.route('/<object_id>/supports/<support_id>')
 @login_required
 def support_detail(object_id, support_id):
     """Просмотр деталей опоры"""
@@ -223,7 +223,7 @@ def support_detail(object_id, support_id):
     
     return render_template('objects/support_detail.html', object=obj, support=support)
 
-@objects_bp.route('/objects/<object_id>/supports/<support_id>/confirm-installation', methods=['GET', 'POST'])
+@objects_bp.route('/<object_id>/supports/<support_id>/confirm-installation', methods=['GET', 'POST'])
 @login_required
 def confirm_support_installation(object_id, support_id):
     """Подтверждение установки опоры"""
@@ -278,7 +278,7 @@ def confirm_support_installation(object_id, support_id):
     return render_template('objects/confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
 
 # Маршруты для траншей
-@objects_bp.route('/objects/<object_id>/trenches')
+@objects_bp.route('/<object_id>/trenches')
 @login_required
 def trenches_list(object_id):
     """Список траншей объекта"""
@@ -297,7 +297,7 @@ def trenches_list(object_id):
     
     return render_template('objects/trenches_list.html', object=obj, trenches=trenches)
 
-@objects_bp.route('/objects/<object_id>/trenches/add', methods=['GET', 'POST'])
+@objects_bp.route('/<object_id>/trenches/add', methods=['GET', 'POST'])
 @login_required
 def add_trench(object_id):
     """Добавление траншеи"""
@@ -364,7 +364,7 @@ def add_trench(object_id):
     return render_template('objects/add_trench.html', object=obj)
 
 # Маршруты для отчётов
-@objects_bp.route('/objects/<object_id>/reports')
+@objects_bp.route('/<object_id>/reports')
 @login_required
 def reports_list(object_id):
     """Список отчётов объекта"""
@@ -383,7 +383,7 @@ def reports_list(object_id):
     
     return render_template('objects/reports_list.html', object=obj, reports=reports)
 
-@objects_bp.route('/objects/<object_id>/reports/add', methods=['GET', 'POST'])
+@objects_bp.route('/<object_id>/reports/add', methods=['GET', 'POST'])
 @login_required
 def add_report(object_id):
     """Добавление отчёта"""
@@ -439,7 +439,7 @@ def add_report(object_id):
     return render_template('objects/add_report.html', object=obj, today_date=datetime.now().strftime('%Y-%m-%d'))
 
 # Маршруты для чек-листов
-@objects_bp.route('/objects/<object_id>/checklists')
+@objects_bp.route('/<object_id>/checklists')
 @login_required
 def checklists_list(object_id):
     """Список чек-листов объекта"""
@@ -458,7 +458,7 @@ def checklists_list(object_id):
     
     return render_template('objects/checklists_list.html', object=obj, checklists=checklists)
 
-@objects_bp.route('/objects/<object_id>/checklists/add', methods=['GET', 'POST'])
+@objects_bp.route('/<object_id>/checklists/add', methods=['GET', 'POST'])
 @login_required
 def add_checklist(object_id):
     """Добавление чек-листа"""
@@ -513,7 +513,7 @@ def add_checklist(object_id):
 
 
 # Маршруты для запланированных работ
-@objects_bp.route('/objects/<object_id>/planned-works')
+@objects_bp.route('/<object_id>/planned-works')
 @login_required
 def planned_works_list(object_id):
     """Список запланированных работ объекта"""
@@ -532,7 +532,7 @@ def planned_works_list(object_id):
     
     return render_template('objects/planned_works_list.html', object=obj, planned_works=planned_works)
 
-@objects_bp.route('/objects/<object_id>/planned-works/add', methods=['GET', 'POST'])
+@objects_bp.route('/<object_id>/planned-works/add', methods=['GET', 'POST'])
 @login_required
 def add_planned_work(object_id):
     """Добавление запланированной работы"""
@@ -600,7 +600,7 @@ def add_planned_work(object_id):
     
     return render_template('objects/add_planned_work.html', object=obj, today_date=datetime.now().strftime('%Y-%m-%d'))
 
-@objects_bp.route('/objects/<object_id>/planned-works/<work_id>/execute', methods=['GET', 'POST'])
+@objects_bp.route('/<object_id>/planned-works/<work_id>/execute', methods=['GET', 'POST'])
 @login_required
 def execute_planned_work(object_id, work_id):
     """Выполнение запланированной работы"""
@@ -713,7 +713,7 @@ def execute_planned_work(object_id, work_id):
     
     return render_template('objects/execute_planned_work.html', object=obj, planned_work=planned_work, today_date=datetime.now().strftime('%Y-%m-%d'))
 
-@objects_bp.route('/objects/<object_id>/planned-works/<work_id>/comparison')
+@objects_bp.route('/<object_id>/planned-works/<work_id>/comparison')
 @login_required
 def work_comparison(object_id, work_id):
     """Просмотр сравнения плана и факта выполнения работы"""
