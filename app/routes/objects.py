@@ -68,6 +68,26 @@ def planned_works_overview():
     
     return render_template('objects/planned_works_overview.html', objects=objects)
 
+@objects_bp.route('/all-planned-works')
+@login_required
+def all_planned_works():
+    """Список всех запланированных работ в виде таблицы"""
+    # Получаем все запланированные работы с информацией об объектах
+    planned_works = PlannedWork.query.join(Object).order_by(PlannedWork.planned_date.asc()).all()
+    
+    # Логируем просмотр всех запланированных работ
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр всех запланированных работ",
+        description=f"Пользователь {current_user.login} просмотрел список всех запланированных работ",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return render_template('objects/all_planned_works.html', planned_works=planned_works)
+
 @objects_bp.route('/debug/planned-works')
 @login_required
 def debug_planned_works():
@@ -1113,6 +1133,64 @@ def execute_planned_work(object_id, work_id):
         return redirect(url_for('objects.planned_works_list', object_id=object_id))
     
     return render_template('objects/execute_planned_work.html', object=obj, planned_work=planned_work, today_date=datetime.now().strftime('%Y-%m-%d'))
+
+@objects_bp.route('/<uuid:object_id>/planned-works/<uuid:work_id>/change-date', methods=['POST'])
+@login_required
+def change_planned_work_date(object_id, work_id):
+    """Изменение даты запланированной работы"""
+    try:
+        # Получаем работу
+        work = PlannedWork.query.get_or_404(work_id)
+        
+        # Проверяем, что работа принадлежит указанному объекту
+        if work.object_id != str(object_id):
+            abort(404)
+        
+        # Получаем новую дату из формы
+        new_date_str = request.form.get('new_date')
+        if not new_date_str:
+            return jsonify({'success': False, 'error': 'Дата не указана'})
+        
+        # Парсим дату
+        try:
+            new_date = datetime.strptime(new_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return jsonify({'success': False, 'error': 'Неверный формат даты'})
+        
+        # Проверяем, что дата не в прошлом (если работа ещё не завершена)
+        if work.status != 'completed' and new_date < datetime.utcnow().date():
+            return jsonify({'success': False, 'error': 'Нельзя перенести работу на прошедшую дату'})
+        
+        # Сохраняем старую дату для логирования
+        old_date = work.planned_date
+        
+        # Обновляем дату
+        work.planned_date = new_date
+        work.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        # Логируем изменение
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Изменение даты запланированной работы",
+            description=f"Пользователь {current_user.login} перенёс работу '{work.work_title}' с {old_date.strftime('%d.%m.%Y')} на {new_date.strftime('%d.%m.%Y')}",
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Дата работы изменена на {new_date.strftime("%d.%m.%Y")}',
+            'new_date': new_date.strftime('%d.%m.%Y')
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"ERROR: Ошибка при изменении даты работы: {e}")
+        return jsonify({'success': False, 'error': f'Ошибка при изменении даты: {str(e)}'})
 
 @objects_bp.route('/<uuid:object_id>/planned-works/<uuid:work_id>/comparison')
 @login_required

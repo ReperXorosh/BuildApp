@@ -1,6 +1,6 @@
 {% extends "main/layout.html" %}
 
-{% block title %}Запланированные работы - {{ object.name }}{% endblock %}
+{% block title %}Все запланированные работы{% endblock %}
 
 {% block content %}
 <div class="container-fluid" style="margin-top: 80px;">
@@ -9,16 +9,12 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="h3 mb-0">
                     <i class="bi bi-calendar-check me-2"></i>
-                    Запланированные работы
+                    Все запланированные работы
                 </h1>
                 <div>
-                    <a href="{{ url_for('objects.add_planned_work', object_id=object.id) }}" class="btn btn-primary me-2">
-                        <i class="bi bi-plus-circle me-1"></i>
-                        Добавить работу
-                    </a>
-                    <a href="{{ url_for('objects.object_detail', object_id=object.id) }}" class="btn btn-outline-secondary">
+                    <a href="{{ url_for('objects.planned_works_overview') }}" class="btn btn-outline-secondary">
                         <i class="bi bi-arrow-left me-1"></i>
-                        Назад к объекту
+                        К обзору
                     </a>
                 </div>
             </div>
@@ -87,12 +83,12 @@
                 </div>
             </div>
 
-            <!-- Список работ -->
+            <!-- Список всех работ -->
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-calendar-week me-2"></i>
-                        Список запланированных работ
+                        Список всех запланированных работ
                     </h5>
                 </div>
                 <div class="card-body">
@@ -101,6 +97,7 @@
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
+                                        <th>Объект</th>
                                         <th>Тип работы</th>
                                         <th>Заголовок</th>
                                         <th>Планируемая дата</th>
@@ -113,6 +110,13 @@
                                 <tbody>
                                     {% for work in planned_works %}
                                     <tr data-work-id="{{ work.id }}">
+                                        <td>
+                                            <a href="{{ url_for('objects.object_detail', object_id=work.object.id) }}" 
+                                               class="text-decoration-none">
+                                                <i class="bi bi-building me-1"></i>
+                                                {{ work.object.name }}
+                                            </a>
+                                        </td>
                                         <td>
                                             <span class="badge bg-secondary">{{ work.work_type }}</span>
                                         </td>
@@ -157,12 +161,12 @@
                                         <td>
                                             <div class="btn-group" role="group">
                                                 {% if work.status == 'planned' %}
-                                                    <a href="{{ url_for('objects.execute_planned_work', object_id=object.id, work_id=work.id) }}" 
+                                                    <a href="{{ url_for('objects.execute_planned_work', object_id=work.object.id, work_id=work.id) }}" 
                                                        class="btn btn-sm btn-success" title="Выполнить работу">
                                                         <i class="bi bi-play-circle"></i>
                                                     </a>
                                                 {% elif work.status == 'completed' %}
-                                                    <a href="{{ url_for('objects.work_comparison', object_id=object.id, work_id=work.id) }}" 
+                                                    <a href="{{ url_for('objects.work_comparison', object_id=work.object.id, work_id=work.id) }}" 
                                                        class="btn btn-sm btn-info" title="Сравнение плана и факта">
                                                         <i class="bi bi-bar-chart"></i>
                                                     </a>
@@ -171,7 +175,7 @@
                                                 <!-- Кнопка изменения даты -->
                                                 {% if work.status != 'completed' %}
                                                     <button type="button" class="btn btn-sm btn-outline-warning" 
-                                                            onclick="openChangeDateModal('{{ work.id }}', '{{ work.work_title }}', '{{ work.planned_date.strftime('%Y-%m-%d') }}')" 
+                                                            onclick="openChangeDateModal('{{ work.id }}', '{{ work.work_title }}', '{{ work.planned_date.strftime('%Y-%m-%d') }}', '{{ work.object.id }}')" 
                                                             title="Изменить дату">
                                                         <i class="bi bi-calendar-event"></i>
                                                     </button>
@@ -194,9 +198,9 @@
                             <i class="bi bi-calendar-x fs-1 text-muted mb-3"></i>
                             <h5 class="text-muted">Запланированные работы отсутствуют</h5>
                             <p class="text-muted">Добавьте первую запланированную работу для начала планирования</p>
-                            <a href="{{ url_for('objects.add_planned_work', object_id=object.id) }}" class="btn btn-primary">
-                                <i class="bi bi-plus-circle me-1"></i>
-                                Добавить работу
+                            <a href="{{ url_for('objects.object_list') }}" class="btn btn-primary">
+                                <i class="bi bi-building me-1"></i>
+                                Перейти к объектам
                             </a>
                         </div>
                     {% endif %}
@@ -223,6 +227,7 @@
                     <div class="col-md-6">
                         <h6><i class="bi bi-info-circle me-2"></i>Основная информация</h6>
                         <ul class="list-unstyled">
+                            <li><strong>Объект:</strong> {{ work.object.name }}</li>
                             <li><strong>Тип работы:</strong> {{ work.work_type }}</li>
                             <li><strong>Статус:</strong> 
                                 {% if work.status == 'planned' %}
@@ -273,13 +278,13 @@
             </div>
             <div class="modal-footer">
                 {% if work.status == 'planned' %}
-                    <a href="{{ url_for('objects.execute_planned_work', object_id=object.id, work_id=work.id) }}" 
+                    <a href="{{ url_for('objects.execute_planned_work', object_id=work.object.id, work_id=work.id) }}" 
                        class="btn btn-success">
                         <i class="bi bi-play-circle me-1"></i>
                         Выполнить работу
                     </a>
                 {% elif work.status == 'completed' %}
-                    <a href="{{ url_for('objects.work_comparison', object_id=object.id, work_id=work.id) }}" 
+                    <a href="{{ url_for('objects.work_comparison', object_id=work.object.id, work_id=work.id) }}" 
                        class="btn btn-info">
                         <i class="bi bi-bar-chart me-1"></i>
                         Сравнение плана и факта
@@ -289,7 +294,7 @@
                 <!-- Кнопка изменения даты -->
                 {% if work.status != 'completed' %}
                     <button type="button" class="btn btn-warning" 
-                            onclick="openChangeDateModal('{{ work.id }}', '{{ work.work_title }}', '{{ work.planned_date.strftime('%Y-%m-%d') }}')">
+                            onclick="openChangeDateModal('{{ work.id }}', '{{ work.work_title }}', '{{ work.planned_date.strftime('%Y-%m-%d') }}', '{{ work.object.id }}')">
                         <i class="bi bi-calendar-event me-1"></i>
                         Изменить дату
                     </button>
@@ -316,6 +321,7 @@
             <div class="modal-body">
                 <form id="changeDateForm">
                     <input type="hidden" id="workId" name="work_id">
+                    <input type="hidden" id="objectId" name="object_id">
                     <div class="mb-3">
                         <label for="workTitle" class="form-label">Название работы</label>
                         <input type="text" class="form-control" id="workTitle" readonly>
@@ -343,8 +349,9 @@
 
 <!-- JavaScript для изменения даты -->
 <script>
-function openChangeDateModal(workId, workTitle, currentDate) {
+function openChangeDateModal(workId, workTitle, currentDate, objectId) {
     document.getElementById('workId').value = workId;
+    document.getElementById('objectId').value = objectId;
     document.getElementById('workTitle').value = workTitle;
     document.getElementById('newDate').value = currentDate;
     
@@ -359,6 +366,7 @@ function openChangeDateModal(workId, workTitle, currentDate) {
 
 function changeWorkDate() {
     const workId = document.getElementById('workId').value;
+    const objectId = document.getElementById('objectId').value;
     const newDate = document.getElementById('newDate').value;
     
     if (!newDate) {
@@ -367,7 +375,7 @@ function changeWorkDate() {
     }
     
     // Отправляем запрос на изменение даты
-    fetch(`/objects/{{ object.id }}/planned-works/${workId}/change-date`, {
+    fetch(`/objects/${objectId}/planned-works/${workId}/change-date`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
