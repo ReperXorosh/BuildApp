@@ -455,6 +455,10 @@ def checklist_view(object_id):
         db.session.add(checklist)
         db.session.commit()
         obj.checklist = checklist
+    else:
+        # Обновляем счетчики для существующего чек-листа
+        obj.checklist.update_completion_status()
+        db.session.commit()
     
     ActivityLog.log_action(
         user_id=current_user.userid,
@@ -506,6 +510,11 @@ def add_checklist_item(object_id):
         )
         
         db.session.add(new_item)
+        db.session.flush()  # Получаем ID элемента
+        
+        # Обновляем счетчики в чек-листе
+        obj.checklist.update_completion_status()
+        
         db.session.commit()
         
         ActivityLog.log_action(
@@ -548,6 +557,9 @@ def edit_checklist_item(object_id, item_id):
         item.notes = notes
         item.updated_at = datetime.utcnow()
         
+        # Обновляем счетчики в чек-листе
+        obj.checklist.update_completion_status()
+        
         db.session.commit()
         
         ActivityLog.log_action(
@@ -581,6 +593,9 @@ def toggle_checklist_item(object_id, item_id):
     else:
         item.complete(user_id=current_user.userid)
     
+    # Обновляем счетчики в чек-листе
+    obj.checklist.update_completion_status()
+    
     db.session.commit()
     
     ActivityLog.log_action(
@@ -613,6 +628,10 @@ def delete_checklist_item(object_id, item_id):
         abort(404)
     
     db.session.delete(item)
+    
+    # Обновляем счетчики в чек-листе
+    object.checklist.update_completion_status()
+    
     db.session.commit()
     
     flash('Позиция чек-листа удалена', 'success')

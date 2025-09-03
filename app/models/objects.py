@@ -119,8 +119,16 @@ class Checklist(db.Model):
         self.total_items = len(self.items)
         return item
     
+    @property
+    def actual_total_items(self):
+        """Возвращает фактическое количество элементов в чек-листе"""
+        return len(self.items)
+    
     def update_completion_status(self):
         """Обновляет статус завершения чек-листа"""
+        # Синхронизируем total_items с фактическим количеством
+        self.total_items = self.actual_total_items
+        
         completed = sum(1 for item in self.items if item.is_completed)
         self.completed_items = completed
         
