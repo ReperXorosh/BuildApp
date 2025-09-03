@@ -78,6 +78,13 @@ def all_planned_works():
     # Получаем все объекты для фильтра
     all_objects = Object.query.order_by(Object.name.asc()).all()
     
+    # Вычисляем статистику для каждого объекта
+    for obj in all_objects:
+        obj.planned_works_count = len(obj.planned_works)
+        obj.completed_works_count = len([w for w in obj.planned_works if w.status == 'completed'])
+        obj.pending_works_count = len([w for w in obj.planned_works if w.status == 'planned'])
+        obj.in_progress_works_count = len([w for w in obj.planned_works if w.status == 'in_progress'])
+    
     # Базовый запрос
     query = PlannedWork.query.join(Object)
     
