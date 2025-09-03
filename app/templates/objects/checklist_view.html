@@ -635,138 +635,139 @@ function confirmAddQuantity() {
     });
 }
 
-   function toggleItem(itemId, objectId) {
-      fetch(`/objects/${objectId}/checklist/${itemId}/toggle`, {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          }
-      })
-      .then(response => response.json())
-      .then(data => {
-          if (data.success) {
-              // Обновляем информацию о выполнении без перезагрузки страницы
-              const itemElement = document.getElementById(`item-${itemId}`);
-              if (itemElement) {
-                  // Обновляем класс элемента
-                  if (data.is_completed) {
-                      itemElement.classList.add('completed');
-                  } else {
-                      itemElement.classList.remove('completed');
-                  }
-                  
-                  // Обновляем или создаем блок с информацией о выполнении
-                  let completionInfo = itemElement.querySelector('.completion-info');
-                  if (data.is_completed && data.completion_date) {
-                      if (!completionInfo) {
-                          completionInfo = document.createElement('div');
-                          completionInfo.className = 'completion-info';
-                          itemElement.appendChild(completionInfo);
-                      }
-                      completionInfo.innerHTML = `
-                          <i class="bi bi-check-circle me-1"></i>
-                          Выполнено ${data.completion_date}
-                      `;
-                  } else if (completionInfo) {
-                      completionInfo.remove();
-                  }
-                  
-                  // Обновляем кнопку
-                  const toggleBtn = itemElement.querySelector('button[onclick*="toggleItem"]');
-                  if (toggleBtn) {
-                      if (data.is_completed) {
-                          toggleBtn.className = 'btn btn-sm btn-success';
-                          toggleBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>`;
-                          toggleBtn.title = 'Отметить как невыполненную';
-                      } else {
-                          toggleBtn.className = 'btn btn-sm btn-outline-success';
-                          toggleBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>`;
-                          toggleBtn.title = 'Отметить как выполненную';
-                      }
-                  }
-              }
-              
-              // Показываем сообщение об успехе
-              if (data.message) {
-                  alert(data.message);
-              }
-          } else {
-              // Проверяем, нужно ли подтверждение
-              if (data.needs_confirmation) {
-                  const confirmMessage = `${data.message}\n\nТекущее количество: ${data.current_quantity} ${data.unit}\nПланируемое количество: ${data.planned_quantity} ${data.unit}`;
-                  
-                  if (confirm(confirmMessage)) {
-                      // Пользователь подтвердил - отправляем принудительное выполнение
-                      fetch(`/objects/${objectId}/checklist/${itemId}/toggle`, {
-                          method: 'POST',
-                          headers: {
-                              'Content-Type': 'application/json',
-                          },
-                          body: JSON.stringify({
-                              force_complete: true
-                          })
-                      })
-                      .then(response => response.json())
-                      .then(forceData => {
-                          if (forceData.success) {
-                              // Обновляем интерфейс
-                              const itemElement = document.getElementById(`item-${itemId}`);
-                              if (itemElement) {
-                                  itemElement.classList.add('completed');
-                                  
-                                  // Обновляем кнопку
-                                  const toggleBtn = itemElement.querySelector('button[onclick*="toggleItem"]');
-                                  if (toggleBtn) {
-                                      toggleBtn.className = 'btn btn-sm btn-success';
-                                      toggleBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                          <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                      </svg>`;
-                                      toggleBtn.title = 'Отметить как невыполненную';
-                                  }
-                                  
-                                  // Добавляем информацию о выполнении
-                                  let completionInfo = itemElement.querySelector('.completion-info');
-                                  if (forceData.completion_date) {
-                                      if (!completionInfo) {
-                                          completionInfo = document.createElement('div');
-                                          completionInfo.className = 'completion-info';
-                                          itemElement.appendChild(completionInfo);
-                                      }
-                                      completionInfo.innerHTML = `
-                                          <i class="bi bi-check-circle me-1"></i>
-                                          Выполнено ${forceData.completion_date}
-                                      `;
-                                  }
-                              }
-                              
-                              // Показываем сообщение об успехе
-                              if (forceData.message) {
-                                  alert(forceData.message);
-                              }
-                          } else {
-                              alert(`Ошибка: ${forceData.message}`);
-                          }
-                      })
-                      .catch(error => {
-                          console.error('Ошибка:', error);
-                          alert('Произошла ошибка при принудительном выполнении');
-                      });
-                  }
-              } else {
-                  // Показываем обычное сообщение об ошибке
-                  alert(data.message || 'Произошла ошибка при изменении статуса');
-              }
-          }
-      })
-      .catch(error => {
-          console.error('Ошибка:', error);
-          alert('Произошла ошибка при изменении статуса');
-      });
-  }
+               function toggleItem(itemId, objectId) {
+        fetch(`/objects/${objectId}/checklist/${itemId}/toggle`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Обновляем информацию о выполнении без перезагрузки страницы
+                const itemElement = document.getElementById(`item-${itemId}`);
+                if (itemElement) {
+                    // Обновляем класс элемента
+                    if (data.is_completed) {
+                        itemElement.classList.add('completed');
+                    } else {
+                        itemElement.classList.remove('completed');
+                    }
+                    
+                    // Обновляем или создаем блок с информацией о выполнении
+                    let completionInfo = itemElement.querySelector('.completion-info');
+                    if (data.is_completed && data.completion_date) {
+                        if (!completionInfo) {
+                            completionInfo = document.createElement('div');
+                            completionInfo.className = 'completion-info';
+                            itemElement.appendChild(completionInfo);
+                        }
+                        completionInfo.innerHTML = `
+                            <i class="bi bi-check-circle me-1"></i>
+                            Выполнено ${data.completion_date}
+                        `;
+                    } else if (completionInfo) {
+                        completionInfo.remove();
+                    }
+                    
+                    // Обновляем кнопку
+                    const toggleBtn = itemElement.querySelector('button[onclick*="toggleItem"]');
+                    if (toggleBtn) {
+                        if (data.is_completed) {
+                            toggleBtn.className = 'btn btn-sm btn-success';
+                            toggleBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>`;
+                            toggleBtn.title = 'Отметить как невыполненную';
+                        } else {
+                            toggleBtn.className = 'btn btn-sm btn-outline-success';
+                            toggleBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>`;
+                            toggleBtn.title = 'Отметить как выполненную';
+                        }
+                    }
+                }
+                
+                // Показываем сообщение об успехе
+                if (data.message) {
+                    alert(data.message);
+                }
+            } else {
+                // Проверяем, нужно ли подтверждение
+                if (data.needs_confirmation) {
+                    const confirmMessage = `${data.message}\n\nТекущее количество: ${data.current_quantity} ${data.unit}\nПланируемое количество: ${data.planned_quantity} ${data.unit}`;
+                    
+                    if (confirm(confirmMessage)) {
+                        // Пользователь подтвердил - отправляем принудительное выполнение
+                        fetch(`/objects/${objectId}/checklist/${itemId}/toggle`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                force_complete: true
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(forceData => {
+                            if (forceData.success) {
+                                // Обновляем интерфейс
+                                const itemElement = document.getElementById(`item-${itemId}`);
+                                if (itemElement) {
+                                    itemElement.classList.add('completed');
+                                    
+                                    // Обновляем кнопку
+                                    const toggleBtn = itemElement.querySelector('button[onclick*="toggleItem"]');
+                                    if (toggleBtn) {
+                                        toggleBtn.className = 'btn btn-sm btn-success';
+                                        toggleBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>`;
+                                        toggleBtn.title = 'Отметить как невыполненную';
+                                    }
+                                    
+                                    // Добавляем информацию о выполнении
+                                    let completionInfo = itemElement.querySelector('.completion-info');
+                                    if (forceData.completion_date) {
+                                        if (!completionInfo) {
+                                            completionInfo = document.createElement('div');
+                                            completionInfo.className = 'completion-info';
+                                            itemElement.appendChild(completionInfo);
+                                        }
+                                        completionInfo.innerHTML = `
+                                            <i class="bi bi-check-circle me-1"></i>
+                                            Выполнено ${forceData.completion_date}
+                                        `;
+                                    }
+                                }
+                                
+                                // Показываем сообщение об успехе
+                                if (forceData.message) {
+                                    alert(forceData.message);
+                                }
+                            } else {
+                                alert(`Ошибка: ${forceData.message}`);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Ошибка:', error);
+                            alert('Произошла ошибка при принудительном выполнении');
+                        });
+                    }
+                } else {
+                    // Показываем обычное сообщение об ошибке
+                    alert(data.message || 'Произошла ошибка при изменении статуса');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            alert('Произошла ошибка при изменении статуса');
+        });
+    }
 
  function deleteItem(itemId, objectId) {
      if (confirm('Вы уверены, что хотите удалить эту позицию?')) {
