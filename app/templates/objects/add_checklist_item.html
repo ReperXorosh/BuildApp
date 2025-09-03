@@ -149,7 +149,7 @@
                                 <i class="bi bi-x-lg me-1"></i>
                                 Отмена
                             </a>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
                                 <i class="bi bi-plus-lg me-1"></i>
                                 Добавить позицию
                             </button>
@@ -160,4 +160,38 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const quantityInput = document.getElementById('quantity');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    // Валидация количества перед отправкой формы
+    form.addEventListener('submit', function(e) {
+        const quantityValue = quantityInput.value.trim();
+        
+        // Если поле количества пустое, устанавливаем значение по умолчанию
+        if (quantityValue === '') {
+            quantityInput.value = '1';
+        } else {
+            // Проверяем, что значение является положительным числом
+            const quantity = parseFloat(quantityValue);
+            if (isNaN(quantity) || quantity <= 0) {
+                e.preventDefault();
+                alert('Количество должно быть положительным числом');
+                quantityInput.focus();
+                return;
+            }
+        }
+    });
+    
+    // Автоматическое заполнение значения по умолчанию при потере фокуса
+    quantityInput.addEventListener('blur', function() {
+        if (this.value.trim() === '') {
+            this.value = '1';
+        }
+    });
+});
+</script>
 {% endblock %}

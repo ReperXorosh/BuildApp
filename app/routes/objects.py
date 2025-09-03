@@ -499,12 +499,27 @@ def add_checklist_item(object_id):
             db.session.commit()
             obj.checklist = checklist
         
+        # Получаем количество с проверкой на пустые значения
+        quantity_str = request.form.get('quantity', '1.0')
+        if quantity_str.strip() == '':
+            quantity = 1.0
+        else:
+            try:
+                quantity = float(quantity_str)
+            except ValueError:
+                quantity = 1.0
+        
+        # Получаем единицу измерения с проверкой на пустые значения
+        unit = request.form.get('unit', 'шт')
+        if unit.strip() == '':
+            unit = 'шт'
+        
         # Create new checklist item
         new_item = ChecklistItem(
             checklist_id=obj.checklist.id,
             item_text=item_text,
-            unit=request.form.get('unit', 'шт'),
-            quantity=float(request.form.get('quantity', 1.0)),
+            unit=unit,
+            quantity=quantity,
             notes=notes,
             order_index=len(obj.checklist.items) + 1
         )
