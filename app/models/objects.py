@@ -165,19 +165,19 @@ class ChecklistItem(db.Model):
     # Связь с пользователем, который выполнил элемент
     completed_by_user = db.relationship('Users', foreign_keys=[completed_by], backref='completed_checklist_items')
     
-    def complete(self, user_id=None, notes=None):
+    def complete(self, user_id=None, notes=None, force=False):
         """Отмечает элемент как выполненный"""
-        # Проверяем, достигнуто ли планируемое количество
-        if (self.current_quantity or 0) >= self.quantity:
-            self.is_completed = True
-            self.completed_at = datetime.utcnow()
-            if user_id:
-                self.completed_by = user_id
-            if notes:
-                self.notes = notes
-        else:
-            # Если количество не достигнуто, элемент не может быть выполнен
+        # Проверяем, достигнуто ли планируемое количество (если не принудительное выполнение)
+        if not force and (self.current_quantity or 0) < self.quantity:
+            # Если количество не достигнуто и это не принудительное выполнение, элемент не может быть выполнен
             return False
+        
+        self.is_completed = True
+        self.completed_at = datetime.utcnow()
+        if user_id:
+            self.completed_by = user_id
+        if notes:
+            self.notes = notes
         
         # Обновляем статус чек-листа
         if self.checklist:

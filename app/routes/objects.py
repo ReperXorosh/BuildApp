@@ -667,7 +667,7 @@ def toggle_checklist_item(object_id, item_id):
             
             if current_qty >= planned_qty:
                 # Количество совпадает - обычное выполнение
-                item.complete(user_id=current_user.userid)
+                item.complete(user_id=current_user.userid, force=False)
                 message = 'Позиция отмечена как выполненная'
                 is_completed = True
                 completion_date = item.completed_at.strftime('%d.%m.%Y %H:%M') if item.completed_at else None
@@ -687,7 +687,7 @@ def toggle_checklist_item(object_id, item_id):
                 else:
                     # Принудительное выполнение
                     if current_user.role == 'Инженер ПТО':
-                        item.complete(user_id=current_user.userid)
+                        item.complete(user_id=current_user.userid, force=True)
                         message = f'Позиция принудительно отмечена как выполненная (количество: {current_qty}/{planned_qty} {item.unit or "шт"})'
                         is_completed = True
                         completion_date = item.completed_at.strftime('%d.%m.%Y %H:%M') if item.completed_at else None
