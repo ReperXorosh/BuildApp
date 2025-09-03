@@ -100,6 +100,16 @@
         display: flex;
         gap: 0.25rem;
         justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .item-actions .btn {
+        min-width: 32px;
+        height: 32px;
+        padding: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .item-notes {
@@ -266,7 +276,7 @@
                                 <div class="col-2">
                                     <strong>Количество</strong>
                                 </div>
-                                <div class="col-1">
+                                <div class="col-2">
                                     <strong>Действия</strong>
                                 </div>
                             </div>
@@ -296,22 +306,31 @@
                                             <span class="text-muted">-</span>
                                         {% endif %}
                                     </div>
-                                    <div class="col-1">
+                                    <div class="col-2">
                                         <div class="item-actions">
-                                            <!-- Кнопка переключения статуса -->
+                                            <!-- Кнопка добавления новой позиции -->
+                                            <a href="{{ url_for('objects.add_checklist_item', object_id=object.id) }}" 
+                                               class="btn btn-sm btn-outline-info" title="Добавить позицию">
+                                                <i class="bi bi-plus-lg"></i>
+                                            </a>
+                                            
+                                            <!-- Кнопка выполнения/отмены выполнения -->
                                             <button class="btn btn-sm btn-{{ 'success' if item.is_completed else 'outline-success' }}" 
                                                     onclick="toggleItem('{{ item.id }}', '{{ object.id }}')"
                                                     title="{{ 'Отметить как невыполненную' if item.is_completed else 'Отметить как выполненную' }}">
-                                                <i class="bi bi-{{ 'check-circle-fill' if item.is_completed else 'circle' }}"></i>
+                                                <i class="bi bi-{{ 'check-circle-fill' if item.is_completed else 'check-circle' }}"></i>
                                             </button>
                                             
+                                            <!-- Кнопка редактирования -->
                                             {% if current_user.role == 'Инженер ПТО' %}
-                                            <!-- Кнопки редактирования для инженера ПТО -->
                                             <a href="{{ url_for('objects.edit_checklist_item', object_id=object.id, item_id=item.id) }}" 
                                                class="btn btn-sm btn-outline-primary" title="Редактировать">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
+                                            {% endif %}
                                             
+                                            <!-- Кнопка удаления -->
+                                            {% if current_user.role == 'Инженер ПТО' %}
                                             <button class="btn btn-sm btn-outline-danger" 
                                                     onclick="deleteItem('{{ item.id }}', '{{ object.id }}')"
                                                     title="Удалить">
@@ -405,19 +424,19 @@ function toggleItem(itemId, objectId) {
                     completionInfo.remove();
                 }
                 
-                // Обновляем кнопку
-                const toggleBtn = itemElement.querySelector('button[onclick*="toggleItem"]');
-                if (toggleBtn) {
-                    if (data.is_completed) {
-                        toggleBtn.className = 'btn btn-sm btn-success';
-                        toggleBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
-                        toggleBtn.title = 'Отметить как невыполненную';
-                    } else {
-                        toggleBtn.className = 'btn btn-sm btn-outline-success';
-                        toggleBtn.innerHTML = '<i class="bi bi-circle"></i>';
-                        toggleBtn.title = 'Отметить как выполненную';
-                    }
-                }
+                                 // Обновляем кнопку
+                 const toggleBtn = itemElement.querySelector('button[onclick*="toggleItem"]');
+                 if (toggleBtn) {
+                     if (data.is_completed) {
+                         toggleBtn.className = 'btn btn-sm btn-success';
+                         toggleBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
+                         toggleBtn.title = 'Отметить как невыполненную';
+                     } else {
+                         toggleBtn.className = 'btn btn-sm btn-outline-success';
+                         toggleBtn.innerHTML = '<i class="bi bi-check-circle"></i>';
+                         toggleBtn.title = 'Отметить как выполненную';
+                     }
+                 }
             }
         }
     })
