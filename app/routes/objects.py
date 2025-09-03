@@ -649,50 +649,84 @@ def toggle_checklist_item(object_id, item_id):
     if item.checklist.object_id != object_id:
         abort(404)
     
-    # Toggle completion status
-    if item.is_completed:
-        item.uncomplete()
-        message = 'Позиция отмечена как невыполненная'
-        is_completed = False
-        completion_date = None
-        completed_by = None
-    else:
-        # Проверяем, можно ли отметить как выполненный
-        if (item.current_quantity or 0) >= item.quantity:
-            # Отмечаем как выполненный
-            item.complete(user_id=current_user.userid)
-            message = 'Позиция отмечена как выполненная'
-            is_completed = True
-            completion_date = item.completed_at.strftime('%d.%m.%Y %H:%M') if item.completed_at else None
-            completed_by = current_user.login
+    try:
+        data = request.get_json() or {}
+        force_complete = data.get('force_complete', False)
+        
+        # Toggle completion status
+        if item.is_completed:
+            item.uncomplete()
+            message = 'Позиция отмечена как невыполненная'
+            is_completed = False
+            completion_date = None
+            completed_by = None
         else:
-            return jsonify({
-                'success': False, 
-                'message': f'Нельзя отметить как выполненную: установлено {item.current_quantity or 0} из {item.quantity} {item.unit or "шт"}'
-            })
-    
-    # Обновляем счетчики в чек-листе
-    obj.checklist.update_completion_status()
-    
-    db.session.commit()
-    
-    ActivityLog.log_action(
-        user_id=current_user.userid,
-        user_login=current_user.login,
-        action="Изменение статуса позиции чек-листа",
-        description=f"Пользователь {current_user.login} изменил статус позиции в чек-листе объекта '{obj.name}'",
-        ip_address=request.remote_addr,
-        page_url=request.url,
-        method=request.method
-    )
-    
-    return jsonify({
-        'success': True,
-        'message': message,
-        'is_completed': is_completed,
-        'completion_date': completion_date,
-        'completed_by': completed_by
-    })
+            # Проверяем количество
+            current_qty = item.current_quantity or 0
+            planned_qty = item.quantity
+            
+            if current_qty >= planned_qty:
+                # Количество совпадает - обычное выполнение
+                item.complete(user_id=current_user.userid)
+                message = 'Позиция отмечена как выполненная'
+                is_completed = True
+                completion_date = item.completed_at.strftime('%d.%m.%Y %H:%M') if item.completed_at else None
+                completed_by = current_user.login
+            else:
+                # Количество не совпадает
+                if not force_complete:
+                    # Возвращаем информацию для показа предупреждения
+                    return jsonify({
+                        'success': False,
+                        'needs_confirmation': True,
+                        'message': f'Внимание! Количество не совпадает: установлено {current_qty} из {planned_qty} {item.unit or "шт"}. Подтвердить выполнение?',
+                        'current_quantity': current_qty,
+                        'planned_quantity': planned_qty,
+                        'unit': item.unit or 'шт'
+                    })
+                else:
+                    # Принудительное выполнение
+                    if current_user.role == 'Инженер ПТО':
+                        item.complete(user_id=current_user.userid)
+                        message = f'Позиция принудительно отмечена как выполненная (количество: {current_qty}/{planned_qty} {item.unit or "шт"})'
+                        is_completed = True
+                        completion_date = item.completed_at.strftime('%d.%m.%Y %H:%M') if item.completed_at else None
+                        completed_by = current_user.login
+                    else:
+                        return jsonify({
+                            'success': False,
+                            'message': 'Только инженер ПТО может принудительно отмечать позиции как выполненные'
+                        }), 403
+        
+        # Обновляем счетчики в чек-листе
+        obj.checklist.update_completion_status()
+        
+        db.session.commit()
+        
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Изменение статуса позиции чек-листа",
+            description=f"Пользователь {current_user.login} изменил статус позиции в чек-листе объекта '{obj.name}'",
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': message,
+            'is_completed': is_completed,
+            'completion_date': completion_date,
+            'completed_by': completed_by
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'Ошибка при изменении статуса: {str(e)}'
+        }), 500
 
 @objects_bp.route('/<uuid:object_id>/checklist/<uuid:item_id>/delete', methods=['POST'])
 @login_required
