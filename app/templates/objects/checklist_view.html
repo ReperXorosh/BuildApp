@@ -87,15 +87,13 @@
     }
     
     .unit-badge {
-        color: var(--bs-body-color);
-        background-color: #0dcaf0;
-        border: none;
+        margin-right: 0.75rem;
     }
     
     .quantity-badge {
-        color: var(--bs-body-color);
-        background-color: #fd7e14;
-        border: none;
+        background: var(--bs-primary-bg-subtle);
+        color: var(--bs-primary);
+        border-color: var(--bs-primary-border-subtle);
     }
     
     .item-actions {
@@ -286,22 +284,14 @@
                                     </div>
                                     <div class="col-2">
                                         {% if item.unit %}
-                                            {% if item.unit == 'шт' %}
-                                                <span class="unit-badge unit-default">{{ item.unit }}</span>
-                                            {% else %}
-                                                <span class="unit-badge">{{ item.unit }}</span>
-                                            {% endif %}
+                                            <span class="unit-badge unit-default">{{ item.unit }}</span>
                                         {% else %}
                                             <span class="text-muted">-</span>
                                         {% endif %}
                                     </div>
                                     <div class="col-2">
                                         {% if item.quantity %}
-                                            {% if item.quantity == 1.0 %}
-                                                <span class="quantity-badge quantity-default">{{ item.quantity }}</span>
-                                            {% else %}
-                                                <span class="quantity-badge">{{ item.quantity }}</span>
-                                            {% endif %}
+                                            <span class="quantity-badge quantity-default">{{ item.quantity }}</span>
                                         {% else %}
                                             <span class="text-muted">-</span>
                                         {% endif %}
