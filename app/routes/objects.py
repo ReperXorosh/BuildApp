@@ -526,6 +526,9 @@ def add_checklist_item(object_id):
             order_index=len(obj.checklist.items) + 1
         )
         
+        # Логируем созданную позицию для отладки
+        print(f"DEBUG: Создана позиция чек-листа: unit='{unit}', quantity={quantity}")
+        
         db.session.add(new_item)
         db.session.flush()  # Получаем ID элемента
         

@@ -150,6 +150,21 @@
         border-color: var(--bs-primary-border-subtle);
     }
     
+    /* Стили для значений по умолчанию */
+    .unit-default {
+        background: var(--bs-secondary-bg) !important;
+        color: var(--bs-secondary-color) !important;
+        border: 1px solid var(--bs-border-color) !important;
+        font-style: italic;
+    }
+    
+    .quantity-default {
+        background: var(--bs-secondary-bg) !important;
+        color: var(--bs-secondary-color) !important;
+        border: 1px solid var(--bs-border-color) !important;
+        font-style: italic;
+    }
+    
     .checklist-item-header .item-text {
         display: flex;
         align-items: center;
@@ -270,18 +285,28 @@
                                         <span class="item-text">{{ item.item_text }}</span>
                                     </div>
                                     <div class="col-2">
-                                        {% if item.unit and item.unit != 'шт' %}
-                                            <span class="unit-badge">{{ item.unit }}</span>
+                                        {% if item.unit %}
+                                            {% if item.unit == 'шт' %}
+                                                <span class="unit-badge unit-default">{{ item.unit }}</span>
+                                            {% else %}
+                                                <span class="unit-badge">{{ item.unit }}</span>
+                                            {% endif %}
                                         {% else %}
                                             <span class="text-muted">-</span>
                                         {% endif %}
+                                        <!-- DEBUG: unit = "{{ item.unit }}" -->
                                     </div>
                                     <div class="col-2">
-                                        {% if item.quantity and item.quantity != 1.0 %}
-                                            <span class="quantity-badge">{{ item.quantity }}</span>
+                                        {% if item.quantity %}
+                                            {% if item.quantity == 1.0 %}
+                                                <span class="quantity-badge quantity-default">{{ item.quantity }}</span>
+                                            {% else %}
+                                                <span class="quantity-badge">{{ item.quantity }}</span>
+                                            {% endif %}
                                         {% else %}
                                             <span class="text-muted">-</span>
                                         {% endif %}
+                                        <!-- DEBUG: quantity = {{ item.quantity }} -->
                                     </div>
                                     <div class="col-1">
                                         <div class="item-actions">
