@@ -308,7 +308,7 @@
                                     </div>
                                                                          <div class="col-5">
                                          <span class="item-text item-text-clickable" 
-                                               onclick="showItemDetails('{{ item.id }}', '{{ object.id }}')" 
+                                               onclick="showItemDetails('{{ item.id }}', '{{ object.id }}', '{{ item.completed_by_user.login if item.completed_by_user else '' }}', '{{ item.completed_at | moscow_date if item.completed_at else '' }}')" 
                                                title="Нажмите для просмотра подробной информации">
                                              {{ item.item_text }}
                                          </span>
@@ -375,15 +375,7 @@
                             </div>
                             {% endif %}
                             
-                             {% if item.is_completed %}
-                             <div class="completion-info">
-                                 <i class="bi bi-check-circle me-1"></i>
-                                 Выполнено 
-                                 {% if item.completed_at %}
-                                     {{ item.completed_at | moscow_date }}
-                                 {% endif %}
-                             </div>
-                             {% endif %}
+
                         </div>
                         {% endfor %}
                     </div>
@@ -667,7 +659,7 @@ function confirmAddQuantity() {
      }
  }
  
- function showItemDetails(itemId, objectId) {
+ function showItemDetails(itemId, objectId, completedByUser, completedAt) {
      // Находим элемент позиции для получения данных
      const itemElement = document.getElementById(`item-${itemId}`);
      if (!itemElement) return;
@@ -711,6 +703,20 @@ function confirmAddQuantity() {
              <div class="mb-3">
                  <strong>Статус выполнения:</strong><br>
                  <span class="text-success">${completionInfo.textContent}</span>
+             </div>
+         `;
+     }
+     
+     // Добавляем информацию о выполнении позиции
+     if (itemElement.classList.contains('completed') && completedAt) {
+         detailsHTML += `
+             <div class="mb-3">
+                 <strong>Выполнено:</strong><br>
+                 <span class="text-success">
+                     <i class="bi bi-check-circle me-1"></i>
+                     ${completedAt}
+                     ${completedByUser ? ` пользователем ${completedByUser}` : ''}
+                 </span>
              </div>
          `;
      }
