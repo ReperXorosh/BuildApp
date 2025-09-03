@@ -72,21 +72,38 @@ def planned_works_overview():
 @login_required
 def all_planned_works():
     """Список всех запланированных работ в виде таблицы"""
-    # Получаем все запланированные работы с информацией об объектах
-    planned_works = PlannedWork.query.join(Object).order_by(PlannedWork.planned_date.asc()).all()
+    # Получаем параметр фильтра по объекту
+    object_filter = request.args.get('object_id', '')
+    
+    # Получаем все объекты для фильтра
+    all_objects = Object.query.order_by(Object.name.asc()).all()
+    
+    # Базовый запрос
+    query = PlannedWork.query.join(Object)
+    
+    # Применяем фильтр по объекту, если указан
+    if object_filter:
+        query = query.filter(PlannedWork.object_id == object_filter)
+    
+    # Получаем отфильтрованные работы
+    planned_works = query.order_by(PlannedWork.planned_date.asc()).all()
     
     # Логируем просмотр всех запланированных работ
     ActivityLog.log_action(
         user_id=current_user.userid,
         user_login=current_user.login,
         action="Просмотр всех запланированных работ",
-        description=f"Пользователь {current_user.login} просмотрел список всех запланированных работ",
+        description=f"Пользователь {current_user.login} просмотрел список всех запланированных работ" + 
+                   (f" (фильтр по объекту: {object_filter})" if object_filter else ""),
         ip_address=request.remote_addr,
         page_url=request.url,
         method=request.method
     )
     
-    return render_template('objects/all_planned_works.html', planned_works=planned_works)
+    return render_template('objects/all_planned_works.html', 
+                         planned_works=planned_works, 
+                         all_objects=all_objects,
+                         selected_object_id=object_filter)
 
 @objects_bp.route('/debug/planned-works')
 @login_required
