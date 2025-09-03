@@ -611,7 +611,8 @@ def toggle_checklist_item(object_id, item_id):
     return jsonify({
         'success': True,
         'is_completed': item.is_completed,
-        'completion_date': item.completed_at.strftime('%d.%m.%Y') if item.completed_at else None
+        'completion_date': item.completed_at.strftime('%d.%m.%Y') if item.completed_at else None,
+        'completed_by': current_user.login if item.is_completed else None
     })
 
 @objects_bp.route('/<uuid:object_id>/checklist/<uuid:item_id>/delete', methods=['POST'])

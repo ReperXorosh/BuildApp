@@ -326,7 +326,9 @@
                                 {% if item.completed_at %}
                                     {{ item.completed_at | moscow_date }}
                                 {% endif %}
-                                {% if item.completed_by %}
+                                {% if item.completed_by_user %}
+                                    пользователем {{ item.completed_by_user.login }}
+                                {% elif item.completed_by %}
                                     пользователем {{ item.completed_by }}
                                 {% endif %}
                             </div>
@@ -363,8 +365,47 @@ function toggleItem(itemId, objectId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Перезагружаем страницу для обновления данных
-            location.reload();
+            // Обновляем информацию о выполнении без перезагрузки страницы
+            const itemElement = document.getElementById(`item-${itemId}`);
+            if (itemElement) {
+                // Обновляем класс элемента
+                if (data.is_completed) {
+                    itemElement.classList.add('completed');
+                } else {
+                    itemElement.classList.remove('completed');
+                }
+                
+                // Обновляем или создаем блок с информацией о выполнении
+                let completionInfo = itemElement.querySelector('.completion-info');
+                if (data.is_completed && data.completion_date) {
+                    if (!completionInfo) {
+                        completionInfo = document.createElement('div');
+                        completionInfo.className = 'completion-info';
+                        itemElement.appendChild(completionInfo);
+                    }
+                    completionInfo.innerHTML = `
+                        <i class="bi bi-check-circle me-1"></i>
+                        Выполнено ${data.completion_date}
+                        ${data.completed_by ? `пользователем ${data.completed_by}` : ''}
+                    `;
+                } else if (completionInfo) {
+                    completionInfo.remove();
+                }
+                
+                // Обновляем кнопку
+                const toggleBtn = itemElement.querySelector('button[onclick*="toggleItem"]');
+                if (toggleBtn) {
+                    if (data.is_completed) {
+                        toggleBtn.className = 'btn btn-sm btn-success';
+                        toggleBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
+                        toggleBtn.title = 'Отметить как невыполненную';
+                    } else {
+                        toggleBtn.className = 'btn btn-sm btn-outline-success';
+                        toggleBtn.innerHTML = '<i class="bi bi-circle"></i>';
+                        toggleBtn.title = 'Отметить как выполненную';
+                    }
+                }
+            }
         }
     })
     .catch(error => {

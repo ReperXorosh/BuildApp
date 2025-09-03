@@ -97,6 +97,9 @@ class Checklist(db.Model):
     # Связь с элементами чек-листа
     items = db.relationship('ChecklistItem', backref='checklist', lazy=True, cascade='all, delete-orphan', order_by='ChecklistItem.order_index')
     
+    # Связь с пользователем
+    creator = db.relationship('Users', foreign_keys=[created_by], backref='created_checklists')
+    
     def __init__(self, **kwargs):
         super(Checklist, self).__init__(**kwargs)
         if not self.title:
@@ -158,6 +161,9 @@ class ChecklistItem(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    # Связь с пользователем, который выполнил элемент
+    completed_by_user = db.relationship('Users', foreign_keys=[completed_by], backref='completed_checklist_items')
+    
     def complete(self, user_id=None, notes=None):
         """Отмечает элемент как выполненный"""
         self.is_completed = True
@@ -204,6 +210,9 @@ class PlannedWork(db.Model):
     
     # Связи
     work_executions = db.relationship('WorkExecution', backref='planned_work', lazy=True, cascade='all, delete-orphan')
+    
+    # Связь с пользователем
+    executor = db.relationship('Users', foreign_keys=[executed_by], backref='executed_works')
 
 class WorkExecution(db.Model):
     """Модель выполнения работы"""
