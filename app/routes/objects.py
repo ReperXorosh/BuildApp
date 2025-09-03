@@ -652,8 +652,24 @@ def toggle_checklist_item(object_id, item_id):
     # Toggle completion status
     if item.is_completed:
         item.uncomplete()
+        message = 'Позиция отмечена как невыполненная'
+        is_completed = False
+        completion_date = None
+        completed_by = None
     else:
-        item.complete(user_id=current_user.userid)
+        # Проверяем, можно ли отметить как выполненный
+        if (item.current_quantity or 0) >= item.quantity:
+            # Отмечаем как выполненный
+            item.complete(user_id=current_user.userid)
+            message = 'Позиция отмечена как выполненная'
+            is_completed = True
+            completion_date = item.completed_at.strftime('%d.%m.%Y %H:%M') if item.completed_at else None
+            completed_by = current_user.login
+        else:
+            return jsonify({
+                'success': False, 
+                'message': f'Нельзя отметить как выполненную: установлено {item.current_quantity or 0} из {item.quantity} {item.unit or "шт"}'
+            })
     
     # Обновляем счетчики в чек-листе
     obj.checklist.update_completion_status()
@@ -672,9 +688,10 @@ def toggle_checklist_item(object_id, item_id):
     
     return jsonify({
         'success': True,
-        'is_completed': item.is_completed,
-        'completion_date': item.completed_at.strftime('%d.%m.%Y') if item.completed_at else None,
-        'completed_by': current_user.login if item.is_completed else None
+        'message': message,
+        'is_completed': is_completed,
+        'completion_date': completion_date,
+        'completed_by': completed_by
     })
 
 @objects_bp.route('/<uuid:object_id>/checklist/<uuid:item_id>/delete', methods=['POST'])
