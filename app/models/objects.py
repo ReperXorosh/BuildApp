@@ -56,9 +56,13 @@ class Trench(db.Model):
     excavation_date = db.Column(db.Date)
     status = db.Column(db.String(50), default='planned')  # planned, in_progress, completed
     notes = db.Column(db.Text)
+    planned_work_id = db.Column(db.String(36), db.ForeignKey('planned_works.id'))  # связь с запланированной работой
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     created_by = db.Column(db.String(36), db.ForeignKey('users.userid'))
+    
+    # Связь с запланированной работой
+    planned_work = db.relationship('PlannedWork', backref='trenches', lazy=True)
     
     def check_completion_status(self):
         """Проверяет и обновляет статус завершения траншеи"""
@@ -296,3 +300,7 @@ class WorkComparison(db.Model):
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Связи
+    planned_work = db.relationship('PlannedWork', foreign_keys=[planned_work_id], backref='work_comparisons')
+    work_execution = db.relationship('WorkExecution', foreign_keys=[work_execution_id], backref='work_comparisons')

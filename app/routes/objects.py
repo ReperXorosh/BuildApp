@@ -359,6 +359,31 @@ def add_trench(object_id):
         new_trench.check_completion_status()
         
         db.session.add(new_trench)
+        db.session.flush()  # Получаем ID траншеи
+        
+        # Создаём запланированную работу на рытьё траншеи
+        work_date = excavation_date if excavation_date else datetime.utcnow().date()
+        
+        planned_work = PlannedWork(
+            id=str(uuid.uuid4()),
+            object_id=object_id,
+            work_type='trench_excavation',
+            work_title=f'Рытьё траншеи длиной {planned_length}м',
+            description=f'Рытьё траншеи: длина {planned_length}м, ширина {width or "не указана"}м, глубина {depth or "не указана"}м. Тип грунта: {soil_type or "не указан"}. {notes or ""}',
+            planned_date=work_date,
+            priority='medium',
+            status='planned',
+            location_details=f'Объект: {obj.name}',
+            notes=f'Автоматически создано при добавлении траншеи. Траншея ID: {new_trench.id}',
+            created_by=current_user.userid
+        )
+        
+        db.session.add(planned_work)
+        db.session.flush()  # Получаем ID запланированной работы
+        
+        # Связываем траншею с запланированной работой
+        new_trench.planned_work_id = planned_work.id
+        
         db.session.commit()
         
         ActivityLog.log_action(
@@ -371,7 +396,11 @@ def add_trench(object_id):
             method=request.method
         )
         
-        flash('Траншея успешно добавлена', 'success')
+        if excavation_date:
+            flash(f'Траншея успешно добавлена. Запланирована работа на рытьё траншеи на {work_date.strftime("%d.%m.%Y")}', 'success')
+        else:
+            flash(f'Траншея успешно добавлена. Запланирована работа на рытьё траншеи на {work_date.strftime("%d.%m.%Y")}', 'success')
+        
         return redirect(url_for('objects.trenches_list', object_id=object_id))
     
     return render_template('objects/add_trench.html', object=obj)
