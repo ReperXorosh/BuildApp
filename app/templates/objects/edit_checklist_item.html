@@ -44,7 +44,7 @@
     }
     
     .current-status {
-        background: var(--bs-light);
+        background: transparent;
         border: 1px solid var(--bs-border-color);
         border-radius: 0.375rem;
         padding: 1rem;
@@ -118,6 +118,49 @@
                             </div>
                         </div>
                         
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="unit" class="form-label">
+                                    <i class="bi bi-rulers me-1"></i>
+                                    Единица измерения
+                                </label>
+                                <select class="form-select" id="unit" name="unit">
+                                    <option value="шт" {% if item.unit == 'шт' %}selected{% endif %}>шт (штуки)</option>
+                                    <option value="м" {% if item.unit == 'м' %}selected{% endif %}>м (метры)</option>
+                                    <option value="м2" {% if item.unit == 'м2' %}selected{% endif %}>м² (квадратные метры)</option>
+                                    <option value="м3" {% if item.unit == 'м3' %}selected{% endif %}>м³ (кубические метры)</option>
+                                    <option value="кг" {% if item.unit == 'кг' %}selected{% endif %}>кг (килограммы)</option>
+                                    <option value="л" {% if item.unit == 'л' %}selected{% endif %}>л (литры)</option>
+                                    <option value="км" {% if item.unit == 'км' %}selected{% endif %}>км (километры)</option>
+                                    <option value="га" {% if item.unit == 'га' %}selected{% endif %}>га (гектары)</option>
+                                    <option value="компл" {% if item.unit == 'компл' %}selected{% endif %}>компл (комплекты)</option>
+                                    <option value="пар" {% if item.unit == 'пар' %}selected{% endif %}>пар (пары)</option>
+                                </select>
+                                <div class="form-text">
+                                    Выберите единицу измерения для данной позиции
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="quantity" class="form-label">
+                                    <i class="bi bi-123 me-1"></i>
+                                    Количество
+                                </label>
+                                <input 
+                                    type="number" 
+                                    class="form-control" 
+                                    id="quantity" 
+                                    name="quantity" 
+                                    value="{{ item.quantity or 1 }}" 
+                                    min="0.01" 
+                                    step="0.01"
+                                    placeholder="1.0"
+                                />
+                                <div class="form-text">
+                                    Укажите количество для данной позиции
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="mb-4">
                             <label for="notes" class="form-label">
                                 <i class="bi bi-chat-text me-1"></i>
@@ -151,4 +194,63 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const quantityInput = document.getElementById('quantity');
+    const unitSelect = document.getElementById('unit');
+    
+    // Функция для установки значений по умолчанию
+    function setDefaultValues() {
+        // Если поле количества пустое, устанавливаем 1
+        if (quantityInput.value.trim() === '') {
+            quantityInput.value = '1';
+        }
+        
+        // Если единица измерения не выбрана, устанавливаем 'шт'
+        if (!unitSelect.value || unitSelect.value.trim() === '') {
+            unitSelect.value = 'шт';
+        }
+    }
+    
+    // Валидация перед отправкой формы
+    form.addEventListener('submit', function(e) {
+        // Устанавливаем значения по умолчанию перед отправкой
+        setDefaultValues();
+        
+        // Проверяем, что количество является положительным числом
+        const quantity = parseFloat(quantityInput.value);
+        if (isNaN(quantity) || quantity <= 0) {
+            e.preventDefault();
+            alert('Количество должно быть положительным числом');
+            quantityInput.focus();
+            return;
+        }
+    });
+    
+    // Автоматическое заполнение значений по умолчанию при потере фокуса
+    quantityInput.addEventListener('blur', function() {
+        if (this.value.trim() === '') {
+            this.value = '1';
+        }
+    });
+    
+    // Автоматическое заполнение значений по умолчанию при загрузке страницы
+    setDefaultValues();
+    
+    // Устанавливаем значения по умолчанию при изменении полей
+    quantityInput.addEventListener('input', function() {
+        if (this.value.trim() === '') {
+            this.value = '1';
+        }
+    });
+    
+    unitSelect.addEventListener('change', function() {
+        if (!this.value || this.value.trim() === '') {
+            this.value = 'шт';
+        }
+    });
+});
+</script>
 {% endblock %}

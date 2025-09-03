@@ -526,9 +526,6 @@ def add_checklist_item(object_id):
             order_index=len(obj.checklist.items) + 1
         )
         
-        # Логируем созданную позицию для отладки
-        print(f"DEBUG: Создана позиция чек-листа: unit='{unit}', quantity={quantity}")
-        
         db.session.add(new_item)
         db.session.flush()  # Получаем ID элемента
         
@@ -569,12 +566,31 @@ def edit_checklist_item(object_id, item_id):
         item_text = request.form.get('item_text', '').strip()
         notes = request.form.get('notes', '').strip()
         
+        # Получаем количество с проверкой на пустые значения
+        quantity_str = request.form.get('quantity', '1.0')
+        if not quantity_str or quantity_str.strip() == '':
+            quantity = 1.0
+        else:
+            try:
+                quantity = float(quantity_str)
+                if quantity <= 0:
+                    quantity = 1.0
+            except ValueError:
+                quantity = 1.0
+        
+        # Получаем единицу измерения с проверкой на пустые значения
+        unit = request.form.get('unit', 'шт')
+        if not unit or unit.strip() == '':
+            unit = 'шт'
+        
         if not item_text:
             flash('Текст позиции обязателен для заполнения', 'error')
             return render_template('objects/edit_checklist_item.html', object=obj, item=item)
         
         item.item_text = item_text
         item.notes = notes
+        item.unit = unit
+        item.quantity = quantity
         item.updated_at = datetime.utcnow()
         
         # Обновляем счетчики в чек-листе
