@@ -41,12 +41,19 @@ def planned_works_overview():
     # Получаем все объекты с их запланированными работами
     objects = Object.query.all()
     
+    # Отладочная информация
+    print(f"DEBUG: Найдено объектов: {len(objects)}")
+    
     # Подсчитываем статистику по каждому объекту
     for obj in objects:
         obj.planned_works_count = len(obj.planned_works)
         obj.completed_works_count = len([w for w in obj.planned_works if w.status == 'completed'])
         obj.pending_works_count = len([w for w in obj.planned_works if w.status == 'planned'])
         obj.in_progress_works_count = len([w for w in obj.planned_works if w.status == 'in_progress'])
+        
+        print(f"DEBUG: Объект '{obj.name}' - запланированных работ: {obj.planned_works_count}")
+        for work in obj.planned_works:
+            print(f"DEBUG:   - Работа: {work.work_title}, тип: {work.work_type}, статус: {work.status}")
     
     # Логируем просмотр обзора запланированных работ
     ActivityLog.log_action(
@@ -60,6 +67,102 @@ def planned_works_overview():
     )
     
     return render_template('objects/planned_works_overview.html', objects=objects)
+
+@objects_bp.route('/debug/planned-works')
+@login_required
+def debug_planned_works():
+    """Отладочный маршрут для проверки запланированных работ"""
+    # Получаем все запланированные работы
+    all_works = PlannedWork.query.all()
+    
+    # Получаем все траншеи
+    all_trenches = Trench.query.all()
+    
+    debug_info = {
+        'total_planned_works': len(all_works),
+        'total_trenches': len(all_trenches),
+        'planned_works': [],
+        'trenches': []
+    }
+    
+    for work in all_works:
+        debug_info['planned_works'].append({
+            'id': work.id,
+            'work_type': work.work_type,
+            'work_title': work.work_title,
+            'object_id': work.object_id,
+            'status': work.status,
+            'planned_date': str(work.planned_date) if work.planned_date else None
+        })
+    
+    for trench in all_trenches:
+        debug_info['trenches'].append({
+            'id': trench.id,
+            'object_id': trench.object_id,
+            'planned_work_id': trench.planned_work_id,
+            'planned_length': trench.planned_length,
+            'current_length': trench.current_length
+        })
+    
+    return jsonify(debug_info)
+
+@objects_bp.route('/debug/db-structure')
+@login_required
+def debug_db_structure():
+    """Отладочный маршрут для проверки структуры базы данных"""
+    try:
+        # Проверяем существование таблиц
+        from sqlalchemy import text
+        
+        # Проверяем таблицу planned_works
+        result = db.session.execute(text("""
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name = 'planned_works'
+        """))
+        planned_works_exists = result.fetchone() is not None
+        
+        # Проверяем таблицу trenches
+        result = db.session.execute(text("""
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name = 'trenches'
+        """))
+        trenches_exists = result.fetchone() is not None
+        
+        # Проверяем колонки в таблице trenches
+        result = db.session.execute(text("""
+            SELECT column_name, data_type, is_nullable
+            FROM information_schema.columns 
+            WHERE table_name = 'trenches'
+            ORDER BY ordinal_position
+        """))
+        trenches_columns = [dict(row) for row in result.fetchall()]
+        
+        # Проверяем колонки в таблице planned_works
+        planned_works_columns = []
+        if planned_works_exists:
+            result = db.session.execute(text("""
+                SELECT column_name, data_type, is_nullable
+                FROM information_schema.columns 
+                WHERE table_name = 'planned_works'
+                ORDER BY ordinal_position
+            """))
+            planned_works_columns = [dict(row) for row in result.fetchall()]
+        
+        debug_info = {
+            'planned_works_table_exists': planned_works_exists,
+            'trenches_table_exists': trenches_exists,
+            'trenches_columns': trenches_columns,
+            'planned_works_columns': planned_works_columns
+        }
+        
+        return jsonify(debug_info)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)})
 
 @objects_bp.route('/add', methods=['GET', 'POST'])
 @login_required
@@ -378,13 +481,29 @@ def add_trench(object_id):
             created_by=current_user.userid
         )
         
-        db.session.add(planned_work)
-        db.session.flush()  # Получаем ID запланированной работы
-        
-        # Связываем траншею с запланированной работой
-        new_trench.planned_work_id = planned_work.id
-        
-        db.session.commit()
+        try:
+            db.session.add(planned_work)
+            db.session.flush()  # Получаем ID запланированной работы
+            
+            # Связываем траншею с запланированной работой
+            new_trench.planned_work_id = planned_work.id
+            
+            # Логируем для отладки
+            print(f"DEBUG: Создана траншея ID: {new_trench.id}")
+            print(f"DEBUG: Создана запланированная работа ID: {planned_work.id}")
+            print(f"DEBUG: Траншея связана с работой: {new_trench.planned_work_id}")
+            
+            db.session.commit()
+            
+            # Проверяем после коммита
+            print(f"DEBUG: После коммита - траншея ID: {new_trench.id}, planned_work_id: {new_trench.planned_work_id}")
+            print(f"DEBUG: Запланированная работа существует: {PlannedWork.query.get(planned_work.id) is not None}")
+            
+        except Exception as e:
+            print(f"ERROR: Ошибка при создании запланированной работы: {e}")
+            db.session.rollback()
+            flash(f'Ошибка при создании запланированной работы: {e}', 'error')
+            return render_template('objects/add_trench.html', object=obj)
         
         ActivityLog.log_action(
             user_id=current_user.userid,
