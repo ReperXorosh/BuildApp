@@ -274,7 +274,7 @@
                                     <strong>Обозначение</strong>
                                 </div>
                                 <div class="col-2">
-                                    <strong>Количество</strong>
+                                    <strong>Количество (текущее/планируемое)</strong>
                                 </div>
                                 <div class="col-2">
                                     <strong>Действия</strong>
@@ -300,8 +300,10 @@
                                         {% endif %}
                                     </div>
                                     <div class="col-2">
-                                        {% if item.quantity %}
-                                            <span class="quantity-badge quantity-default">{{ item.quantity }}</span>
+                                        {% if item.quantity or item.current_quantity %}
+                                            <span class="quantity-badge quantity-default">
+                                                {{ item.current_quantity or 0 }}/{{ item.quantity or 0 }}
+                                            </span>
                                         {% else %}
                                             <span class="text-muted">-</span>
                                         {% endif %}

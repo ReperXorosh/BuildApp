@@ -85,7 +85,7 @@
                         </div>
                         
                         <div class="row mb-4">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label for="unit" class="form-label">
                                     <i class="bi bi-rulers me-1"></i>
                                     Единица измерения
@@ -106,10 +106,29 @@
                                     Выберите единицу измерения для данной позиции
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
+                                <label for="current_quantity" class="form-label">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    Текущее количество
+                                </label>
+                                <input 
+                                    type="number" 
+                                    class="form-control" 
+                                    id="current_quantity" 
+                                    name="current_quantity" 
+                                    value="0" 
+                                    min="0" 
+                                    step="0.01"
+                                    placeholder="0.0"
+                                />
+                                <div class="form-text">
+                                    Сколько уже установлено на данный момент
+                                </div>
+                            </div>
+                            <div class="col-md-4">
                                 <label for="quantity" class="form-label">
                                     <i class="bi bi-123 me-1"></i>
-                                    Количество
+                                    Планируемое количество
                                 </label>
                                 <input 
                                     type="number" 
@@ -122,7 +141,7 @@
                                     placeholder="1.0"
                                 />
                                 <div class="form-text">
-                                    Укажите количество для данной позиции
+                                    Сколько должно быть установлено в итоге
                                 </div>
                             </div>
                         </div>
@@ -164,13 +183,19 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('form');
+    const currentQuantityInput = document.getElementById('current_quantity');
     const quantityInput = document.getElementById('quantity');
     const unitSelect = document.getElementById('unit');
     const submitBtn = document.getElementById('submitBtn');
     
     // Функция для установки значений по умолчанию
     function setDefaultValues() {
-        // Если поле количества пустое, устанавливаем 1
+        // Если поле текущего количества пустое, устанавливаем 0
+        if (currentQuantityInput.value.trim() === '') {
+            currentQuantityInput.value = '0';
+        }
+        
+        // Если поле планируемого количества пустое, устанавливаем 1
         if (quantityInput.value.trim() === '') {
             quantityInput.value = '1';
         }
@@ -183,22 +208,35 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Валидация перед отправкой формы
     form.addEventListener('submit', function(e) {
-        const quantityValue = quantityInput.value.trim();
-        
         // Устанавливаем значения по умолчанию перед отправкой
         setDefaultValues();
         
-        // Проверяем, что количество является положительным числом
+        // Проверяем, что планируемое количество является положительным числом
         const quantity = parseFloat(quantityInput.value);
         if (isNaN(quantity) || quantity <= 0) {
             e.preventDefault();
-            alert('Количество должно быть положительным числом');
+            alert('Планируемое количество должно быть положительным числом');
             quantityInput.focus();
+            return;
+        }
+        
+        // Проверяем, что текущее количество не больше планируемого
+        const currentQuantity = parseFloat(currentQuantityInput.value);
+        if (currentQuantity > quantity) {
+            e.preventDefault();
+            alert('Текущее количество не может быть больше планируемого');
+            currentQuantityInput.focus();
             return;
         }
     });
     
     // Автоматическое заполнение значений по умолчанию при потере фокуса
+    currentQuantityInput.addEventListener('blur', function() {
+        if (this.value.trim() === '') {
+            this.value = '0';
+        }
+    });
+    
     quantityInput.addEventListener('blur', function() {
         if (this.value.trim() === '') {
             this.value = '1';
@@ -209,6 +247,12 @@ document.addEventListener('DOMContentLoaded', function() {
     setDefaultValues();
     
     // Устанавливаем значения по умолчанию при изменении полей
+    currentQuantityInput.addEventListener('input', function() {
+        if (this.value.trim() === '') {
+            this.value = '0';
+        }
+    });
+    
     quantityInput.addEventListener('input', function() {
         if (this.value.trim() === '') {
             this.value = '1';

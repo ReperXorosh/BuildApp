@@ -152,7 +152,8 @@ class ChecklistItem(db.Model):
     checklist_id = db.Column(db.String(36), db.ForeignKey('checklists.id'), nullable=False)
     item_text = db.Column(db.String(500), nullable=False)
     unit = db.Column(db.String(20), default='шт')  # единица измерения (м, шт, м3, кг и т.д.)
-    quantity = db.Column(db.Float, default=1.0)  # количество
+    quantity = db.Column(db.Float, default=1.0)  # планируемое количество
+    current_quantity = db.Column(db.Float, default=0.0)  # текущее установленное количество
     is_completed = db.Column(db.Boolean, default=False)
     completed_at = db.Column(db.DateTime)
     completed_by = db.Column(db.String(36), db.ForeignKey('users.userid'))

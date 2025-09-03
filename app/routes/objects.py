@@ -499,7 +499,19 @@ def add_checklist_item(object_id):
             db.session.commit()
             obj.checklist = checklist
         
-        # Получаем количество с проверкой на пустые значения
+        # Получаем текущее количество с проверкой на пустые значения
+        current_quantity_str = request.form.get('current_quantity', '0.0')
+        if not current_quantity_str or current_quantity_str.strip() == '':
+            current_quantity = 0.0
+        else:
+            try:
+                current_quantity = float(current_quantity_str)
+                if current_quantity < 0:
+                    current_quantity = 0.0
+            except ValueError:
+                current_quantity = 0.0
+        
+        # Получаем планируемое количество с проверкой на пустые значения
         quantity_str = request.form.get('quantity', '1.0')
         if not quantity_str or quantity_str.strip() == '':
             quantity = 1.0
@@ -522,6 +534,7 @@ def add_checklist_item(object_id):
             item_text=item_text,
             unit=unit,
             quantity=quantity,
+            current_quantity=current_quantity,
             notes=notes,
             order_index=len(obj.checklist.items) + 1
         )
@@ -566,7 +579,19 @@ def edit_checklist_item(object_id, item_id):
         item_text = request.form.get('item_text', '').strip()
         notes = request.form.get('notes', '').strip()
         
-        # Получаем количество с проверкой на пустые значения
+        # Получаем текущее количество с проверкой на пустые значения
+        current_quantity_str = request.form.get('current_quantity', '0.0')
+        if not current_quantity_str or current_quantity_str.strip() == '':
+            current_quantity = 0.0
+        else:
+            try:
+                current_quantity = float(current_quantity_str)
+                if current_quantity < 0:
+                    current_quantity = 0.0
+            except ValueError:
+                current_quantity = 0.0
+        
+        # Получаем планируемое количество с проверкой на пустые значения
         quantity_str = request.form.get('quantity', '1.0')
         if not quantity_str or quantity_str.strip() == '':
             quantity = 1.0
@@ -591,6 +616,7 @@ def edit_checklist_item(object_id, item_id):
         item.notes = notes
         item.unit = unit
         item.quantity = quantity
+        item.current_quantity = current_quantity
         item.updated_at = datetime.utcnow()
         
         # Обновляем счетчики в чек-листе
