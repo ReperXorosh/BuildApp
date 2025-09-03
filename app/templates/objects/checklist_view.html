@@ -294,9 +294,13 @@
                                     <div class="col-1">
                                         <span class="item-number">{{ loop.index }}.</span>
                                     </div>
-                                    <div class="col-5">
-                                        <span class="item-text">{{ item.item_text }}</span>
-                                    </div>
+                                                                         <div class="col-5">
+                                         <a href="{{ url_for('objects.checklist_item_detail', object_id=object.id, item_id=item.id) }}" 
+                                            class="item-text-link" 
+                                            title="Нажмите для просмотра подробной информации">
+                                             {{ item.item_text }}
+                                         </a>
+                                     </div>
                                     <div class="col-2">
                                         {% if item.unit %}
                                             <span class="unit-badge unit-default">{{ item.unit }}</span>
@@ -359,20 +363,15 @@
                             </div>
                             {% endif %}
                             
-                            {% if item.is_completed %}
-                            <div class="completion-info">
-                                <i class="bi bi-check-circle me-1"></i>
-                                Выполнено 
-                                {% if item.completed_at %}
-                                    {{ item.completed_at | moscow_date }}
-                                {% endif %}
-                                {% if item.completed_by_user %}
-                                    пользователем {{ item.completed_by_user.login }}
-                                {% elif item.completed_by %}
-                                    пользователем {{ item.completed_by }}
-                                {% endif %}
-                            </div>
-                            {% endif %}
+                                                         {% if item.is_completed %}
+                             <div class="completion-info">
+                                 <i class="bi bi-check-circle me-1"></i>
+                                 Выполнено 
+                                 {% if item.completed_at %}
+                                     {{ item.completed_at | moscow_date }}
+                                 {% endif %}
+                             </div>
+                             {% endif %}
                         </div>
                         {% endfor %}
                     </div>

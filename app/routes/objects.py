@@ -1014,6 +1014,9 @@ def add_checklist_item_quantity(object_id, item_id):
         item.current_quantity = new_current_quantity
         item.updated_at = datetime.utcnow()
         
+        # Проверяем и обновляем статус выполнения
+        item.check_completion_status()
+        
         # Обновляем счетчики в чек-листе
         obj.checklist.update_completion_status()
         

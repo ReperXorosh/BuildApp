@@ -167,16 +167,22 @@ class ChecklistItem(db.Model):
     
     def complete(self, user_id=None, notes=None):
         """Отмечает элемент как выполненный"""
-        self.is_completed = True
-        self.completed_at = datetime.utcnow()
-        if user_id:
-            self.completed_by = user_id
-        if notes:
-            self.notes = notes
+        # Проверяем, достигнуто ли планируемое количество
+        if (self.current_quantity or 0) >= self.quantity:
+            self.is_completed = True
+            self.completed_at = datetime.utcnow()
+            if user_id:
+                self.completed_by = user_id
+            if notes:
+                self.notes = notes
+        else:
+            # Если количество не достигнуто, элемент не может быть выполнен
+            return False
         
         # Обновляем статус чек-листа
         if self.checklist:
             self.checklist.update_completion_status()
+        return True
     
     def uncomplete(self):
         """Отмечает элемент как невыполненный"""
@@ -187,6 +193,18 @@ class ChecklistItem(db.Model):
         # Обновляем статус чек-листа
         if self.checklist:
             self.checklist.update_completion_status()
+    
+    def check_completion_status(self):
+        """Проверяет и обновляет статус выполнения на основе количества"""
+        if (self.current_quantity or 0) >= self.quantity:
+            if not self.is_completed:
+                self.is_completed = True
+                self.completed_at = datetime.utcnow()
+        else:
+            if self.is_completed:
+                self.is_completed = False
+                self.completed_at = None
+                self.completed_by = None
 
 class PlannedWork(db.Model):
     """Модель запланированной работы"""
