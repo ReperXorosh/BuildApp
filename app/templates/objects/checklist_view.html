@@ -198,12 +198,16 @@
                         <i class="bi bi-arrow-left me-1"></i>
                         Назад к объекту
                     </a>
-                    {% if current_user.role == 'Инженер ПТО' %}
-                    <a href="{{ url_for('objects.add_checklist_item', object_id=object.id) }}" class="btn btn-primary">
-                        <i class="bi bi-plus-lg me-1"></i>
-                        Добавить позицию
-                    </a>
-                    {% endif %}
+                                         {% if current_user.role == 'Инженер ПТО' %}
+                     <a href="{{ url_for('objects.add_checklist_item', object_id=object.id) }}" class="btn btn-primary me-2">
+                         <i class="bi bi-plus-lg me-1"></i>
+                         Добавить позицию
+                     </a>
+                     <a href="{{ url_for('objects.add_checklist_item', object_id=object.id) }}" class="btn btn-outline-primary">
+                         <i class="bi bi-list-plus me-1"></i>
+                         Новая позиция
+                     </a>
+                     {% endif %}
                 </div>
             </div>
 
@@ -276,9 +280,10 @@
                                 <div class="col-2">
                                     <strong>Количество (текущее/планируемое)</strong>
                                 </div>
-                                <div class="col-2">
-                                    <strong>Действия</strong>
-                                </div>
+                                                                 <div class="col-2">
+                                     <strong>Действия</strong>
+                                     <small class="d-block text-muted">+ = добавить количество</small>
+                                 </div>
                             </div>
                         </div>
                         
@@ -310,11 +315,12 @@
                                     </div>
                                     <div class="col-2">
                                         <div class="item-actions">
-                                            <!-- Кнопка добавления новой позиции -->
-                                            <a href="{{ url_for('objects.add_checklist_item', object_id=object.id) }}" 
-                                               class="btn btn-sm btn-outline-info" title="Добавить позицию">
-                                                <i class="bi bi-plus-lg"></i>
-                                            </a>
+                                                                                         <!-- Кнопка добавления количества к позиции -->
+                                             <button class="btn btn-sm btn-outline-info" 
+                                                     onclick="openAddQuantityModal('{{ item.id }}', '{{ object.id }}', {{ item.current_quantity or 0 }}, {{ item.quantity or 0 }}, '{{ item.unit or 'шт' }}')"
+                                                     title="Добавить количество">
+                                                 <i class="bi bi-plus-lg"></i>
+                                             </button>
                                             
                                             <!-- Кнопка выполнения/отмены выполнения -->
                                             <button class="btn btn-sm btn-{{ 'success' if item.is_completed else 'outline-success' }}" 
@@ -388,7 +394,165 @@
     </div>
 </div>
 
+<!-- Модальное окно для добавления количества -->
+<div class="modal fade" id="addQuantityModal" tabindex="-1" aria-labelledby="addQuantityModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addQuantityModalLabel">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Добавить количество
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addQuantityForm">
+                    <input type="hidden" id="modalItemId" name="item_id">
+                    <input type="hidden" id="modalObjectId" name="object_id">
+                    
+                    <div class="mb-3">
+                        <label for="modalItemText" class="form-label">Позиция:</label>
+                        <div id="modalItemText" class="form-control-plaintext"></div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label for="modalCurrentQuantity" class="form-label">Текущее количество:</label>
+                            <div id="modalCurrentQuantity" class="form-control-plaintext"></div>
+                        </div>
+                        <div class="col-6">
+                            <label for="modalPlannedQuantity" class="form-label">Планируемое количество:</label>
+                            <div id="modalPlannedQuantity" class="form-control-plaintext"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="modalAddQuantity" class="form-label">
+                            <i class="bi bi-plus-circle me-1"></i>
+                            Сколько добавить:
+                        </label>
+                        <div class="input-group">
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="modalAddQuantity" 
+                                   name="add_quantity" 
+                                   min="0.01" 
+                                   step="0.01"
+                                   placeholder="0.0"
+                                   required>
+                            <span class="input-group-text" id="modalUnit"></span>
+                        </div>
+                        <div class="form-text">
+                            Максимально можно добавить: <span id="maxAddQuantity" class="text-primary fw-bold">0</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>
+                    Отмена
+                </button>
+                <button type="button" class="btn btn-primary" onclick="confirmAddQuantity()">
+                    <i class="bi bi-check-lg me-1"></i>
+                    Добавить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+function openAddQuantityModal(itemId, objectId, currentQuantity, plannedQuantity, unit) {
+    // Находим элемент позиции для получения текста
+    const itemElement = document.getElementById(`item-${itemId}`);
+    const itemText = itemElement.querySelector('.item-text').textContent;
+    
+    // Заполняем модальное окно
+    document.getElementById('modalItemId').value = itemId;
+    document.getElementById('modalObjectId').value = objectId;
+    document.getElementById('modalItemText').textContent = itemText;
+    document.getElementById('modalCurrentQuantity').textContent = `${currentQuantity} ${unit}`;
+    document.getElementById('modalPlannedQuantity').textContent = `${plannedQuantity} ${unit}`;
+    document.getElementById('modalUnit').textContent = unit;
+    
+    // Вычисляем максимально возможное количество для добавления
+    const maxAdd = plannedQuantity - currentQuantity;
+    document.getElementById('maxAddQuantity').textContent = `${maxAdd} ${unit}`;
+    
+    // Устанавливаем максимальное значение для поля ввода
+    document.getElementById('modalAddQuantity').max = maxAdd;
+    document.getElementById('modalAddQuantity').value = '';
+    
+    // Показываем модальное окно
+    const modal = new bootstrap.Modal(document.getElementById('addQuantityModal'));
+    modal.show();
+    
+    // Добавляем обработчик для ограничения ввода
+    const addQuantityInput = document.getElementById('modalAddQuantity');
+    addQuantityInput.addEventListener('input', function() {
+        const value = parseFloat(this.value);
+        const max = parseFloat(this.max);
+        
+        if (value > max) {
+            this.value = max;
+        }
+    });
+}
+
+function confirmAddQuantity() {
+    const form = document.getElementById('addQuantityForm');
+    const addQuantity = parseFloat(document.getElementById('modalAddQuantity').value);
+    const itemId = document.getElementById('modalItemId').value;
+    const objectId = document.getElementById('modalObjectId').value;
+    const maxAdd = parseFloat(document.getElementById('modalAddQuantity').max);
+    
+    if (isNaN(addQuantity) || addQuantity <= 0) {
+        alert('Пожалуйста, введите корректное количество');
+        return;
+    }
+    
+    if (addQuantity > maxAdd) {
+        alert(`Нельзя добавить больше ${maxAdd}`);
+        return;
+    }
+    
+    // Отправляем запрос на добавление количества
+    fetch(`/objects/${objectId}/checklist/${itemId}/add-quantity`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            add_quantity: addQuantity
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Обновляем отображение количества на странице
+            const itemElement = document.getElementById(`item-${itemId}`);
+            const quantityBadge = itemElement.querySelector('.quantity-badge');
+            if (quantityBadge) {
+                quantityBadge.textContent = `${data.new_current_quantity} / ${data.planned_quantity}`;
+            }
+            
+            // Закрываем модальное окно
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addQuantityModal'));
+            modal.hide();
+            
+            // Показываем сообщение об успехе
+            alert(`Количество успешно добавлено!`);
+        } else {
+            alert(`Ошибка: ${data.message}`);
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        alert('Произошла ошибка при добавлении количества');
+    });
+}
+
 function toggleItem(itemId, objectId) {
     fetch(`/objects/${objectId}/checklist/${itemId}/toggle`, {
         method: 'POST',

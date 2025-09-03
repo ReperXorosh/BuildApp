@@ -982,3 +982,70 @@ def create_work_comparison(planned_work, work_execution):
     
     return comparison
 
+@objects_bp.route('/<uuid:object_id>/checklist/<uuid:item_id>/add-quantity', methods=['POST'])
+@login_required
+def add_checklist_item_quantity(object_id, item_id):
+    """Добавляет количество к позиции чек-листа"""
+    obj = Object.query.get_or_404(object_id)
+    item = ChecklistItem.query.get_or_404(item_id)
+    
+    if item.checklist.object_id != object_id:
+        abort(404)
+    
+    try:
+        data = request.get_json()
+        add_quantity = float(data.get('add_quantity', 0))
+        
+        if add_quantity <= 0:
+            return jsonify({
+                'success': False,
+                'message': 'Количество должно быть положительным числом'
+            }), 400
+        
+        # Проверяем, не превышает ли новое количество планируемое
+        new_current_quantity = (item.current_quantity or 0) + add_quantity
+        if new_current_quantity > item.quantity:
+            return jsonify({
+                'success': False,
+                'message': f'Нельзя добавить больше {item.quantity - (item.current_quantity or 0)} {item.unit}'
+            }), 400
+        
+        # Обновляем текущее количество
+        item.current_quantity = new_current_quantity
+        item.updated_at = datetime.utcnow()
+        
+        # Обновляем счетчики в чек-листе
+        obj.checklist.update_completion_status()
+        
+        db.session.commit()
+        
+        # Логируем действие
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Добавление количества к позиции чек-листа",
+            description=f"Пользователь {current_user.login} добавил {add_quantity} {item.unit} к позиции '{item.item_text}' в чек-листе объекта '{obj.name}'",
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+        
+        return jsonify({
+            'success': True,
+            'new_current_quantity': new_current_quantity,
+            'planned_quantity': item.quantity,
+            'message': f'Количество успешно добавлено: {add_quantity} {item.unit}'
+        })
+        
+    except (ValueError, TypeError):
+        return jsonify({
+            'success': False,
+            'message': 'Некорректное значение количества'
+        }), 400
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'Ошибка при добавлении количества: {str(e)}'
+        }), 500
+
