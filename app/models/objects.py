@@ -211,8 +211,8 @@ class PlannedWork(db.Model):
     # Связи
     work_executions = db.relationship('WorkExecution', backref='planned_work', lazy=True, cascade='all, delete-orphan')
     
-    # Связь с пользователем
-    executor = db.relationship('Users', foreign_keys=[executed_by], backref='executed_works')
+    # Связь с пользователем, которому назначена работа
+    assignee = db.relationship('Users', foreign_keys=[assigned_to], backref='assigned_works')
 
 class WorkExecution(db.Model):
     """Модель выполнения работы"""
@@ -232,7 +232,10 @@ class WorkExecution(db.Model):
     issues_encountered = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
+    
+    # Связь с пользователем, который выполнил работу
+    executor = db.relationship('Users', foreign_keys=[executed_by], backref='executed_works')
+    
 class WorkComparison(db.Model):
     """Модель для сравнения плана и факта выполнения работ"""
     __tablename__ = 'work_comparisons'
