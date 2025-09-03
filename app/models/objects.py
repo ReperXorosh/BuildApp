@@ -48,17 +48,26 @@ class Trench(db.Model):
     
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     object_id = db.Column(db.String(36), db.ForeignKey('objects.id'), nullable=False)
-    trench_number = db.Column(db.String(50), nullable=False)
-    length = db.Column(db.Float)  # длина в метрах
-    width = db.Column(db.Float)  # ширина в метрах
+    planned_length = db.Column(db.Float, nullable=False, default=0.0)  # запланированная длина в метрах
+    current_length = db.Column(db.Float, default=0.0)  # текущая длина в метрах
+    width = db.Column(db.Float)  # ширина в метрах (опционально)
     depth = db.Column(db.Float)  # глубина в метрах
-    soil_type = db.Column(db.String(100))  # тип грунта
+    soil_type = db.Column(db.String(100))  # тип грунта (опционально)
     excavation_date = db.Column(db.Date)
     status = db.Column(db.String(50), default='planned')  # planned, in_progress, completed
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     created_by = db.Column(db.String(36), db.ForeignKey('users.userid'))
+    
+    def check_completion_status(self):
+        """Проверяет и обновляет статус завершения траншеи"""
+        if self.current_length >= self.planned_length:
+            self.status = 'completed'
+        elif self.current_length > 0:
+            self.status = 'in_progress'
+        else:
+            self.status = 'planned'
 
 class Report(db.Model):
     """Модель отчёта"""

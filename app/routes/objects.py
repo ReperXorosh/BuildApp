@@ -304,16 +304,16 @@ def add_trench(object_id):
     obj = Object.query.get_or_404(object_id)
     
     if request.method == 'POST':
-        trench_number = request.form.get('trench_number', '').strip()
-        length = request.form.get('length')
+        planned_length = request.form.get('planned_length')
+        current_length = request.form.get('current_length')
         width = request.form.get('width')
         depth = request.form.get('depth')
         soil_type = request.form.get('soil_type', '').strip()
         excavation_date = request.form.get('excavation_date')
         notes = request.form.get('notes', '').strip()
         
-        if not trench_number:
-            flash('Номер траншеи обязателен для заполнения', 'error')
+        if not planned_length:
+            flash('Запланированная длина обязательна для заполнения', 'error')
             return render_template('objects/add_trench.html', object=obj)
         
         # Преобразуем дату
@@ -325,18 +325,28 @@ def add_trench(object_id):
         
         # Преобразуем числовые значения
         try:
-            length = float(length) if length else None
+            planned_length = float(planned_length) if planned_length else 0.0
+            current_length = float(current_length) if current_length else 0.0
             width = float(width) if width else None
             depth = float(depth) if depth else None
         except ValueError:
             flash('Некорректные числовые значения', 'error')
             return render_template('objects/add_trench.html', object=obj)
         
+        # Проверяем валидность значений
+        if planned_length <= 0:
+            flash('Запланированная длина должна быть больше 0', 'error')
+            return render_template('objects/add_trench.html', object=obj)
+        
+        if current_length > planned_length:
+            flash('Текущая длина не может быть больше запланированной', 'error')
+            return render_template('objects/add_trench.html', object=obj)
+        
         new_trench = Trench(
             id=str(uuid.uuid4()),
             object_id=object_id,
-            trench_number=trench_number,
-            length=length,
+            planned_length=planned_length,
+            current_length=current_length,
             width=width,
             depth=depth,
             soil_type=soil_type,
@@ -345,6 +355,9 @@ def add_trench(object_id):
             created_by=current_user.userid
         )
         
+        # Проверяем и устанавливаем статус завершения
+        new_trench.check_completion_status()
+        
         db.session.add(new_trench)
         db.session.commit()
         
@@ -352,7 +365,7 @@ def add_trench(object_id):
             user_id=current_user.userid,
             user_login=current_user.login,
             action="Добавление траншеи",
-            description=f"Пользователь {current_user.login} добавил траншею {trench_number} к объекту '{obj.name}'",
+            description=f"Пользователь {current_user.login} добавил траншею длиной {planned_length}м к объекту '{obj.name}'",
             ip_address=request.remote_addr,
             page_url=request.url,
             method=request.method
