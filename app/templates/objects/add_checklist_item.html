@@ -165,31 +165,59 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('form');
     const quantityInput = document.getElementById('quantity');
+    const unitSelect = document.getElementById('unit');
     const submitBtn = document.getElementById('submitBtn');
     
-    // Валидация количества перед отправкой формы
+    // Функция для установки значений по умолчанию
+    function setDefaultValues() {
+        // Если поле количества пустое, устанавливаем 1
+        if (quantityInput.value.trim() === '') {
+            quantityInput.value = '1';
+        }
+        
+        // Если единица измерения не выбрана, устанавливаем 'шт'
+        if (!unitSelect.value || unitSelect.value.trim() === '') {
+            unitSelect.value = 'шт';
+        }
+    }
+    
+    // Валидация перед отправкой формы
     form.addEventListener('submit', function(e) {
         const quantityValue = quantityInput.value.trim();
         
-        // Если поле количества пустое, устанавливаем значение по умолчанию
-        if (quantityValue === '') {
-            quantityInput.value = '1';
-        } else {
-            // Проверяем, что значение является положительным числом
-            const quantity = parseFloat(quantityValue);
-            if (isNaN(quantity) || quantity <= 0) {
-                e.preventDefault();
-                alert('Количество должно быть положительным числом');
-                quantityInput.focus();
-                return;
-            }
+        // Устанавливаем значения по умолчанию перед отправкой
+        setDefaultValues();
+        
+        // Проверяем, что количество является положительным числом
+        const quantity = parseFloat(quantityInput.value);
+        if (isNaN(quantity) || quantity <= 0) {
+            e.preventDefault();
+            alert('Количество должно быть положительным числом');
+            quantityInput.focus();
+            return;
         }
     });
     
-    // Автоматическое заполнение значения по умолчанию при потере фокуса
+    // Автоматическое заполнение значений по умолчанию при потере фокуса
     quantityInput.addEventListener('blur', function() {
         if (this.value.trim() === '') {
             this.value = '1';
+        }
+    });
+    
+    // Автоматическое заполнение значений по умолчанию при загрузке страницы
+    setDefaultValues();
+    
+    // Устанавливаем значения по умолчанию при изменении полей
+    quantityInput.addEventListener('input', function() {
+        if (this.value.trim() === '') {
+            this.value = '1';
+        }
+    });
+    
+    unitSelect.addEventListener('change', function() {
+        if (!this.value || this.value.trim() === '') {
+            this.value = 'шт';
         }
     });
 });

@@ -501,17 +501,19 @@ def add_checklist_item(object_id):
         
         # Получаем количество с проверкой на пустые значения
         quantity_str = request.form.get('quantity', '1.0')
-        if quantity_str.strip() == '':
+        if not quantity_str or quantity_str.strip() == '':
             quantity = 1.0
         else:
             try:
                 quantity = float(quantity_str)
+                if quantity <= 0:
+                    quantity = 1.0
             except ValueError:
                 quantity = 1.0
         
         # Получаем единицу измерения с проверкой на пустые значения
         unit = request.form.get('unit', 'шт')
-        if unit.strip() == '':
+        if not unit or unit.strip() == '':
             unit = 'шт'
         
         # Create new checklist item
