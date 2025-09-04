@@ -3,7 +3,7 @@
 {% block title %}Опора - {{ object.name }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid" style="margin-top: 80px;">
     <div class="row">
         <div class="col-12">
             <!-- Заголовок -->
@@ -48,6 +48,7 @@
                                     <th>Тип</th>
                                     <th>Высота</th>
                                     <th>Материал</th>
+                                    <th>Запланированная работа</th>
                                     <th>Дата установки</th>
                                     <th>Статус</th>
                                     <th>Действия</th>
@@ -69,6 +70,23 @@
                                     </td>
                                     <td>{{ support.material or '-' }}</td>
                                     <td>
+                                        {% if support.planned_work %}
+                                            <div class="d-flex flex-column">
+                                                <small class="text-primary fw-bold">{{ support.planned_work.work_title }}</small>
+                                                {% if support.planned_work.planned_date %}
+                                                    <small class="text-muted">{{ support.planned_work.planned_date | moscow_date }}</small>
+                                                {% else %}
+                                                    <small class="text-warning">Дата не установлена</small>
+                                                {% endif %}
+                                                <span class="badge bg-{{ 'success' if support.planned_work.status == 'completed' else 'warning' if support.planned_work.status == 'in_progress' else 'secondary' }} badge-sm">
+                                                    {{ support.planned_work.status }}
+                                                </span>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">Не связана</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
                                         {% if support.installation_date %}
                                             {{ support.installation_date | moscow_date }}
                                         {% else %}
@@ -86,6 +104,12 @@
                                                class="btn btn-outline-primary" title="Просмотр деталей">
                                                 <i class="bi bi-eye"></i>
                                             </a>
+                                            {% if support.planned_work %}
+                                            <a href="{{ url_for('objects.planned_works_list', object_id=object.id) }}" 
+                                               class="btn btn-outline-info" title="Запланированные работы">
+                                                <i class="bi bi-calendar-check"></i>
+                                            </a>
+                                            {% endif %}
                                             {% if support.status != 'completed' %}
                                             <a href="{{ url_for('objects.confirm_support_installation', object_id=object.id, support_id=support.id) }}" 
                                                class="btn btn-outline-success" title="Подтвердить установку">

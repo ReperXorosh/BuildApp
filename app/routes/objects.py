@@ -331,19 +331,41 @@ def add_support(object_id):
         )
         
         db.session.add(new_support)
+        db.session.flush()  # Получаем ID опоры для создания запланированной работы
+        
+        # Создаем запланированную работу для установки опоры
+        planned_work = PlannedWork(
+            id=str(uuid.uuid4()),
+            object_id=object_id,
+            work_type='support_installation',
+            work_title=f'Установка опоры {support_number}',
+            description=f'Установка опоры {support_number}' + (f' ({support_type})' if support_type else '') + (f', высота: {height}м' if height else '') + (f', материал: {material}' if material else ''),
+            planned_date=None,  # Без конкретной даты - дату можно будет установить позже
+            priority='medium',
+            status='planned',
+            created_by=current_user.userid,
+            notes=f'Автоматически создано при добавлении опоры {support_number}'
+        )
+        
+        db.session.add(planned_work)
+        db.session.flush()  # Получаем ID запланированной работы
+        
+        # Связываем опору с запланированной работой
+        new_support.planned_work_id = planned_work.id
+        
         db.session.commit()
         
         ActivityLog.log_action(
             user_id=current_user.userid,
             user_login=current_user.login,
             action="Добавление опоры по проекту",
-            description=f"Инженер ПТО {current_user.login} добавил опору {support_number} к объекту '{obj.name}'",
+            description=f"Инженер ПТО {current_user.login} добавил опору {support_number} к объекту '{obj.name}' и автоматически создал запланированную работу для её установки",
             ip_address=request.remote_addr,
             page_url=request.url,
             method=request.method
         )
         
-        flash('Опора по проекту успешно добавлена', 'success')
+        flash('Опора по проекту успешно добавлена. Запланированная работа для установки опоры создана автоматически.', 'success')
         return redirect(url_for('objects.supports_list', object_id=object_id))
     
     return render_template('objects/add_support.html', object=obj)
