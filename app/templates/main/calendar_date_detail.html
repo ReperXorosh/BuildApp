@@ -288,4 +288,27 @@
     border-color: #0d6efd;
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Предотвращаем всплытие событий для аккордеонов
+    const accordions = document.querySelectorAll('.accordion');
+    
+    accordions.forEach(function(accordion) {
+        accordion.addEventListener('click', function(event) {
+            // Останавливаем всплытие события, чтобы клик по аккордеону не переходил на страницу объекта
+            event.stopPropagation();
+        });
+    });
+    
+    // Также предотвращаем всплытие для всех элементов внутри аккордеонов
+    const accordionElements = document.querySelectorAll('.accordion-button, .accordion-body, .accordion-collapse');
+    
+    accordionElements.forEach(function(element) {
+        element.addEventListener('click', function(event) {
+            event.stopPropagation();
+        });
+    });
+});
+</script>
 {% endblock %}
