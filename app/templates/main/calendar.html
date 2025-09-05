@@ -4,8 +4,20 @@
 {% block title %}Календарь{% endblock %}
 
 {% block content %}
-<h1>Главная страница</h1>
-<p>Добро пожаловать!</p>
+<div class="container-fluid" style="margin-top: 80px;">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-2">
+                        <i class="bi bi-calendar3 me-2"></i>
+                        Календарь
+                    </h1>
+                    <p class="text-muted mb-0">Выберите дату для просмотра информации по объектам</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="canonical" href="object-list.html">
@@ -141,6 +153,28 @@
         color: var(--bs-primary-text-emphasis);
         box-shadow: inset 0 0 0 2px var(--bs-primary);
         font-weight: 700;
+    }
+
+    /* Дни с активностью */
+    .cal-btn.has-activity {
+        position: relative;
+    }
+
+    .cal-btn.has-activity::after {
+        content: '';
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        width: 6px;
+        height: 6px;
+        background-color: var(--bs-success);
+        border-radius: 50%;
+        border: 1px solid var(--bs-body-bg);
+    }
+
+    /* Комбинация сегодняшнего дня и активности */
+    .cal-btn.is-today.has-activity::after {
+        background-color: var(--bs-warning);
     }
 
 
@@ -293,7 +327,28 @@
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'btn cal-btn';
-      if (disabled) b.setAttribute('disabled', '');
+      if (disabled) {
+        b.setAttribute('disabled', '');
+      } else {
+        // Добавляем обработчик клика для активных дней
+        b.addEventListener('click', function() {
+          const day = parseInt(text);
+          const month = state.m + 1; // JavaScript месяцы начинаются с 0
+          const year = state.y;
+          
+          // Форматируем дату как YYYY-MM-DD
+          const dateStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+          
+          // Переходим на страницу с данными по этой дате
+          window.location.href = `/calendar/date/${dateStr}`;
+        });
+        
+        // Проверяем, является ли это сегодняшним днем
+        const today = new Date();
+        if (state.m === today.getMonth() && state.y === today.getFullYear() && parseInt(text) === today.getDate()) {
+          b.classList.add('is-today');
+        }
+      }
       b.textContent = text;
       return b;
     }
@@ -317,6 +372,35 @@
       if (state.m > 11) { state.m = 0; state.y++; }
       render(state.m, state.y);
     });
+
+    // Получаем список активных дат из сервера
+    const activeDates = {{ active_dates | tojson }};
+    
+    // Функция для проверки, является ли дата активной
+    function isDateActive(year, month, day) {
+      const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+      return activeDates.includes(dateStr);
+    }
+    
+    // Обновляем функцию makeDayButton для добавления индикатора активности
+    const originalMakeDayButton = makeDayButton;
+    makeDayButton = function(text, disabled) {
+      const b = originalMakeDayButton(text, disabled);
+      
+      if (!disabled) {
+        const day = parseInt(text);
+        const month = state.m;
+        const year = state.y;
+        
+        // Проверяем, есть ли активность в этот день
+        if (isDateActive(year, month, day)) {
+          b.classList.add('has-activity');
+          b.title = 'Есть активность в этот день';
+        }
+      }
+      
+      return b;
+    };
 
     // Первый рендер
     render(state.m, state.y);

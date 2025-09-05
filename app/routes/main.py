@@ -197,6 +197,44 @@ def format_phone_for_display(phone_number):
 @main.route('/calendar')
 @login_required
 def calendar():
+    from datetime import datetime, date
+    from ..models.objects import Object, Report, PlannedWork, Support, Trench, ChecklistItem
+    
+    # Получаем все даты с активностью
+    active_dates = set()
+    
+    # Даты с отчётами
+    reports_dates = db.session.query(db.func.date(Report.report_date)).distinct().all()
+    for (report_date,) in reports_dates:
+        if report_date:
+            active_dates.add(report_date.strftime('%Y-%m-%d'))
+    
+    # Даты с запланированными работами
+    planned_works_dates = db.session.query(db.func.date(PlannedWork.planned_date)).distinct().all()
+    for (work_date,) in planned_works_dates:
+        if work_date:
+            active_dates.add(work_date.strftime('%Y-%m-%d'))
+    
+    # Даты создания опор
+    supports_dates = db.session.query(db.func.date(Support.created_at)).distinct().all()
+    for (support_date,) in supports_dates:
+        if support_date:
+            active_dates.add(support_date.strftime('%Y-%m-%d'))
+    
+    # Даты создания траншей
+    trenches_dates = db.session.query(db.func.date(Trench.created_at)).distinct().all()
+    for (trench_date,) in trenches_dates:
+        if trench_date:
+            active_dates.add(trench_date.strftime('%Y-%m-%d'))
+    
+    # Даты выполнения элементов чек-листа
+    checklist_dates = db.session.query(db.func.date(ChecklistItem.completed_at)).filter(
+        ChecklistItem.is_completed == True
+    ).distinct().all()
+    for (checklist_date,) in checklist_dates:
+        if checklist_date:
+            active_dates.add(checklist_date.strftime('%Y-%m-%d'))
+    
     # Логируем просмотр страницы календаря
     ActivityLog.log_action(
         user_id=current_user.userid,
@@ -207,7 +245,123 @@ def calendar():
         page_url=request.url,
         method=request.method
     )
-    return render_template('main/calendar.html')
+    return render_template('main/calendar.html', active_dates=list(active_dates))
+
+@main.route('/calendar/date/<date>')
+@login_required
+def calendar_date_detail(date):
+    """Детальная информация по выбранной дате"""
+    try:
+        from datetime import datetime
+        from ..models.objects import Object, Report, PlannedWork, Support, Trench, Checklist, ChecklistItem
+        from ..models.users import Users
+        
+        # Парсим дату
+        report_date = datetime.strptime(date, '%Y-%m-%d').date()
+        
+        # Получаем все объекты
+        all_objects = Object.query.all()
+        
+        # Собираем данные по каждому объекту за выбранную дату
+        objects_data = []
+        
+        for obj in all_objects:
+            # Отчёты за эту дату
+            reports = Report.query.filter(
+                Report.object_id == obj.id,
+                Report.report_date == report_date
+            ).all()
+            
+            # Запланированные работы на эту дату
+            planned_works = PlannedWork.query.filter(
+                PlannedWork.object_id == obj.id,
+                PlannedWork.planned_date == report_date
+            ).all()
+            
+            # Опоры, созданные в эту дату
+            supports_created = Support.query.filter(
+                Support.object_id == obj.id,
+                db.func.date(Support.created_at) == report_date
+            ).all()
+            
+            # Траншеи, созданные в эту дату
+            trenches_created = Trench.query.filter(
+                Trench.object_id == obj.id,
+                db.func.date(Trench.created_at) == report_date
+            ).all()
+            
+            # Элементы чек-листа, выполненные в эту дату
+            checklist_items_completed = []
+            if obj.checklist:
+                checklist_items_completed = ChecklistItem.query.filter(
+                    ChecklistItem.checklist_id == obj.checklist.id,
+                    ChecklistItem.is_completed == True,
+                    db.func.date(ChecklistItem.completed_at) == report_date
+                ).all()
+            
+            # Подсчитываем статистику
+            total_reports = len(reports)
+            total_planned_works = len(planned_works)
+            total_supports_created = len(supports_created)
+            total_trenches_created = len(trenches_created)
+            total_checklist_completed = len(checklist_items_completed)
+            
+            # Если есть какая-то активность, добавляем объект
+            if (total_reports > 0 or total_planned_works > 0 or 
+                total_supports_created > 0 or total_trenches_created > 0 or 
+                total_checklist_completed > 0):
+                
+                # Загружаем информацию о создателях
+                for report in reports:
+                    if report.created_by:
+                        report.creator = Users.query.get(report.created_by)
+                    else:
+                        report.creator = None
+                
+                for work in planned_works:
+                    if work.created_by:
+                        work.creator = Users.query.get(work.created_by)
+                    else:
+                        work.creator = None
+                
+                for item in checklist_items_completed:
+                    if item.completed_by:
+                        item.completed_by_user = Users.query.get(item.completed_by)
+                    else:
+                        item.completed_by_user = None
+                
+                objects_data.append({
+                    'object': obj,
+                    'reports': reports,
+                    'planned_works': planned_works,
+                    'supports_created': supports_created,
+                    'trenches_created': trenches_created,
+                    'checklist_items_completed': checklist_items_completed,
+                    'total_reports': total_reports,
+                    'total_planned_works': total_planned_works,
+                    'total_supports_created': total_supports_created,
+                    'total_trenches_created': total_trenches_created,
+                    'total_checklist_completed': total_checklist_completed
+                })
+        
+        # Логируем просмотр данных по дате
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Просмотр данных по дате",
+            description=f"Пользователь {current_user.login} просмотрел данные за {report_date.strftime('%d.%m.%Y')}",
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+        
+        return render_template('main/calendar_date_detail.html', 
+                             date=report_date, 
+                             objects_data=objects_data)
+    
+    except ValueError:
+        flash('Неверный формат даты', 'error')
+        return redirect(url_for('main.calendar'))
 
 @main.route('/others')
 @login_required

@@ -1,0 +1,318 @@
+{% extends "main/layout.html" %}
+{% set active_page = 'calendar' %}
+
+{% block title %}Данные за {{ date | moscow_date }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="margin-top: 80px;">
+    <div class="row">
+        <div class="col-12">
+            <div class="mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{{ url_for('main.calendar') }}">
+                                <i class="bi bi-calendar3 me-1"></i>
+                                Календарь
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ date | moscow_date }}</li>
+                    </ol>
+                </nav>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h3 mb-2">
+                            <i class="bi bi-calendar-date me-2"></i>
+                            Данные за {{ date | moscow_date }}
+                        </h1>
+                        <p class="text-muted mb-0">
+                            Информация по всем объектам за выбранную дату
+                        </p>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('main.calendar') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-left me-1"></i>
+                            Назад к календарю
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if objects_data %}
+    <!-- Статистика по дате -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-2">
+                            <div class="border-end">
+                                <h4 class="text-primary">{{ objects_data|length }}</h4>
+                                <small class="text-muted">Объектов с активностью</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="border-end">
+                                {% set total_reports = objects_data | sum(attribute='total_reports') %}
+                                <h4 class="text-success">{{ total_reports }}</h4>
+                                <small class="text-muted">Отчётов</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="border-end">
+                                {% set total_planned_works = objects_data | sum(attribute='total_planned_works') %}
+                                <h4 class="text-info">{{ total_planned_works }}</h4>
+                                <small class="text-muted">Запланированных работ</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="border-end">
+                                {% set total_supports = objects_data | sum(attribute='total_supports_created') %}
+                                <h4 class="text-warning">{{ total_supports }}</h4>
+                                <small class="text-muted">Созданных опор</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="border-end">
+                                {% set total_trenches = objects_data | sum(attribute='total_trenches_created') %}
+                                <h4 class="text-secondary">{{ total_trenches }}</h4>
+                                <small class="text-muted">Созданных траншей</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            {% set total_checklist = objects_data | sum(attribute='total_checklist_completed') %}
+                            <h4 class="text-danger">{{ total_checklist }}</h4>
+                            <small class="text-muted">Выполненных пунктов</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Данные по объектам -->
+    <div class="row">
+        {% for data in objects_data %}
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-building me-2"></i>
+                            {{ data.object.name }}
+                        </h5>
+                        <a href="{{ url_for('objects.object_detail', object_id=data.object.id) }}" 
+                           class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-eye me-1"></i>
+                            Объект
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Статистика по объекту -->
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-file-earmark-text text-success me-2"></i>
+                                <span class="badge bg-success">{{ data.total_reports }} отчётов</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-calendar-check text-info me-2"></i>
+                                <span class="badge bg-info">{{ data.total_planned_works }} работ</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-pin-angle text-warning me-2"></i>
+                                <span class="badge bg-warning">{{ data.total_supports_created }} опор</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-tools text-secondary me-2"></i>
+                                <span class="badge bg-secondary">{{ data.total_trenches_created }} траншей</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if data.total_checklist_completed > 0 %}
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-check2-square text-danger me-2"></i>
+                                <span class="badge bg-danger">{{ data.total_checklist_completed }} выполненных пунктов</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Детальная информация -->
+                    <div class="accordion" id="accordion{{ loop.index }}">
+                        {% if data.reports %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#reports{{ loop.index }}" aria-expanded="false">
+                                    <i class="bi bi-file-earmark-text me-2"></i>
+                                    Отчёты ({{ data.total_reports }})
+                                </button>
+                            </h2>
+                            <div id="reports{{ loop.index }}" class="accordion-collapse collapse" 
+                                 data-bs-parent="#accordion{{ loop.index }}">
+                                <div class="accordion-body">
+                                    {% for report in data.reports %}
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <strong>{{ report.title }}</strong>
+                                            <br><small class="text-muted">{{ report.report_number }}</small>
+                                        </div>
+                                        <span class="badge bg-{{ 'success' if report.status == 'approved' else 'warning' if report.status == 'submitted' else 'secondary' }}">
+                                            {{ report.status }}
+                                        </span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if data.planned_works %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#works{{ loop.index }}" aria-expanded="false">
+                                    <i class="bi bi-calendar-check me-2"></i>
+                                    Запланированные работы ({{ data.total_planned_works }})
+                                </button>
+                            </h2>
+                            <div id="works{{ loop.index }}" class="accordion-collapse collapse" 
+                                 data-bs-parent="#accordion{{ loop.index }}">
+                                <div class="accordion-body">
+                                    {% for work in data.planned_works %}
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <strong>{{ work.work_title }}</strong>
+                                            <br><small class="text-muted">{{ work.work_type }}</small>
+                                        </div>
+                                        <span class="badge bg-{{ 'success' if work.status == 'completed' else 'warning' if work.status == 'in_progress' else 'secondary' }}">
+                                            {{ work.status }}
+                                        </span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if data.supports_created %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#supports{{ loop.index }}" aria-expanded="false">
+                                    <i class="bi bi-pin-angle me-2"></i>
+                                    Созданные опоры ({{ data.total_supports_created }})
+                                </button>
+                            </h2>
+                            <div id="supports{{ loop.index }}" class="accordion-collapse collapse" 
+                                 data-bs-parent="#accordion{{ loop.index }}">
+                                <div class="accordion-body">
+                                    {% for support in data.supports_created %}
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <strong>{{ support.support_number }}</strong>
+                                            {% if support.support_type %}
+                                            <br><small class="text-muted">{{ support.support_type }}</small>
+                                            {% endif %}
+                                        </div>
+                                        <span class="badge bg-{{ 'success' if support.status == 'completed' else 'warning' if support.status == 'in_progress' else 'secondary' }}">
+                                            {{ support.status }}
+                                        </span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if data.trenches_created %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#trenches{{ loop.index }}" aria-expanded="false">
+                                    <i class="bi bi-tools me-2"></i>
+                                    Созданные траншеи ({{ data.total_trenches_created }})
+                                </button>
+                            </h2>
+                            <div id="trenches{{ loop.index }}" class="accordion-collapse collapse" 
+                                 data-bs-parent="#accordion{{ loop.index }}">
+                                <div class="accordion-body">
+                                    {% for trench in data.trenches_created %}
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <strong>Траншея</strong>
+                                            <br><small class="text-muted">{{ trench.planned_length }}м запланировано</small>
+                                        </div>
+                                        <span class="badge bg-{{ 'success' if trench.status == 'completed' else 'warning' if trench.status == 'in_progress' else 'secondary' }}">
+                                            {{ trench.status }}
+                                        </span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if data.checklist_items_completed %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#checklist{{ loop.index }}" aria-expanded="false">
+                                    <i class="bi bi-check2-square me-2"></i>
+                                    Выполненные пункты ({{ data.total_checklist_completed }})
+                                </button>
+                            </h2>
+                            <div id="checklist{{ loop.index }}" class="accordion-collapse collapse" 
+                                 data-bs-parent="#accordion{{ loop.index }}">
+                                <div class="accordion-body">
+                                    {% for item in data.checklist_items_completed %}
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <strong>{{ item.item_text[:50] }}{% if item.item_text|length > 50 %}...{% endif %}</strong>
+                                            {% if item.completed_by_user %}
+                                            <br><small class="text-muted">Выполнил: {{ item.completed_by_user.login }}</small>
+                                            {% endif %}
+                                        </div>
+                                        <span class="badge bg-success">Выполнено</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-calendar-x display-1 text-muted"></i>
+        <h3 class="mt-3 text-muted">Нет данных за эту дату</h3>
+        <p class="text-muted">За {{ date | moscow_date }} не было зафиксировано активности по объектам</p>
+        <a href="{{ url_for('main.calendar') }}" class="btn btn-primary">
+            <i class="bi bi-arrow-left me-1"></i>
+            Назад к календарю
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
