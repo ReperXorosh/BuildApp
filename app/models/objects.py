@@ -85,6 +85,21 @@ class Trench(db.Model):
         today = date.today()
         print(f"DEBUG: Обновляем просроченные траншеи. Сегодня: {today}")
         
+        # Сначала проверим все траншеи
+        all_trenches = Trench.query.all()
+        print(f"DEBUG: Всего траншей в базе: {len(all_trenches)}")
+        
+        for trench in all_trenches:
+            print(f"DEBUG: Траншея ID: {trench.id}, planned_work_id: {trench.planned_work_id}, статус: {trench.status}")
+            if trench.planned_work_id:
+                planned_work = PlannedWork.query.get(trench.planned_work_id)
+                if planned_work:
+                    print(f"DEBUG:   Связанная работа: {planned_work.id}, дата: {planned_work.planned_date}, статус: {planned_work.status}")
+                else:
+                    print(f"DEBUG:   Связанная работа НЕ НАЙДЕНА!")
+            else:
+                print(f"DEBUG:   planned_work_id = NULL")
+        
         # Находим все траншеи, которые связаны с просроченными запланированными работами
         # Используем cast для приведения типов, так как planned_work_id - varchar, а planned_works.id - uuid
         from sqlalchemy import cast, String
