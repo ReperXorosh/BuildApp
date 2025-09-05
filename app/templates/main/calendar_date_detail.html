@@ -64,22 +64,10 @@
                         <div class="col-md-2">
                             <div class="border-end">
                                 {% set total_planned_works = objects_data | sum(attribute='total_planned_works') %}
-                                <h4 class="text-info">{{ total_planned_works }}</h4>
-                                <small class="text-muted">Запланированных работ</small>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="border-end">
                                 {% set total_supports = objects_data | sum(attribute='total_supports_created') %}
-                                <h4 class="text-warning">{{ total_supports }}</h4>
-                                <small class="text-muted">Созданных опор</small>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="border-end">
                                 {% set total_trenches = objects_data | sum(attribute='total_trenches_created') %}
-                                <h4 class="text-secondary">{{ total_trenches }}</h4>
-                                <small class="text-muted">Созданных траншей</small>
+                                <h4 class="text-info">{{ total_planned_works + total_supports + total_trenches }}</h4>
+                                <small class="text-muted">Работ</small>
                             </div>
                         </div>
                         <div class="col-md-2">
@@ -97,20 +85,21 @@
     <div class="row">
         {% for data in objects_data %}
         <div class="col-lg-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">
-                            <i class="bi bi-building me-2"></i>
-                            {{ data.object.name }}
-                        </h5>
-                        <a href="{{ url_for('objects.object_detail', object_id=data.object.id) }}" 
-                           class="btn btn-outline-primary btn-sm">
-                            <i class="bi bi-eye me-1"></i>
-                            Объект
-                        </a>
+            <a href="{{ url_for('main.object_report_by_date', object_id=data.object.id, date=date.strftime('%Y-%m-%d')) }}" 
+               class="text-decoration-none">
+                <div class="card h-100 object-card" style="cursor: pointer; transition: transform 0.2s;">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-building me-2"></i>
+                                {{ data.object.name }}
+                            </h5>
+                            <span class="badge bg-primary">
+                                <i class="bi bi-arrow-right me-1"></i>
+                                Подробнее
+                            </span>
+                        </div>
                     </div>
-                </div>
                 <div class="card-body">
                     <!-- Статистика по объекту -->
                     <div class="row mb-3">
@@ -123,22 +112,7 @@
                         <div class="col-6">
                             <div class="d-flex align-items-center">
                                 <i class="bi bi-calendar-check text-info me-2"></i>
-                                <span class="badge bg-info">{{ data.total_planned_works }} работ</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-pin-angle text-warning me-2"></i>
-                                <span class="badge bg-warning">{{ data.total_supports_created }} опор</span>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-tools text-secondary me-2"></i>
-                                <span class="badge bg-secondary">{{ data.total_trenches_created }} траншей</span>
+                                <span class="badge bg-info">{{ data.total_planned_works + data.total_supports_created + data.total_trenches_created }} работ</span>
                             </div>
                         </div>
                     </div>
@@ -184,18 +158,19 @@
                         </div>
                         {% endif %}
 
-                        {% if data.planned_works %}
+                        {% if data.planned_works or data.supports_created or data.trenches_created %}
                         <div class="accordion-item">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
                                         data-bs-target="#works{{ loop.index }}" aria-expanded="false">
                                     <i class="bi bi-calendar-check me-2"></i>
-                                    Запланированные работы ({{ data.total_planned_works }})
+                                    Работы ({{ data.total_planned_works + data.total_supports_created + data.total_trenches_created }})
                                 </button>
                             </h2>
                             <div id="works{{ loop.index }}" class="accordion-collapse collapse" 
                                  data-bs-parent="#accordion{{ loop.index }}">
                                 <div class="accordion-body">
+                                    <!-- Запланированные работы -->
                                     {% for work in data.planned_works %}
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div>
@@ -219,23 +194,8 @@
                                         </span>
                                     </div>
                                     {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        {% if data.supports_created %}
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
-                                        data-bs-target="#supports{{ loop.index }}" aria-expanded="false">
-                                    <i class="bi bi-pin-angle me-2"></i>
-                                    Созданные опоры ({{ data.total_supports_created }})
-                                </button>
-                            </h2>
-                            <div id="supports{{ loop.index }}" class="accordion-collapse collapse" 
-                                 data-bs-parent="#accordion{{ loop.index }}">
-                                <div class="accordion-body">
+                                    
+                                    <!-- Созданные опоры -->
                                     {% for support in data.supports_created %}
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div>
@@ -249,23 +209,8 @@
                                         </span>
                                     </div>
                                     {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        {% if data.trenches_created %}
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
-                                        data-bs-target="#trenches{{ loop.index }}" aria-expanded="false">
-                                    <i class="bi bi-tools me-2"></i>
-                                    Созданные траншеи ({{ data.total_trenches_created }})
-                                </button>
-                            </h2>
-                            <div id="trenches{{ loop.index }}" class="accordion-collapse collapse" 
-                                 data-bs-parent="#accordion{{ loop.index }}">
-                                <div class="accordion-body">
+                                    
+                                    <!-- Созданные траншеи -->
                                     {% for trench in data.trenches_created %}
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div>
@@ -311,7 +256,8 @@
                         {% endif %}
                     </div>
                 </div>
-            </div>
+                </div>
+            </a>
         </div>
         {% endfor %}
     </div>
@@ -327,4 +273,19 @@
     </div>
     {% endif %}
 </div>
+
+<style>
+.object-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.object-card {
+    border: 1px solid #dee2e6;
+}
+
+.object-card:hover {
+    border-color: #0d6efd;
+}
+</style>
 {% endblock %}
