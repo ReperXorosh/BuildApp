@@ -200,6 +200,9 @@ def calendar():
     from datetime import datetime, date
     from ..models.objects import Object, Report, PlannedWork, Support, Trench, ChecklistItem
     
+    # Обновляем статус просроченных работ
+    PlannedWork.update_overdue_works()
+    
     # Получаем все даты с активностью
     active_dates = set()
     

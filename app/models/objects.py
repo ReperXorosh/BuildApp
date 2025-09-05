@@ -256,6 +256,7 @@ class PlannedWork(db.Model):
         from datetime import date
         
         today = date.today()
+        print(f"DEBUG: Обновляем просроченные работы. Сегодня: {today}")
         
         # Находим все работы, которые должны были быть выполнены, но не выполнены
         # Учитываем только работы с конкретной датой (planned_date не NULL)
@@ -265,14 +266,20 @@ class PlannedWork(db.Model):
             PlannedWork.status.in_(['planned', 'in_progress'])
         ).all()
         
+        print(f"DEBUG: Найдено просроченных работ: {len(overdue_works)}")
+        
         updated_count = 0
         for work in overdue_works:
+            print(f"DEBUG: Обновляем работу '{work.work_title}' с даты {work.planned_date} со статуса '{work.status}' на 'overdue'")
             work.status = 'overdue'
             work.updated_at = datetime.utcnow()
             updated_count += 1
         
         if updated_count > 0:
             db.session.commit()
+            print(f"DEBUG: Сохранено {updated_count} обновлений")
+        else:
+            print("DEBUG: Нет работ для обновления")
         
         return updated_count
     
