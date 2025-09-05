@@ -610,6 +610,9 @@
                         <div class="form-text">
                             Максимально можно добавить: <span id="maxAddQuantity" class="text-primary fw-bold">0</span>
                         </div>
+                        <div class="form-text mt-2">
+                            Итоговое количество будет: <span id="totalQuantity" class="text-success fw-bold">0</span>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -675,18 +678,41 @@
     document.getElementById('modalAddQuantity').max = maxAdd;
     document.getElementById('modalAddQuantity').value = '';
     
+    // Устанавливаем начальное значение для итогового количества
+    const totalQuantityElement = document.getElementById('totalQuantity');
+    totalQuantityElement.textContent = `${currentQuantity} ${unit}`;
+    
+    // Устанавливаем начальный цвет
+    if (currentQuantity >= plannedQuantity) {
+        totalQuantityElement.className = 'text-success fw-bold';
+    } else {
+        totalQuantityElement.className = 'text-info fw-bold';
+    }
+    
     // Показываем модальное окно
     const modal = new bootstrap.Modal(document.getElementById('addQuantityModal'));
     modal.show();
     
-    // Добавляем обработчик для ограничения ввода
+    // Добавляем обработчик для ограничения ввода и обновления итогового количества
     const addQuantityInput = document.getElementById('modalAddQuantity');
     addQuantityInput.addEventListener('input', function() {
-        const value = parseFloat(this.value);
+        const value = parseFloat(this.value) || 0;
         const max = parseFloat(this.max);
         
         if (value > max) {
             this.value = max;
+        }
+        
+        // Обновляем итоговое количество
+        const totalQuantity = currentQuantity + (parseFloat(this.value) || 0);
+        const totalQuantityElement = document.getElementById('totalQuantity');
+        totalQuantityElement.textContent = `${totalQuantity} ${unit}`;
+        
+        // Изменяем цвет в зависимости от того, достигнуто ли планируемое количество
+        if (totalQuantity >= plannedQuantity) {
+            totalQuantityElement.className = 'text-success fw-bold';
+        } else {
+            totalQuantityElement.className = 'text-info fw-bold';
         }
     });
 }
