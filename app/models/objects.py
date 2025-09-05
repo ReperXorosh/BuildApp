@@ -258,7 +258,9 @@ class PlannedWork(db.Model):
         today = date.today()
         
         # Находим все работы, которые должны были быть выполнены, но не выполнены
+        # Учитываем только работы с конкретной датой (planned_date не NULL)
         overdue_works = PlannedWork.query.filter(
+            PlannedWork.planned_date.isnot(None),
             PlannedWork.planned_date < today,
             PlannedWork.status.in_(['planned', 'in_progress'])
         ).all()

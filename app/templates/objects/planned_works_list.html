@@ -123,7 +123,11 @@
                                             {% endif %}
                                         </td>
                                         <td class="date-cell">
-                                            <span class="badge bg-outline-primary">{{ work.planned_date.strftime('%d.%m.%Y') }}</span>
+                                            {% if work.planned_date %}
+                                                <span class="badge bg-outline-primary">{{ work.planned_date.strftime('%d.%m.%Y') }}</span>
+                                            {% else %}
+                                                <span class="badge bg-outline-secondary">Без даты</span>
+                                            {% endif %}
                                         </td>
                                         <td>
                                             {% if work.priority == 'urgent' %}
@@ -173,7 +177,7 @@
                                                 <!-- Кнопка изменения даты -->
                                                 {% if work.status != 'completed' %}
                                                     <button type="button" class="btn btn-sm btn-outline-warning" 
-                                                            onclick="openChangeDateModal('{{ work.id }}', '{{ work.work_title }}', '{{ work.planned_date.strftime('%Y-%m-%d') }}')" 
+                                                            onclick="openChangeDateModal('{{ work.id }}', '{{ work.work_title }}', '{{ work.planned_date.strftime('%Y-%m-%d') if work.planned_date else '' }}')" 
                                                             title="Изменить дату">
                                                         <i class="bi bi-calendar-event"></i>
                                                     </button>
@@ -250,7 +254,13 @@
                                     <span class="badge bg-secondary">Низкий</span>
                                 {% endif %}
                             </li>
-                            <li><strong>Планируемая дата:</strong> {{ work.planned_date.strftime('%d.%m.%Y') }}</li>
+                            <li><strong>Планируемая дата:</strong> 
+                                {% if work.planned_date %}
+                                    {{ work.planned_date.strftime('%d.%m.%Y') }}
+                                {% else %}
+                                    Не указана
+                                {% endif %}
+                            </li>
                             {% if work.estimated_hours %}
                                 <li><strong>Планируемые часы:</strong> {{ work.estimated_hours }} ч</li>
                             {% endif %}
@@ -293,7 +303,7 @@
                 <!-- Кнопка изменения даты -->
                 {% if work.status != 'completed' %}
                     <button type="button" class="btn btn-warning" 
-                            onclick="openChangeDateModal('{{ work.id }}', '{{ work.work_title }}', '{{ work.planned_date.strftime('%Y-%m-%d') }}')">
+                            onclick="openChangeDateModal('{{ work.id }}', '{{ work.work_title }}', '{{ work.planned_date.strftime('%Y-%m-%d') if work.planned_date else '' }}')">
                         <i class="bi bi-calendar-event me-1"></i>
                         Изменить дату
                     </button>
