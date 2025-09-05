@@ -86,7 +86,9 @@ class Trench(db.Model):
         print(f"DEBUG: Обновляем просроченные траншеи. Сегодня: {today}")
         
         # Находим все траншеи, которые связаны с просроченными запланированными работами
-        overdue_trenches = Trench.query.join(PlannedWork, Trench.planned_work_id == PlannedWork.id).filter(
+        # Используем cast для приведения типов, так как planned_work_id - varchar, а planned_works.id - uuid
+        from sqlalchemy import cast, String
+        overdue_trenches = Trench.query.join(PlannedWork, cast(Trench.planned_work_id, String) == cast(PlannedWork.id, String)).filter(
             PlannedWork.planned_date.isnot(None),
             PlannedWork.planned_date < today,
             Trench.status.in_(['planned', 'in_progress'])
