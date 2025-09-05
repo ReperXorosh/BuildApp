@@ -138,7 +138,7 @@
                                     value="1" 
                                     min="0.01" 
                                     step="0.01"
-                                    placeholder="1.0"
+                                    placeholder="Введите количество (больше 0)"
                                 />
                                 <div class="form-text">
                                     Сколько должно быть установлено в итоге
@@ -215,8 +215,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const quantity = parseFloat(quantityInput.value);
         if (isNaN(quantity) || quantity <= 0) {
             e.preventDefault();
-            alert('Планируемое количество должно быть положительным числом');
+            alert('Планируемое количество должно быть положительным числом (больше 0)');
             quantityInput.focus();
+            quantityInput.select();
             return;
         }
         
@@ -245,19 +246,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Автоматическое заполнение значений по умолчанию при загрузке страницы
     setDefaultValues();
-    
-    // Устанавливаем значения по умолчанию при изменении полей
-    currentQuantityInput.addEventListener('input', function() {
-        if (this.value.trim() === '') {
-            this.value = '0';
-        }
-    });
-    
-    quantityInput.addEventListener('input', function() {
-        if (this.value.trim() === '') {
-            this.value = '1';
-        }
-    });
     
     unitSelect.addEventListener('change', function() {
         if (!this.value || this.value.trim() === '') {

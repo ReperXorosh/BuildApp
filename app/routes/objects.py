@@ -747,9 +747,11 @@ def add_checklist_item(object_id):
             try:
                 quantity = float(quantity_str)
                 if quantity <= 0:
-                    quantity = 1.0
+                    flash('Планируемое количество должно быть положительным числом (больше 0)', 'error')
+                    return render_template('objects/add_checklist_item.html', object=obj)
             except ValueError:
-                quantity = 1.0
+                flash('Планируемое количество должно быть числом', 'error')
+                return render_template('objects/add_checklist_item.html', object=obj)
         
         # Получаем единицу измерения с проверкой на пустые значения
         unit = request.form.get('unit', 'шт')
@@ -827,9 +829,11 @@ def edit_checklist_item(object_id, item_id):
             try:
                 quantity = float(quantity_str)
                 if quantity <= 0:
-                    quantity = 1.0
+                    flash('Планируемое количество должно быть положительным числом (больше 0)', 'error')
+                    return render_template('objects/edit_checklist_item.html', object=obj, item=item)
             except ValueError:
-                quantity = 1.0
+                flash('Планируемое количество должно быть числом', 'error')
+                return render_template('objects/edit_checklist_item.html', object=obj, item=item)
         
         # Получаем единицу измерения с проверкой на пустые значения
         unit = request.form.get('unit', 'шт')
