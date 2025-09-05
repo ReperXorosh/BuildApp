@@ -41,6 +41,9 @@ def planned_works_overview():
     # Обновляем статус просроченных работ
     PlannedWork.update_overdue_works()
     
+    # Обновляем статус просроченных траншей
+    Trench.update_overdue_trenches()
+    
     # Получаем все объекты с их запланированными работами
     objects = Object.query.all()
     
@@ -78,6 +81,9 @@ def all_planned_works():
     """Список всех запланированных работ в виде таблицы"""
     # Обновляем статус просроченных работ
     PlannedWork.update_overdue_works()
+    
+    # Обновляем статус просроченных траншей
+    Trench.update_overdue_trenches()
     
     # Получаем параметр фильтра по объекту
     object_filter = request.args.get('object_id', '')
@@ -999,6 +1005,9 @@ def planned_works_list(object_id):
     """Список запланированных работ объекта"""
     # Обновляем статус просроченных работ
     PlannedWork.update_overdue_works()
+    
+    # Обновляем статус просроченных траншей
+    Trench.update_overdue_trenches()
     
     obj = Object.query.get_or_404(object_id)
     planned_works = PlannedWork.query.filter_by(object_id=object_id).order_by(PlannedWork.planned_date.asc()).all()

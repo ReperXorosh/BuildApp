@@ -76,6 +76,38 @@ class Trench(db.Model):
             self.status = 'in_progress'
         else:
             self.status = 'planned'
+    
+    @staticmethod
+    def update_overdue_trenches():
+        """Обновляет статус просроченных траншей"""
+        from datetime import date
+        
+        today = date.today()
+        print(f"DEBUG: Обновляем просроченные траншеи. Сегодня: {today}")
+        
+        # Находим все траншеи, которые связаны с просроченными запланированными работами
+        overdue_trenches = Trench.query.join(PlannedWork, Trench.planned_work_id == PlannedWork.id).filter(
+            PlannedWork.planned_date.isnot(None),
+            PlannedWork.planned_date < today,
+            Trench.status.in_(['planned', 'in_progress'])
+        ).all()
+        
+        print(f"DEBUG: Найдено просроченных траншей: {len(overdue_trenches)}")
+        
+        updated_count = 0
+        for trench in overdue_trenches:
+            print(f"DEBUG: Обновляем траншею '{trench.id}' со статуса '{trench.status}' на 'overdue'")
+            trench.status = 'overdue'
+            trench.updated_at = datetime.utcnow()
+            updated_count += 1
+        
+        if updated_count > 0:
+            db.session.commit()
+            print(f"DEBUG: Сохранено {updated_count} обновлений траншей")
+        else:
+            print("DEBUG: Нет траншей для обновления")
+        
+        return updated_count
 
 class Report(db.Model):
     """Модель отчёта"""

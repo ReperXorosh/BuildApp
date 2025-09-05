@@ -203,6 +203,9 @@ def calendar():
     # Обновляем статус просроченных работ
     PlannedWork.update_overdue_works()
     
+    # Обновляем статус просроченных траншей
+    Trench.update_overdue_trenches()
+    
     # Получаем все даты с активностью
     active_dates = set()
     
@@ -261,6 +264,9 @@ def calendar_date_detail(date):
         
         # Обновляем статус просроченных работ
         PlannedWork.update_overdue_works()
+        
+        # Обновляем статус просроченных траншей
+        Trench.update_overdue_trenches()
         
         # Парсим дату
         report_date = datetime.strptime(date, '%Y-%m-%d').date()

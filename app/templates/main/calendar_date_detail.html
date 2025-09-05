@@ -217,8 +217,18 @@
                                             <strong>Траншея</strong>
                                             <br><small class="text-muted">{{ trench.planned_length }}м запланировано</small>
                                         </div>
-                                        <span class="badge bg-{{ 'success' if trench.status == 'completed' else 'warning' if trench.status == 'in_progress' else 'secondary' }}">
-                                            {{ trench.status }}
+                                        <span class="badge bg-{{ 'success' if trench.status == 'completed' else 'warning' if trench.status == 'in_progress' else 'danger' if trench.status == 'overdue' else 'secondary' }}">
+                                            {% if trench.status == 'planned' %}
+                                                Запланировано
+                                            {% elif trench.status == 'in_progress' %}
+                                                В работе
+                                            {% elif trench.status == 'completed' %}
+                                                Завершено
+                                            {% elif trench.status == 'overdue' %}
+                                                Просрочено
+                                            {% else %}
+                                                {{ trench.status }}
+                                            {% endif %}
                                         </span>
                                     </div>
                                     {% endfor %}
