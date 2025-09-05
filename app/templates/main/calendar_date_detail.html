@@ -129,12 +129,12 @@
                     {% endif %}
 
                     <!-- Детальная информация -->
-                    <div class="accordion" id="accordion{{ loop.index }}">
+                    <div class="accordion" id="accordion{{ loop.index }}" onclick="event.stopPropagation();">
                         {% if data.reports %}
                         <div class="accordion-item">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
-                                        data-bs-target="#reports{{ loop.index }}" aria-expanded="false">
+                                        data-bs-target="#reports{{ loop.index }}" aria-expanded="false" onclick="event.stopPropagation();">
                                     <i class="bi bi-file-earmark-text me-2"></i>
                                     Отчёты ({{ data.total_reports }})
                                 </button>
@@ -162,7 +162,7 @@
                         <div class="accordion-item">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
-                                        data-bs-target="#works{{ loop.index }}" aria-expanded="false">
+                                        data-bs-target="#works{{ loop.index }}" aria-expanded="false" onclick="event.stopPropagation();">
                                     <i class="bi bi-calendar-check me-2"></i>
                                     Работы ({{ data.total_planned_works + data.total_supports_created + data.total_trenches_created }})
                                 </button>
@@ -231,7 +231,7 @@
                         <div class="accordion-item">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
-                                        data-bs-target="#checklist{{ loop.index }}" aria-expanded="false">
+                                        data-bs-target="#checklist{{ loop.index }}" aria-expanded="false" onclick="event.stopPropagation();">
                                     <i class="bi bi-check2-square me-2"></i>
                                     Выполненные пункты ({{ data.total_checklist_completed }})
                                 </button>
@@ -291,21 +291,43 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Предотвращаем всплытие событий для аккордеонов
-    const accordions = document.querySelectorAll('.accordion');
+    console.log('Script loaded, preventing accordion click propagation');
     
-    accordions.forEach(function(accordion) {
-        accordion.addEventListener('click', function(event) {
-            // Останавливаем всплытие события, чтобы клик по аккордеону не переходил на страницу объекта
+    // Предотвращаем всплытие событий для всех элементов аккордеонов
+    const accordionButtons = document.querySelectorAll('.accordion-button');
+    const accordionBodies = document.querySelectorAll('.accordion-body');
+    const accordionCollapses = document.querySelectorAll('.accordion-collapse');
+    
+    // Обработчик для кнопок аккордеонов
+    accordionButtons.forEach(function(button) {
+        button.addEventListener('click', function(event) {
+            console.log('Accordion button clicked, stopping propagation');
+            event.stopPropagation();
+            event.preventDefault();
+        });
+    });
+    
+    // Обработчик для тел аккордеонов
+    accordionBodies.forEach(function(body) {
+        body.addEventListener('click', function(event) {
+            console.log('Accordion body clicked, stopping propagation');
             event.stopPropagation();
         });
     });
     
-    // Также предотвращаем всплытие для всех элементов внутри аккордеонов
-    const accordionElements = document.querySelectorAll('.accordion-button, .accordion-body, .accordion-collapse');
+    // Обработчик для коллапсов аккордеонов
+    accordionCollapses.forEach(function(collapse) {
+        collapse.addEventListener('click', function(event) {
+            console.log('Accordion collapse clicked, stopping propagation');
+            event.stopPropagation();
+        });
+    });
     
-    accordionElements.forEach(function(element) {
-        element.addEventListener('click', function(event) {
+    // Общий обработчик для всех аккордеонов
+    const accordions = document.querySelectorAll('.accordion');
+    accordions.forEach(function(accordion) {
+        accordion.addEventListener('click', function(event) {
+            console.log('Accordion clicked, stopping propagation');
             event.stopPropagation();
         });
     });
