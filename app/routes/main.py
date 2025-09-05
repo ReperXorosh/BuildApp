@@ -256,6 +256,9 @@ def calendar_date_detail(date):
         from ..models.objects import Object, Report, PlannedWork, Support, Trench, Checklist, ChecklistItem
         from ..models.users import Users
         
+        # Обновляем статус просроченных работ
+        PlannedWork.update_overdue_works()
+        
         # Парсим дату
         report_date = datetime.strptime(date, '%Y-%m-%d').date()
         

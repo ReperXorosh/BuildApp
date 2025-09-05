@@ -38,6 +38,9 @@ def object_list():
 @login_required
 def planned_works_overview():
     """Обзор всех запланированных работ по объектам"""
+    # Обновляем статус просроченных работ
+    PlannedWork.update_overdue_works()
+    
     # Получаем все объекты с их запланированными работами
     objects = Object.query.all()
     
@@ -50,6 +53,7 @@ def planned_works_overview():
         obj.completed_works_count = len([w for w in obj.planned_works if w.status == 'completed'])
         obj.pending_works_count = len([w for w in obj.planned_works if w.status == 'planned'])
         obj.in_progress_works_count = len([w for w in obj.planned_works if w.status == 'in_progress'])
+        obj.overdue_works_count = len([w for w in obj.planned_works if w.status == 'overdue'])
         
         print(f"DEBUG: Объект '{obj.name}' - запланированных работ: {obj.planned_works_count}")
         for work in obj.planned_works:
@@ -72,6 +76,9 @@ def planned_works_overview():
 @login_required
 def all_planned_works():
     """Список всех запланированных работ в виде таблицы"""
+    # Обновляем статус просроченных работ
+    PlannedWork.update_overdue_works()
+    
     # Получаем параметр фильтра по объекту
     object_filter = request.args.get('object_id', '')
     
@@ -84,6 +91,7 @@ def all_planned_works():
         obj.completed_works_count = len([w for w in obj.planned_works if w.status == 'completed'])
         obj.pending_works_count = len([w for w in obj.planned_works if w.status == 'planned'])
         obj.in_progress_works_count = len([w for w in obj.planned_works if w.status == 'in_progress'])
+        obj.overdue_works_count = len([w for w in obj.planned_works if w.status == 'overdue'])
     
     # Базовый запрос
     query = PlannedWork.query.join(Object)
@@ -989,6 +997,9 @@ def delete_checklist_item(object_id, item_id):
 @login_required
 def planned_works_list(object_id):
     """Список запланированных работ объекта"""
+    # Обновляем статус просроченных работ
+    PlannedWork.update_overdue_works()
+    
     obj = Object.query.get_or_404(object_id)
     planned_works = PlannedWork.query.filter_by(object_id=object_id).order_by(PlannedWork.planned_date.asc()).all()
     

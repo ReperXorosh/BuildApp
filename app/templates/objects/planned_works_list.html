@@ -145,6 +145,8 @@
                                                 <span class="badge bg-success">Завершено</span>
                                             {% elif work.status == 'cancelled' %}
                                                 <span class="badge bg-danger">Отменено</span>
+                                            {% elif work.status == 'overdue' %}
+                                                <span class="badge bg-danger">Просрочено</span>
                                             {% endif %}
                                         </td>
                                         <td>
@@ -233,6 +235,8 @@
                                     <span class="badge bg-success">Завершено</span>
                                 {% elif work.status == 'cancelled' %}
                                     <span class="badge bg-danger">Отменено</span>
+                                {% elif work.status == 'overdue' %}
+                                    <span class="badge bg-danger">Просрочено</span>
                                 {% endif %}
                             </li>
                             <li><strong>Приоритет:</strong> 

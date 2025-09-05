@@ -249,6 +249,36 @@ class PlannedWork(db.Model):
     
     # Связь с пользователем, которому назначена работа
     assignee = db.relationship('Users', foreign_keys=[assigned_to], backref='assigned_works')
+    
+    @staticmethod
+    def update_overdue_works():
+        """Обновляет статус просроченных работ"""
+        from datetime import date
+        
+        today = date.today()
+        
+        # Находим все работы, которые должны были быть выполнены, но не выполнены
+        overdue_works = PlannedWork.query.filter(
+            PlannedWork.planned_date < today,
+            PlannedWork.status.in_(['planned', 'in_progress'])
+        ).all()
+        
+        updated_count = 0
+        for work in overdue_works:
+            work.status = 'overdue'
+            work.updated_at = datetime.utcnow()
+            updated_count += 1
+        
+        if updated_count > 0:
+            db.session.commit()
+        
+        return updated_count
+    
+    def is_overdue(self):
+        """Проверяет, просрочена ли работа"""
+        if not self.planned_date:
+            return False
+        return self.planned_date < datetime.utcnow().date() and self.status not in ['completed', 'cancelled', 'overdue']
 
 class WorkExecution(db.Model):
     """Модель выполнения работы"""

@@ -202,8 +202,20 @@
                                             <strong>{{ work.work_title }}</strong>
                                             <br><small class="text-muted">{{ work.work_type }}</small>
                                         </div>
-                                        <span class="badge bg-{{ 'success' if work.status == 'completed' else 'warning' if work.status == 'in_progress' else 'secondary' }}">
-                                            {{ work.status }}
+                                        <span class="badge bg-{{ 'success' if work.status == 'completed' else 'warning' if work.status == 'in_progress' else 'danger' if work.status == 'overdue' else 'secondary' }}">
+                                            {% if work.status == 'planned' %}
+                                                Запланировано
+                                            {% elif work.status == 'in_progress' %}
+                                                В работе
+                                            {% elif work.status == 'completed' %}
+                                                Завершено
+                                            {% elif work.status == 'cancelled' %}
+                                                Отменено
+                                            {% elif work.status == 'overdue' %}
+                                                Просрочено
+                                            {% else %}
+                                                {{ work.status }}
+                                            {% endif %}
                                         </span>
                                     </div>
                                     {% endfor %}
