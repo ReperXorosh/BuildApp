@@ -681,7 +681,8 @@ def checklist_view(object_id):
         )
         db.session.add(checklist)
         db.session.commit()
-        obj.checklist = checklist
+        # Обновляем объект в сессии, чтобы получить связь с чек-листом
+        db.session.refresh(obj)
     else:
         # Обновляем счетчики для существующего чек-листа
         obj.checklist.update_completion_status()
