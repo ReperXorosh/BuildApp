@@ -62,6 +62,31 @@
         min-height: 80px;
     }
     
+    .stat-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        height: 100%;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .stat-link:hover {
+        text-decoration: none;
+        color: inherit;
+        background-color: rgba(0, 123, 255, 0.1);
+        border-radius: 0.375rem;
+        transform: translateY(-1px);
+    }
+    
+    .stat-link:hover .stats-number {
+        color: var(--bs-primary) !important;
+        transform: scale(1.1);
+    }
+    
+    .stat-link:hover .stats-label {
+        color: var(--bs-primary) !important;
+    }
+    
     .border-end {
         border-right: 1px solid rgba(108, 117, 125, 0.3) !important;
         padding: 0.5rem 0;
@@ -151,6 +176,18 @@
         color: var(--bs-secondary-color) !important;
     }
     
+    [data-bs-theme="dark"] .stat-link:hover {
+        background-color: rgba(0, 123, 255, 0.2);
+    }
+    
+    [data-bs-theme="dark"] .stat-link:hover .stats-number {
+        color: var(--bs-primary) !important;
+    }
+    
+    [data-bs-theme="dark"] .stat-link:hover .stats-label {
+        color: var(--bs-primary) !important;
+    }
+    
 </style>
 
 <div class="container-fluid">
@@ -202,28 +239,36 @@
                                 <div class="stats-area">
                                     <div class="row text-center">
                                         <div class="col-3">
-                                            <div class="border-end d-flex flex-column justify-content-center" style="height: 100%;">
-                                                <h6 class="mb-1 stats-number">{{ obj.supports|length }}</h6>
-                                                <small class="stats-label">Опора</small>
-                                            </div>
+                                            <a href="{{ url_for('objects.supports_list', object_id=obj.id) }}" class="stat-link" onclick="event.stopPropagation();">
+                                                <div class="border-end d-flex flex-column justify-content-center" style="height: 100%;">
+                                                    <h6 class="mb-1 stats-number">{{ obj.supports|length }}</h6>
+                                                    <small class="stats-label">Опора</small>
+                                                </div>
+                                            </a>
                                         </div>
                                         <div class="col-3">
-                                            <div class="border-end d-flex flex-column justify-content-center" style="height: 100%;">
-                                                <h6 class="mb-1 stats-number">{{ obj.trenches|length }}</h6>
-                                                <small class="stats-label">Траншея</small>
-                                            </div>
+                                            <a href="{{ url_for('objects.trenches_list', object_id=obj.id) }}" class="stat-link" onclick="event.stopPropagation();">
+                                                <div class="border-end d-flex flex-column justify-content-center" style="height: 100%;">
+                                                    <h6 class="mb-1 stats-number">{{ obj.trenches|length }}</h6>
+                                                    <small class="stats-label">Траншея</small>
+                                                </div>
+                                            </a>
                                         </div>
                                         <div class="col-3">
-                                            <div class="border-end d-flex flex-column justify-content-center" style="height: 100%;">
-                                                <h6 class="mb-1 stats-number">{{ obj.reports|length }}</h6>
-                                                <small class="stats-label">Отчёт</small>
-                                            </div>
+                                            <a href="{{ url_for('objects.reports_list', object_id=obj.id) }}" class="stat-link" onclick="event.stopPropagation();">
+                                                <div class="border-end d-flex flex-column justify-content-center" style="height: 100%;">
+                                                    <h6 class="mb-1 stats-number">{{ obj.reports|length }}</h6>
+                                                    <small class="stats-label">Отчёт</small>
+                                                </div>
+                                            </a>
                                         </div>
                                         <div class="col-3">
-                                            <div class="d-flex flex-column justify-content-center" style="height: 100%;">
-                                                <h6 class="mb-1 stats-number">{{ obj.checklist.items|length if obj.checklist else 0 }}</h6>
-                                                <small class="stats-label">Чек-лист</small>
-                                            </div>
+                                            <a href="{{ url_for('objects.checklist_view', object_id=obj.id) }}" class="stat-link" onclick="event.stopPropagation();">
+                                                <div class="d-flex flex-column justify-content-center" style="height: 100%;">
+                                                    <h6 class="mb-1 stats-number">{{ obj.checklist.items|length if obj.checklist else 0 }}</h6>
+                                                    <small class="stats-label">Чек-лист</small>
+                                                </div>
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
