@@ -61,7 +61,7 @@ def login():
 
         user = Users.query.filter_by(login=login).first()
         # if user:
-        if user: #and check_password_hash(user.password, password):
+        if user and check_password_hash(user.password, password):
             # Обновляем информацию о входе пользователя
             from ..utils.timezone_utils import get_moscow_now
             user.last_login = get_moscow_now()
