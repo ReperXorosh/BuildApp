@@ -659,10 +659,6 @@ def edit_user(user_id):
             db.session.commit()
         except Exception as e:
             db.session.rollback()
-            # Проверяем, была ли ошибка связана с дублированием логина
-            if "UNIQUE constraint failed" in str(e) or "duplicate key" in str(e).lower():
-            else:
-                flash('Ошибка при обновлении пользователя. Попробуйте еще раз.', 'error')
             return redirect(url_for('main.edit_user', user_id=user_id))
         
         # Обрабатываем загрузку аватара
