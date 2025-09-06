@@ -108,7 +108,7 @@ class SupplyOrderItem(db.Model):
     __tablename__ = 'supply_order_items'
     
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    order_id = db.Column(db.String(36), db.ForeignKey('supply_orders.id'), nullable=False)
+    order_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('supply_orders.id'), nullable=False)
     item_name = db.Column(db.String(200), nullable=False)
     quantity = db.Column(db.Float, nullable=False)
     unit = db.Column(db.String(50), nullable=False)
