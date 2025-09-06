@@ -5,7 +5,7 @@ services:
     image: postgres
     container_name: postgres
     volumes:
-      - ~/.pg/pg_data/flask-yt:/var/lib/postgresql/data
+      - ~/pg/pg_data:/var/lib/postgresql/data
     env_file:
       - .env
     ports:
@@ -16,7 +16,7 @@ services:
       context: .
     container_name: flask
     volumes:
-      - ~/.uploads/images/flask-yt:/app/app/static/uploads
+      - ~/uploads:/app/app/static/uploads
     env_file:
       - .env
     environment:
@@ -27,8 +27,6 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     depends_on:
       - postgres
-    expose:
-      - 8080
   nginx:
     build:
       dockerfile: ./Dockerfile
@@ -44,4 +42,4 @@ services:
     volumes:
       - "./certbot/www:/var/www/certbot"
       - "./certbot/conf:/etc/letsencrypt"
-      - "./app:/app"
+      - ~/migrations:/app/migrations
