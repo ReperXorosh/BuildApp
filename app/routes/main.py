@@ -435,7 +435,6 @@ def users():
 def add_user():
     # Проверяем права администратора (Инженер ПТО)
     if current_user.role != 'Инженер ПТО':
-        flash('У вас нет прав для добавления пользователей', 'error')
         return redirect(url_for('main.users'))
     
     # Логируем открытие страницы добавления пользователя
@@ -509,7 +508,6 @@ def add_user():
         # Проверяем, что пользователь с таким логином не существует
         existing_user = Users.query.filter_by(login=login).first()
         if existing_user:
-            flash('Пользователь с таким логином уже существует', 'error')
             return render_template('main/add_user.html', 
                                  form_data={
                                      'login': login,
@@ -536,11 +534,6 @@ def add_user():
             db.session.commit()
         except Exception as e:
             db.session.rollback()
-            # Проверяем, была ли ошибка связана с дублированием логина
-            if "UNIQUE constraint failed" in str(e) or "duplicate key" in str(e).lower():
-                flash('Пользователь с таким логином уже существует', 'error')
-            else:
-                flash('Ошибка при создании пользователя. Попробуйте еще раз.', 'error')
             return render_template('main/add_user.html', 
                                  form_data={
                                      'login': login,
@@ -588,7 +581,6 @@ def add_user():
             method=request.method
         )
         
-        flash('Пользователь успешно добавлен', 'success')
         return redirect(url_for('main.users'))
     
     return render_template('main/add_user.html')
@@ -604,7 +596,6 @@ def edit_user(user_id):
     
     user = Users.query.get(user_id)
     if not user:
-        flash('Пользователь не найден', 'error')
         return redirect(url_for('main.users'))
     
     # Логируем открытие страницы редактирования пользователя
@@ -650,7 +641,6 @@ def edit_user(user_id):
         # Проверяем, что логин не занят другим пользователем
         existing_user = Users.query.filter_by(login=login).first()
         if existing_user and str(existing_user.userid) != str(user_id):
-            flash('Пользователь с таким логином уже существует', 'error')
             return redirect(url_for('main.edit_user', user_id=user_id))
         
         # Обновляем данные пользователя
@@ -671,7 +661,6 @@ def edit_user(user_id):
             db.session.rollback()
             # Проверяем, была ли ошибка связана с дублированием логина
             if "UNIQUE constraint failed" in str(e) or "duplicate key" in str(e).lower():
-                flash('Пользователь с таким логином уже существует', 'error')
             else:
                 flash('Ошибка при обновлении пользователя. Попробуйте еще раз.', 'error')
             return redirect(url_for('main.edit_user', user_id=user_id))
@@ -722,7 +711,6 @@ def edit_user(user_id):
         )
         
         db.session.commit()
-        flash('Пользователь успешно обновлен', 'success')
         return redirect(url_for('main.users'))
     
     # Очищаем номер телефона для отображения в форме редактирования
@@ -745,7 +733,6 @@ def delete_user(user_id):
     
     user = Users.query.get(user_id)
     if not user:
-        flash('Пользователь не найден', 'error')
         return redirect(url_for('main.users'))
     
     # Удаляем аватар пользователя, если он есть
@@ -773,7 +760,6 @@ def delete_user(user_id):
     db.session.delete(user)
     db.session.commit()
     
-    flash('Пользователь успешно удален', 'success')
     return redirect(url_for('main.users'))
 
 
@@ -899,7 +885,6 @@ def view_user_profile(user_id):
     # Получаем пользователя
     user = Users.query.get(user_id)
     if not user:
-        flash('Пользователь не найден', 'danger')
         return redirect(url_for('main.users'))
     
     # Логируем просмотр профиля
