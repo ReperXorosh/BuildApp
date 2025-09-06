@@ -74,8 +74,8 @@ class SupplyOrder(db.Model):
     order_number = db.Column(db.String(50), nullable=False, unique=True)
     order_type = db.Column(db.String(50), nullable=False)  # material, equipment
     status = db.Column(db.String(50), default='pending')  # pending, approved, delivered, cancelled
-    requested_by = db.Column(db.String(36), db.ForeignKey('users.userid'), nullable=False)
-    approved_by = db.Column(db.String(36), db.ForeignKey('users.userid'), nullable=True)
+    requested_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'), nullable=False)
+    approved_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'), nullable=True)
     supplier = db.Column(db.String(200), nullable=True)
     total_amount = db.Column(db.Float, default=0.0)
     notes = db.Column(db.Text, nullable=True)
