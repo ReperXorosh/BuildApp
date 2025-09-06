@@ -122,13 +122,11 @@ def create_app():
     def inject_time_info():
         """Добавляет информацию о времени в контекст всех шаблонов"""
         from app.utils.timezone_utils import get_moscow_now, get_user_now, get_user_timezone
-        from flask_wtf.csrf import generate_csrf
         return {
             'moscow_now': get_moscow_now(),
             'moscow_timezone': 'Europe/Moscow',
             'user_now': get_user_now(),
-            'user_timezone': get_user_timezone(),
-            'csrf_token': generate_csrf
+            'user_timezone': get_user_timezone()
         }
     
     return app

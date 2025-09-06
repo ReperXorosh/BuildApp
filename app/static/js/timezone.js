@@ -96,8 +96,7 @@ function sendTimezoneToServer(timezone) {
     fetch('/user/set-timezone', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken()
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify({ timezone: timezone })
     })
@@ -118,14 +117,6 @@ function sendTimezoneToServer(timezone) {
     });
 }
 
-/**
- * Получает CSRF токен из мета-тега
- * @returns {string} CSRF токен
- */
-function getCSRFToken() {
-    const metaTag = document.querySelector('meta[name="csrf-token"]');
-    return metaTag ? metaTag.getAttribute('content') : '';
-}
 
 /**
  * Инициализирует определение часового пояса при загрузке страницы
