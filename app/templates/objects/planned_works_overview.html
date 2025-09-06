@@ -131,8 +131,8 @@
                                         {% endif %}
                                         
                                         <!-- Статистика работ по объекту -->
+                                        {% if obj.planned_works_count > 0 %}
                                         <div class="row text-center mb-3">
-                                            {% if obj.planned_works_count > 0 %}
                                             <div class="col-4">
                                                 <div class="text-warning">
                                                     <i class="bi bi-clock fs-4"></i>
@@ -154,15 +154,15 @@
                                                     <div class="small text-muted">Завершено</div>
                                                 </div>
                                             </div>
-                                            {% else %}
-                                            <div class="col-12 d-flex justify-content-center align-items-center" style="min-height: 80px;">
-                                                <div class="text-success text-center">
-                                                    <i class="bi bi-check-circle fs-4"></i>
-                                                    <div class="small">Нет запланированных работ</div>
-                                                </div>
-                                            </div>
-                                            {% endif %}
                                         </div>
+                                        {% else %}
+                                        <div class="d-flex justify-content-center align-items-center mb-3" style="min-height: 80px;">
+                                            <div class="text-success text-center">
+                                                <i class="bi bi-check-circle fs-4"></i>
+                                                <div class="small">Нет запланированных работ</div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
                                         
                                     </div>
                                     <div class="card-footer">
