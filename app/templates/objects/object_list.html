@@ -103,6 +103,27 @@
         min-width: 120px;
     }
     
+    .info-section {
+        min-height: 60px;
+        border-right: 1px solid rgba(108, 117, 125, 0.2);
+        padding-right: 1rem;
+    }
+    
+    .info-section:last-child {
+        border-right: none;
+        padding-right: 0;
+        padding-left: 1rem;
+    }
+    
+    .info-section .text-muted {
+        color: var(--bs-secondary-color) !important;
+    }
+    
+    .info-section strong {
+        color: var(--bs-body-color) !important;
+        font-weight: 600;
+    }
+    
     /* Темная тема */
     [data-bs-theme="dark"] .card {
         border-color: rgba(255, 255, 255, 0.1);
@@ -128,6 +149,18 @@
     
     [data-bs-theme="dark"] .date-creation {
         color: var(--bs-secondary-color) !important;
+    }
+    
+    [data-bs-theme="dark"] .info-section {
+        border-right-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    [data-bs-theme="dark"] .info-section .text-muted {
+        color: var(--bs-secondary-color) !important;
+    }
+    
+    [data-bs-theme="dark"] .info-section strong {
+        color: var(--bs-light) !important;
     }
 </style>
 
@@ -164,16 +197,38 @@
                                 </span>
                             </div>
                             <div class="card-body d-flex flex-column">
-                                {% if obj.description %}
-                                <p class="card-text text-muted mb-3">{{ obj.description[:100] }}{% if obj.description|length > 100 %}...{% endif %}</p>
-                                {% endif %}
-                                
-                                {% if obj.location %}
-                                <p class="card-text mb-3">
-                                    <i class="bi bi-geo-alt me-1"></i>
-                                    <small class="text-muted">{{ obj.location }}</small>
-                                </p>
-                                {% endif %}
+                                <div class="row mb-3">
+                                    <div class="col-6 info-section">
+                                        <div class="d-flex flex-column h-100">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi bi-file-text me-2 text-primary"></i>
+                                                <strong class="text-muted">Описание:</strong>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                {% if obj.description %}
+                                                <p class="card-text text-muted mb-0 small">{{ obj.description[:80] }}{% if obj.description|length > 80 %}...{% endif %}</p>
+                                                {% else %}
+                                                <p class="card-text text-muted mb-0 small">—</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 info-section">
+                                        <div class="d-flex flex-column h-100">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi bi-geo-alt me-2 text-primary"></i>
+                                                <strong class="text-muted">Местоположение:</strong>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                {% if obj.location %}
+                                                <p class="card-text text-muted mb-0 small">{{ obj.location[:80] }}{% if obj.location|length > 80 %}...{% endif %}</p>
+                                                {% else %}
+                                                <p class="card-text text-muted mb-0 small">—</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 
                                 <div class="row text-center mt-auto" style="min-height: 80px;">
                                     <div class="col-3">
