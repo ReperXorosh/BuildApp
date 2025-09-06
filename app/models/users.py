@@ -11,7 +11,7 @@ class Users(db.Model, UserMixin):
 
     userid = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     login = db.Column(db.String(100), nullable=False, unique=True)
-    password = db.Column(db.String(100), nullable=False)
+    password = db.Column(db.String(200), nullable=False)
     firstname = db.Column(db.String(100), nullable=True)
     secondname = db.Column(db.String(100), nullable=True)
     thirdname = db.Column(db.String(100), nullable=True)
