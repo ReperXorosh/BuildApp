@@ -70,8 +70,29 @@
                                         <i class="bi bi-pencil me-1"></i>
                                         Заголовок работы *
                                     </label>
+                                    <!-- Текстовое поле для обычных работ -->
                                     <input type="text" class="form-control" id="work_title" name="work_title" 
                                            placeholder="Например: Установка опоры №5" required>
+                                    
+                                    <!-- Выпадающий список для установки опор -->
+                                    <select class="form-select" id="support_select" name="support_select" style="display: none;">
+                                        <option value="">Выберите опору для установки</option>
+                                        {% if supports %}
+                                            {% for support in supports %}
+                                            <option value="{{ support.id }}" data-support-number="{{ support.support_number }}" 
+                                                    data-support-type="{{ support.support_type or '' }}" 
+                                                    data-height="{{ support.height or '' }}" 
+                                                    data-material="{{ support.material or '' }}">
+                                                Опора {{ support.support_number }}{% if support.support_type %} ({{ support.support_type }}){% endif %}{% if support.height %} - {{ support.height }}м{% endif %}{% if support.material %} - {{ support.material }}{% endif %}
+                                            </option>
+                                            {% endfor %}
+                                        {% else %}
+                                            <option value="" disabled>Нет доступных опор для установки</option>
+                                        {% endif %}
+                                    </select>
+                                    
+                                    <!-- Скрытое поле для хранения выбранной опоры -->
+                                    <input type="hidden" id="selected_support_id" name="selected_support_id">
                                 </div>
 
                                 <div class="mb-3">
@@ -158,6 +179,65 @@
 document.addEventListener('DOMContentLoaded', function() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('planned_date').min = today;
+    
+    // Обработка изменения типа работы
+    const workTypeSelect = document.getElementById('work_type');
+    const workTitleInput = document.getElementById('work_title');
+    const supportSelect = document.getElementById('support_select');
+    const selectedSupportId = document.getElementById('selected_support_id');
+    
+    workTypeSelect.addEventListener('change', function() {
+        if (this.value === 'support_installation') {
+            // Проверяем, есть ли доступные опоры
+            const hasSupports = supportSelect.querySelector('option[value]:not([disabled])');
+            if (hasSupports) {
+                // Показываем выпадающий список опор, скрываем текстовое поле
+                workTitleInput.style.display = 'none';
+                workTitleInput.required = false;
+                supportSelect.style.display = 'block';
+                supportSelect.required = true;
+            } else {
+                // Если нет опор, показываем текстовое поле с предупреждением
+                workTitleInput.style.display = 'block';
+                workTitleInput.required = true;
+                workTitleInput.placeholder = 'Нет доступных опор. Введите заголовок вручную.';
+                supportSelect.style.display = 'none';
+                supportSelect.required = false;
+            }
+        } else {
+            // Показываем текстовое поле, скрываем выпадающий список
+            workTitleInput.style.display = 'block';
+            workTitleInput.required = true;
+            workTitleInput.placeholder = 'Например: Установка опоры №5';
+            supportSelect.style.display = 'none';
+            supportSelect.required = false;
+            selectedSupportId.value = '';
+        }
+    });
+    
+    // Обработка выбора опоры
+    supportSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        if (selectedOption.value) {
+            const supportNumber = selectedOption.dataset.supportNumber;
+            const supportType = selectedOption.dataset.supportType;
+            const height = selectedOption.dataset.height;
+            const material = selectedOption.dataset.material;
+            
+            // Формируем заголовок работы
+            let title = `Установка опоры ${supportNumber}`;
+            if (supportType) title += ` (${supportType})`;
+            if (height) title += `, высота: ${height}м`;
+            if (material) title += `, материал: ${material}`;
+            
+            // Устанавливаем заголовок в скрытое поле
+            workTitleInput.value = title;
+            selectedSupportId.value = selectedOption.value;
+        } else {
+            workTitleInput.value = '';
+            selectedSupportId.value = '';
+        }
+    });
 });
 </script>
 {% endblock %}

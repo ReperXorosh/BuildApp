@@ -1030,9 +1030,13 @@ def add_planned_work(object_id):
     """Добавление запланированной работы"""
     obj = Object.query.get_or_404(object_id)
     
+    # Получаем список опор для данного объекта
+    supports = Support.query.filter_by(object_id=object_id, status='planned').order_by(Support.support_number.asc()).all()
+    
     if request.method == 'POST':
         work_type = request.form.get('work_type', '').strip()
         work_title = request.form.get('work_title', '').strip()
+        selected_support_id = request.form.get('selected_support_id', '').strip()
         description = request.form.get('description', '').strip()
         planned_date = request.form.get('planned_date')
         priority = request.form.get('priority', 'medium')
@@ -1043,14 +1047,14 @@ def add_planned_work(object_id):
         
         if not work_type or not work_title or not planned_date:
             flash('Тип работы, заголовок и планируемая дата обязательны для заполнения', 'error')
-            return render_template('objects/add_planned_work.html', object=obj, today_date=datetime.now().strftime('%Y-%m-%d'))
+            return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=datetime.now().strftime('%Y-%m-%d'))
         
         # Преобразуем дату
         try:
             planned_date = datetime.strptime(planned_date, '%Y-%m-%d').date()
         except ValueError:
             flash('Неверный формат даты', 'error')
-            return render_template('objects/add_planned_work.html', object=obj, today_date=datetime.now().strftime('%Y-%m-%d'))
+            return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=datetime.now().strftime('%Y-%m-%d'))
         
         # Преобразуем часы
         if estimated_hours:
@@ -1075,6 +1079,24 @@ def add_planned_work(object_id):
         )
         
         db.session.add(new_planned_work)
+        db.session.flush()  # Получаем ID запланированной работы
+        
+        # Если выбрана опора, связываем её с запланированной работой
+        if selected_support_id and work_type == 'support_installation':
+            support = Support.query.get(selected_support_id)
+            if support and support.object_id == object_id:
+                support.planned_work_id = new_planned_work.id
+                # Обновляем описание работы с информацией об опоре
+                if not description:
+                    description = f'Установка опоры {support.support_number}'
+                    if support.support_type:
+                        description += f' ({support.support_type})'
+                    if support.height:
+                        description += f', высота: {support.height}м'
+                    if support.material:
+                        description += f', материал: {support.material}'
+                    new_planned_work.description = description
+        
         db.session.commit()
         
         ActivityLog.log_action(
@@ -1090,7 +1112,7 @@ def add_planned_work(object_id):
         flash('Запланированная работа успешно добавлена', 'success')
         return redirect(url_for('objects.planned_works_list', object_id=object_id))
     
-    return render_template('objects/add_planned_work.html', object=obj, today_date=datetime.now().strftime('%Y-%m-%d'))
+    return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=datetime.now().strftime('%Y-%m-%d'))
 
 @objects_bp.route('/<uuid:object_id>/planned-works/<uuid:work_id>/execute', methods=['GET', 'POST'])
 @login_required
