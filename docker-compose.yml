@@ -16,6 +16,7 @@ services:
       context: .
     container_name: flask
     volumes:
+      - ~/migrations:/app/migrations
       - ~/uploads:/app/app/static/uploads
     env_file:
       - .env
@@ -42,4 +43,3 @@ services:
     volumes:
       - "./certbot/www:/var/www/certbot"
       - "./certbot/conf:/etc/letsencrypt"
-      - ~/migrations:/app/migrations
