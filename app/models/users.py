@@ -22,6 +22,7 @@ class Users(db.Model, UserMixin):
     last_login = db.Column(db.DateTime, nullable=True)
     last_activity = db.Column(db.DateTime, nullable=True)
     is_online = db.Column(db.Boolean, default=False)
+    timezone = db.Column(db.String(50), nullable=True, default='Europe/Moscow')  # Часовой пояс пользователя
 
     def get_id(self):
         return str(self.userid)
@@ -66,3 +67,19 @@ class Users(db.Model, UserMixin):
         else:
             days = int(time_diff.total_seconds() / 86400)
             return f"Был в сети {days} дн. назад"
+    
+    def get_timezone(self):
+        """Возвращает часовой пояс пользователя или московский по умолчанию"""
+        return self.timezone or 'Europe/Moscow'
+    
+    def set_timezone(self, timezone_str):
+        """Устанавливает часовой пояс пользователя"""
+        import pytz
+        try:
+            # Проверяем, что часовой пояс валидный
+            pytz.timezone(timezone_str)
+            self.timezone = timezone_str
+            db.session.commit()
+            return True
+        except pytz.exceptions.UnknownTimeZoneError:
+            return False

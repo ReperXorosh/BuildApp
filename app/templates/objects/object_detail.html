@@ -250,10 +250,10 @@
                                     {{ object.status }}
                                 </span>
                             </p>
-                            <p><strong>Создан:</strong> {{ object.created_at | moscow_time_short }}</p>
+                            <p><strong>Создан:</strong> {{ object.created_at | user_time_short }}</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Обновлён:</strong> {{ object.updated_at | moscow_time_short }}</p>
+                            <p><strong>Обновлён:</strong> {{ object.updated_at | user_time_short }}</p>
                             {% if object.created_by %}
                             <p><strong>Создал:</strong> 
                                 {% if object.creator %}

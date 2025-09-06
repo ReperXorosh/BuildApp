@@ -75,14 +75,60 @@ def create_app():
         else:
             return "Только что"
     
-    # Контекстный процессор для автоматического добавления московского времени
+    # Новые фильтры для работы с часовым поясом пользователя
+    @app.template_filter('user_time')
+    def user_time_filter(dt):
+        """Фильтр для отображения времени в часовом поясе пользователя"""
+        from app.utils.timezone_utils import format_user_time
+        return format_user_time(dt)
+    
+    @app.template_filter('user_date')
+    def user_date_filter(dt):
+        """Фильтр для отображения только даты в часовом поясе пользователя"""
+        from app.utils.timezone_utils import format_user_time
+        return format_user_time(dt, '%d.%m.%Y')
+    
+    @app.template_filter('user_time_short')
+    def user_time_short_filter(dt):
+        """Фильтр для отображения времени без секунд в часовом поясе пользователя"""
+        from app.utils.timezone_utils import format_user_time
+        return format_user_time(dt, '%d.%m.%Y %H:%M')
+    
+    @app.template_filter('user_time_relative')
+    def user_time_relative_filter(dt):
+        """Фильтр для относительного времени в часовом поясе пользователя"""
+        if dt is None:
+            return 'Не указано'
+        
+        from app.utils.timezone_utils import to_user_time, get_user_now
+        user_time = to_user_time(dt)
+        now = get_user_now()
+        
+        diff = now - user_time
+        
+        if diff.days > 0:
+            return f"{diff.days} дн. назад"
+        elif diff.seconds > 3600:
+            hours = diff.seconds // 3600
+            return f"{hours} ч. назад"
+        elif diff.seconds > 60:
+            minutes = diff.seconds // 60
+            return f"{minutes} мин. назад"
+        else:
+            return "Только что"
+    
+    # Контекстный процессор для автоматического добавления времени
     @app.context_processor
-    def inject_moscow_time():
-        """Добавляет московское время в контекст всех шаблонов"""
-        from app.utils.timezone_utils import get_moscow_now
+    def inject_time_info():
+        """Добавляет информацию о времени в контекст всех шаблонов"""
+        from app.utils.timezone_utils import get_moscow_now, get_user_now, get_user_timezone
+        from flask_wtf.csrf import generate_csrf
         return {
             'moscow_now': get_moscow_now(),
-            'moscow_timezone': 'Europe/Moscow'
+            'moscow_timezone': 'Europe/Moscow',
+            'user_now': get_user_now(),
+            'user_timezone': get_user_timezone(),
+            'csrf_token': generate_csrf
         }
     
     return app

@@ -1,4 +1,4 @@
-from flask import Blueprint, request, url_for, redirect, render_template, session
+from flask import Blueprint, request, url_for, redirect, render_template, session, jsonify
 from flask_login import login_required, login_user, logout_user, current_user
 
 from ..models.users import Users
@@ -113,4 +113,47 @@ def logout():
         )
     logout_user()
     return redirect(url_for('user.login'))
+
+@user.route('/set-timezone', methods=['POST'])
+@login_required
+def set_timezone():
+    """Обновляет часовой пояс пользователя"""
+    try:
+        data = request.get_json()
+        timezone = data.get('timezone')
+        
+        if not timezone:
+            return jsonify({'success': False, 'error': 'Часовой пояс не указан'})
+        
+        # Проверяем, что часовой пояс валидный
+        import pytz
+        try:
+            pytz.timezone(timezone)
+        except pytz.exceptions.UnknownTimeZoneError:
+            return jsonify({'success': False, 'error': 'Неверный часовой пояс'})
+        
+        # Обновляем часовой пояс пользователя
+        if current_user.set_timezone(timezone):
+            # Логируем изменение часового пояса
+            ActivityLog.log_action(
+                user_id=current_user.userid,
+                user_login=current_user.login,
+                action="Изменение часового пояса",
+                description=f"Пользователь {current_user.login} изменил часовой пояс на {timezone}",
+                ip_address=request.remote_addr,
+                page_url=request.url,
+                method=request.method
+            )
+            
+            return jsonify({
+                'success': True, 
+                'message': 'Часовой пояс обновлен',
+                'timezone': timezone,
+                'reload': True  # Предлагаем перезагрузить страницу
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Ошибка обновления часового пояса'})
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Ошибка сервера: {str(e)}'})
 

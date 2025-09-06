@@ -1,19 +1,38 @@
 ﻿#!/usr/bin/env python3
 """
-Утилиты для работы с московским временем
+Утилиты для работы с часовыми поясами
 Централизованная система для корректного отображения времени в приложении
 """
 
 from datetime import datetime, timedelta, date
 import pytz
+from flask import g
 
-# Московский часовой пояс
+# Московский часовой пояс (по умолчанию)
 MOSCOW_TZ = pytz.timezone('Europe/Moscow')
 UTC_TZ = pytz.UTC
 
 def get_moscow_now():
     """Возвращает текущее время в московском часовом поясе"""
     return datetime.now(MOSCOW_TZ)
+
+def get_user_timezone():
+    """Возвращает часовой пояс текущего пользователя"""
+    from flask_login import current_user
+    if current_user.is_authenticated and hasattr(current_user, 'get_timezone'):
+        return current_user.get_timezone()
+    return 'Europe/Moscow'
+
+def get_user_timezone_obj():
+    """Возвращает объект часового пояса текущего пользователя"""
+    try:
+        return pytz.timezone(get_user_timezone())
+    except pytz.exceptions.UnknownTimeZoneError:
+        return MOSCOW_TZ
+
+def get_user_now():
+    """Возвращает текущее время в часовом поясе пользователя"""
+    return datetime.now(get_user_timezone_obj())
 
 def to_moscow_time(dt):
     """
@@ -40,6 +59,32 @@ def to_moscow_time(dt):
     # Конвертируем в московское время
     return dt.astimezone(MOSCOW_TZ)
 
+def to_user_time(dt):
+    """
+    Конвертирует любое время в часовой пояс пользователя
+    
+    Args:
+        dt: datetime объект или date объект (с часовым поясом или без)
+    
+    Returns:
+        datetime объект в часовом поясе пользователя
+    """
+    if dt is None:
+        return None
+    
+    # Если это date объект, конвертируем его в datetime
+    if isinstance(dt, date) and not isinstance(dt, datetime):
+        # Преобразуем date в datetime (например, начало дня)
+        dt = datetime.combine(dt, datetime.min.time())
+    
+    # Если время без часового пояса, считаем его UTC (как сохраняется в базе данных)
+    if dt.tzinfo is None:
+        dt = UTC_TZ.localize(dt)
+    
+    # Конвертируем в часовой пояс пользователя
+    user_tz = get_user_timezone_obj()
+    return dt.astimezone(user_tz)
+
 def format_moscow_time(dt, format_str='%d.%m.%Y %H:%M:%S'):
     """
     Форматирует время в московском часовом поясе
@@ -56,6 +101,23 @@ def format_moscow_time(dt, format_str='%d.%m.%Y %H:%M:%S'):
     
     moscow_time = to_moscow_time(dt)
     return moscow_time.strftime(format_str)
+
+def format_user_time(dt, format_str='%d.%m.%Y %H:%M:%S'):
+    """
+    Форматирует время в часовом поясе пользователя
+    
+    Args:
+        dt: datetime объект или date объект
+        format_str: строка формата
+    
+    Returns:
+        Отформатированная строка времени
+    """
+    if dt is None:
+        return 'Не указано'
+    
+    user_time = to_user_time(dt)
+    return user_time.strftime(format_str)
 
 def parse_moscow_time(time_str, format_str='%d.%m.%Y %H:%M:%S'):
     """
@@ -89,6 +151,21 @@ def get_moscow_date_range(start_date, end_date):
     end_moscow = to_moscow_time(end_date) if end_date else None
     return start_moscow, end_moscow
 
+def get_user_date_range(start_date, end_date):
+    """
+    Получает диапазон дат в часовом поясе пользователя
+    
+    Args:
+        start_date: начальная дата
+        end_date: конечная дата
+    
+    Returns:
+        tuple (start_user, end_user)
+    """
+    start_user = to_user_time(start_date) if start_date else None
+    end_user = to_user_time(end_date) if end_date else None
+    return start_user, end_user
+
 def is_same_moscow_day(dt1, dt2):
     """
     Проверяет, относятся ли два времени к одному дню в московском времени
@@ -107,6 +184,25 @@ def is_same_moscow_day(dt1, dt2):
     moscow2 = to_moscow_time(dt2)
     
     return moscow1.date() == moscow2.date()
+
+def is_same_user_day(dt1, dt2):
+    """
+    Проверяет, относятся ли два времени к одному дню в часовом поясе пользователя
+    
+    Args:
+        dt1: первое время
+        dt2: второе время
+    
+    Returns:
+        bool: True если даты совпадают
+    """
+    if dt1 is None or dt2 is None:
+        return False
+    
+    user1 = to_user_time(dt1)
+    user2 = to_user_time(dt2)
+    
+    return user1.date() == user2.date()
 
 def get_moscow_week_range(date=None):
     """
@@ -144,6 +240,52 @@ def get_moscow_month_range(date=None):
         date = get_moscow_now()
     else:
         date = to_moscow_time(date)
+    
+    start_of_month = date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    if date.month == 12:
+        end_of_month = date.replace(year=date.year + 1, month=1, day=1) - timedelta(microseconds=1)
+    else:
+        end_of_month = date.replace(month=date.month + 1, day=1) - timedelta(microseconds=1)
+    
+    return start_of_month, end_of_month
+
+def get_user_week_range(date=None):
+    """
+    Получает диапазон недели в часовом поясе пользователя
+    
+    Args:
+        date: дата (по умолчанию текущая)
+    
+    Returns:
+        tuple (start_of_week, end_of_week)
+    """
+    if date is None:
+        date = get_user_now()
+    else:
+        date = to_user_time(date)
+    
+    start_of_week = date - timedelta(days=date.weekday())
+    start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    end_of_week = start_of_week + timedelta(days=6, hours=23, minutes=59, seconds=59)
+    
+    return start_of_week, end_of_week
+
+def get_user_month_range(date=None):
+    """
+    Получает диапазон месяца в часовом поясе пользователя
+    
+    Args:
+        date: дата (по умолчанию текущая)
+    
+    Returns:
+        tuple (start_of_month, end_of_month)
+    """
+    if date is None:
+        date = get_user_now()
+    else:
+        date = to_user_time(date)
     
     start_of_month = date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     
