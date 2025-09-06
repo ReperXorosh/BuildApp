@@ -8,12 +8,23 @@
         transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         border: 1px solid rgba(108, 117, 125, 0.3);
         background: var(--bs-body-bg);
+        cursor: pointer;
     }
     
     .card:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         border-color: rgba(108, 117, 125, 0.5);
+    }
+    
+    .card-link {
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .card-link:hover {
+        text-decoration: none;
+        color: inherit;
     }
     
     .card-header {
@@ -144,70 +155,66 @@
             <div class="row">
                 {% for obj in objects %}
                 <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="card-title mb-0 fw-bold">{{ obj.name }}</h5>
-                            <span class="badge bg-{{ 'success' if obj.status == 'active' else 'secondary' if obj.status == 'inactive' else 'info' }} fs-6">
-                                {{ obj.status }}
-                            </span>
-                        </div>
-                        <div class="card-body d-flex flex-column">
-                            {% if obj.description %}
-                            <p class="card-text text-muted mb-3">{{ obj.description[:100] }}{% if obj.description|length > 100 %}...{% endif %}</p>
-                            {% endif %}
-                            
-                            {% if obj.location %}
-                            <p class="card-text mb-3">
-                                <i class="bi bi-geo-alt me-1"></i>
-                                <small class="text-muted">{{ obj.location }}</small>
-                            </p>
-                            {% endif %}
-                            
-                            <div class="row text-center mt-auto" style="min-height: 80px;">
-                                <div class="col-3">
-                                    <div class="border-end d-flex flex-column justify-content-center" style="height: 100%;">
-                                        <h6 class="mb-1 stats-number">{{ obj.supports|length }}</h6>
-                                        <small class="stats-label">Опора</small>
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="border-end d-flex flex-column justify-content-center" style="height: 100%;">
-                                        <h6 class="mb-1 stats-number">{{ obj.trenches|length }}</h6>
-                                        <small class="stats-label">Траншея</small>
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="border-end d-flex flex-column justify-content-center" style="height: 100%;">
-                                        <h6 class="mb-1 stats-number">{{ obj.reports|length }}</h6>
-                                        <small class="stats-label">Отчёт</small>
-                                    </div>
-                                </div>
-                                                                 <div class="col-3">
-                                     <div class="d-flex flex-column justify-content-center" style="height: 100%;">
-                                         <h6 class="mb-1 stats-number">{{ obj.checklist.items|length if obj.checklist else 0 }}</h6>
-                                         <small class="stats-label">Чек-лист</small>
-                                     </div>
-                                 </div>
+                    <a href="{{ url_for('objects.object_detail', object_id=obj.id) }}" class="card-link">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0 fw-bold">{{ obj.name }}</h5>
+                                <span class="badge bg-{{ 'success' if obj.status == 'active' else 'secondary' if obj.status == 'inactive' else 'info' }} fs-6">
+                                    {{ obj.status }}
+                                </span>
                             </div>
-                        </div>
-                        <div class="card-footer">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="date-creation">
-                                    <div class="d-flex flex-column">
-                                        <div class="d-flex align-items-center">
-                                            <i class="bi bi-calendar me-1"></i>
-                                            <strong>Дата создания:</strong>
+                            <div class="card-body d-flex flex-column">
+                                {% if obj.description %}
+                                <p class="card-text text-muted mb-3">{{ obj.description[:100] }}{% if obj.description|length > 100 %}...{% endif %}</p>
+                                {% endif %}
+                                
+                                {% if obj.location %}
+                                <p class="card-text mb-3">
+                                    <i class="bi bi-geo-alt me-1"></i>
+                                    <small class="text-muted">{{ obj.location }}</small>
+                                </p>
+                                {% endif %}
+                                
+                                <div class="row text-center mt-auto" style="min-height: 80px;">
+                                    <div class="col-3">
+                                        <div class="border-end d-flex flex-column justify-content-center" style="height: 100%;">
+                                            <h6 class="mb-1 stats-number">{{ obj.supports|length }}</h6>
+                                            <small class="stats-label">Опора</small>
                                         </div>
-                                        <div class="ms-4">{{ obj.created_at | moscow_date }}</div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="border-end d-flex flex-column justify-content-center" style="height: 100%;">
+                                            <h6 class="mb-1 stats-number">{{ obj.trenches|length }}</h6>
+                                            <small class="stats-label">Траншея</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="border-end d-flex flex-column justify-content-center" style="height: 100%;">
+                                            <h6 class="mb-1 stats-number">{{ obj.reports|length }}</h6>
+                                            <small class="stats-label">Отчёт</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="d-flex flex-column justify-content-center" style="height: 100%;">
+                                            <h6 class="mb-1 stats-number">{{ obj.checklist.items|length if obj.checklist else 0 }}</h6>
+                                            <small class="stats-label">Чек-лист</small>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="ms-auto">
-                                    <div class="d-flex flex-column align-items-end">
-                                        <a href="{{ url_for('objects.object_detail', object_id=obj.id) }}" class="btn btn-sm btn-outline-primary mb-2" title="Подробнее">
-                                            <i class="bi bi-eye me-1"></i>
-                                            Подробнее
-                                        </a>
-                                        <a href="{{ url_for('objects.planned_works_list', object_id=obj.id) }}" class="btn btn-sm btn-outline-primary" title="Запланированные работы">
+                            </div>
+                            <div class="card-footer">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="date-creation">
+                                        <div class="d-flex flex-column">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-calendar me-1"></i>
+                                                <strong>Дата создания:</strong>
+                                            </div>
+                                            <div class="ms-4">{{ obj.created_at | moscow_date }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="ms-auto">
+                                        <a href="{{ url_for('objects.planned_works_list', object_id=obj.id) }}" class="btn btn-sm btn-outline-primary" title="Запланированные работы" onclick="event.stopPropagation();">
                                             <i class="bi bi-calendar-check me-1"></i>
                                             Запланированные работы
                                         </a>
@@ -215,7 +222,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
                 {% endfor %}
             </div>
