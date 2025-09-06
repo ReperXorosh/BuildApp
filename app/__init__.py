@@ -3,7 +3,7 @@ from datetime import datetime
 import pytz
 
 from flask import Flask, request, session
-from .extensions import db, login_manager
+from .extensions import db, login_manager, migrate
 from .config import Config
 from .utils.timezone_utils import format_moscow_time
 
@@ -17,6 +17,7 @@ def create_app():
     
     db.init_app(app)
     login_manager.init_app(app)
+    migrate.init_app(app, db)
     
     login_manager.login_view = 'user.login'
     # Убираем сообщение о необходимости входа в систему
