@@ -8,7 +8,7 @@ class Material(db.Model):
     """Модель для материалов"""
     __tablename__ = 'materials'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
     unit = db.Column(db.String(50), nullable=False)  # шт, кг, м, л и т.д.
@@ -37,7 +37,7 @@ class Equipment(db.Model):
     """Модель для техники"""
     __tablename__ = 'equipment'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
     model = db.Column(db.String(100), nullable=True)
@@ -70,7 +70,7 @@ class SupplyOrder(db.Model):
     """Модель для заказов на снабжение"""
     __tablename__ = 'supply_orders'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     order_number = db.Column(db.String(50), nullable=False, unique=True)
     order_type = db.Column(db.String(50), nullable=False)  # material, equipment
     status = db.Column(db.String(50), default='pending')  # pending, approved, delivered, cancelled
@@ -107,7 +107,7 @@ class SupplyOrderItem(db.Model):
     """Модель для элементов заказа на снабжение"""
     __tablename__ = 'supply_order_items'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     order_id = db.Column(db.String(36), db.ForeignKey('supply_orders.id'), nullable=False)
     item_name = db.Column(db.String(200), nullable=False)
     quantity = db.Column(db.Float, nullable=False)

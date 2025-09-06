@@ -6,14 +6,14 @@ class Object(db.Model):
     """Модель объекта"""
     __tablename__ = 'objects'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text)
     location = db.Column(db.String(255))
     status = db.Column(db.String(50), default='active')  # active, inactive, completed
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    created_by = db.Column(db.String(36), db.ForeignKey('users.userid'))
+    created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))
     
     # Связи с подпунктами
     supports = db.relationship('Support', backref='object', lazy=True, cascade='all, delete-orphan')
@@ -29,8 +29,8 @@ class Support(db.Model):
     """Модель опоры"""
     __tablename__ = 'supports'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    object_id = db.Column(db.String(36), db.ForeignKey('objects.id'), nullable=False)
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)
     support_number = db.Column(db.String(50), nullable=False)
     support_type = db.Column(db.String(100))  # тип опоры
     height = db.Column(db.Float)  # высота
@@ -38,10 +38,10 @@ class Support(db.Model):
     installation_date = db.Column(db.Date)
     status = db.Column(db.String(50), default='planned')  # planned, in_progress, completed
     notes = db.Column(db.Text)
-    planned_work_id = db.Column(db.String(36), db.ForeignKey('planned_works.id'))  # связь с запланированной работой
+    planned_work_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('planned_works.id'))  # связь с запланированной работой
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    created_by = db.Column(db.String(36), db.ForeignKey('users.userid'))
+    created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))
     
     # Связь с запланированной работой
     planned_work = db.relationship('PlannedWork', backref='supports', lazy=True)
@@ -50,8 +50,8 @@ class Trench(db.Model):
     """Модель траншеи"""
     __tablename__ = 'trenches'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    object_id = db.Column(db.String(36), db.ForeignKey('objects.id'), nullable=False)
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)
     planned_length = db.Column(db.Float, nullable=False, default=0.0)  # запланированная длина в метрах
     current_length = db.Column(db.Float, default=0.0)  # текущая длина в метрах
     width = db.Column(db.Float)  # ширина в метрах (опционально)
@@ -60,10 +60,10 @@ class Trench(db.Model):
     excavation_date = db.Column(db.Date)
     status = db.Column(db.String(50), default='planned')  # planned, in_progress, completed
     notes = db.Column(db.Text)
-    planned_work_id = db.Column(db.String(36), db.ForeignKey('planned_works.id'))  # связь с запланированной работой
+    planned_work_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('planned_works.id'))  # связь с запланированной работой
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    created_by = db.Column(db.String(36), db.ForeignKey('users.userid'))
+    created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))
     
     # Связь с запланированной работой
     planned_work = db.relationship('PlannedWork', backref='trenches', lazy=True)
@@ -130,8 +130,8 @@ class Report(db.Model):
     """Модель отчёта"""
     __tablename__ = 'reports'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    object_id = db.Column(db.String(36), db.ForeignKey('objects.id'), nullable=False)
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)
     report_number = db.Column(db.String(50), nullable=False)
     report_type = db.Column(db.String(100))  # тип отчёта
     title = db.Column(db.String(255), nullable=False)
@@ -142,14 +142,14 @@ class Report(db.Model):
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    created_by = db.Column(db.String(36), db.ForeignKey('users.userid'))
+    created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))
 
 class Checklist(db.Model):
     """Модель чек-листа"""
     __tablename__ = 'checklists'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    object_id = db.Column(db.String(36), db.ForeignKey('objects.id'), nullable=False, unique=True)
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False, unique=True)
     checklist_number = db.Column(db.String(50), nullable=False)  # Добавляем поле для номера чек-листа
     title = db.Column(db.String(255), default='Чек-лист объекта')
     status = db.Column(db.String(50), default='pending')  # pending, in_progress, completed
@@ -158,7 +158,7 @@ class Checklist(db.Model):
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    created_by = db.Column(db.String(36), db.ForeignKey('users.userid'))
+    created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))
     
     # Связь с элементами чек-листа
     items = db.relationship('ChecklistItem', backref='checklist', lazy=True, cascade='all, delete-orphan', order_by='ChecklistItem.order_index')
@@ -214,15 +214,15 @@ class ChecklistItem(db.Model):
     """Модель элемента чек-листа"""
     __tablename__ = 'checklist_items'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    checklist_id = db.Column(db.String(36), db.ForeignKey('checklists.id'), nullable=False)
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    checklist_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('checklists.id'), nullable=False)
     item_text = db.Column(db.String(500), nullable=False)
     unit = db.Column(db.String(20), default='шт')  # единица измерения (м, шт, м3, кг и т.д.)
     quantity = db.Column(db.Float, default=1.0)  # планируемое количество
     current_quantity = db.Column(db.Float, default=0.0)  # текущее установленное количество
     is_completed = db.Column(db.Boolean, default=False)
     completed_at = db.Column(db.DateTime)
-    completed_by = db.Column(db.String(36), db.ForeignKey('users.userid'))
+    completed_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))
     notes = db.Column(db.Text)
     order_index = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -276,22 +276,22 @@ class PlannedWork(db.Model):
     """Модель запланированной работы"""
     __tablename__ = 'planned_works'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    object_id = db.Column(db.String(36), db.ForeignKey('objects.id'), nullable=False)
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)
     work_type = db.Column(db.String(100), nullable=False)  # 'support_installation', 'trench_excavation', etc.
     work_title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text)
     planned_date = db.Column(db.Date, nullable=True)  # может быть NULL для работ без конкретной даты
     priority = db.Column(db.String(50), default='medium')  # low, medium, high, urgent
     status = db.Column(db.String(50), default='planned')  # planned, in_progress, completed, cancelled
-    assigned_to = db.Column(db.String(36), db.ForeignKey('users.userid'))
+    assigned_to = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))
     estimated_hours = db.Column(db.Float)
     materials_required = db.Column(db.Text)
     location_details = db.Column(db.String(500))
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    created_by = db.Column(db.String(36), db.ForeignKey('users.userid'))
+    created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))
     
     # Связи
     work_executions = db.relationship('WorkExecution', backref='planned_work', lazy=True, cascade='all, delete-orphan')
@@ -342,8 +342,8 @@ class WorkExecution(db.Model):
     """Модель выполнения работы"""
     __tablename__ = 'work_executions'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    planned_work_id = db.Column(db.String(36), db.ForeignKey('planned_works.id'), nullable=False)
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    planned_work_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('planned_works.id'), nullable=False)
     execution_date = db.Column(db.Date, nullable=False)
     start_time = db.Column(db.Time)
     end_time = db.Column(db.Time)
@@ -351,7 +351,7 @@ class WorkExecution(db.Model):
     status = db.Column(db.String(50), default='in_progress')  # in_progress, completed, cancelled
     completion_notes = db.Column(db.Text)
     photos_paths = db.Column(db.Text)  # JSON строка с путями к фотографиям
-    executed_by = db.Column(db.String(36), db.ForeignKey('users.userid'), nullable=False)
+    executed_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'), nullable=False)
     quality_rating = db.Column(db.Integer)  # 1-5 звезд
     issues_encountered = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -364,9 +364,9 @@ class WorkComparison(db.Model):
     """Модель для сравнения плана и факта выполнения работ"""
     __tablename__ = 'work_comparisons'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    planned_work_id = db.Column(db.String(36), db.ForeignKey('planned_works.id'), nullable=False)
-    work_execution_id = db.Column(db.String(36), db.ForeignKey('work_executions.id'), nullable=False)
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    planned_work_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('planned_works.id'), nullable=False)
+    work_execution_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('work_executions.id'), nullable=False)
     comparison_date = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Планируемые параметры

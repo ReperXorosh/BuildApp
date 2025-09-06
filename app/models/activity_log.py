@@ -8,7 +8,7 @@ class ActivityLog(db.Model):
     """Модель журнала действий пользователей"""
     __tablename__ = 'activity_logs'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = db.Column(db.String(36), db.ForeignKey('users.userid'), nullable=True)
     user_login = db.Column(db.String(50), nullable=True)  # Сохраняем логин для быстрого поиска
     action = db.Column(db.String(100), nullable=False)  # Тип действия
