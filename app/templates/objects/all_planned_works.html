@@ -2,6 +2,42 @@
 
 {% block title %}Все запланированные работы{% endblock %}
 
+{% block extra_head %}
+<style>
+    .item-actions {
+        display: flex;
+        gap: 0.25rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .item-actions .btn {
+        min-width: 36px;
+        height: 36px;
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .item-actions .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    
+    .item-actions .btn svg {
+        transition: all 0.2s ease;
+    }
+    
+    .item-actions .btn:hover svg {
+        transform: scale(1.1);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid" style="margin-top: 80px;">
     <div class="row">
@@ -227,16 +263,21 @@
                                             {% endif %}
                                         </td>
                                         <td>
-                                            <div class="btn-group" role="group">
+                                            <div class="item-actions">
                                                 {% if work.status == 'planned' %}
                                                     <a href="{{ url_for('objects.execute_planned_work', object_id=work.object.id, work_id=work.id) }}" 
                                                        class="btn btn-sm btn-success" title="Выполнить работу">
-                                                        <i class="bi bi-play-circle"></i>
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M8 5V19L19 12L8 5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        </svg>
                                                     </a>
                                                 {% elif work.status == 'completed' %}
                                                     <a href="{{ url_for('objects.work_comparison', object_id=work.object.id, work_id=work.id) }}" 
                                                        class="btn btn-sm btn-info" title="Сравнение плана и факта">
-                                                        <i class="bi bi-bar-chart"></i>
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M3 3V21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            <path d="M9 9L12 6L16 10L20 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        </svg>
                                                     </a>
                                                 {% endif %}
                                                 
@@ -245,14 +286,25 @@
                                                     <button type="button" class="btn btn-sm btn-outline-warning" 
                                                             onclick="openChangeDateModal('{{ work.id }}', '{{ work.work_title }}', '{{ work.planned_date.strftime('%Y-%m-%d') if work.planned_date else '' }}', '{{ work.object.id }}')" 
                                                             title="Изменить дату">
-                                                        <i class="bi bi-calendar-event"></i>
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M8 2V5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            <path d="M16 2V5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            <path d="M3 10H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            <path d="M5 4H19C20.1046 4 21 4.89543 21 6V20C21 21.1046 20.1046 22 19 22H5C3.89543 22 3 21.1046 3 20V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            <path d="M12 14H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            <path d="M8 18H8.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            <path d="M16 18H16.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        </svg>
                                                     </button>
                                                 {% endif %}
                                                 
                                                 <button type="button" class="btn btn-sm btn-outline-secondary" 
                                                         data-bs-toggle="modal" 
                                                         data-bs-target="#workModal{{ work.id }}" title="Подробности">
-                                                    <i class="bi bi-eye"></i>
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
                                                 </button>
                                             </div>
                                         </td>
