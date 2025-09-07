@@ -55,5 +55,6 @@ services:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
     entrypoint: sh -c "certbot certonly --webroot -w /var/www/certbot \
-      --email jack.ferguson@mail.ru --agree-tos --no-eff-email \
+      --email jack.ferguson@mail.ru --agree-tos --no-eff-email --non-interactive \
+      --keep-until-expiring \
       -d stroykompleksjob.ru -d www.stroykompleksjob.ru"
