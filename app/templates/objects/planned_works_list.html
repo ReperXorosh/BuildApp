@@ -200,14 +200,14 @@
                                             <div class="item-actions">
                                                 {% if work.status == 'planned' %}
                                                     <a href="{{ url_for('objects.execute_planned_work', object_id=object.id, work_id=work.id) }}" 
-                                                       class="btn btn-sm btn-success" title="Выполнить работу">
+                                                       class="btn btn-sm btn-outline-success" title="Выполнить работу">
                                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                             <path d="M8 5V19L19 12L8 5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                                         </svg>
                                                     </a>
                                                 {% elif work.status == 'completed' %}
                                                     <a href="{{ url_for('objects.work_comparison', object_id=object.id, work_id=work.id) }}" 
-                                                       class="btn btn-sm btn-info" title="Сравнение плана и факта">
+                                                       class="btn btn-sm btn-outline-info" title="Сравнение плана и факта">
                                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                             <path d="M3 3V21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                                             <path d="M9 9L12 6L16 10L20 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -340,7 +340,7 @@
             <div class="modal-footer">
                 {% if work.status == 'planned' %}
                     <a href="{{ url_for('objects.execute_planned_work', object_id=object.id, work_id=work.id) }}" 
-                       class="btn btn-success">
+                       class="btn btn-outline-success">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-1">
                             <path d="M8 5V19L19 12L8 5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
@@ -348,7 +348,7 @@
                     </a>
                 {% elif work.status == 'completed' %}
                     <a href="{{ url_for('objects.work_comparison', object_id=object.id, work_id=work.id) }}" 
-                       class="btn btn-info">
+                       class="btn btn-outline-info">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-1">
                             <path d="M3 3V21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M9 9L12 6L16 10L20 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
