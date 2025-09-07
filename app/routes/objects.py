@@ -1411,7 +1411,10 @@ def create_work_comparison(planned_work, work_execution):
     from datetime import date
     
     # Вычисляем отклонения
-    date_deviation = (work_execution.execution_date - planned_work.planned_date).days
+    if planned_work.planned_date:
+        date_deviation = (work_execution.execution_date - planned_work.planned_date).days
+    else:
+        date_deviation = 0  # Если планируемая дата не установлена, отклонение = 0
     
     hours_deviation = 0
     if planned_work.estimated_hours and work_execution.actual_hours:
