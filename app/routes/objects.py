@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort
 from flask_login import login_required, current_user
 from app.extensions import db
-from app.models.objects import Object, Support, Trench, Report, Checklist, ChecklistItem, PlannedWork, WorkExecution, WorkComparison
+from app.models.objects import Object, Support, Trench, Report, Checklist, ChecklistItem, PlannedWork, WorkExecution, WorkComparison, ZDF, Bracket, Luminaire
 from app.models.activity_log import ActivityLog
 from datetime import datetime
 import uuid
@@ -308,6 +308,11 @@ def add_support(object_id):
     """Добавление опоры (только для инженера ПТО)"""
     obj = Object.query.get_or_404(object_id)
     
+    # Получаем данные о ЗДФ, Кронштейнах и Светильниках для данного объекта
+    zdf_list = ZDF.query.filter_by(object_id=object_id, status='planned').order_by(ZDF.zdf_number.asc()).all()
+    brackets_list = Bracket.query.filter_by(object_id=object_id, status='planned').order_by(Bracket.bracket_number.asc()).all()
+    luminaires_list = Luminaire.query.filter_by(object_id=object_id, status='planned').order_by(Luminaire.luminaire_number.asc()).all()
+    
     # Проверяем права доступа - только инженер ПТО может добавлять опоры
     if current_user.role != 'Инженер ПТО':
         flash('У вас нет прав для добавления опор. Только инженер ПТО может добавлять опоры по проекту.', 'error')
@@ -320,7 +325,7 @@ def add_support(object_id):
         
         if not support_number:
             flash('Номер опоры обязателен для заполнения', 'error')
-            return render_template('objects/add_support.html', object=obj)
+            return render_template('objects/add_support.html', object=obj, zdf_list=zdf_list, brackets_list=brackets_list, luminaires_list=luminaires_list)
         
         new_support = Support(
             id=str(uuid.uuid4()),
@@ -373,7 +378,84 @@ def add_support(object_id):
         flash('Опора по проекту успешно добавлена. Запланированная работа для установки опоры создана автоматически.', 'success')
         return redirect(url_for('objects.supports_list', object_id=object_id))
     
-    return render_template('objects/add_support.html', object=obj)
+    return render_template('objects/add_support.html', object=obj, zdf_list=zdf_list, brackets_list=brackets_list, luminaires_list=luminaires_list)
+
+@objects_bp.route('/<uuid:object_id>/elements/add', methods=['GET', 'POST'])
+@login_required
+def add_element(object_id):
+    """Добавление элемента (ЗДФ, Кронштейн, Светильник) - только для инженера ПТО"""
+    obj = Object.query.get_or_404(object_id)
+    
+    # Проверяем права доступа - только инженер ПТО может добавлять элементы
+    if current_user.role != 'Инженер ПТО':
+        flash('У вас нет прав для добавления элементов. Только инженер ПТО может добавлять элементы по проекту.', 'error')
+        return redirect(url_for('objects.supports_list', object_id=object_id))
+    
+    if request.method == 'POST':
+        element_type = request.form.get('element_type', '').strip()
+        element_number = request.form.get('element_number', '').strip()
+        element_name = request.form.get('element_name', '').strip()
+        notes = request.form.get('notes', '').strip()
+        
+        if not element_type or not element_number:
+            flash('Тип элемента и номер обязательны для заполнения', 'error')
+            return render_template('objects/add_element.html', object=obj)
+        
+        # Создаем элемент в зависимости от типа
+        if element_type == 'zdf':
+            new_element = ZDF(
+                id=str(uuid.uuid4()),
+                object_id=object_id,
+                zdf_number=element_number,
+                zdf_name=element_name,
+                status='planned',
+                notes=notes,
+                created_by=current_user.userid
+            )
+            element_type_name = 'ЗДФ'
+        elif element_type == 'bracket':
+            new_element = Bracket(
+                id=str(uuid.uuid4()),
+                object_id=object_id,
+                bracket_number=element_number,
+                bracket_name=element_name,
+                status='planned',
+                notes=notes,
+                created_by=current_user.userid
+            )
+            element_type_name = 'Кронштейн'
+        elif element_type == 'luminaire':
+            new_element = Luminaire(
+                id=str(uuid.uuid4()),
+                object_id=object_id,
+                luminaire_number=element_number,
+                luminaire_name=element_name,
+                status='planned',
+                notes=notes,
+                created_by=current_user.userid
+            )
+            element_type_name = 'Светильник'
+        else:
+            flash('Неверный тип элемента', 'error')
+            return render_template('objects/add_element.html', object=obj)
+        
+        db.session.add(new_element)
+        db.session.commit()
+        
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Добавление элемента",
+            description=f"Пользователь {current_user.login} добавил {element_type_name} '{element_number}' к объекту '{obj.name}'",
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+        
+        flash(f'{element_type_name} успешно добавлен', 'success')
+        return redirect(url_for('objects.supports_list', object_id=object_id))
+    
+    return render_template('objects/add_element.html', object=obj)
 
 @objects_bp.route('/<uuid:object_id>/supports/<uuid:support_id>')
 @login_required

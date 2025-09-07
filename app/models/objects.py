@@ -21,6 +21,9 @@ class Object(db.Model):
     reports = db.relationship('Report', backref='object', lazy=True, cascade='all, delete-orphan')
     checklist = db.relationship('Checklist', backref='object', lazy=True, uselist=False, cascade='all, delete-orphan')
     planned_works = db.relationship('PlannedWork', backref='object', lazy=True, cascade='all, delete-orphan')
+    zdf = db.relationship('ZDF', backref='object', lazy=True, cascade='all, delete-orphan')
+    brackets = db.relationship('Bracket', backref='object', lazy=True, cascade='all, delete-orphan')
+    luminaires = db.relationship('Luminaire', backref='object', lazy=True, cascade='all, delete-orphan')
 
     # Добавить связь с пользователем
     creator = db.relationship('Users', foreign_keys=[created_by], backref='created_objects')
@@ -396,3 +399,60 @@ class WorkComparison(db.Model):
     # Связи
     planned_work = db.relationship('PlannedWork', foreign_keys=[planned_work_id], backref='work_comparisons')
     work_execution = db.relationship('WorkExecution', foreign_keys=[work_execution_id], backref='work_comparisons')
+
+class ZDF(db.Model):
+    """Модель ЗДФ (Защитно-декоративная фурнитура)"""
+    __tablename__ = 'zdf'
+    
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)
+    zdf_number = db.Column(db.String(50), nullable=False)
+    zdf_name = db.Column(db.String(100))  # название ЗДФ
+    installation_date = db.Column(db.Date)
+    status = db.Column(db.String(50), default='planned')  # planned, in_progress, completed
+    notes = db.Column(db.Text)
+    planned_work_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('planned_works.id'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))
+    
+    # Связь с запланированной работой
+    planned_work = db.relationship('PlannedWork', backref='zdf', lazy=True)
+
+class Bracket(db.Model):
+    """Модель Кронштейна"""
+    __tablename__ = 'brackets'
+    
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)
+    bracket_number = db.Column(db.String(50), nullable=False)
+    bracket_name = db.Column(db.String(100))  # название кронштейна
+    installation_date = db.Column(db.Date)
+    status = db.Column(db.String(50), default='planned')  # planned, in_progress, completed
+    notes = db.Column(db.Text)
+    planned_work_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('planned_works.id'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))
+    
+    # Связь с запланированной работой
+    planned_work = db.relationship('PlannedWork', backref='brackets', lazy=True)
+
+class Luminaire(db.Model):
+    """Модель Светильника"""
+    __tablename__ = 'luminaires'
+    
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)
+    luminaire_number = db.Column(db.String(50), nullable=False)
+    luminaire_name = db.Column(db.String(100))  # название светильника
+    installation_date = db.Column(db.Date)
+    status = db.Column(db.String(50), default='planned')  # planned, in_progress, completed
+    notes = db.Column(db.Text)
+    planned_work_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('planned_works.id'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))
+    
+    # Связь с запланированной работой
+    planned_work = db.relationship('PlannedWork', backref='luminaires', lazy=True)
