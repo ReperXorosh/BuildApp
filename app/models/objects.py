@@ -304,9 +304,12 @@ class PlannedWork(db.Model):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # Валидация даты при создании объекта
-        if self.planned_date and self.planned_date < datetime.now().date():
-            raise ValueError("Нельзя планировать работу на прошедшую дату")
+        # Валидация даты при создании объекта (используем московское время)
+        if self.planned_date:
+            from app.utils.timezone_utils import get_moscow_now
+            today_moscow = get_moscow_now().date()
+            if self.planned_date < today_moscow:
+                raise ValueError(f"Нельзя планировать работу на прошедшую дату. Выбрана: {self.planned_date.strftime('%d.%m.%Y')}, а сегодня в Москве: {today_moscow.strftime('%d.%m.%Y')}")
     
     @staticmethod
     def update_overdue_works():

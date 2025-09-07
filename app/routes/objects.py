@@ -1212,10 +1212,15 @@ def add_planned_work(object_id):
         flash('Запланированная работа успешно добавлена', 'success')
         return redirect(url_for('objects.planned_works_list', object_id=object_id))
     
-    # Убеждаемся, что передаем правильную дату
-    today_date = datetime.now().strftime('%Y-%m-%d')
-    print(f"DEBUG: GET запрос - передаем today_date = {today_date}")
-    return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=today_date)
+    # Устанавливаем завтрашнюю дату по умолчанию (используем московское время)
+    from datetime import timedelta
+    from app.utils.timezone_utils import get_moscow_now
+    
+    moscow_now = get_moscow_now()
+    tomorrow_date = (moscow_now + timedelta(days=1)).strftime('%Y-%m-%d')
+    today_date = moscow_now.strftime('%Y-%m-%d')  # Для min атрибута
+    print(f"DEBUG: GET запрос - передаем tomorrow_date = {tomorrow_date}, today_date = {today_date}")
+    return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=today_date, default_date=tomorrow_date)
 
 @objects_bp.route('/<uuid:object_id>/planned-works/<uuid:work_id>/execute', methods=['GET', 'POST'])
 @login_required
