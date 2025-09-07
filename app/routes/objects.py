@@ -316,28 +316,19 @@ def add_support(object_id):
     if request.method == 'POST':
         support_number = request.form.get('support_number', '').strip()
         support_type = request.form.get('support_type', '').strip()
-        height = request.form.get('height')
-        material = request.form.get('material', '').strip()
         notes = request.form.get('notes', '').strip()
         
         if not support_number:
             flash('Номер опоры обязателен для заполнения', 'error')
             return render_template('objects/add_support.html', object=obj)
         
-        # Преобразуем высоту
-        if height:
-            try:
-                height = float(height)
-            except ValueError:
-                height = None
-        
         new_support = Support(
             id=str(uuid.uuid4()),
             object_id=object_id,
             support_number=support_number,
             support_type=support_type,
-            height=height,
-            material=material,
+            height=None,  # Убираем высоту
+            material=None,  # Убираем материал
             installation_date=None,  # Дата установки будет заполняться при подтверждении
             status='planned',  # Статус по умолчанию - запланировано
             notes=notes,
@@ -353,7 +344,7 @@ def add_support(object_id):
             object_id=object_id,
             work_type='support_installation',
             work_title=f'Установка опоры {support_number}',
-            description=f'Установка опоры {support_number}' + (f' ({support_type})' if support_type else '') + (f', высота: {height}м' if height else '') + (f', материал: {material}' if material else ''),
+            description=f'Установка опоры {support_number}' + (f' ({support_type})' if support_type else ''),
             planned_date=None,  # Без конкретной даты - дату можно будет установить позже
             priority='medium',
             status='planned',
@@ -1091,10 +1082,6 @@ def add_planned_work(object_id):
                     description = f'Установка опоры {support.support_number}'
                     if support.support_type:
                         description += f' ({support.support_type})'
-                    if support.height:
-                        description += f', высота: {support.height}м'
-                    if support.material:
-                        description += f', материал: {support.material}'
                     new_planned_work.description = description
         
         db.session.commit()

@@ -45,9 +45,7 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>Номер</th>
-                                    <th>Тип</th>
-                                    <th>Высота</th>
-                                    <th>Материал</th>
+                                    <th>Название</th>
                                     <th>Запланированная работа</th>
                                     <th>Дата установки</th>
                                     <th>Статус</th>
@@ -61,14 +59,6 @@
                                         <strong>{{ support.support_number }}</strong>
                                     </td>
                                     <td>{{ support.support_type or '-' }}</td>
-                                    <td>
-                                        {% if support.height %}
-                                            {{ support.height }} м
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ support.material or '-' }}</td>
                                     <td>
                                         {% if support.planned_work %}
                                             <div class="d-flex flex-column">

@@ -80,10 +80,8 @@
                                         {% if supports %}
                                             {% for support in supports %}
                                             <option value="{{ support.id }}" data-support-number="{{ support.support_number }}" 
-                                                    data-support-type="{{ support.support_type or '' }}" 
-                                                    data-height="{{ support.height or '' }}" 
-                                                    data-material="{{ support.material or '' }}">
-                                                Опора {{ support.support_number }}{% if support.support_type %} ({{ support.support_type }}){% endif %}{% if support.height %} - {{ support.height }}м{% endif %}{% if support.material %} - {{ support.material }}{% endif %}
+                                                    data-support-type="{{ support.support_type or '' }}">
+                                                Опора {{ support.support_number }}{% if support.support_type %} ({{ support.support_type }}){% endif %}
                                             </option>
                                             {% endfor %}
                                         {% else %}
@@ -221,14 +219,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (selectedOption.value) {
             const supportNumber = selectedOption.dataset.supportNumber;
             const supportType = selectedOption.dataset.supportType;
-            const height = selectedOption.dataset.height;
-            const material = selectedOption.dataset.material;
             
             // Формируем заголовок работы
             let title = `Установка опоры ${supportNumber}`;
             if (supportType) title += ` (${supportType})`;
-            if (height) title += `, высота: ${height}м`;
-            if (material) title += `, материал: ${material}`;
             
             // Устанавливаем заголовок в скрытое поле
             workTitleInput.value = title;

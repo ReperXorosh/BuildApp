@@ -49,24 +49,12 @@
                                         <dt class="col-sm-4">Номер опоры:</dt>
                                         <dd class="col-sm-8"><strong>{{ support.support_number }}</strong></dd>
                                         
-                                        <dt class="col-sm-4">Тип опоры:</dt>
-                                        <dd class="col-sm-8">{{ support.support_type or 'Не указан' }}</dd>
-                                        
-                                        <dt class="col-sm-4">Высота:</dt>
-                                        <dd class="col-sm-8">
-                                            {% if support.height %}
-                                                {{ support.height }} м
-                                            {% else %}
-                                                Не указана
-                                            {% endif %}
-                                        </dd>
+                                        <dt class="col-sm-4">Название опоры:</dt>
+                                        <dd class="col-sm-8">{{ support.support_type or 'Не указано' }}</dd>
                                     </dl>
                                 </div>
                                 <div class="col-md-6">
                                     <dl class="row">
-                                        <dt class="col-sm-4">Материал:</dt>
-                                        <dd class="col-sm-8">{{ support.material or 'Не указан' }}</dd>
-                                        
                                         <dt class="col-sm-4">Статус:</dt>
                                         <dd class="col-sm-8">
                                             <span class="badge bg-{{ 'success' if support.status == 'completed' else 'warning' if support.status == 'in_progress' else 'secondary' }}">
