@@ -1130,7 +1130,7 @@ def add_planned_work(object_id):
             return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=datetime.now().strftime('%Y-%m-%d'))
         
         # Проверяем, что дата не в прошлом (строгая проверка)
-        from datetime import datetime, timezone
+        from datetime import timezone
         # Используем UTC время для консистентности
         today_utc = datetime.now(timezone.utc).date()
         today_local = datetime.now().date()
