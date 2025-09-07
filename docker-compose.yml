@@ -41,5 +41,19 @@ services:
       - "80:80"
       - "443:443"
     volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/http-only.conf:/etc/nginx/http-only.conf
+      - ./nginx/https.conf:/etc/nginx/https.conf
       - "./certbot/www:/var/www/certbot"
       - "./certbot/conf:/etc/letsencrypt"
+      - ./start-nginx.sh:/etc/nginx/start-nginx.sh
+    entrypoint: ["/bin/sh", "/etc/nginx/start-nginx.sh"]
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: sh -c "certbot certonly --webroot -w /var/www/certbot \
+      --email jack.ferguson@mail.ru --agree-tos --no-eff-email \
+      -d stroykompleksjob.ru -d www.stroykompleksjob.ru"
