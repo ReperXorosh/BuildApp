@@ -1136,11 +1136,13 @@ def add_planned_work(object_id):
             return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=datetime.now().strftime('%Y-%m-%d'))
         
         # Преобразуем часы
-        if estimated_hours:
+        if estimated_hours and estimated_hours.strip():
             try:
                 estimated_hours = float(estimated_hours)
             except ValueError:
                 estimated_hours = None
+        else:
+            estimated_hours = None
         
         new_planned_work = PlannedWork(
             id=str(uuid.uuid4()),
