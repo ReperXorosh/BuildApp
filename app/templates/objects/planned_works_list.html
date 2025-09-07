@@ -323,6 +323,16 @@
                         {% if work.location_details %}
                             <p><strong>Местоположение:</strong> {{ work.location_details }}</p>
                         {% endif %}
+                        {% if work.location_files %}
+                            <p><strong>Файлы:</strong>
+                                {% set files = work.location_files | from_json %}
+                                {% for file in files %}
+                                    <a href="{{ url_for('static', filename=file.file_path) }}" target="_blank" class="text-decoration-none me-2">
+                                        <i class="bi bi-paperclip me-1"></i>{{ file.original_name }}
+                                    </a>
+                                {% endfor %}
+                            </p>
+                        {% endif %}
                         {% if work.materials_required %}
                             <p><strong>Требуемые материалы:</strong> {{ work.materials_required }}</p>
                         {% endif %}

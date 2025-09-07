@@ -117,6 +117,17 @@ def create_app():
         else:
             return "Только что"
     
+    @app.template_filter('from_json')
+    def from_json_filter(json_string):
+        """Фильтр для парсинга JSON строки"""
+        import json
+        if json_string:
+            try:
+                return json.loads(json_string)
+            except (json.JSONDecodeError, TypeError):
+                return []
+        return []
+    
     # Контекстный процессор для автоматического добавления времени
     @app.context_processor
     def inject_time_info():

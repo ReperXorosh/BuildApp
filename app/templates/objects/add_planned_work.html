@@ -4,21 +4,6 @@
 
 {% block extra_css %}
 <style>
-/* Стили для предупреждения о прошедших датах */
-.date-warning {
-    background-color: #fff3cd;
-    border: 1px solid #ffeaa7;
-    color: #856404;
-    padding: 8px 12px;
-    border-radius: 4px;
-    margin-top: 5px;
-    font-size: 0.875rem;
-    display: none;
-}
-
-.date-warning.show {
-    display: block;
-}
 
 .form-control.is-invalid {
     border-color: #dc3545;
@@ -136,10 +121,6 @@
                                             </label>
                                             <input type="date" class="form-control" id="planned_date" name="planned_date" 
                                                    value="{{ default_date }}" min="{{ today_date }}" required>
-                                            <div class="date-warning" id="date-warning">
-                                                <i class="bi bi-exclamation-triangle me-1"></i>
-                                                Нельзя планировать работу на прошедшую дату
-                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -162,6 +143,20 @@
                                     </label>
                                     <input type="text" class="form-control" id="location_details" name="location_details" 
                                            placeholder="Конкретное место на объекте, координаты и т.д.">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="location_files" class="form-label">
+                                        <i class="bi bi-paperclip me-1"></i>
+                                        Прикрепить файлы к местоположению
+                                    </label>
+                                    <input type="file" class="form-control" id="location_files" name="location_files" 
+                                           multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.dwg,.dxf,.zip,.rar">
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Можно прикрепить чертежи, схемы, фотографии или другие документы (PDF, изображения, документы, архивы)
+                                    </div>
+                                    <div id="file-list" class="mt-2"></div>
                                 </div>
 
                                 <div class="mb-3">
@@ -235,21 +230,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedDate = new Date(this.value);
         const todayDate = new Date(moscowTime);
         todayDate.setHours(0, 0, 0, 0); // Сбрасываем время для корректного сравнения
-        const warningDiv = document.getElementById('date-warning');
         
         if (selectedDate < todayDate) {
-            // Показываем визуальное предупреждение
+            // Показываем предупреждение и устанавливаем завтрашнюю дату
             this.classList.add('is-invalid');
-            warningDiv.classList.add('show');
             
             alert(`Нельзя планировать работу на прошедшую дату. Сегодня: ${todayDate.toLocaleDateString('ru-RU')}. Устанавливаем завтрашнюю дату.`);
             this.value = tomorrowStr;
             this.focus();
             return false;
         } else {
-            // Скрываем предупреждение
+            // Убираем класс ошибки
             this.classList.remove('is-invalid');
-            warningDiv.classList.remove('show');
         }
     });
     
@@ -266,6 +258,52 @@ document.addEventListener('DOMContentLoaded', function() {
             plannedDateInput.value = tomorrowStr;
             plannedDateInput.focus();
             return false;
+        }
+    });
+    
+    // Обработка загрузки файлов
+    const fileInput = document.getElementById('location_files');
+    const fileList = document.getElementById('file-list');
+    
+    fileInput.addEventListener('change', function() {
+        const files = Array.from(this.files);
+        fileList.innerHTML = '';
+        
+        if (files.length > 0) {
+            const fileListContainer = document.createElement('div');
+            fileListContainer.className = 'list-group';
+            
+            files.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                
+                const fileInfo = document.createElement('div');
+                fileInfo.innerHTML = `
+                    <i class="bi bi-file-earmark me-2"></i>
+                    <strong>${file.name}</strong>
+                    <small class="text-muted ms-2">(${(file.size / 1024 / 1024).toFixed(2)} MB)</small>
+                `;
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn btn-sm btn-outline-danger';
+                removeBtn.innerHTML = '<i class="bi bi-x"></i>';
+                removeBtn.onclick = function() {
+                    // Создаем новый FileList без этого файла
+                    const dt = new DataTransfer();
+                    files.forEach((f, i) => {
+                        if (i !== index) dt.items.add(f);
+                    });
+                    fileInput.files = dt.files;
+                    fileInput.dispatchEvent(new Event('change'));
+                };
+                
+                fileItem.appendChild(fileInfo);
+                fileItem.appendChild(removeBtn);
+                fileListContainer.appendChild(fileItem);
+            });
+            
+            fileList.appendChild(fileListContainer);
         }
     });
     

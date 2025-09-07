@@ -5,8 +5,55 @@ from app.models.objects import Object, Support, Trench, Report, Checklist, Check
 from app.models.activity_log import ActivityLog
 from datetime import datetime
 import uuid
+import os
+import json
+from werkzeug.utils import secure_filename
 
 objects_bp = Blueprint('objects', __name__)
+
+# Настройки для загрузки файлов
+UPLOAD_FOLDER = 'app/static/uploads/planned_works'
+ALLOWED_EXTENSIONS = {'pdf', 'jpg', 'jpeg', 'png', 'gif', 'doc', 'docx', 'dwg', 'dxf', 'zip', 'rar'}
+
+def allowed_file(filename):
+    """Проверяет, разрешен ли тип файла"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def save_uploaded_files(files, planned_work_id):
+    """Сохраняет загруженные файлы и возвращает информацию о них"""
+    if not files:
+        return []
+    
+    # Создаем папку для файлов, если её нет
+    upload_path = os.path.join(UPLOAD_FOLDER, str(planned_work_id))
+    os.makedirs(upload_path, exist_ok=True)
+    
+    saved_files = []
+    
+    for file in files:
+        if file and allowed_file(file.filename):
+            # Безопасное имя файла
+            filename = secure_filename(file.filename)
+            # Добавляем timestamp для уникальности
+            name, ext = os.path.splitext(filename)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"{name}_{timestamp}{ext}"
+            
+            # Сохраняем файл
+            file_path = os.path.join(upload_path, filename)
+            file.save(file_path)
+            
+            # Сохраняем информацию о файле
+            file_info = {
+                'original_name': file.filename,
+                'saved_name': filename,
+                'file_path': f"uploads/planned_works/{planned_work_id}/{filename}",
+                'file_size': file.content_length or 0,
+                'upload_date': datetime.now().isoformat()
+            }
+            saved_files.append(file_info)
+    
+    return saved_files
 
 @objects_bp.context_processor
 def inject_gettext():
@@ -1118,6 +1165,9 @@ def add_planned_work(object_id):
         location_details = request.form.get('location_details', '').strip()
         notes = request.form.get('notes', '').strip()
         
+        # Обрабатываем загруженные файлы
+        location_files = request.files.getlist('location_files')
+        
         if not work_type or not work_title or not planned_date:
             flash('Тип работы, заголовок и планируемая дата обязательны для заполнения', 'error')
             # Убеждаемся, что передаем правильную дату
@@ -1161,8 +1211,15 @@ def add_planned_work(object_id):
             estimated_hours = None
         
         try:
+            # Создаем ID для запланированной работы
+            planned_work_id = str(uuid.uuid4())
+            
+            # Сохраняем загруженные файлы
+            saved_files = save_uploaded_files(location_files, planned_work_id)
+            location_files_json = json.dumps(saved_files) if saved_files else None
+            
             new_planned_work = PlannedWork(
-                id=str(uuid.uuid4()),
+                id=planned_work_id,
                 object_id=object_id,
                 work_type=work_type,
                 work_title=work_title,
@@ -1172,6 +1229,7 @@ def add_planned_work(object_id):
                 estimated_hours=estimated_hours,
                 materials_required=materials_required,
                 location_details=location_details,
+                location_files=location_files_json,
                 notes=notes,
                 created_by=current_user.userid
             )

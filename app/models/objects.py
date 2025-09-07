@@ -291,6 +291,7 @@ class PlannedWork(db.Model):
     estimated_hours = db.Column(db.Float)
     materials_required = db.Column(db.Text)
     location_details = db.Column(db.String(500))
+    location_files = db.Column(db.Text)  # JSON строка с информацией о прикрепленных файлах
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
