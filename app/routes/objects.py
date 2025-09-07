@@ -1129,6 +1129,12 @@ def add_planned_work(object_id):
             flash('Неверный формат даты', 'error')
             return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=datetime.now().strftime('%Y-%m-%d'))
         
+        # Проверяем, что дата не в прошлом
+        today = datetime.now().date()
+        if planned_date < today:
+            flash('Нельзя планировать работу на прошедшую дату', 'error')
+            return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=datetime.now().strftime('%Y-%m-%d'))
+        
         # Преобразуем часы
         if estimated_hours:
             try:

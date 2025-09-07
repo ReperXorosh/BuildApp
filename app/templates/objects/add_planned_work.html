@@ -176,7 +176,20 @@
 // Устанавливаем минимальную дату как сегодня
 document.addEventListener('DOMContentLoaded', function() {
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('planned_date').min = today;
+    const plannedDateInput = document.getElementById('planned_date');
+    plannedDateInput.min = today;
+    
+    // Добавляем валидацию даты
+    plannedDateInput.addEventListener('change', function() {
+        const selectedDate = new Date(this.value);
+        const todayDate = new Date();
+        todayDate.setHours(0, 0, 0, 0); // Сбрасываем время для корректного сравнения
+        
+        if (selectedDate < todayDate) {
+            alert('Нельзя планировать работу на прошедшую дату');
+            this.value = today;
+        }
+    });
     
     // Обработка изменения типа работы
     const workTypeSelect = document.getElementById('work_type');
