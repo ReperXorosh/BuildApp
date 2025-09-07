@@ -61,7 +61,11 @@
                             
                             <div class="mb-3">
                                 <strong>Планируемая дата:</strong><br>
-                                <span class="badge bg-outline-primary fs-6">{{ planned_work.planned_date.strftime('%d.%m.%Y') }}</span>
+                                {% if planned_work.planned_date %}
+                                    <span class="badge bg-outline-primary fs-6">{{ planned_work.planned_date.strftime('%d.%m.%Y') }}</span>
+                                {% else %}
+                                    <span class="badge bg-warning fs-6">Не установлена</span>
+                                {% endif %}
                             </div>
                             
                             {% if planned_work.estimated_hours %}
