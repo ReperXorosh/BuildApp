@@ -135,7 +135,7 @@
                                                 Планируемая дата *
                                             </label>
                                             <input type="date" class="form-control" id="planned_date" name="planned_date" 
-                                                   value="{{ today_date }}" min="{{ today_date }}" required>
+                                                   min="{{ today_date }}" required>
                                             <div class="date-warning" id="date-warning">
                                                 <i class="bi bi-exclamation-triangle me-1"></i>
                                                 Нельзя планировать работу на прошедшую дату
@@ -206,7 +206,13 @@
 document.addEventListener('DOMContentLoaded', function() {
     const today = new Date().toISOString().split('T')[0];
     const plannedDateInput = document.getElementById('planned_date');
+    
+    // Принудительно устанавливаем минимальную дату и текущее значение
     plannedDateInput.min = today;
+    plannedDateInput.value = today;
+    
+    console.log('DEBUG: Установлена минимальная дата:', today);
+    console.log('DEBUG: Установлено значение поля:', plannedDateInput.value);
     
     // Добавляем строгую валидацию даты
     plannedDateInput.addEventListener('change', function() {

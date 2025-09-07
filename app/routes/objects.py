@@ -1120,14 +1120,20 @@ def add_planned_work(object_id):
         
         if not work_type or not work_title or not planned_date:
             flash('Тип работы, заголовок и планируемая дата обязательны для заполнения', 'error')
-            return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=datetime.now().strftime('%Y-%m-%d'))
+            # Убеждаемся, что передаем правильную дату
+            today_date = datetime.now().strftime('%Y-%m-%d')
+            print(f"DEBUG: Передаем today_date = {today_date}")
+            return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=today_date)
         
         # Преобразуем дату
         try:
             planned_date = datetime.strptime(planned_date, '%Y-%m-%d').date()
         except ValueError:
             flash('Неверный формат даты', 'error')
-            return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=datetime.now().strftime('%Y-%m-%d'))
+            # Убеждаемся, что передаем правильную дату
+            today_date = datetime.now().strftime('%Y-%m-%d')
+            print(f"DEBUG: Передаем today_date = {today_date}")
+            return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=today_date)
         
         # Проверяем, что дата не в прошлом (строгая проверка)
         from datetime import timezone
@@ -1135,10 +1141,15 @@ def add_planned_work(object_id):
         today_utc = datetime.now(timezone.utc).date()
         today_local = datetime.now().date()
         
+        print(f"DEBUG: Проверяем дату {planned_date} против {today_local}")
+        
         # Проверяем как по UTC, так и по локальному времени
         if planned_date < today_utc or planned_date < today_local:
-            flash(f'Нельзя планировать работу на прошедшую дату. Сегодня: {today_local.strftime("%d.%m.%Y")}', 'error')
-            return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=datetime.now().strftime('%Y-%m-%d'))
+            flash(f'ОШИБКА: Нельзя планировать работу на прошедшую дату! Выбрана дата: {planned_date.strftime("%d.%m.%Y")}, а сегодня: {today_local.strftime("%d.%m.%Y")}', 'error')
+            # Убеждаемся, что передаем правильную дату
+            today_date = datetime.now().strftime('%Y-%m-%d')
+            print(f"DEBUG: Передаем today_date = {today_date}")
+            return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=today_date)
         
         # Преобразуем часы
         if estimated_hours and estimated_hours.strip():
@@ -1166,7 +1177,10 @@ def add_planned_work(object_id):
             )
         except ValueError as e:
             flash(str(e), 'error')
-            return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=datetime.now().strftime('%Y-%m-%d'))
+            # Убеждаемся, что передаем правильную дату
+            today_date = datetime.now().strftime('%Y-%m-%d')
+            print(f"DEBUG: Передаем today_date = {today_date}")
+            return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=today_date)
         
         db.session.add(new_planned_work)
         db.session.flush()  # Получаем ID запланированной работы
@@ -1198,7 +1212,10 @@ def add_planned_work(object_id):
         flash('Запланированная работа успешно добавлена', 'success')
         return redirect(url_for('objects.planned_works_list', object_id=object_id))
     
-    return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=datetime.now().strftime('%Y-%m-%d'))
+    # Убеждаемся, что передаем правильную дату
+    today_date = datetime.now().strftime('%Y-%m-%d')
+    print(f"DEBUG: GET запрос - передаем today_date = {today_date}")
+    return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=today_date)
 
 @objects_bp.route('/<uuid:object_id>/planned-works/<uuid:work_id>/execute', methods=['GET', 'POST'])
 @login_required
