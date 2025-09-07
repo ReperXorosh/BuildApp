@@ -1129,10 +1129,15 @@ def add_planned_work(object_id):
             flash('Неверный формат даты', 'error')
             return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=datetime.now().strftime('%Y-%m-%d'))
         
-        # Проверяем, что дата не в прошлом
-        today = datetime.now().date()
-        if planned_date < today:
-            flash('Нельзя планировать работу на прошедшую дату', 'error')
+        # Проверяем, что дата не в прошлом (строгая проверка)
+        from datetime import datetime, timezone
+        # Используем UTC время для консистентности
+        today_utc = datetime.now(timezone.utc).date()
+        today_local = datetime.now().date()
+        
+        # Проверяем как по UTC, так и по локальному времени
+        if planned_date < today_utc or planned_date < today_local:
+            flash(f'Нельзя планировать работу на прошедшую дату. Сегодня: {today_local.strftime("%d.%m.%Y")}', 'error')
             return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=datetime.now().strftime('%Y-%m-%d'))
         
         # Преобразуем часы
@@ -1144,20 +1149,24 @@ def add_planned_work(object_id):
         else:
             estimated_hours = None
         
-        new_planned_work = PlannedWork(
-            id=str(uuid.uuid4()),
-            object_id=object_id,
-            work_type=work_type,
-            work_title=work_title,
-            description=description,
-            planned_date=planned_date,
-            priority=priority,
-            estimated_hours=estimated_hours,
-            materials_required=materials_required,
-            location_details=location_details,
-            notes=notes,
-            created_by=current_user.userid
-        )
+        try:
+            new_planned_work = PlannedWork(
+                id=str(uuid.uuid4()),
+                object_id=object_id,
+                work_type=work_type,
+                work_title=work_title,
+                description=description,
+                planned_date=planned_date,
+                priority=priority,
+                estimated_hours=estimated_hours,
+                materials_required=materials_required,
+                location_details=location_details,
+                notes=notes,
+                created_by=current_user.userid
+            )
+        except ValueError as e:
+            flash(str(e), 'error')
+            return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=datetime.now().strftime('%Y-%m-%d'))
         
         db.session.add(new_planned_work)
         db.session.flush()  # Получаем ID запланированной работы

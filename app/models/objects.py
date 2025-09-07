@@ -302,6 +302,12 @@ class PlannedWork(db.Model):
     # Связь с пользователем, которому назначена работа
     assignee = db.relationship('Users', foreign_keys=[assigned_to], backref='assigned_works')
     
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Валидация даты при создании объекта
+        if self.planned_date and self.planned_date < datetime.now().date():
+            raise ValueError("Нельзя планировать работу на прошедшую дату")
+    
     @staticmethod
     def update_overdue_works():
         """Обновляет статус просроченных работ"""

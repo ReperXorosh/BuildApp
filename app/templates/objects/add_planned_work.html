@@ -2,6 +2,31 @@
 
 {% block title %}Добавить запланированную работу - {{ object.name }}{% endblock %}
 
+{% block extra_css %}
+<style>
+/* Стили для предупреждения о прошедших датах */
+.date-warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-top: 5px;
+    font-size: 0.875rem;
+    display: none;
+}
+
+.date-warning.show {
+    display: block;
+}
+
+.form-control.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid" style="margin-top: 80px;">
     <div class="row">
@@ -110,7 +135,11 @@
                                                 Планируемая дата *
                                             </label>
                                             <input type="date" class="form-control" id="planned_date" name="planned_date" 
-                                                   value="{{ today_date }}" required>
+                                                   value="{{ today_date }}" min="{{ today_date }}" required>
+                                            <div class="date-warning" id="date-warning">
+                                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                                Нельзя планировать работу на прошедшую дату
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -179,15 +208,41 @@ document.addEventListener('DOMContentLoaded', function() {
     const plannedDateInput = document.getElementById('planned_date');
     plannedDateInput.min = today;
     
-    // Добавляем валидацию даты
+    // Добавляем строгую валидацию даты
     plannedDateInput.addEventListener('change', function() {
         const selectedDate = new Date(this.value);
         const todayDate = new Date();
         todayDate.setHours(0, 0, 0, 0); // Сбрасываем время для корректного сравнения
+        const warningDiv = document.getElementById('date-warning');
         
         if (selectedDate < todayDate) {
-            alert('Нельзя планировать работу на прошедшую дату');
+            // Показываем визуальное предупреждение
+            this.classList.add('is-invalid');
+            warningDiv.classList.add('show');
+            
+            alert(`Нельзя планировать работу на прошедшую дату. Сегодня: ${todayDate.toLocaleDateString('ru-RU')}`);
             this.value = today;
+            this.focus();
+            return false;
+        } else {
+            // Скрываем предупреждение
+            this.classList.remove('is-invalid');
+            warningDiv.classList.remove('show');
+        }
+    });
+    
+    // Дополнительная валидация при отправке формы
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const selectedDate = new Date(plannedDateInput.value);
+        const todayDate = new Date();
+        todayDate.setHours(0, 0, 0, 0);
+        
+        if (selectedDate < todayDate) {
+            e.preventDefault();
+            alert(`Ошибка: Нельзя планировать работу на прошедшую дату. Сегодня: ${todayDate.toLocaleDateString('ru-RU')}`);
+            plannedDateInput.focus();
+            return false;
         }
     });
     
