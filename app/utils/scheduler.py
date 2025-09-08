@@ -62,6 +62,9 @@ class TaskScheduler:
         # Запуск планировщика
         self.scheduler.start()
         logger.info("Планировщик задач запущен")
+        
+        # Немедленно выполняем задачи при запуске
+        self._run_initial_tasks()
     
     def _register_jobs(self):
         """Регистрация автоматических задач"""
@@ -94,6 +97,22 @@ class TaskScheduler:
         )
         
         logger.info("Автоматические задачи зарегистрированы")
+    
+    def _run_initial_tasks(self):
+        """Выполняет задачи сразу при запуске приложения"""
+        try:
+            logger.info("Выполняем начальные задачи...")
+            
+            # Обновляем просроченные работы
+            updated_count = self.update_overdue_works()
+            logger.info(f"Обновлено просроченных работ при запуске: {updated_count}")
+            
+            # Генерируем отчеты за сегодня
+            generated_count = self.generate_report_for_today()
+            logger.info(f"Сгенерировано отчетов за сегодня при запуске: {generated_count}")
+            
+        except Exception as e:
+            logger.error(f"Ошибка при выполнении начальных задач: {e}")
     
     def update_overdue_works(self):
         """Обновление статуса просроченных работ"""
