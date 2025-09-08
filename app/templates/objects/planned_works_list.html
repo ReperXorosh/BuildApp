@@ -518,7 +518,7 @@ function confirmDeleteWork(workId, workTitle) {
 function deleteWork(workId) {
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = `{{ url_for('objects.planned_works_list', object_id=object.id) }}/${workId}/delete`;
+    form.action = `/objects/{{ object.id }}/planned-works/${workId}/delete`;
     
     // Добавляем CSRF токен, если он есть
     const csrfToken = document.querySelector('meta[name="csrf-token"]');

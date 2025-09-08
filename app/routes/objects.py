@@ -1365,7 +1365,7 @@ def delete_planned_work(object_id, work_id):
     
     try:
         # Удаляем связанные файлы, если они есть
-        if planned_work.location_files:
+        if hasattr(planned_work, 'location_files') and planned_work.location_files:
             import json
             try:
                 files = json.loads(planned_work.location_files)
