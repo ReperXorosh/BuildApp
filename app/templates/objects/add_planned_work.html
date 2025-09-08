@@ -112,28 +112,13 @@
                                               placeholder="Подробное описание того, что нужно сделать"></textarea>
                                 </div>
 
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="planned_date" class="form-label">
-                                                <i class="bi bi-calendar me-1"></i>
-                                                Планируемая дата *
-                                            </label>
-                                            <input type="date" class="form-control" id="planned_date" name="planned_date" 
-                                                   value="{{ default_date }}" min="{{ today_date }}" required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="estimated_hours" class="form-label">
-                                                <i class="bi bi-clock me-1"></i>
-                                                Планируемые часы
-                                            </label>
-                                            <input type="number" class="form-control" id="estimated_hours" name="estimated_hours" 
-                                                   placeholder="0.0" step="0.5" min="0">
-                                            <div class="form-text">Укажите предполагаемое время выполнения в часах</div>
-                                        </div>
-                                    </div>
+                                <div class="mb-3">
+                                    <label for="planned_date" class="form-label">
+                                        <i class="bi bi-calendar me-1"></i>
+                                        Планируемая дата *
+                                    </label>
+                                    <input type="date" class="form-control" id="planned_date" name="planned_date" 
+                                           value="{{ default_date }}" min="{{ today_date }}" required>
                                 </div>
 
                                 <div class="mb-3">

@@ -1227,7 +1227,6 @@ def add_planned_work(object_id):
         description = request.form.get('description', '').strip()
         planned_date = request.form.get('planned_date')
         priority = request.form.get('priority', 'medium')
-        estimated_hours = request.form.get('estimated_hours')
         materials_required = request.form.get('materials_required', '').strip()
         location_details = request.form.get('location_details', '').strip()
         notes = request.form.get('notes', '').strip()
@@ -1268,14 +1267,6 @@ def add_planned_work(object_id):
             print(f"DEBUG: Передаем today_date = {today_date}")
             return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=today_date)
         
-        # Преобразуем часы
-        if estimated_hours and estimated_hours.strip():
-            try:
-                estimated_hours = float(estimated_hours)
-            except ValueError:
-                estimated_hours = None
-        else:
-            estimated_hours = None
         
         try:
             # Создаем ID для запланированной работы
@@ -1293,7 +1284,6 @@ def add_planned_work(object_id):
                 description=description,
                 planned_date=planned_date,
                 priority=priority,
-                estimated_hours=estimated_hours,
                 materials_required=materials_required,
                 location_details=location_details,
                 location_files=location_files_json,
@@ -1666,8 +1656,7 @@ def create_work_comparison(planned_work, work_execution):
         date_deviation = 0  # Если планируемая дата не установлена, отклонение = 0
     
     hours_deviation = 0
-    if planned_work.estimated_hours and work_execution.actual_hours:
-        hours_deviation = work_execution.actual_hours - planned_work.estimated_hours
+    # Убрано сравнение планируемых часов, так как поле estimated_hours больше не используется
     
     # Определяем процент выполнения
     completion_rate = 100.0  # Если работа выполнена, то 100%
@@ -1682,7 +1671,7 @@ def create_work_comparison(planned_work, work_execution):
         planned_work_type=planned_work.work_type,
         planned_work_title=planned_work.work_title,
         planned_date=planned_work.planned_date,
-        planned_hours=planned_work.estimated_hours,
+        planned_hours=None,  # Поле больше не используется
         actual_work_type=planned_work.work_type,  # Предполагаем, что тип не изменился
         actual_work_title=planned_work.work_title,  # Предполагаем, что заголовок не изменился
         actual_date=work_execution.execution_date,

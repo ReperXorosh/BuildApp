@@ -142,7 +142,6 @@
                                         <th>Планируемая дата</th>
                                         <th>Приоритет</th>
                                         <th>Статус</th>
-                                        <th>Часы</th>
                                         <th>Действия</th>
                                     </tr>
                                 </thead>
@@ -183,13 +182,6 @@
                                                 <span class="badge bg-danger">Отменено</span>
                                             {% elif work.status == 'overdue' %}
                                                 <span class="badge bg-danger">Просрочено</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if work.estimated_hours %}
-                                                {{ work.estimated_hours }} ч
-                                            {% else %}
-                                                -
                                             {% endif %}
                                         </td>
                                         <td>
@@ -317,9 +309,6 @@
                                     Не указана
                                 {% endif %}
                             </li>
-                            {% if work.estimated_hours %}
-                                <li><strong>Планируемые часы:</strong> {{ work.estimated_hours }} ч</li>
-                            {% endif %}
                         </ul>
                     </div>
                     <div class="col-md-6">
