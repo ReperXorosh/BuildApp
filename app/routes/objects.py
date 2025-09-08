@@ -1360,8 +1360,8 @@ def delete_planned_work(object_id, work_id):
     print(f"DEBUG: Найдена работа: {planned_work.work_title}")
     
     # Проверяем, что работа принадлежит указанному объекту
-    print(f"DEBUG: Проверяем принадлежность работы объекту: {planned_work.object_id} == {str(object_id)}")
-    if planned_work.object_id != str(object_id):
+    print(f"DEBUG: Проверяем принадлежность работы объекту: {planned_work.object_id} (тип: {type(planned_work.object_id)}) == {str(object_id)} (тип: {type(str(object_id))})")
+    if str(planned_work.object_id) != str(object_id):
         print("DEBUG: Работа не принадлежит указанному объекту, возвращаем 404")
         abort(404)
     
