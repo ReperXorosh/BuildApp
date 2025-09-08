@@ -1396,8 +1396,14 @@ def delete_planned_work(object_id, work_id):
         print("DEBUG: Удаляем связанные записи")
         # Удаляем связанные записи о выполнении работы
         from app.models.objects import WorkExecution, WorkComparison
-        WorkExecution.query.filter_by(planned_work_id=work_id).delete()
+        
+        # Сначала удаляем WorkComparison (они ссылаются на WorkExecution)
+        print("DEBUG: Удаляем WorkComparison записи")
         WorkComparison.query.filter_by(planned_work_id=work_id).delete()
+        
+        # Потом удаляем WorkExecution
+        print("DEBUG: Удаляем WorkExecution записи")
+        WorkExecution.query.filter_by(planned_work_id=work_id).delete()
         
         print("DEBUG: Удаляем саму работу")
         # Удаляем запланированную работу
