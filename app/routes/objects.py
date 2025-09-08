@@ -1871,9 +1871,9 @@ def get_daily_report_data(object_id, report_date):
         if not report:
             return None
         
-        # Получаем запланированные работы на эту дату
+        # Получаем запланированные работы - все работы со статусом 'planned'
         planned_works = PlannedWork.query.filter_by(object_id=object_id).filter(
-            PlannedWork.planned_date == report_date
+            PlannedWork.status == 'planned'
         ).all()
         
         # Получаем выполненные работы за эту дату
