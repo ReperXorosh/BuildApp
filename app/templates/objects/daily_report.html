@@ -1,0 +1,450 @@
+{% extends "main/layout.html" %}
+
+{% block title %}Ежедневный отчёт - {{ object.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="margin-top: 80px;">
+    <div class="row">
+        <div class="col-12">
+            <!-- Заголовок -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-calendar-day me-2"></i>
+                        Ежедневный отчёт
+                    </h1>
+                    <p class="text-muted mb-0">
+                        Объект: <a href="{{ url_for('objects.object_detail', object_id=object.id) }}">{{ object.name }}</a> | 
+                        Дата: {{ report_date.strftime('%d.%m.%Y') }}
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('objects.object_detail', object_id=object.id) }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Назад к объекту
+                    </a>
+                </div>
+            </div>
+
+            <!-- Статистика -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 class="card-title">{{ report_data.planned_works|length }}</h4>
+                                    <p class="card-text">Запланировано</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-calendar-check display-4"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 class="card-title">{{ report_data.completed_works|length }}</h4>
+                                    <p class="card-text">Выполнено</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-check-circle display-4"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 class="card-title">{{ report_data.overdue_works|length }}</h4>
+                                    <p class="card-text">Просрочено</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-exclamation-triangle display-4"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 class="card-title">
+                                        {% if report_data.planned_works|length > 0 %}
+                                            {{ ((report_data.completed_works|length / report_data.planned_works|length) * 100)|round(1) }}%
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </h4>
+                                    <p class="card-text">Выполнено</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-graph-up display-4"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Статус утверждения -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-shield-check me-2"></i>
+                        Статус утверждения
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    {% if report_data.report.approved_by_pto %}
+                                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                                    {% else %}
+                                        <i class="bi bi-circle text-muted fs-4"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <strong>Инженер ПТО</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        {% if report_data.report.approved_by_pto %}
+                                            Утверждено
+                                        {% else %}
+                                            Ожидает утверждения
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    {% if report_data.report.approved_by_deputy %}
+                                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                                    {% else %}
+                                        <i class="bi bi-circle text-muted fs-4"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <strong>Зам. директор</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        {% if report_data.report.approved_by_deputy %}
+                                            Утверждено
+                                        {% else %}
+                                            Ожидает утверждения
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    {% if report_data.report.approved_by_director %}
+                                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                                    {% else %}
+                                        <i class="bi bi-circle text-muted fs-4"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <strong>Ген. директор</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        {% if report_data.report.approved_by_director %}
+                                            Утверждено
+                                        {% else %}
+                                            Ожидает утверждения
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if report_data.report.approval_status == 'rejected' %}
+                        <div class="alert alert-danger mt-3">
+                            <h6><i class="bi bi-x-circle me-2"></i>Отчёт отклонён</h6>
+                            <p class="mb-0"><strong>Причина:</strong> {{ report_data.report.rejection_reason }}</p>
+                            {% if report_data.report.rejected_at %}
+                                <small class="text-muted">
+                                    Отклонён: {{ report_data.report.rejected_at | moscow_time_short }}
+                                </small>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Запланированные работы -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-calendar-check me-2"></i>
+                        Запланированные работы
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if report_data.planned_works %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Тип работы</th>
+                                        <th>Заголовок</th>
+                                        <th>Приоритет</th>
+                                        <th>Статус</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for work in report_data.planned_works %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge {{ get_work_type_badge_class(work.work_type) }}">
+                                                <i class="bi bi-tools me-1"></i>{{ translate_work_type(work.work_type) }}
+                                            </span>
+                                        </td>
+                                        <td>{{ work.work_title }}</td>
+                                        <td>
+                                            <span class="badge {{ get_priority_badge_class(work.priority) }}">
+                                                <i class="bi bi-flag me-1"></i>{{ translate_priority(work.priority) }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if work.status == 'planned' %}
+                                                <span class="badge bg-primary">Запланировано</span>
+                                            {% elif work.status == 'in_progress' %}
+                                                <span class="badge bg-warning">В работе</span>
+                                            {% elif work.status == 'completed' %}
+                                                <span class="badge bg-success">Выполнено</span>
+                                            {% elif work.status == 'cancelled' %}
+                                                <span class="badge bg-danger">Отменено</span>
+                                            {% elif work.status == 'overdue' %}
+                                                <span class="badge bg-danger">Просрочено</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-calendar-x display-1 text-muted"></i>
+                            <h5 class="mt-3 text-muted">Нет запланированных работ</h5>
+                            <p class="text-muted">На эту дату не было запланировано работ</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Выполненные работы -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Выполненные работы
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if report_data.completed_works %}
+                        <div class="accordion" id="completedWorksAccordion">
+                            {% for work, execution in report_data.completed_works %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="heading{{ loop.index }}">
+                                    <button class="accordion-button collapsed" type="button" 
+                                            data-bs-toggle="collapse" 
+                                            data-bs-target="#collapse{{ loop.index }}" 
+                                            aria-expanded="false" 
+                                            aria-controls="collapse{{ loop.index }}">
+                                        <div class="d-flex justify-content-between w-100 me-3">
+                                            <div>
+                                                <span class="badge {{ get_work_type_badge_class(work.work_type) }} me-2">
+                                                    <i class="bi bi-tools me-1"></i>{{ translate_work_type(work.work_type) }}
+                                                </span>
+                                                <strong>{{ work.work_title }}</strong>
+                                            </div>
+                                            <div class="text-muted">
+                                                <small>{{ execution.execution_date.strftime('%H:%M') }}</small>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="collapse{{ loop.index }}" 
+                                     class="accordion-collapse collapse" 
+                                     aria-labelledby="heading{{ loop.index }}" 
+                                     data-bs-parent="#completedWorksAccordion">
+                                    <div class="accordion-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6><i class="bi bi-info-circle me-2"></i>Информация о работе</h6>
+                                                <ul class="list-unstyled">
+                                                    <li><strong>Описание:</strong> {{ work.description or 'Не указано' }}</li>
+                                                    <li><strong>Фактическое время:</strong> {{ execution.actual_hours or 'Не указано' }} ч</li>
+                                                    <li><strong>Выполнил:</strong> {{ execution.executed_by_user.login if execution.executed_by_user else 'Не указано' }}</li>
+                                                    <li><strong>Комментарий:</strong> {{ execution.comments or 'Не указано' }}</li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6><i class="bi bi-paperclip me-2"></i>Прикреплённые файлы</h6>
+                                                {% if execution.attached_files %}
+                                                    {% set files = execution.attached_files | from_json %}
+                                                    {% if files %}
+                                                        <div class="list-group">
+                                                            {% for file in files %}
+                                                            <a href="/static/{{ file.file_path }}" 
+                                                               class="list-group-item list-group-item-action" 
+                                                               target="_blank">
+                                                                <i class="bi bi-file-earmark me-2"></i>
+                                                                {{ file.original_name }}
+                                                                <small class="text-muted float-end">{{ file.file_size }} байт</small>
+                                                            </a>
+                                                            {% endfor %}
+                                                        </div>
+                                                    {% else %}
+                                                        <p class="text-muted">Файлы не прикреплены</p>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <p class="text-muted">Файлы не прикреплены</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-check-circle display-1 text-muted"></i>
+                            <h5 class="mt-3 text-muted">Нет выполненных работ</h5>
+                            <p class="text-muted">В этот день не было выполнено работ</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Просроченные работы -->
+            {% if report_data.overdue_works %}
+            <div class="card mb-4">
+                <div class="card-header bg-warning">
+                    <h5 class="card-title mb-0 text-white">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Просроченные работы
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Тип работы</th>
+                                    <th>Заголовок</th>
+                                    <th>Планируемая дата</th>
+                                    <th>Просрочено на</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for work in report_data.overdue_works %}
+                                <tr>
+                                    <td>
+                                        <span class="badge {{ get_work_type_badge_class(work.work_type) }}">
+                                            <i class="bi bi-tools me-1"></i>{{ translate_work_type(work.work_type) }}
+                                        </span>
+                                    </td>
+                                    <td>{{ work.work_title }}</td>
+                                    <td>{{ work.planned_date.strftime('%d.%m.%Y') }}</td>
+                                    <td>
+                                        <span class="badge bg-danger">
+                                            {{ (report_date - work.planned_date).days }} дн.
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Кнопки утверждения/отклонения -->
+            {% if current_user.role and ('ПТО' in current_user.role.upper() or 'ЗАМ' in current_user.role.upper() or 'ДИРЕКТОР' in current_user.role.upper() or 'ГЕН' in current_user.role.upper()) %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-shield-check me-2"></i>
+                        Управление отчётом
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex gap-2">
+                        {% if report_data.report.approval_status != 'approved' %}
+                            <form method="POST" action="{{ url_for('objects.approve_daily_report', object_id=object.id, date=report_date.strftime('%Y-%m-%d')) }}" class="d-inline">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    Утвердить отчёт
+                                </button>
+                            </form>
+                        {% endif %}
+                        
+                        {% if report_data.report.approval_status != 'rejected' %}
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                                <i class="bi bi-x-circle me-1"></i>
+                                Отклонить отчёт
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно отклонения -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectModalLabel">
+                    <i class="bi bi-x-circle me-2"></i>
+                    Отклонение отчёта
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('objects.reject_daily_report', object_id=object.id, date=report_date.strftime('%Y-%m-%d')) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="rejection_reason" class="form-label">
+                            <i class="bi bi-chat-text me-1"></i>
+                            Причина отклонения *
+                        </label>
+                        <textarea class="form-control" id="rejection_reason" name="rejection_reason" 
+                                  rows="4" placeholder="Укажите причину отклонения отчёта..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-x-circle me-1"></i>
+                        Отклонить отчёт
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

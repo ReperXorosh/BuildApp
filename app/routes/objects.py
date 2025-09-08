@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort
 from flask_login import login_required, current_user
 from app.extensions import db
-from app.models.objects import Object, Support, Trench, Report, Checklist, ChecklistItem, PlannedWork, WorkExecution, WorkComparison, ZDF, Bracket, Luminaire
+from app.models.objects import Object, Support, Trench, Report, Checklist, ChecklistItem, PlannedWork, WorkExecution, WorkComparison, ZDF, Bracket, Luminaire, DailyReport
 from app.models.activity_log import ActivityLog
 from datetime import datetime
 import uuid
@@ -1754,6 +1754,226 @@ def add_checklist_item_quantity(object_id, item_id):
             'success': False,
             'message': f'Ошибка при добавлении количества: {str(e)}'
         }), 500
+
+# ==================== ЕЖЕДНЕВНЫЕ ОТЧЕТЫ ====================
+
+def generate_daily_report_for_date(object_id, report_date):
+    """Генерирует ежедневный отчёт для указанной даты"""
+    try:
+        # Проверяем, существует ли уже отчёт за эту дату
+        existing_report = DailyReport.query.filter_by(
+            object_id=object_id, 
+            report_date=report_date
+        ).first()
+        
+        if existing_report:
+            return existing_report
+        
+        # Получаем объект
+        obj = Object.query.get(object_id)
+        if not obj:
+            return None
+        
+        # Подсчитываем статистику
+        planned_works = PlannedWork.query.filter_by(object_id=object_id).filter(
+            PlannedWork.planned_date == report_date
+        ).all()
+        
+        completed_works = PlannedWork.query.filter_by(object_id=object_id).filter(
+            PlannedWork.status == 'completed'
+        ).join(WorkExecution).filter(
+            WorkExecution.execution_date == report_date
+        ).all()
+        
+        overdue_works = PlannedWork.query.filter_by(object_id=object_id).filter(
+            PlannedWork.planned_date < report_date,
+            PlannedWork.status.in_(['planned', 'in_progress'])
+        ).all()
+        
+        # Создаем новый отчёт
+        daily_report = DailyReport(
+            object_id=object_id,
+            report_date=report_date,
+            planned_works_count=len(planned_works),
+            completed_works_count=len(completed_works),
+            overdue_works_count=len(overdue_works),
+            created_by=current_user.userid if current_user.is_authenticated else None
+        )
+        
+        db.session.add(daily_report)
+        db.session.commit()
+        
+        return daily_report
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Ошибка при генерации отчёта: {e}")
+        return None
+
+def get_daily_report_data(object_id, report_date):
+    """Получает данные для отображения ежедневного отчёта"""
+    try:
+        # Получаем или создаем отчёт
+        report = generate_daily_report_for_date(object_id, report_date)
+        if not report:
+            return None
+        
+        # Получаем запланированные работы на эту дату
+        planned_works = PlannedWork.query.filter_by(object_id=object_id).filter(
+            PlannedWork.planned_date == report_date
+        ).all()
+        
+        # Получаем выполненные работы за эту дату
+        completed_works = db.session.query(PlannedWork, WorkExecution).join(
+            WorkExecution, PlannedWork.id == WorkExecution.planned_work_id
+        ).filter(
+            PlannedWork.object_id == object_id,
+            WorkExecution.execution_date == report_date
+        ).all()
+        
+        # Получаем просроченные работы
+        overdue_works = PlannedWork.query.filter_by(object_id=object_id).filter(
+            PlannedWork.planned_date < report_date,
+            PlannedWork.status.in_(['planned', 'in_progress'])
+        ).all()
+        
+        return {
+            'report': report,
+            'planned_works': planned_works,
+            'completed_works': completed_works,
+            'overdue_works': overdue_works
+        }
+        
+    except Exception as e:
+        print(f"Ошибка при получении данных отчёта: {e}")
+        return None
+
+@objects_bp.route('/<uuid:object_id>/daily-report/<date>')
+@login_required
+def daily_report_view(object_id, date):
+    """Просмотр ежедневного отчёта"""
+    try:
+        # Парсим дату
+        report_date = datetime.strptime(date, '%Y-%m-%d').date()
+        
+        # Получаем данные отчёта
+        report_data = get_daily_report_data(object_id, report_date)
+        if not report_data:
+            flash('Ошибка при загрузке отчёта', 'error')
+            return redirect(url_for('objects.object_detail', object_id=object_id))
+        
+        obj = Object.query.get_or_404(object_id)
+        
+        return render_template('objects/daily_report.html', 
+                             object=obj, 
+                             report_data=report_data,
+                             report_date=report_date)
+        
+    except ValueError:
+        flash('Некорректная дата', 'error')
+        return redirect(url_for('objects.object_detail', object_id=object_id))
+    except Exception as e:
+        flash(f'Ошибка при загрузке отчёта: {str(e)}', 'error')
+        return redirect(url_for('objects.object_detail', object_id=object_id))
+
+@objects_bp.route('/<uuid:object_id>/daily-report/<date>/approve', methods=['POST'])
+@login_required
+def approve_daily_report(object_id, date):
+    """Утверждение ежедневного отчёта"""
+    try:
+        report_date = datetime.strptime(date, '%Y-%m-%d').date()
+        report = DailyReport.query.filter_by(
+            object_id=object_id, 
+            report_date=report_date
+        ).first()
+        
+        if not report:
+            flash('Отчёт не найден', 'error')
+            return redirect(url_for('objects.daily_report_view', object_id=object_id, date=date))
+        
+        # Проверяем права пользователя
+        user_role = current_user.role.upper() if current_user.role else ''
+        
+        if 'ПТО' in user_role:
+            report.approved_by_pto = True
+        elif 'ЗАМ' in user_role or 'ДИРЕКТОР' in user_role:
+            report.approved_by_deputy = True
+        elif 'ГЕН' in user_role or 'ГЕНЕРАЛЬНЫЙ' in user_role:
+            report.approved_by_director = True
+        else:
+            flash('У вас нет прав для утверждения отчётов', 'error')
+            return redirect(url_for('objects.daily_report_view', object_id=object_id, date=date))
+        
+        # Проверяем, все ли уровни утверждены
+        if report.approved_by_pto and report.approved_by_deputy and report.approved_by_director:
+            report.approval_status = 'approved'
+            report.approved_by = current_user.userid
+            report.approved_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        flash('Отчёт успешно утверждён', 'success')
+        return redirect(url_for('objects.daily_report_view', object_id=object_id, date=date))
+        
+    except ValueError:
+        flash('Некорректная дата', 'error')
+        return redirect(url_for('objects.object_detail', object_id=object_id))
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ошибка при утверждении отчёта: {str(e)}', 'error')
+        return redirect(url_for('objects.daily_report_view', object_id=object_id, date=date))
+
+@objects_bp.route('/<uuid:object_id>/daily-report/<date>/reject', methods=['POST'])
+@login_required
+def reject_daily_report(object_id, date):
+    """Отклонение ежедневного отчёта"""
+    try:
+        report_date = datetime.strptime(date, '%Y-%m-%d').date()
+        report = DailyReport.query.filter_by(
+            object_id=object_id, 
+            report_date=report_date
+        ).first()
+        
+        if not report:
+            flash('Отчёт не найден', 'error')
+            return redirect(url_for('objects.daily_report_view', object_id=object_id, date=date))
+        
+        # Получаем причину отклонения
+        rejection_reason = request.form.get('rejection_reason', '').strip()
+        if not rejection_reason:
+            flash('Укажите причину отклонения', 'error')
+            return redirect(url_for('objects.daily_report_view', object_id=object_id, date=date))
+        
+        # Проверяем права пользователя
+        user_role = current_user.role.upper() if current_user.role else ''
+        
+        if 'ПТО' not in user_role and 'ЗАМ' not in user_role and 'ДИРЕКТОР' not in user_role and 'ГЕН' not in user_role:
+            flash('У вас нет прав для отклонения отчётов', 'error')
+            return redirect(url_for('objects.daily_report_view', object_id=object_id, date=date))
+        
+        # Отклоняем отчёт
+        report.approval_status = 'rejected'
+        report.rejection_reason = rejection_reason
+        report.rejected_by = current_user.userid
+        report.rejected_at = datetime.utcnow()
+        
+        # Сбрасываем все утверждения
+        report.approved_by_pto = False
+        report.approved_by_deputy = False
+        report.approved_by_director = False
+        
+        db.session.commit()
+        
+        flash('Отчёт отклонён', 'success')
+        return redirect(url_for('objects.daily_report_view', object_id=object_id, date=date))
+        
+    except ValueError:
+        flash('Некорректная дата', 'error')
+        return redirect(url_for('objects.object_detail', object_id=object_id))
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ошибка при отклонении отчёта: {str(e)}', 'error')
+        return redirect(url_for('objects.daily_report_view', object_id=object_id, date=date))
 
 # Отладочная информация будет добавлена позже в приложении
 

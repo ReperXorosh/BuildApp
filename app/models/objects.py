@@ -466,3 +466,46 @@ class Luminaire(db.Model):
     
     # Связь с запланированной работой
     planned_work = db.relationship('PlannedWork', backref='luminaires', lazy=True)
+
+class DailyReport(db.Model):
+    """Модель ежедневного отчёта"""
+    __tablename__ = 'daily_reports'
+    
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)
+    report_date = db.Column(db.Date, nullable=False)  # дата отчёта
+    status = db.Column(db.String(50), default='draft')  # draft, submitted, approved, rejected
+    
+    # Статистика по работам
+    planned_works_count = db.Column(db.Integer, default=0)  # количество запланированных работ
+    completed_works_count = db.Column(db.Integer, default=0)  # количество выполненных работ
+    overdue_works_count = db.Column(db.Integer, default=0)  # количество просроченных работ
+    
+    # Система утверждения
+    approval_status = db.Column(db.String(50), default='pending')  # pending, approved, rejected
+    approved_by_pto = db.Column(db.Boolean, default=False)  # утверждено инженером ПТО
+    approved_by_deputy = db.Column(db.Boolean, default=False)  # утверждено зам.директором
+    approved_by_director = db.Column(db.Boolean, default=False)  # утверждено ген.директором
+    
+    # Отклонение
+    rejection_reason = db.Column(db.Text)  # причина отклонения
+    rejected_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))  # кто отклонил
+    rejected_at = db.Column(db.DateTime)  # когда отклонили
+    
+    # Утверждение
+    approved_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))  # кто утвердил
+    approved_at = db.Column(db.DateTime)  # когда утвердили
+    
+    # Метаданные
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))
+    
+    # Связи
+    object = db.relationship('Object', backref='daily_reports', lazy=True)
+    creator = db.relationship('Users', foreign_keys=[created_by], backref='created_daily_reports')
+    approver = db.relationship('Users', foreign_keys=[approved_by], backref='approved_daily_reports')
+    rejector = db.relationship('Users', foreign_keys=[rejected_by], backref='rejected_daily_reports')
+    
+    # Уникальность: один отчёт на объект в день
+    __table_args__ = (db.UniqueConstraint('object_id', 'report_date', name='unique_daily_report_per_object'),)
