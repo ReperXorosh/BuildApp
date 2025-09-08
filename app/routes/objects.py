@@ -1351,8 +1351,13 @@ def add_planned_work(object_id):
 @login_required
 def delete_planned_work(object_id, work_id):
     """Удаление запланированной работы (только для инженера ПТО)"""
+    print(f"DEBUG: DELETE запрос получен для работы {work_id} объекта {object_id}")
+    print(f"DEBUG: Пользователь: {current_user.login}, роль: {current_user.role}")
+    
     obj = Object.query.get_or_404(object_id)
     planned_work = PlannedWork.query.get_or_404(work_id)
+    
+    print(f"DEBUG: Найдена работа: {planned_work.work_title}")
     
     # Проверяем, что работа принадлежит указанному объекту
     if planned_work.object_id != str(object_id):
@@ -1742,4 +1747,9 @@ def add_checklist_item_quantity(object_id, item_id):
             'success': False,
             'message': f'Ошибка при добавлении количества: {str(e)}'
         }), 500
+
+# Отладочная информация о зарегистрированных маршрутах
+print("DEBUG: Зарегистрированные маршруты objects_bp:")
+for rule in objects_bp.url_map.iter_rules():
+    print(f"  {rule.rule} -> {rule.endpoint}")
 
