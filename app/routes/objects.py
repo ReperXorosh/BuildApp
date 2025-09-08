@@ -796,6 +796,13 @@ def reports_list(object_id):
     obj = Object.query.get_or_404(object_id)
     reports = Report.query.filter_by(object_id=object_id).order_by(Report.created_at.desc()).all()
     
+    # Получаем ежедневные отчеты за последние 30 дней
+    from datetime import date, timedelta
+    thirty_days_ago = date.today() - timedelta(days=30)
+    daily_reports = DailyReport.query.filter_by(object_id=object_id).filter(
+        DailyReport.report_date >= thirty_days_ago
+    ).order_by(DailyReport.report_date.desc()).all()
+    
     ActivityLog.log_action(
         user_id=current_user.userid,
         user_login=current_user.login,
@@ -806,7 +813,7 @@ def reports_list(object_id):
         method=request.method
     )
     
-    return render_template('objects/reports_list.html', object=obj, reports=reports)
+    return render_template('objects/reports_list.html', object=obj, reports=reports, daily_reports=daily_reports, today=date.today())
 
 @objects_bp.route('/<uuid:object_id>/reports/add', methods=['GET', 'POST'])
 @login_required
