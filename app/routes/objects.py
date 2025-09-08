@@ -1748,8 +1748,5 @@ def add_checklist_item_quantity(object_id, item_id):
             'message': f'Ошибка при добавлении количества: {str(e)}'
         }), 500
 
-# Отладочная информация о зарегистрированных маршрутах
-print("DEBUG: Зарегистрированные маршруты objects_bp:")
-for rule in objects_bp.url_map.iter_rules():
-    print(f"  {rule.rule} -> {rule.endpoint}")
+# Отладочная информация будет добавлена позже в приложении
 

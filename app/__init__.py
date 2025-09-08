@@ -36,6 +36,12 @@ def create_app():
     app.register_blueprint(supply, url_prefix='/supply')
     app.register_blueprint(objects_bp, url_prefix='/objects')
     
+    # Отладочная информация о зарегистрированных маршрутах
+    print("DEBUG: Зарегистрированные маршруты objects_bp:")
+    for rule in app.url_map.iter_rules():
+        if rule.endpoint.startswith('objects.'):
+            print(f"  {rule.rule} -> {rule.endpoint}")
+    
     # Регистрируем фильтры для московского времени
     @app.template_filter('moscow_time')
     def moscow_time_filter(dt):
