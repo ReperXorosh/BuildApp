@@ -233,7 +233,7 @@
                                                 {% endif %}
                                                 
                                                 <!-- Кнопка удаления (только для инженера ПТО) -->
-                                                {% if is_pto and work.status != 'completed' %}
+                                                {% if is_pto %}
                                                     <button type="button" class="btn btn-sm btn-outline-danger" 
                                                             onclick="confirmDeleteWork('{{ work.id }}', '{{ work.work_title }}')" 
                                                             title="Удалить работу">
@@ -520,7 +520,7 @@ function changeWorkDate() {
 }
 
 function confirmDeleteWork(workId, workTitle) {
-    if (confirm(`Вы уверены, что хотите удалить запланированную работу "${workTitle}"?\n\nЭто действие нельзя отменить.`)) {
+    if (confirm(`Вы уверены, что хотите удалить работу "${workTitle}"?\n\nЭто действие нельзя отменить. Все связанные данные (включая файлы и историю выполнения) будут удалены навсегда.`)) {
         deleteWork(workId);
     }
 }

@@ -1325,6 +1325,11 @@ def delete_planned_work(object_id, work_id):
         if os.path.exists(upload_dir) and not os.listdir(upload_dir):
             os.rmdir(upload_dir)
         
+        # Удаляем связанные записи о выполнении работы
+        from app.models.objects import WorkExecution, WorkComparison
+        WorkExecution.query.filter_by(planned_work_id=work_id).delete()
+        WorkComparison.query.filter_by(planned_work_id=work_id).delete()
+        
         # Удаляем запланированную работу
         db.session.delete(planned_work)
         db.session.commit()
@@ -1333,18 +1338,18 @@ def delete_planned_work(object_id, work_id):
         ActivityLog.log_action(
             user_id=current_user.userid,
             user_login=current_user.login,
-            action="Удаление запланированной работы",
-            description=f"Инженер ПТО {current_user.login} удалил запланированную работу '{planned_work.work_title}' для объекта '{obj.name}'",
+            action="Удаление работы",
+            description=f"Инженер ПТО {current_user.login} удалил работу '{planned_work.work_title}' (статус: {planned_work.status}) для объекта '{obj.name}'",
             ip_address=request.remote_addr,
             page_url=request.url,
             method=request.method
         )
         
-        flash(f'Запланированная работа "{planned_work.work_title}" успешно удалена', 'success')
+        flash(f'Работа "{planned_work.work_title}" успешно удалена', 'success')
         
     except Exception as e:
         db.session.rollback()
-        flash(f'Ошибка при удалении запланированной работы: {str(e)}', 'error')
+        flash(f'Ошибка при удалении работы: {str(e)}', 'error')
     
     return redirect(url_for('objects.planned_works_list', object_id=object_id))
 
