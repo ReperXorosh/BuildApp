@@ -11,6 +11,10 @@ from werkzeug.utils import secure_filename
 
 objects_bp = Blueprint('objects', __name__)
 
+def is_pto_engineer(user):
+    """Проверяет, является ли пользователь инженером ПТО"""
+    return user and user.role and 'ПТО' in user.role.upper()
+
 # Настройки для загрузки файлов
 UPLOAD_FOLDER = 'app/static/uploads/planned_works'
 ALLOWED_EXTENSIONS = {'pdf', 'jpg', 'jpeg', 'png', 'gif', 'doc', 'docx', 'dwg', 'dxf', 'zip', 'rar'}
@@ -168,10 +172,14 @@ def all_planned_works():
         method=request.method
     )
     
+    # Проверяем, является ли пользователь инженером ПТО
+    is_pto = is_pto_engineer(current_user)
+    
     return render_template('objects/all_planned_works.html', 
                          planned_works=planned_works, 
                          all_objects=all_objects,
-                         selected_object_id=object_filter)
+                         selected_object_id=object_filter,
+                         is_pto=is_pto)
 
 @objects_bp.route('/debug/planned-works')
 @login_required
@@ -1142,7 +1150,10 @@ def planned_works_list(object_id):
         method=request.method
     )
     
-    return render_template('objects/planned_works_list.html', object=obj, planned_works=planned_works)
+    # Проверяем, является ли пользователь инженером ПТО
+    is_pto = is_pto_engineer(current_user)
+    
+    return render_template('objects/planned_works_list.html', object=obj, planned_works=planned_works, is_pto=is_pto)
 
 @objects_bp.route('/<uuid:object_id>/planned-works/add', methods=['GET', 'POST'])
 @login_required
@@ -1279,6 +1290,63 @@ def add_planned_work(object_id):
     today_date = moscow_now.strftime('%Y-%m-%d')  # Для min атрибута
     print(f"DEBUG: GET запрос - передаем tomorrow_date = {tomorrow_date}, today_date = {today_date}")
     return render_template('objects/add_planned_work.html', object=obj, supports=supports, today_date=today_date, default_date=tomorrow_date)
+
+@objects_bp.route('/<uuid:object_id>/planned-works/<uuid:work_id>/delete', methods=['POST'])
+@login_required
+def delete_planned_work(object_id, work_id):
+    """Удаление запланированной работы (только для инженера ПТО)"""
+    obj = Object.query.get_or_404(object_id)
+    planned_work = PlannedWork.query.get_or_404(work_id)
+    
+    # Проверяем, что работа принадлежит указанному объекту
+    if planned_work.object_id != str(object_id):
+        abort(404)
+    
+    # Проверяем права доступа - только инженер ПТО может удалять работы
+    if not is_pto_engineer(current_user):
+        flash('У вас нет прав для удаления запланированных работ. Только инженер ПТО может выполнять эту операцию.', 'error')
+        return redirect(url_for('objects.planned_works_list', object_id=object_id))
+    
+    try:
+        # Удаляем связанные файлы, если они есть
+        if planned_work.location_files:
+            import json
+            try:
+                files = json.loads(planned_work.location_files)
+                for file_info in files:
+                    file_path = os.path.join('app/static', file_info['file_path'])
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+            except (json.JSONDecodeError, KeyError):
+                pass
+        
+        # Удаляем папку с файлами, если она пустая
+        upload_dir = os.path.join(UPLOAD_FOLDER, str(work_id))
+        if os.path.exists(upload_dir) and not os.listdir(upload_dir):
+            os.rmdir(upload_dir)
+        
+        # Удаляем запланированную работу
+        db.session.delete(planned_work)
+        db.session.commit()
+        
+        # Логируем действие
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Удаление запланированной работы",
+            description=f"Инженер ПТО {current_user.login} удалил запланированную работу '{planned_work.work_title}' для объекта '{obj.name}'",
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+        
+        flash(f'Запланированная работа "{planned_work.work_title}" успешно удалена', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ошибка при удалении запланированной работы: {str(e)}', 'error')
+    
+    return redirect(url_for('objects.planned_works_list', object_id=object_id))
 
 @objects_bp.route('/<uuid:object_id>/planned-works/<uuid:work_id>/execute', methods=['GET', 'POST'])
 @login_required
