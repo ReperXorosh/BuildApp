@@ -181,8 +181,9 @@ class TaskScheduler:
                 return None
             
             # Подсчитываем статистику
+            # Запланированные работы - все работы со статусом 'planned'
             planned_works = PlannedWork.query.filter_by(object_id=object_id).filter(
-                PlannedWork.planned_date == report_date
+                PlannedWork.status == 'planned'
             ).all()
             
             completed_works = db.session.query(PlannedWork).join(
@@ -320,8 +321,9 @@ def _generate_report_for_object_job(object_id, report_date):
             return None
         
         # Подсчитываем статистику
+        # Запланированные работы - все работы со статусом 'planned'
         planned_works = PlannedWork.query.filter_by(object_id=object_id).filter(
-            PlannedWork.planned_date == report_date
+            PlannedWork.status == 'planned'
         ).all()
         
         completed_works = db.session.query(PlannedWork).join(
