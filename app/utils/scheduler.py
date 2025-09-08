@@ -31,9 +31,10 @@ class TaskScheduler:
         """Инициализация планировщика с приложением Flask"""
         self.app = app
         
-        # Настройка хранилища задач в базе данных
+        # Настройка хранилища задач (временно используем память)
+        from apscheduler.jobstores.memory import MemoryJobStore
         jobstores = {
-            'default': SQLAlchemyJobStore(url=app.config['SQLALCHEMY_DATABASE_URI'])
+            'default': MemoryJobStore()
         }
         
         # Настройка исполнителей
