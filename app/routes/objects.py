@@ -1762,6 +1762,51 @@ def add_checklist_item_quantity(object_id, item_id):
             'message': f'Ошибка при добавлении количества: {str(e)}'
         }), 500
 
+# ==================== АВТОМАТИЗАЦИЯ ====================
+
+@objects_bp.route('/admin/update-overdue-works', methods=['POST'])
+@login_required
+def manual_update_overdue_works():
+    """Ручное обновление статуса просроченных работ"""
+    try:
+        updated_count = PlannedWork.update_overdue_works()
+        
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            action='manual_update_overdue_works',
+            details=f'Обновлено просроченных работ: {updated_count}',
+            method=request.method
+        )
+        
+        flash(f'Обновлено просроченных работ: {updated_count}', 'success')
+        
+    except Exception as e:
+        flash(f'Ошибка при обновлении просроченных работ: {str(e)}', 'error')
+    
+    return redirect(request.referrer or url_for('objects.planned_works_overview'))
+
+@objects_bp.route('/admin/generate-daily-reports', methods=['POST'])
+@login_required
+def manual_generate_daily_reports():
+    """Ручная генерация ежедневных отчетов за сегодня"""
+    try:
+        from app.utils.scheduler import scheduler
+        generated_count = scheduler.generate_report_for_today()
+        
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            action='manual_generate_daily_reports',
+            details=f'Сгенерировано отчетов: {generated_count}',
+            method=request.method
+        )
+        
+        flash(f'Сгенерировано отчетов за сегодня: {generated_count}', 'success')
+        
+    except Exception as e:
+        flash(f'Ошибка при генерации отчетов: {str(e)}', 'error')
+    
+    return redirect(request.referrer or url_for('objects.planned_works_overview'))
+
 # ==================== ЕЖЕДНЕВНЫЕ ОТЧЕТЫ ====================
 
 def generate_daily_report_for_date(object_id, report_date):

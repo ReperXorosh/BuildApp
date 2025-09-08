@@ -6,6 +6,7 @@ from flask import Flask, request, session
 from .extensions import db, login_manager, migrate
 from .config import Config
 from .utils.timezone_utils import format_moscow_time
+from .utils.scheduler import scheduler
 
 def create_app():
     app = Flask(__name__)
@@ -35,6 +36,9 @@ def create_app():
     app.register_blueprint(activity_log, url_prefix='/admin')
     app.register_blueprint(supply, url_prefix='/supply')
     app.register_blueprint(objects_bp, url_prefix='/objects')
+    
+    # Инициализация планировщика задач
+    scheduler.init_app(app)
     
     # Отладочная информация о зарегистрированных маршрутах
     print("DEBUG: Зарегистрированные маршруты objects_bp:")
