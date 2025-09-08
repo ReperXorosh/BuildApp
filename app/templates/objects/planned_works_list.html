@@ -150,7 +150,9 @@
                                     {% for work in planned_works %}
                                     <tr data-work-id="{{ work.id }}">
                                         <td>
-                                            <span class="badge bg-secondary">{{ work.work_type }}</span>
+                                            <span class="badge {{ get_work_type_badge_class(work.work_type) }}">
+                                                <i class="bi bi-tools me-1"></i>{{ translate_work_type(work.work_type) }}
+                                            </span>
                                         </td>
                                         <td>
                                             <strong>{{ work.work_title }}</strong>
@@ -166,15 +168,9 @@
                                             {% endif %}
                                         </td>
                                         <td>
-                                            {% if work.priority == 'urgent' %}
-                                                <span class="badge bg-danger">Срочно</span>
-                                            {% elif work.priority == 'high' %}
-                                                <span class="badge bg-warning">Высокий</span>
-                                            {% elif work.priority == 'medium' %}
-                                                <span class="badge bg-info">Средний</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">Низкий</span>
-                                            {% endif %}
+                                            <span class="badge {{ get_priority_badge_class(work.priority) }}">
+                                                <i class="bi bi-flag me-1"></i>{{ translate_priority(work.priority) }}
+                                            </span>
                                         </td>
                                         <td>
                                             {% if work.status == 'planned' %}
@@ -310,15 +306,9 @@
                                 {% endif %}
                             </li>
                             <li><strong>Приоритет:</strong> 
-                                {% if work.priority == 'urgent' %}
-                                    <span class="badge bg-danger">Срочно</span>
-                                {% elif work.priority == 'high' %}
-                                    <span class="badge bg-warning">Высокий</span>
-                                {% elif work.priority == 'medium' %}
-                                    <span class="badge bg-info">Средний</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">Низкий</span>
-                                {% endif %}
+                                <span class="badge {{ get_priority_badge_class(work.priority) }}">
+                                    <i class="bi bi-flag me-1"></i>{{ translate_priority(work.priority) }}
+                                </span>
                             </li>
                             <li><strong>Планируемая дата:</strong> 
                                 {% if work.planned_date %}

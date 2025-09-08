@@ -15,6 +15,56 @@ def is_pto_engineer(user):
     """Проверяет, является ли пользователь инженером ПТО"""
     return user and user.role and 'ПТО' in user.role.upper()
 
+def translate_work_type(work_type):
+    """Переводит тип работы с английского на русский"""
+    translations = {
+        'support_installation': 'Установка опоры',
+        'trench_excavation': 'Рытье траншеи',
+        'cable_laying': 'Укладка кабеля',
+        'equipment_installation': 'Монтаж оборудования',
+        'testing': 'Тестирование',
+        'maintenance': 'Обслуживание',
+        'repair': 'Ремонт',
+        'inspection': 'Осмотр',
+        'other': 'Другое'
+    }
+    return translations.get(work_type, work_type)
+
+def translate_priority(priority):
+    """Переводит приоритет с английского на русский"""
+    translations = {
+        'low': 'Низкий',
+        'medium': 'Средний',
+        'high': 'Высокий',
+        'urgent': 'Срочно'
+    }
+    return translations.get(priority, priority)
+
+def get_work_type_badge_class(work_type):
+    """Возвращает CSS класс для бейджа типа работы"""
+    badge_classes = {
+        'support_installation': 'bg-primary',
+        'trench_excavation': 'bg-warning',
+        'cable_laying': 'bg-info',
+        'equipment_installation': 'bg-success',
+        'testing': 'bg-secondary',
+        'maintenance': 'bg-dark',
+        'repair': 'bg-danger',
+        'inspection': 'bg-light text-dark',
+        'other': 'bg-secondary'
+    }
+    return badge_classes.get(work_type, 'bg-secondary')
+
+def get_priority_badge_class(priority):
+    """Возвращает CSS класс для бейджа приоритета"""
+    badge_classes = {
+        'low': 'bg-success',
+        'medium': 'bg-warning',
+        'high': 'bg-danger',
+        'urgent': 'bg-dark'
+    }
+    return badge_classes.get(priority, 'bg-secondary')
+
 # Настройки для загрузки файлов
 UPLOAD_FOLDER = 'app/static/uploads/planned_works'
 ALLOWED_EXTENSIONS = {'pdf', 'jpg', 'jpeg', 'png', 'gif', 'doc', 'docx', 'dwg', 'dxf', 'zip', 'rar'}
@@ -64,7 +114,13 @@ def inject_gettext():
     """Внедряет функцию gettext в контекст шаблонов"""
     def gettext(text):
         return text
-    return dict(gettext=gettext)
+    return dict(
+        gettext=gettext,
+        translate_work_type=translate_work_type,
+        translate_priority=translate_priority,
+        get_work_type_badge_class=get_work_type_badge_class,
+        get_priority_badge_class=get_priority_badge_class
+    )
 
 @objects_bp.route('/')
 @login_required
