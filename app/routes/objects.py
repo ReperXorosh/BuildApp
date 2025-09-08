@@ -1360,15 +1360,22 @@ def delete_planned_work(object_id, work_id):
     print(f"DEBUG: Найдена работа: {planned_work.work_title}")
     
     # Проверяем, что работа принадлежит указанному объекту
+    print(f"DEBUG: Проверяем принадлежность работы объекту: {planned_work.object_id} == {str(object_id)}")
     if planned_work.object_id != str(object_id):
+        print("DEBUG: Работа не принадлежит указанному объекту, возвращаем 404")
         abort(404)
     
     # Проверяем права доступа - только инженер ПТО может удалять работы
+    print(f"DEBUG: Проверяем права доступа: is_pto_engineer = {is_pto_engineer(current_user)}")
     if not is_pto_engineer(current_user):
+        print("DEBUG: У пользователя нет прав для удаления, перенаправляем")
         flash('У вас нет прав для удаления запланированных работ. Только инженер ПТО может выполнять эту операцию.', 'error')
         return redirect(url_for('objects.planned_works_list', object_id=object_id))
     
+    print("DEBUG: Все проверки пройдены, начинаем удаление")
+    
     try:
+        print("DEBUG: Начинаем удаление файлов")
         # Удаляем связанные файлы, если они есть
         if hasattr(planned_work, 'location_files') and planned_work.location_files:
             import json
@@ -1386,15 +1393,18 @@ def delete_planned_work(object_id, work_id):
         if os.path.exists(upload_dir) and not os.listdir(upload_dir):
             os.rmdir(upload_dir)
         
+        print("DEBUG: Удаляем связанные записи")
         # Удаляем связанные записи о выполнении работы
         from app.models.objects import WorkExecution, WorkComparison
         WorkExecution.query.filter_by(planned_work_id=work_id).delete()
         WorkComparison.query.filter_by(planned_work_id=work_id).delete()
         
+        print("DEBUG: Удаляем саму работу")
         # Удаляем запланированную работу
         db.session.delete(planned_work)
         db.session.commit()
         
+        print("DEBUG: Логируем действие")
         # Логируем действие
         ActivityLog.log_action(
             user_id=current_user.userid,
@@ -1406,9 +1416,11 @@ def delete_planned_work(object_id, work_id):
             method=request.method
         )
         
+        print("DEBUG: Показываем сообщение об успехе")
         flash(f'Работа "{planned_work.work_title}" успешно удалена', 'success')
         
     except Exception as e:
+        print(f"DEBUG: Ошибка при удалении: {str(e)}")
         db.session.rollback()
         flash(f'Ошибка при удалении работы: {str(e)}', 'error')
     
