@@ -14,43 +14,6 @@
                     </svg>
                     Отчёты
                 </h1>
-                <p class="text-muted">Система отчётности и аналитики по объектам</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Навигация по отчётам -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h5 class="card-title">
-                                <svg class="bi me-2" width="20" height="20" fill="currentColor">
-                                    <use xlink:href="#building"></use>
-                                </svg>
-                                Список объектов
-                            </h5>
-                            <p class="card-text">Выберите объект для просмотра его отчётов по датам</p>
-                        </div>
-                        <div class="col-md-6">
-                            <h5 class="card-title">
-                                <svg class="bi me-2" width="20" height="20" fill="currentColor">
-                                    <use xlink:href="#calendar"></use>
-                                </svg>
-                                Календарь отчётов
-                            </h5>
-                            <p class="card-text">Просматривайте объекты и отчёты по выбранной дате</p>
-                            <a href="{{ url_for('main.reports_calendar') }}" class="btn btn-outline-primary">
-                                <svg class="bi me-1" width="16" height="16" fill="currentColor">
-                                    <use xlink:href="#calendar"></use>
-                                </svg>
-                                Открыть календарь
-                            </a>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -137,7 +100,6 @@
                         <strong>Информация:</strong> 
                         <ul class="mb-0 mt-2">
                             <li>Нажмите на объект для просмотра всех отчётов по датам</li>
-                            <li>Используйте календарь для поиска объектов с отчётами за конкретную дату</li>
                             <li>Отчёты отображаются в хронологическом порядке</li>
                         </ul>
                     </div>
