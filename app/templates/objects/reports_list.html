@@ -61,7 +61,16 @@
                                     <td>
                                         <strong>{{ daily_report.report_date.strftime('%d.%m.%Y') }}</strong>
                                         <br>
-                                        <small class="text-muted">{{ daily_report.report_date.strftime('%A') }}</small>
+                                        {% set weekday_map = {
+                                            'Monday': 'Понедельник',
+                                            'Tuesday': 'Вторник',
+                                            'Wednesday': 'Среда',
+                                            'Thursday': 'Четверг',
+                                            'Friday': 'Пятница',
+                                            'Saturday': 'Суббота',
+                                            'Sunday': 'Воскресенье'
+                                        } %}
+                                        <small class="text-muted">{{ weekday_map.get(daily_report.report_date.strftime('%A'), daily_report.report_date.strftime('%A')) }}</small>
                                     </td>
                                     <td>
                                         <span class="badge bg-primary">{{ daily_report.planned_works_count }}</span>
@@ -124,7 +133,7 @@
                 <div class="card-header">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-list me-2"></i>
-                        Список отчётов ({{ reports|length }})
+                        Письменные отчёты: {{ reports|length }}
                     </h5>
                 </div>
                 <div class="card-body p-0">

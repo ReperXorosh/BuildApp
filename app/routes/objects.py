@@ -1957,11 +1957,14 @@ def approve_daily_report(object_id, date):
             flash('У вас нет прав для утверждения отчётов', 'error')
             return redirect(url_for('objects.daily_report_view', object_id=object_id, date=date))
         
-        # Проверяем, все ли уровни утверждены
-        if report.approved_by_pto and report.approved_by_deputy and report.approved_by_director:
-            report.approval_status = 'approved'
-            report.approved_by = current_user.userid
-            report.approved_at = datetime.utcnow()
+        # Новая логика: достаточно одного утверждения
+        report.approval_status = 'approved'
+        report.approved_by = current_user.userid
+        report.approved_at = datetime.utcnow()
+        # Сбрасываем признаки отклонения, если были
+        report.rejection_reason = None
+        report.rejected_by = None
+        report.rejected_at = None
         
         db.session.commit()
         
@@ -2004,7 +2007,7 @@ def reject_daily_report(object_id, date):
             flash('У вас нет прав для отклонения отчётов', 'error')
             return redirect(url_for('objects.daily_report_view', object_id=object_id, date=date))
         
-        # Отклоняем отчёт
+        # Отклоняем отчёт (новая логика: достаточно одного отклонения)
         report.approval_status = 'rejected'
         report.rejection_reason = rejection_reason
         report.rejected_by = current_user.userid
@@ -2014,6 +2017,8 @@ def reject_daily_report(object_id, date):
         report.approved_by_pto = False
         report.approved_by_deputy = False
         report.approved_by_director = False
+        report.approved_by = None
+        report.approved_at = None
         
         db.session.commit()
         
