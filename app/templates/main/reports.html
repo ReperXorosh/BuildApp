@@ -5,6 +5,35 @@
 
 {% block content %}
 <div class="container-fluid py-3" style="margin-top: 80px;">
+    <style>
+        /* Интерактивные карточки объектов на странице отчётов */
+        .interactive-card {
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+            border: 1px solid rgba(13, 110, 253, 0.25); /* близко к primary */
+        }
+        .interactive-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+            border-color: rgba(13, 110, 253, 0.6);
+            background-color: rgba(13, 110, 253, 0.04);
+        }
+        .interactive-card:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .interactive-card .card-title {
+            transition: color 0.2s ease;
+        }
+        .interactive-card:hover .card-title {
+            color: var(--bs-primary);
+        }
+        [data-bs-theme="dark"] .interactive-card:hover {
+            background-color: rgba(13, 110, 253, 0.08);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+
     <div class="row">
         <div class="col-12">
             <div class="mb-4">
@@ -35,7 +64,7 @@
                         <div class="row g-3">
                             {% for object in objects %}
                             <div class="col-md-6 col-lg-4">
-                                <div class="card h-100 border-primary" data-href="{{ url_for('main.object_reports', object_id=object.id) }}" style="cursor:pointer;">
+                                <div class="card h-100 border-primary interactive-card" data-href="{{ url_for('main.object_reports', object_id=object.id) }}" role="button" tabindex="0">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center mb-3">
                                             <svg class="bi me-2 text-primary" width="24" height="24" fill="currentColor">
