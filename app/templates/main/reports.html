@@ -35,7 +35,7 @@
                         <div class="row g-3">
                             {% for object in objects %}
                             <div class="col-md-6 col-lg-4">
-                                <div class="card h-100 border-primary">
+                                <div class="card h-100 border-primary" data-href="{{ url_for('main.object_reports', object_id=object.id) }}" style="cursor:pointer;">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center mb-3">
                                             <svg class="bi me-2 text-primary" width="24" height="24" fill="currentColor">
@@ -102,3 +102,50 @@
     </div>
 </div>
 {% endblock %}
+
+<!-- Модальное окно (показывается один раз на пользователя) -->
+<div class="modal fade" id="reportsWelcomeModal" tabindex="-1" aria-hidden="true" aria-labelledby="reportsWelcomeModalLabel">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportsWelcomeModalLabel">Раздел «Отчёты»</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2">Нажмите на карточку объекта, чтобы открыть его отчёты.</p>
+                <p class="mb-0 text-muted">Подсказка: отчёты сгруппированы по датам.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" data-role="confirm">Понятно</button>
+            </div>
+        </div>
+    </div>
+ </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Кликабельные карточки
+    var cards = document.querySelectorAll('.card[data-href]');
+    cards.forEach(function(card){
+        card.addEventListener('click', function(e){
+            if (e.target.closest('a, button, .btn, .dropdown, .dropdown-menu')) return;
+            var href = card.getAttribute('data-href');
+            if (href) window.location.href = href;
+        });
+    });
+
+    // Модал первый визит
+    var userId = "{{ current_user.get_id() if current_user.is_authenticated else 'guest' }}";
+    var storageKey = 'reports_page_seen_' + userId;
+    var modalEl = document.getElementById('reportsWelcomeModal');
+    if (modalEl && !localStorage.getItem(storageKey)) {
+        var modal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true });
+        modal.show();
+        var markSeen = function(){ try { localStorage.setItem(storageKey, '1'); } catch(e) {} };
+        modalEl.addEventListener('hidden.bs.modal', function(){ markSeen(); }, { once: true });
+        var confirmBtn = modalEl.querySelector('[data-role="confirm"]');
+        if (confirmBtn) confirmBtn.addEventListener('click', function(){ markSeen(); modal.hide(); });
+    }
+});
+</script>
