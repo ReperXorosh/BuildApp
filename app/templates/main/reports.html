@@ -81,45 +81,7 @@
         </div>
     </div>
 
-    <!-- Информационный блок -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="alert alert-info" role="alert">
-                <div class="d-flex align-items-center">
-                    <svg class="bi me-2" width="20" height="20" fill="currentColor">
-                        <use xlink:href="#info-circle"></use>
-                    </svg>
-                    <div>
-                        <strong>Информация:</strong> 
-                        <ul class="mb-0 mt-2">
-                            <li>Нажмите на объект для просмотра всех отчётов по датам</li>
-                            <li>Отчёты отображаются в хронологическом порядке</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно (показывается один раз на пользователя) -->
-    <div class="modal fade" id="reportsWelcomeModal" tabindex="-1" aria-hidden="true" aria-labelledby="reportsWelcomeModalLabel">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="reportsWelcomeModalLabel">Раздел «Отчёты»</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="mb-2">Нажмите на карточку объекта, чтобы открыть его отчёты.</p>
-                    <p class="mb-0 text-muted">Подсказка: отчёты сгруппированы по датам.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                    <button type="button" class="btn btn-primary" data-role="confirm">Понятно</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    
 
     <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -132,19 +94,6 @@
                 if (href) window.location.href = href;
             });
         });
-
-        // Модал первый визит
-        var userId = "{{ current_user.get_id() if current_user.is_authenticated else 'guest' }}";
-        var storageKey = 'reports_page_seen_' + userId;
-        var modalEl = document.getElementById('reportsWelcomeModal');
-        if (modalEl && !localStorage.getItem(storageKey)) {
-            var modal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true });
-            modal.show();
-            var markSeen = function(){ try { localStorage.setItem(storageKey, '1'); } catch(e) {} };
-            modalEl.addEventListener('hidden.bs.modal', function(){ markSeen(); }, { once: true });
-            var confirmBtn = modalEl.querySelector('[data-role="confirm"]');
-            if (confirmBtn) confirmBtn.addEventListener('click', function(){ markSeen(); modal.hide(); });
-        }
     });
     </script>
 </div>
