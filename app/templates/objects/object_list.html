@@ -205,8 +205,7 @@
             <div class="row">
                 {% for obj in objects %}
                 <div class="col-md-6 col-lg-4 mb-4">
-                    <a href="{{ url_for('objects.reports_list', object_id=obj.id) }}" class="card-link">
-                        <div class="card h-100">
+                    <div class="card h-100" data-href="{{ url_for('objects.reports_list', object_id=obj.id) }}">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="card-title mb-0 fw-bold">{{ obj.name }}</h5>
                                 <span class="badge bg-{{ 'success' if obj.status == 'active' else 'secondary' if obj.status == 'inactive' else 'info' }} fs-6">
@@ -273,7 +272,6 @@
                                 </div>
                             </div>
                         </div>
-                    </a>
                 </div>
                 {% endfor %}
             </div>
@@ -294,12 +292,14 @@
 {% endblock %}
 
 
+{% block content %}{% endblock %}
+
 <!-- Модальное окно приветствия для страницы объектов (показывается один раз для пользователя) -->
-<div class="modal fade" id="objectsWelcomeModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="objectsWelcomeModal" tabindex="-1" aria-hidden="true" aria-labelledby="objectsWelcomeModalLabel">
 	<div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title">Добро пожаловать в раздел «Объекты»</h5>
+				<h5 class="modal-title" id="objectsWelcomeModalLabel">Добро пожаловать в раздел «Объекты»</h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
@@ -307,6 +307,7 @@
 				<p class="mb-0 text-muted">Подсказка: в карточке доступны быстрые ссылки на опоры, траншеи, отчёты и чек-листы.</p>
 			</div>
 			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
 				<button type="button" class="btn btn-primary" data-role="confirm">Понятно</button>
 			</div>
 		</div>
@@ -318,19 +319,28 @@ document.addEventListener('DOMContentLoaded', function () {
 	var userId = "{{ current_user.get_id() if current_user.is_authenticated else 'guest' }}";
 	var storageKey = 'objects_page_seen_' + userId;
 	var modalEl = document.getElementById('objectsWelcomeModal');
-	if (!modalEl) return;
-
-	if (!localStorage.getItem(storageKey)) {
-		var modal = new bootstrap.Modal(modalEl, { backdrop: 'static', keyboard: true });
-		modal.show();
-
-		var markSeen = function () { try { localStorage.setItem(storageKey, '1'); } catch (e) {} };
-		modalEl.addEventListener('hidden.bs.modal', function () { markSeen(); }, { once: true });
-
-		var confirmBtn = modalEl.querySelector('[data-role="confirm"]');
-		if (confirmBtn) {
-			confirmBtn.addEventListener('click', function () { markSeen(); modal.hide(); });
+	if (modalEl) {
+		if (!localStorage.getItem(storageKey)) {
+			var modal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true });
+			modal.show();
+			var markSeen = function () { try { localStorage.setItem(storageKey, '1'); } catch (e) {} };
+			modalEl.addEventListener('hidden.bs.modal', function () { markSeen(); }, { once: true });
+			var confirmBtn = modalEl.querySelector('[data-role="confirm"]');
+			if (confirmBtn) { confirmBtn.addEventListener('click', function () { markSeen(); modal.hide(); }); }
 		}
 	}
+
+	// Кликабельные карточки -> переход на отчёты
+	var cards = document.querySelectorAll('.card[data-href]');
+	cards.forEach(function(card){
+		card.style.cursor = 'pointer';
+		card.addEventListener('click', function(e){
+			var target = e.target;
+			// если клик по интерактивным элементам внутри — не навигируем
+			if (target.closest('a, button, .btn, .dropdown, .dropdown-menu')) { return; }
+			var href = card.getAttribute('data-href');
+			if (href) { window.location.href = href; }
+		});
+	});
 });
 </script>
