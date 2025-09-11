@@ -248,8 +248,8 @@
                                         <div class="col-3">
                                             <a href="{{ url_for('objects.reports_list', object_id=obj.id) }}" class="stat-link" onclick="event.stopPropagation();">
                                                 <div class="border-end d-flex flex-column justify-content-center" style="height: 100%;">
-                                                    <h6 class="mb-1 stats-number">{{ obj.reports|length }}</h6>
-                                                    <small class="stats-label">Отчёт</small>
+                                                    <h6 class="mb-1 stats-number">{{ (obj.reports|length) + (obj.daily_reports|length) }}</h6>
+                                                    <small class="stats-label">Отчёты</small>
                                                 </div>
                                             </a>
                                         </div>
