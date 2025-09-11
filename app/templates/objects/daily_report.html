@@ -327,7 +327,102 @@
                     {% endif %}
                 </div>
                 <div class="card-body">
-                    <!-- Статус убран, управление доступно только в меню (три точки) в заголовке -->
+                    <!-- Статусы по ролям -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    {% if report_data.report.approved_by_pto %}
+                                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                                    {% else %}
+                                        <i class="bi bi-circle text-muted fs-4"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <strong>Инженер ПТО</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        {% if report_data.report.approved_by_pto %}
+                                            Утвердил{% if report_data.report.approver %}: {{ report_data.report.approver.login }}{% endif %}
+                                            {% if report_data.report.approved_at %} · {{ report_data.report.approved_at | moscow_time_short }}{% endif %}
+                                        {% else %}
+                                            Не утвердил
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    {% if report_data.report.approved_by_deputy %}
+                                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                                    {% else %}
+                                        <i class="bi bi-circle text-muted fs-4"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <strong>Зам. директор</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        {% if report_data.report.approved_by_deputy %}
+                                            Утвердил{% if report_data.report.approver %}: {{ report_data.report.approver.login }}{% endif %}
+                                            {% if report_data.report.approved_at %} · {{ report_data.report.approved_at | moscow_time_short }}{% endif %}
+                                        {% else %}
+                                            Не утвердил
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    {% if report_data.report.approved_by_director %}
+                                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                                    {% else %}
+                                        <i class="bi bi-circle text-muted fs-4"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <strong>Ген. директор</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        {% if report_data.report.approved_by_director %}
+                                            Утвердил{% if report_data.report.approver %}: {{ report_data.report.approver.login }}{% endif %}
+                                            {% if report_data.report.approved_at %} · {{ report_data.report.approved_at | moscow_time_short }}{% endif %}
+                                        {% else %}
+                                            Не утвердил
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if report_data.report.approval_status == 'approved' %}
+                        <div class="alert alert-success">
+                            <h6 class="mb-1"><i class="bi bi-check-circle me-2"></i>Отчёт утверждён</h6>
+                            <p class="mb-1">
+                                {% if report_data.report.approved_at %}
+                                    Время: {{ report_data.report.approved_at | moscow_time_short }}
+                                {% endif %}
+                                {% if report_data.report.approver %}
+                                    — {{ report_data.report.approver.login }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% elif report_data.report.approval_status == 'rejected' %}
+                        <div class="alert alert-danger">
+                            <h6 class="mb-1"><i class="bi bi-x-circle me-2"></i>Отчёт отклонён</h6>
+                            <p class="mb-1"><strong>Причина:</strong> {{ report_data.report.rejection_reason }}</p>
+                            {% if report_data.report.rejected_at %}
+                                <small class="text-muted">
+                                    Отклонён: {{ report_data.report.rejected_at | moscow_time_short }}{% if report_data.report.rejector %} — {{ report_data.report.rejector.login }}{% endif %}
+                                </small>
+                            {% endif %}
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
