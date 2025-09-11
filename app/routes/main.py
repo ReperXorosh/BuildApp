@@ -931,6 +931,9 @@ def object_reports(object_id):
     # Получаем объект и его отчёты с информацией о создателях
     object_obj = Object.query.get_or_404(object_id)
     reports = Report.query.filter_by(object_id=object_id).order_by(Report.report_date.desc()).all()
+    # Подтягиваем ежедневные отчёты
+    from ..models.objects import DailyReport
+    daily_reports = DailyReport.query.filter_by(object_id=object_id).order_by(DailyReport.report_date.desc()).all()
     
     # Загружаем информацию о создателях отчётов
     from ..models.users import Users
@@ -947,6 +950,25 @@ def object_reports(object_id):
         if date_key not in reports_by_date:
             reports_by_date[date_key] = []
         reports_by_date[date_key].append(report)
+
+    # Добавляем ежедневные отчёты в общую выборку по датам
+    for d in daily_reports:
+        try:
+            date_key = d.report_date.strftime('%Y-%m-%d')
+        except Exception:
+            continue
+        if date_key not in reports_by_date:
+            reports_by_date[date_key] = []
+        # Создаем лёгкий объект с нужными атрибутами для шаблона
+        daily_as_report = {
+            'title': 'Ежедневный отчёт',
+            'report_type': 'daily',
+            'content': None,
+            'status': d.approval_status or d.status,
+            'creator': None,
+            'report_date': d.report_date,
+        }
+        reports_by_date[date_key].append(daily_as_report)
     
     # Логируем просмотр отчётов объекта
     ActivityLog.log_action(
