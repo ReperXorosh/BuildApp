@@ -988,13 +988,43 @@ def object_reports(object_id):
 @main.route('/reports/calendar')
 @login_required
 def reports_calendar():
+    from datetime import datetime, date
+    from ..models.objects import DailyReport
+    
     # Проверяем, что пользователь не является снабженцем
     if current_user.role == 'Снабженец':
         flash('У вас нет прав для просмотра отчётов', 'error')
         return redirect(url_for('objects.object_list'))
     
-    # Получаем все отчёты с датами и информацией о создателях
-    reports = Report.query.order_by(Report.report_date).all()
+    # Получаем текущий месяц и год из параметров или используем текущую дату
+    current_date = datetime.now()
+    year = request.args.get('year', current_date.year, type=int)
+    month = request.args.get('month', current_date.month, type=int)
+    
+    # Валидация параметров
+    if not (1 <= month <= 12):
+        month = current_date.month
+    if not (2020 <= year <= 2030):
+        year = current_date.year
+    
+    # Получаем все отчёты (ручные и ежедневные) за указанный месяц
+    start_date = date(year, month, 1)
+    if month == 12:
+        end_date = date(year + 1, 1, 1)
+    else:
+        end_date = date(year, month + 1, 1)
+    
+    # Ручные отчёты
+    reports = Report.query.filter(
+        Report.report_date >= start_date,
+        Report.report_date < end_date
+    ).order_by(Report.report_date).all()
+    
+    # Ежедневные отчёты
+    daily_reports = DailyReport.query.filter(
+        DailyReport.report_date >= start_date,
+        DailyReport.report_date < end_date
+    ).order_by(DailyReport.report_date).all()
     
     # Загружаем информацию о создателях отчётов
     from ..models.users import Users
@@ -1006,28 +1036,50 @@ def reports_calendar():
     
     # Группируем объекты по датам отчётов
     objects_by_date = {}
+    
+    # Обрабатываем ручные отчёты
     for report in reports:
         date_key = report.report_date.strftime('%Y-%m-%d')
         if date_key not in objects_by_date:
-            objects_by_date[date_key] = []
+            objects_by_date[date_key] = {'objects': [], 'reports_count': 0, 'daily_reports_count': 0}
         
         # Добавляем объект, если его еще нет в списке для этой даты
         object_obj = report.object
-        if not any(obj.id == object_obj.id for obj in objects_by_date[date_key]):
-            objects_by_date[date_key].append(object_obj)
+        if not any(obj.id == object_obj.id for obj in objects_by_date[date_key]['objects']):
+            objects_by_date[date_key]['objects'].append(object_obj)
+        
+        objects_by_date[date_key]['reports_count'] += 1
+    
+    # Обрабатываем ежедневные отчёты
+    for daily_report in daily_reports:
+        date_key = daily_report.report_date.strftime('%Y-%m-%d')
+        if date_key not in objects_by_date:
+            objects_by_date[date_key] = {'objects': [], 'reports_count': 0, 'daily_reports_count': 0}
+        
+        # Добавляем объект, если его еще нет в списке для этой даты
+        object_obj = daily_report.object
+        if not any(obj.id == object_obj.id for obj in objects_by_date[date_key]['objects']):
+            objects_by_date[date_key]['objects'].append(object_obj)
+        
+        objects_by_date[date_key]['daily_reports_count'] += 1
     
     # Логируем просмотр календаря отчётов
     ActivityLog.log_action(
         user_id=current_user.userid,
         user_login=current_user.login,
         action="Просмотр календаря отчётов",
-        description=f"Пользователь {current_user.login} открыл календарь отчётов",
+        description=f"Пользователь {current_user.login} открыл календарь отчётов за {year}-{month:02d}",
         ip_address=request.remote_addr,
         page_url=request.url,
         method=request.method
     )
     
-    return render_template('main/reports_calendar.html', objects_by_date=objects_by_date)
+    return render_template('main/reports_calendar.html', 
+                         objects_by_date=objects_by_date, 
+                         current_year=year, 
+                         current_month=month,
+                         timedelta=timedelta,
+                         date=date)
 
 @main.route('/reports/date/<date>')
 @login_required
