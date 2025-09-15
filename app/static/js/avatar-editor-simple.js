@@ -73,9 +73,10 @@ class SimpleAvatarEditor {
         hints.className = 'alert alert-info small';
         hints.innerHTML = `
             <strong>💡 Как использовать редактор:</strong><br>
-            • Перетаскивайте изображение мышкой<br>
-            • Используйте колесико мыши для масштабирования<br>
-            • Нажмите кнопки для поворота
+            • Перетаскивайте изображение мышкой или пальцем<br>
+            • Используйте колесико мыши или жесты для масштабирования<br>
+            • Нажмите кнопки для поворота<br>
+            • На мобильных: одним пальцем - перетаскивание, двумя пальцами - масштабирование
         `;
         
         // Добавляем все элементы в контейнер
@@ -93,7 +94,7 @@ class SimpleAvatarEditor {
     bindEvents() {
         if (!this.canvas) return;
         
-        // Перетаскивание
+        // Перетаскивание мышкой
         this.canvas.addEventListener('mousedown', (e) => {
             this.isDragging = true;
             this.dragStart = this.getMousePos(e);
@@ -117,7 +118,36 @@ class SimpleAvatarEditor {
             }
         });
         
-        // Масштабирование
+        // Touch события для мобильных устройств
+        this.canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (e.touches.length === 1) {
+                this.isDragging = true;
+                this.dragStart = this.getTouchPos(e.touches[0]);
+                this.canvas.style.cursor = 'grabbing';
+            }
+        }, { passive: false });
+        
+        this.canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (this.isDragging && e.touches.length === 1) {
+                const pos = this.getTouchPos(e.touches[0]);
+                this.offset.x += pos.x - this.dragStart.x;
+                this.offset.y += pos.y - this.dragStart.y;
+                this.dragStart = pos;
+                this.draw();
+            }
+        }, { passive: false });
+        
+        this.canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.isDragging = false;
+            if (this.canvas) {
+                this.canvas.style.cursor = 'move';
+            }
+        }, { passive: false });
+        
+        // Масштабирование колесиком мыши
         this.canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
             const delta = e.deltaY > 0 ? 0.9 : 1.1;
@@ -125,7 +155,41 @@ class SimpleAvatarEditor {
             this.draw();
         });
         
-        console.log('✅ События привязаны');
+        // Масштабирование жестами на мобильных
+        let lastTouchDistance = 0;
+        this.canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                lastTouchDistance = Math.sqrt(
+                    Math.pow(touch2.clientX - touch1.clientX, 2) + 
+                    Math.pow(touch2.clientY - touch1.clientY, 2)
+                );
+            }
+        }, { passive: false });
+        
+        this.canvas.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                const currentDistance = Math.sqrt(
+                    Math.pow(touch2.clientX - touch1.clientX, 2) + 
+                    Math.pow(touch2.clientY - touch1.clientY, 2)
+                );
+                
+                if (lastTouchDistance > 0) {
+                    const scaleChange = currentDistance / lastTouchDistance;
+                    this.scale = Math.max(0.5, Math.min(3, this.scale * scaleChange));
+                    this.draw();
+                }
+                
+                lastTouchDistance = currentDistance;
+            }
+        }, { passive: false });
+        
+        console.log('✅ События привязаны (включая touch)');
     }
     
     // Загрузка изображения
@@ -251,6 +315,15 @@ class SimpleAvatarEditor {
         };
     }
     
+    // Получение позиции touch-события
+    getTouchPos(touch) {
+        const rect = this.canvas.getBoundingClientRect();
+        return {
+            x: touch.clientX - rect.left,
+            y: touch.clientY - rect.top
+        };
+    }
+    
     // Получение отредактированного изображения
     getEditedImage() {
         if (!this.image || !this.canvas) return null;
@@ -315,8 +388,8 @@ function initSimpleAvatarEditor() {
         
         if (file) {
             // Проверка размера
-            if (file.size > 2 * 1024 * 1024) {
-                alert('Размер файла не должен превышать 2 МБ');
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Размер файла не должен превышать 5 МБ');
                 this.value = '';
                 return;
             }
