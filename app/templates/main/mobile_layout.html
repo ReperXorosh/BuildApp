@@ -479,7 +479,7 @@
             </a>
             {% endif %}
             {% if current_user.role in ['Инженер ПТО', 'Зам. директор', 'Ген. директор'] %}
-            <a href="{{ url_for('main.activity_log') }}" class="mobile-menu-item {{ 'active' if active_page == 'activity_log' else '' }}">
+            <a href="{{ url_for('activity_log.view_activity_log') }}" class="mobile-menu-item {{ 'active' if active_page == 'activity_log' else '' }}">
                 {{ gettext('Журнал действий') }}
             </a>
             {% endif %}
