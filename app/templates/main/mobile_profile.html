@@ -60,50 +60,50 @@
 
                     <form method="post" enctype="multipart/form-data">
                         <div class="row g-3">
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label">Фамилия</label>
                                 <input type="text" class="form-control" name="secondname"
                                        value="{{ current_user.secondname or '' }}"
                                        {% if current_user.secondname %}disabled{% endif %}>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label">Имя</label>
                                 <input type="text" class="form-control" name="firstname"
                                        value="{{ current_user.firstname or '' }}"
                                        {% if current_user.firstname %}disabled{% endif %}>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label">Отчество</label>
                                 <input type="text" class="form-control" name="thirdname"
                                        value="{{ current_user.thirdname or '' }}"
                                        {% if current_user.thirdname %}disabled{% endif %}>
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label">Телефон</label>
                                 <input type="text" class="form-control" name="phonenumber"
                                        value="{{ current_user.phonenumber or '' }}"
                                        {% if current_user.phonenumber %}disabled{% endif %}>
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label">Роль</label>
                                 <input type="text" class="form-control" name="role"
                                        value="{{ current_user.role or '' }}" disabled>
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label">Дата регистрации</label>
                                 <input type="text" class="form-control"
                                        value="{{ current_user.registerdate | moscow_time_short if current_user.registerdate else '—' }}"
                                        disabled>
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label">Логин</label>
                                 <input type="text" class="form-control" value="{{ current_user.login }}" disabled>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label">ID пользователя</label>
                                 <input type="text" class="form-control" value="{{ current_user.userid }}" disabled>
                             </div>
@@ -122,7 +122,7 @@
                     <h5 class="card-title mb-3">Настройки времени</h5>
                     
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label">Часовой пояс</label>
                             <select class="form-select" id="timezone-select" name="timezone">
                                 <option value="Europe/Moscow">Москва (UTC+3)</option>
@@ -151,7 +151,7 @@
                             <div class="form-text">Выберите ваш часовой пояс для корректного отображения времени</div>
                         </div>
                         
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label">Текущее время</label>
                             <div class="input-group">
                                 <input type="text" class="form-control" id="current-time" readonly>
@@ -182,12 +182,12 @@
                     <h5 class="card-title mb-3">Дополнительные действия</h5>
                     <div class="d-flex gap-2 flex-wrap">
                         {% if current_user.role in ['Инженер ПТО', 'Зам. директор', 'Ген. директор'] %}
-                        <a href="{{ url_for('main.users') }}" class="btn btn-outline-primary">
+                        <a href="{{ url_for('main.users') }}" class="btn btn-outline-primary flex-fill">
                             <i class="bi bi-people me-2"></i>
                             Управление пользователями
                         </a>
                         {% endif %}
-                        <a href="{{ url_for('activity_log.view_activity_log') }}" class="btn btn-outline-secondary">
+                        <a href="{{ url_for('activity_log.view_activity_log') }}" class="btn btn-outline-secondary flex-fill">
                             <i class="bi bi-journal-text me-2"></i>
                             Журнал действий
                         </a>

@@ -165,7 +165,10 @@
         .mobile-content {
             flex: 1;
             padding: 16px;
-            padding-bottom: 120px; /* Увеличенный отступ для нижней навигации */
+            padding-bottom: 140px; /* Увеличенный отступ для нижней навигации */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            height: calc(100vh - 60px); /* Высота экрана минус хедер */
         }
         
         /* Мобильные карточки - используем Bootstrap стили */
@@ -250,11 +253,12 @@
             right: 0;
             background: var(--bs-body-bg);
             border-top: 1px solid var(--bs-border-color);
-            padding: 8px 0;
+            padding: 12px 0 8px 0; /* Увеличенный отступ сверху */
             z-index: 1000;
             display: flex;
             justify-content: space-around;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            min-height: 80px; /* Минимальная высота панели */
         }
         
         .mobile-nav-item {
@@ -453,6 +457,54 @@
         
         .d-md-none {
             display: block !important;
+        }
+        
+        /* Дополнительные стили для мобильных устройств */
+        .mobile-content {
+            /* Улучшенный скроллинг */
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+        
+        /* Исправление для форм на мобильных */
+        .form-control, .form-select {
+            font-size: 16px; /* Предотвращает зум на iOS */
+            min-height: 44px; /* Минимальная высота для touch */
+        }
+        
+        /* Исправление для кнопок на мобильных */
+        .btn {
+            min-height: 44px;
+            touch-action: manipulation;
+        }
+        
+        /* Исправление для карточек */
+        .card {
+            margin-bottom: 16px;
+        }
+        
+        /* Исправление для таблиц на мобильных */
+        .table-responsive {
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        /* Исправление для модальных окон */
+        .modal-dialog {
+            margin: 16px;
+            max-width: calc(100% - 32px);
+        }
+        
+        /* Исправление для навигации */
+        .mobile-nav-item {
+            min-height: 60px;
+            padding: 8px 4px;
+        }
+        
+        /* Исправление для контейнера */
+        .container-fluid {
+            padding-left: 16px;
+            padding-right: 16px;
         }
     </style>
 </head>
