@@ -123,7 +123,21 @@ def log_theme_change():
 @main.route('/sign-in')
 @main.route('/')
 def sign_in():
-    return render_template('main/sign-in.html')
+    # Определяем, нужно ли использовать мобильный шаблон
+    from ..utils.mobile_detection import is_mobile_device
+    # Проверяем параметр mobile=1 или определяем по User-Agent
+    mobile_param = request.args.get('mobile') == '1'
+    device_mobile = is_mobile_device()
+    is_mobile = mobile_param or device_mobile
+    
+    print(f"DEBUG: Главная страница - Параметр mobile=1: {mobile_param}, Устройство мобильное: {device_mobile}, Итоговое решение: {is_mobile}")
+    
+    if is_mobile:
+        print(f"DEBUG: Отображение мобильной страницы входа на главной")
+        return render_template('main/mobile_sign_in.html')
+    else:
+        print(f"DEBUG: Отображение десктопной страницы входа на главной")
+        return render_template('main/sign-in.html')
 
 from ..models.users import Users
 from ..models.activity_log import ActivityLog
