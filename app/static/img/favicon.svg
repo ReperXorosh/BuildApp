@@ -13,6 +13,8 @@
   <circle cx="16" cy="16" r="12" fill="white" opacity="0.95"/>
   
   <!-- Текст "СК" -->
-  <text x="16" y="19" font-family="Arial, sans-serif" font-size="9" font-weight="bold" 
-        text-anchor="middle" fill="#007bff" letter-spacing="1">СК</text>
+  <text x="12" y="19" font-family="Arial, sans-serif" font-size="9" font-weight="bold" 
+        text-anchor="middle" fill="#007bff">С</text>
+  <text x="20" y="19" font-family="Arial, sans-serif" font-size="9" font-weight="bold" 
+        text-anchor="middle" fill="#007bff">К</text>
 </svg>
