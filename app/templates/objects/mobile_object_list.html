@@ -59,7 +59,7 @@
         <div class="mobile-card-text">
             <strong>Всего объектов:</strong> {{ objects|length }}<br>
             <strong>Активных:</strong> {{ objects|selectattr('status', 'equalto', 'Активный')|list|length }}<br>
-            <strong>Всего отчётов:</strong> {{ objects|sum(attribute='reports')|length + objects|sum(attribute='daily_reports')|length }}
+            <strong>Всего отчётов:</strong> {{ objects|map(attribute='reports')|map('length')|sum + objects|map(attribute='daily_reports')|map('length')|sum }}
         </div>
     </div>
 </div>

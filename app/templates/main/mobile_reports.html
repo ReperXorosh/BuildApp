@@ -51,9 +51,9 @@
         <div class="mobile-card-title">Статистика отчётов</div>
         <div class="mobile-card-text">
             <strong>Всего объектов:</strong> {{ objects|length }}<br>
-            <strong>Всего отчётов:</strong> {{ objects|sum(attribute='reports')|length + objects|sum(attribute='daily_reports')|length }}<br>
-            <strong>Ручных отчётов:</strong> {{ objects|sum(attribute='reports')|length }}<br>
-            <strong>Ежедневных отчётов:</strong> {{ objects|sum(attribute='daily_reports')|length }}
+            <strong>Всего отчётов:</strong> {{ objects|map(attribute='reports')|map('length')|sum + objects|map(attribute='daily_reports')|map('length')|sum }}<br>
+            <strong>Ручных отчётов:</strong> {{ objects|map(attribute='reports')|map('length')|sum }}<br>
+            <strong>Ежедневных отчётов:</strong> {{ objects|map(attribute='daily_reports')|map('length')|sum }}
         </div>
     </div>
 </div>
