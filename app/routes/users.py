@@ -56,8 +56,8 @@ from werkzeug.security import check_password_hash
 @user.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        login = request.form['login']
-        password = request.form['password']
+        login = request.form['login'].strip()  # Удаляем пробелы в начале и конце
+        password = request.form['password'].strip()  # Удаляем пробелы в начале и конце
 
         user = Users.query.filter_by(login=login).first()
         # if user:

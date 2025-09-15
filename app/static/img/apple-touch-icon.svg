@@ -13,8 +13,8 @@
   <circle cx="90" cy="90" r="70" fill="white" opacity="0.95"/>
   
   <!-- Текст "СК" -->
-  <text x="90" y="110" font-family="Arial, sans-serif" font-size="48" font-weight="bold" 
-        text-anchor="middle" fill="#007bff">СК</text>
+  <text x="90" y="105" font-family="Arial, sans-serif" font-size="42" font-weight="bold" 
+        text-anchor="middle" fill="#007bff" letter-spacing="2">СК</text>
   
   <!-- Декоративные элементы -->
   <circle cx="50" cy="50" r="8" fill="white" opacity="0.3"/>

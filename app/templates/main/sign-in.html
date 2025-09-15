@@ -338,6 +338,58 @@
                 setTimeout(() => alertBox.remove(), 500);
             }
         }, 3000);
+        
+        // Автоматическое удаление лишних пробелов в полях ввода
+        const loginInput = document.getElementById('floatingInput');
+        const passwordInput = document.getElementById('floatingPassword');
+        
+        // Функция для удаления лишних пробелов
+        function trimSpaces(input) {
+            input.value = input.value.trim();
+        }
+        
+        // Удаляем пробелы при потере фокуса
+        if (loginInput) {
+            loginInput.addEventListener('blur', function() {
+                trimSpaces(this);
+            });
+            
+            // Также удаляем пробелы при вводе (в реальном времени)
+            loginInput.addEventListener('input', function() {
+                // Удаляем пробелы в начале и конце
+                if (this.value !== this.value.trim()) {
+                    this.value = this.value.trim();
+                }
+            });
+        }
+        
+        if (passwordInput) {
+            passwordInput.addEventListener('blur', function() {
+                trimSpaces(this);
+            });
+            
+            // Для пароля также удаляем пробелы при вводе
+            passwordInput.addEventListener('input', function() {
+                // Удаляем пробелы в начале и конце
+                if (this.value !== this.value.trim()) {
+                    this.value = this.value.trim();
+                }
+            });
+        }
+        
+        // Дополнительная проверка при отправке формы
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                // Удаляем пробелы перед отправкой
+                if (loginInput) {
+                    loginInput.value = loginInput.value.trim();
+                }
+                if (passwordInput) {
+                    passwordInput.value = passwordInput.value.trim();
+                }
+            });
+        }
     </script>
 </body>
 </html>
