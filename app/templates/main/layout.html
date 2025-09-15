@@ -33,6 +33,7 @@
     <meta name="msapplication-TileColor" content="#007bff">
     <meta name="theme-color" content="#007bff">
     <link href="/static/css/sidebars.css" rel="stylesheet">
+    <link href="/static/css/mobile.css" rel="stylesheet">
 
     <style>
         .bd-placeholder-img {
@@ -709,11 +710,86 @@
      </div>
     </div> <!--SIDEBAR ПЛАШКА-->
     <div class="divider vertical-rule"></div>
+    
+    <!-- Мобильный хедер -->
+    {% if is_mobile %}
+    <div class="mobile-header d-md-none">
+        <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <h1>{% block mobile_title %}{{ gettext('СтройКомплекс') }}{% endblock %}</h1>
+        <div></div> <!-- Пустой div для выравнивания -->
+    </div>
+    
+    <!-- Оверлей для мобильного меню -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+    {% endif %}
+    
     <div class="flex-grow-1 p-4">
         {% block content %}{% endblock %}
     </div>
 </main>
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/sidebars.js"></script>
+
+<!-- Мобильное меню JavaScript -->
+{% if is_mobile %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const mobileOverlay = document.getElementById('mobileOverlay');
+    const sidebar = document.querySelector('.d-flex.flex-column.flex-shrink-0');
+    
+    if (mobileMenuToggle && mobileOverlay && sidebar) {
+        // Открытие/закрытие мобильного меню
+        mobileMenuToggle.addEventListener('click', function() {
+            const isOpen = sidebar.classList.contains('mobile-sidebar-open');
+            
+            if (isOpen) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        });
+        
+        // Закрытие меню при клике на оверлей
+        mobileOverlay.addEventListener('click', function() {
+            closeMobileMenu();
+        });
+        
+        // Закрытие меню при клике на ссылку в меню
+        const menuLinks = sidebar.querySelectorAll('.nav-link');
+        menuLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                closeMobileMenu();
+            });
+        });
+        
+        // Закрытие меню при изменении размера экрана
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                closeMobileMenu();
+            }
+        });
+        
+        function openMobileMenu() {
+            sidebar.classList.add('mobile-sidebar-open');
+            mobileOverlay.classList.add('active');
+            mobileMenuToggle.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeMobileMenu() {
+            sidebar.classList.remove('mobile-sidebar-open');
+            mobileOverlay.classList.remove('active');
+            mobileMenuToggle.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+});
+</script>
+{% endif %}
 </body>
 </html>

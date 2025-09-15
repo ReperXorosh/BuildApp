@@ -1,0 +1,339 @@
+/* Мобильная адаптация для СтройКомплекс */
+
+/* Базовые переменные для мобильных устройств */
+:root {
+    --mobile-sidebar-width: 280px;
+    --mobile-header-height: 60px;
+    --mobile-touch-target: 44px;
+    --mobile-spacing: 16px;
+    --mobile-border-radius: 8px;
+}
+
+/* Общие стили для мобильных устройств */
+@media (max-width: 768px) {
+    
+    /* Основной layout */
+    body {
+        font-size: 16px; /* Предотвращает зум на iOS */
+        -webkit-text-size-adjust: 100%;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* Скрываем фиксированный сайдбар на мобильных */
+    .d-flex.flex-column.flex-shrink-0 {
+        position: fixed !important;
+        top: 0 !important;
+        left: -280px !important; /* Скрываем за экраном */
+        height: 100vh !important;
+        width: var(--mobile-sidebar-width) !important;
+        transition: left 0.3s ease-in-out !important;
+        z-index: 1050 !important;
+        background: white;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    }
+    
+    /* Показываем сайдбар при активации */
+    .d-flex.flex-column.flex-shrink-0.mobile-sidebar-open {
+        left: 0 !important;
+    }
+    
+    /* Основной контент на мобильных */
+    .flex-grow-1 {
+        margin-left: 0 !important;
+        width: 100% !important;
+        min-height: 100vh !important;
+        padding-top: var(--mobile-header-height) !important;
+    }
+    
+    /* Мобильный хедер */
+    .mobile-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: var(--mobile-header-height);
+        background: white;
+        border-bottom: 1px solid #dee2e6;
+        z-index: 1040;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 var(--mobile-spacing);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .mobile-header h1 {
+        font-size: 18px;
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    /* Кнопка гамбургер-меню */
+    .mobile-menu-toggle {
+        background: none;
+        border: none;
+        padding: 8px;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        width: 30px;
+        height: 30px;
+    }
+    
+    .mobile-menu-toggle span {
+        display: block;
+        height: 3px;
+        width: 100%;
+        background: #333;
+        border-radius: 2px;
+        transition: all 0.3s ease;
+    }
+    
+    .mobile-menu-toggle.active span:nth-child(1) {
+        transform: rotate(45deg) translate(6px, 6px);
+    }
+    
+    .mobile-menu-toggle.active span:nth-child(2) {
+        opacity: 0;
+    }
+    
+    .mobile-menu-toggle.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(6px, -6px);
+    }
+    
+    /* Оверлей для мобильного меню */
+    .mobile-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1045;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .mobile-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    /* Адаптация контейнеров */
+    .container-fluid {
+        padding-left: var(--mobile-spacing) !important;
+        padding-right: var(--mobile-spacing) !important;
+    }
+    
+    /* Карточки на мобильных */
+    .card {
+        margin-bottom: var(--mobile-spacing);
+        border-radius: var(--mobile-border-radius);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .card-body {
+        padding: var(--mobile-spacing);
+    }
+    
+    /* Кнопки на мобильных */
+    .btn {
+        min-height: var(--mobile-touch-target);
+        padding: 12px 16px;
+        font-size: 16px;
+        border-radius: var(--mobile-border-radius);
+        touch-action: manipulation;
+    }
+    
+    .btn-sm {
+        min-height: 36px;
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+    
+    /* Формы на мобильных */
+    .form-control {
+        min-height: var(--mobile-touch-target);
+        font-size: 16px; /* Предотвращает зум на iOS */
+        border-radius: var(--mobile-border-radius);
+    }
+    
+    .form-floating > .form-control {
+        padding-top: 1.625rem;
+        padding-bottom: 0.625rem;
+    }
+    
+    .form-floating > label {
+        padding: 1rem 0.75rem;
+    }
+    
+    /* Таблицы на мобильных */
+    .table-responsive {
+        border-radius: var(--mobile-border-radius);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .table {
+        font-size: 14px;
+    }
+    
+    .table th,
+    .table td {
+        padding: 12px 8px;
+        vertical-align: middle;
+    }
+    
+    /* Навигация на мобильных */
+    .nav-link {
+        padding: 12px 16px;
+        min-height: var(--mobile-touch-target);
+        display: flex;
+        align-items: center;
+    }
+    
+    /* Модальные окна на мобильных */
+    .modal-dialog {
+        margin: var(--mobile-spacing);
+        max-width: calc(100% - 32px);
+    }
+    
+    .modal-content {
+        border-radius: var(--mobile-border-radius);
+    }
+    
+    .modal-header {
+        padding: var(--mobile-spacing);
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .modal-body {
+        padding: var(--mobile-spacing);
+    }
+    
+    .modal-footer {
+        padding: var(--mobile-spacing);
+        border-top: 1px solid #dee2e6;
+    }
+    
+    /* Алерты на мобильных */
+    .alert {
+        border-radius: var(--mobile-border-radius);
+        padding: var(--mobile-spacing);
+        margin-bottom: var(--mobile-spacing);
+    }
+    
+    /* Списки на мобильных */
+    .list-group-item {
+        padding: 16px;
+        border-radius: var(--mobile-border-radius);
+        margin-bottom: 8px;
+    }
+    
+    /* Утилиты для мобильных */
+    .mobile-hidden {
+        display: none !important;
+    }
+    
+    .mobile-visible {
+        display: block !important;
+    }
+    
+    /* Адаптивная типографика */
+    h1 { font-size: 24px; }
+    h2 { font-size: 20px; }
+    h3 { font-size: 18px; }
+    h4 { font-size: 16px; }
+    h5 { font-size: 14px; }
+    h6 { font-size: 12px; }
+    
+    /* Улучшенная прокрутка на мобильных */
+    .mobile-scroll {
+        -webkit-overflow-scrolling: touch;
+        overflow-scrolling: touch;
+    }
+    
+    /* Скрытие элементов на мобильных */
+    .d-none.d-md-block {
+        display: none !important;
+    }
+    
+    .d-md-none {
+        display: block !important;
+    }
+}
+
+/* Стили для планшетов */
+@media (min-width: 769px) and (max-width: 1024px) {
+    
+    .flex-grow-1 {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+    
+    .d-flex.flex-column.flex-shrink-0 {
+        position: relative !important;
+        left: 0 !important;
+        height: auto !important;
+    }
+    
+    .container-fluid {
+        padding-left: 24px !important;
+        padding-right: 24px !important;
+    }
+}
+
+/* Стили для touch-устройств */
+@media (hover: none) and (pointer: coarse) {
+    
+    /* Увеличиваем области нажатия */
+    .btn, .nav-link, .dropdown-toggle {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Убираем hover-эффекты */
+    .btn:hover,
+    .nav-link:hover,
+    .card:hover {
+        transform: none;
+        box-shadow: inherit;
+    }
+    
+    /* Добавляем активные состояния */
+    .btn:active {
+        transform: scale(0.98);
+    }
+    
+    .nav-link:active {
+        background-color: rgba(0,0,0,0.1);
+    }
+}
+
+/* Специальные стили для iOS */
+@supports (-webkit-touch-callout: none) {
+    
+    .form-control {
+        font-size: 16px; /* Предотвращает зум */
+    }
+    
+    .btn {
+        -webkit-appearance: none;
+        border-radius: var(--mobile-border-radius);
+    }
+    
+    /* Исправление для iOS Safari */
+    .modal {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Специальные стили для Android */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    
+    .form-control:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
+    }
+}

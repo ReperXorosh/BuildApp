@@ -54,6 +54,25 @@ def inject_gettext():
     """Делает функцию gettext доступной в шаблонах"""
     return dict(gettext=gettext)
 
+@main.context_processor
+def inject_device_info():
+    """Добавляет информацию об устройстве в контекст шаблонов"""
+    from ..utils.mobile_detection import (
+        is_mobile_device, 
+        is_tablet_device, 
+        get_device_type, 
+        get_screen_size_category,
+        is_touch_device
+    )
+    
+    return {
+        'is_mobile': is_mobile_device(),
+        'is_tablet': is_tablet_device(),
+        'device_type': get_device_type(),
+        'screen_size': get_screen_size_category(),
+        'is_touch': is_touch_device()
+    }
+
 @main.route('/language/<language>')
 def set_language(language):
     session['language'] = language
