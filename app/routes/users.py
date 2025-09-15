@@ -93,14 +93,18 @@ def login():
             )
             # Определяем, нужно ли использовать мобильный шаблон
             from ..utils.mobile_detection import is_mobile_device
-            if is_mobile_device():
+            # Проверяем параметр mobile=1 или определяем по User-Agent
+            is_mobile = request.args.get('mobile') == '1' or is_mobile_device()
+            if is_mobile:
                 return render_template('main/mobile_sign_in.html', error=gettext("Неверный логин или пароль"))
             else:
                 return render_template('main/sign-in.html', error=gettext("Неверный логин или пароль"))
 
     # Определяем, нужно ли использовать мобильный шаблон
     from ..utils.mobile_detection import is_mobile_device
-    if is_mobile_device():
+    # Проверяем параметр mobile=1 или определяем по User-Agent
+    is_mobile = request.args.get('mobile') == '1' or is_mobile_device()
+    if is_mobile:
         return render_template('main/mobile_sign_in.html')
     else:
         return render_template('main/sign-in.html')
@@ -122,7 +126,13 @@ def logout():
             method=request.method
         )
     logout_user()
-    return redirect(url_for('user.login'))
+    
+    # Определяем, нужно ли использовать мобильный шаблон для перенаправления
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return redirect(url_for('user.login') + '?mobile=1')
+    else:
+        return redirect(url_for('user.login'))
 
 @user.route('/set-timezone', methods=['POST'])
 @login_required
