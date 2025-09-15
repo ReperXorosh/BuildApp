@@ -113,25 +113,16 @@
             min-height: 100vh !important;
         }
         
-        /* Специальные стили для мобильного приложения */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f8f9fa;
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-        }
-        
-        /* Мобильный контейнер */
+        /* Мобильный контейнер - используем стандартные Bootstrap классы */
         .mobile-app {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
         
-        /* Мобильный хедер */
+        /* Мобильный хедер - сохраняем стили десктопа */
         .mobile-header {
-            background: linear-gradient(135deg, #007bff, #0056b3);
+            background: var(--bs-primary);
             color: white;
             padding: 16px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -177,14 +168,14 @@
             padding-bottom: 80px; /* Отступ для нижней навигации */
         }
         
-        /* Мобильные карточки */
+        /* Мобильные карточки - используем Bootstrap стили */
         .mobile-card {
-            background: white;
+            background: var(--bs-body-bg);
             border-radius: 12px;
             padding: 16px;
             margin-bottom: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border: none;
+            border: 1px solid var(--bs-border-color);
             transition: all 0.2s ease;
         }
         
@@ -197,17 +188,17 @@
             font-size: 16px;
             font-weight: 600;
             margin: 0 0 8px 0;
-            color: #333;
+            color: var(--bs-body-color);
         }
         
         .mobile-card-text {
             font-size: 14px;
-            color: #666;
+            color: var(--bs-secondary-color);
             margin: 0;
             line-height: 1.4;
         }
         
-        /* Мобильные кнопки */
+        /* Мобильные кнопки - используем Bootstrap стили */
         .mobile-btn {
             width: 100%;
             padding: 16px;
@@ -221,63 +212,34 @@
         }
         
         .mobile-btn-primary {
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
+            background: var(--bs-primary);
+            color: var(--bs-primary-text);
         }
         
         .mobile-btn-primary:active {
-            background: linear-gradient(135deg, #0056b3, #004085);
+            background: var(--bs-primary-bg-subtle);
             transform: scale(0.98);
         }
         
         .mobile-btn-secondary {
-            background: #6c757d;
-            color: white;
+            background: var(--bs-secondary);
+            color: var(--bs-secondary-text);
         }
         
         .mobile-btn-secondary:active {
-            background: #5a6268;
+            background: var(--bs-secondary-bg-subtle);
             transform: scale(0.98);
         }
         
         .mobile-btn-outline {
-            background: white;
-            color: #007bff;
-            border: 2px solid #007bff;
+            background: var(--bs-body-bg);
+            color: var(--bs-primary);
+            border: 2px solid var(--bs-primary);
         }
         
         .mobile-btn-outline:active {
-            background: #f8f9fa;
+            background: var(--bs-body-bg);
             transform: scale(0.98);
-        }
-        
-        /* Мобильные формы */
-        .mobile-form-group {
-            margin-bottom: 16px;
-        }
-        
-        .mobile-form-label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-        }
-        
-        .mobile-form-control {
-            width: 100%;
-            padding: 16px;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            font-size: 16px;
-            background: white;
-            transition: border-color 0.2s ease;
-        }
-        
-        .mobile-form-control:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
         }
         
         /* Мобильная навигация */
@@ -286,8 +248,8 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: white;
-            border-top: 1px solid #e9ecef;
+            background: var(--bs-body-bg);
+            border-top: 1px solid var(--bs-border-color);
             padding: 8px 0;
             z-index: 1000;
             display: flex;
@@ -301,13 +263,13 @@
             align-items: center;
             padding: 8px 12px;
             text-decoration: none;
-            color: #6c757d;
+            color: var(--bs-secondary-color);
             transition: color 0.2s ease;
             min-width: 60px;
         }
         
         .mobile-nav-item.active {
-            color: #007bff;
+            color: var(--bs-primary);
         }
         
         .mobile-nav-icon {
@@ -328,7 +290,7 @@
             left: -280px;
             width: 280px;
             height: 100vh;
-            background: white;
+            background: var(--bs-body-bg);
             z-index: 1050;
             transition: left 0.3s ease;
             box-shadow: 2px 0 10px rgba(0,0,0,0.1);
@@ -358,7 +320,7 @@
         }
         
         .mobile-menu-header {
-            background: linear-gradient(135deg, #007bff, #0056b3);
+            background: var(--bs-primary);
             color: white;
             padding: 20px 16px;
             display: flex;
@@ -389,107 +351,51 @@
         .mobile-menu-item {
             display: block;
             padding: 16px 20px;
-            color: #333;
+            color: var(--bs-body-color);
             text-decoration: none;
-            border-bottom: 1px solid #f8f9fa;
+            border-bottom: 1px solid var(--bs-border-color);
             transition: background-color 0.2s ease;
         }
         
         .mobile-menu-item:active {
-            background-color: #f8f9fa;
+            background-color: var(--bs-secondary-bg);
         }
         
         .mobile-menu-item.active {
-            background-color: #e3f2fd;
-            color: #007bff;
-            border-left: 4px solid #007bff;
+            background-color: var(--bs-primary-bg-subtle);
+            color: var(--bs-primary);
+            border-left: 4px solid var(--bs-primary);
         }
         
-        /* Мобильные таблицы */
-        .mobile-table {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .mobile-table-item {
-            padding: 16px;
-            border-bottom: 1px solid #f8f9fa;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .mobile-table-item:last-child {
-            border-bottom: none;
-        }
-        
-        .mobile-table-item:active {
-            background-color: #f8f9fa;
-        }
-        
-        /* Мобильные алерты */
-        .mobile-alert {
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 16px;
-            border: none;
-        }
-        
-        .mobile-alert-success {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .mobile-alert-danger {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .mobile-alert-warning {
-            background: #fff3cd;
-            color: #856404;
-        }
-        
-        .mobile-alert-info {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-        
-        /* Утилиты */
-        .mobile-text-center { text-align: center; }
-        .mobile-text-muted { color: #6c757d; }
-        .mobile-mb-0 { margin-bottom: 0; }
-        .mobile-mb-1 { margin-bottom: 8px; }
-        .mobile-mb-2 { margin-bottom: 16px; }
-        .mobile-mb-3 { margin-bottom: 24px; }
-        .mobile-mt-1 { margin-top: 8px; }
-        .mobile-mt-2 { margin-top: 16px; }
-        .mobile-mt-3 { margin-top: 24px; }
-        
-        /* Анимации */
-        @keyframes slideInUp {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-        
-        .mobile-card {
-            animation: slideInUp 0.3s ease;
-        }
-        
-        /* Скрытие элементов на мобильных */
-        .desktop-only {
+        /* Утилиты для мобильных */
+        .mobile-hidden {
             display: none !important;
         }
         
-        .mobile-only {
+        .mobile-visible {
+            display: block !important;
+        }
+        
+        /* Адаптивная типографика */
+        h1 { font-size: 24px; }
+        h2 { font-size: 20px; }
+        h3 { font-size: 18px; }
+        h4 { font-size: 16px; }
+        h5 { font-size: 14px; }
+        h6 { font-size: 12px; }
+        
+        /* Улучшенная прокрутка на мобильных */
+        .mobile-scroll {
+            -webkit-overflow-scrolling: touch;
+            overflow-scrolling: touch;
+        }
+        
+        /* Скрытие элементов на мобильных */
+        .d-none.d-md-block {
+            display: none !important;
+        }
+        
+        .d-md-none {
             display: block !important;
         }
     </style>
@@ -582,7 +488,7 @@
             <a href="{{ url_for('main.profile') }}" class="mobile-menu-item {{ 'active' if active_page == 'profile' else '' }}">
                 {{ gettext('Профиль') }}
             </a>
-            <hr style="margin: 16px 0; border: none; border-top: 1px solid #e9ecef;">
+            <hr style="margin: 16px 0; border: none; border-top: 1px solid var(--bs-border-color);">
             <a href="{{ url_for('user.logout') }}" class="mobile-menu-item">
                 {{ gettext('Выйти') }}
             </a>
