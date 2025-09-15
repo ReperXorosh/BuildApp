@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
@@ -8,299 +8,388 @@
     
     <!-- Bootstrap CSS -->
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/sign-in.css" rel="stylesheet">
     
-    <!-- Apple Touch Icon -->
-    <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.svg" sizes="180x180">
-    <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+    <!-- Favicons -->
+    <link rel="icon" href="/static/img/favicons/favicon-32x32.png" sizes="32x32" type="image/png">
+    <link rel="icon" href="/static/img/favicons/favicon-16x16.png" sizes="16x16" type="image/png">
+    <link rel="manifest" href="/static/img/favicons/manifest.json">
+    <link rel="icon" href="/static/img/bootstrap-logo.svg" type="image/svg+xml">
     
-    <!-- PWA Meta Tags -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="СтройКомплекс">
-    <meta name="theme-color" content="#007bff">
-    
+    <!-- Custom styles -->
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            margin: 0;
-            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         
-        .mobile-login-container {
-            width: 100%;
-            max-width: 400px;
-            padding: 20px;
+        [data-bs-theme="dark"] body {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
         }
         
-        .mobile-login-card {
-            background: white;
-            border-radius: 20px;
-            padding: 40px 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        
-        .mobile-logo {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 30px;
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 32px;
-            font-weight: bold;
-        }
-        
-        .mobile-login-title {
-            font-size: 24px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 10px;
-        }
-        
-        .mobile-login-subtitle {
-            font-size: 16px;
-            color: #666;
-            margin-bottom: 30px;
-        }
-        
-        .mobile-form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        
-        .mobile-form-label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-        }
-        
-        .mobile-form-control {
-            width: 100%;
-            padding: 16px;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            font-size: 16px;
-            background: white;
-            transition: border-color 0.2s ease;
-            box-sizing: border-box;
-        }
-        
-        .mobile-form-control:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
-        }
-        
-        .mobile-btn {
-            width: 100%;
-            padding: 16px;
-            border-radius: 12px;
-            border: none;
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            transition: all 0.2s ease;
-            min-height: 48px;
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
-        }
-        
-        .mobile-btn:active {
-            background: linear-gradient(135deg, #0056b3, #004085);
-            transform: scale(0.98);
-        }
-        
-        .mobile-alert {
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border: none;
-            text-align: left;
-        }
-        
-        .mobile-alert-danger {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .mobile-copyright {
-            font-size: 12px;
-            color: rgba(255,255,255,0.8);
-            text-align: center;
-            margin-top: 20px;
-        }
-        
-        .mobile-theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            max-width: 400px;
+            width: 100%;
+            margin: 1rem;
         }
         
-        .mobile-theme-toggle:active {
-            background: rgba(255,255,255,0.3);
-            transform: scale(0.95);
+        [data-bs-theme="dark"] .login-container {
+            background: rgba(248, 249, 250, 0.95);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        
+        .logo-container {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo-container img {
+            max-width: 200px;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            filter: contrast(1.1) brightness(1.05);
+        }
+        
+        .form-signin {
+            max-width: 100%;
+            padding: 0;
+        }
+        
+        .form-signin h1 {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .form-floating {
+            margin-bottom: 1rem;
+        }
+        
+        .form-floating label {
+            color: #6c757d;
+        }
+        
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+            background-color: #fff !important;
+            color: #000 !important;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            background-color: #fff !important;
+            color: #000 !important;
+        }
+        
+        /* Ensure text color stays black in all themes */
+        [data-bs-theme="dark"] .form-control {
+            background-color: #fff !important;
+            color: #000 !important;
+        }
+        
+        [data-bs-theme="dark"] .form-control:focus {
+            background-color: #fff !important;
+            color: #000 !important;
+        }
+        
+        /* Override any Bootstrap theme styles */
+        .form-control,
+        .form-control:focus,
+        .form-control:active,
+        .form-control:hover,
+        [data-bs-theme="dark"] .form-control,
+        [data-bs-theme="dark"] .form-control:focus,
+        [data-bs-theme="dark"] .form-control:active,
+        [data-bs-theme="dark"] .form-control:hover {
+            color: #000 !important;
+            background-color: #fff !important;
+        }
+        
+        /* Target specific input types */
+        input[type="text"].form-control,
+        input[type="password"].form-control,
+        input[type="text"].form-control:focus,
+        input[type="password"].form-control:focus {
+            color: #000 !important;
+            background-color: #fff !important;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        [data-bs-theme="dark"] .btn-primary {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+        }
+        
+        [data-bs-theme="dark"] .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 85, 104, 0.4);
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+        }
+        
+        .copyright {
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.875rem;
+            margin-top: 2rem;
+        }
+        
+        .theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+        }
+        
+        .theme-toggle .btn {
+            border-radius: 50px;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle .btn:hover {
+            background: rgba(255, 255, 255, 1);
+            border-color: rgba(0, 0, 0, 0.3);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        .theme-toggle .btn svg {
+            color: #333;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+        }
+        
+        /* Специальные стили для темной темы */
+        [data-bs-theme="dark"] .theme-toggle .btn {
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        [data-bs-theme="dark"] .theme-toggle .btn:hover {
+            background: rgba(255, 255, 255, 1);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        }
+        
+        [data-bs-theme="dark"] .theme-toggle .btn svg {
+            color: #000;
+            filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2));
+        }
+        
+        @media (max-width: 576px) {
+            .login-container {
+                margin: 1rem;
+                padding: 2rem;
+            }
+            
+            .logo-container img {
+                max-width: 170px;
+            }
+        }
+        
+        .fade-alert {
+            transition: opacity 0.5s ease-out, max-height 0.5s ease-out, margin 0.5s ease-out;
+            opacity: 1;
+            max-height: 200px;
+            overflow: hidden;
+        }
+        
+        .fade-alert.hide {
+            opacity: 0;
+            max-height: 0;
+            margin: 0;
         }
     </style>
 </head>
 <body>
     <!-- Theme Toggle -->
-    <button class="mobile-theme-toggle" id="themeToggle" type="button">
-        <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16" id="themeIcon">
-            <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
-        </svg>
-    </button>
+    <div class="theme-toggle">
+        <button class="btn btn-sm" id="theme-toggle" type="button">
+            <svg width="16" height="16" fill="currentColor" class="bi bi-moon-stars-fill">
+                <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+                <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+            </svg>
+        </button>
+    </div>
 
-    <div class="mobile-login-container">
-        <div class="mobile-login-card">
-            <div class="mobile-logo">СК</div>
-            <h1 class="mobile-login-title">{{ gettext('Вход в систему') }}</h1>
-            <p class="mobile-login-subtitle">{{ gettext('СтройКомплекс') }}</p>
-            
+    <div class="login-container">
+        <div class="logo-container">
+            <img src="/static/img/logo.jpg" alt="Logo" class="mb-3">
+        </div>
+        
+        <main class="form-signin">
             <form method="POST" action="{{ url_for('user.login') }}">
-                <div class="mobile-form-group">
-                    <label for="login" class="mobile-form-label">{{ gettext('Логин') }}</label>
-                    <input type="text" class="mobile-form-control" id="login" name="login" 
-                           placeholder="{{ gettext('Введите логин') }}" required>
+                <h1 class="h3 mb-4 fw-normal">{{ gettext('Войдите в аккаунт') }}</h1>
+
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="floatingInput" name="login" placeholder="{{ gettext('Логин') }}" required>
+                    <label for="floatingInput">{{ gettext('Логин') }}</label>
                 </div>
                 
-                <div class="mobile-form-group">
-                    <label for="password" class="mobile-form-label">{{ gettext('Пароль') }}</label>
-                    <input type="password" class="mobile-form-control" id="password" name="password" 
-                           placeholder="{{ gettext('Введите пароль') }}" required>
+                <div class="form-floating mb-4">
+                    <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="{{ gettext('Пароль') }}" required>
+                    <label for="floatingPassword">{{ gettext('Пароль') }}</label>
                 </div>
 
                 {% if error %}
-                <div class="mobile-alert mobile-alert-danger">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 8px;">
+                <div class="alert alert-danger fade-alert mb-3" role="alert" id="error-alert">
+                    <svg width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle-fill me-2">
                         <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
                     </svg>
                     {{ error }}
                 </div>
                 {% endif %}
                 
-                <button class="mobile-btn" type="submit">
-                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 8px;">
+                <button class="btn btn-primary w-100 py-3" type="submit">
+                    <svg width="16" height="16" fill="currentColor" class="bi bi-box-arrow-in-right me-2">
                         <path fill-rule="evenodd" d="M6 3.5a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 0-1 0v2A1.5 1.5 0 0 0 6.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-8A1.5 1.5 0 0 0 5 3.5v2a.5.5 0 0 0 1 0v-2z"/>
                         <path fill-rule="evenodd" d="M11.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H1.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
                     </svg>
                     {{ gettext('Войти') }}
                 </button>
+
+                <p class="copyright">&copy; 2024–2025 {{ gettext('Все права защищены') }}</p>
             </form>
-        </div>
-        
-        <p class="mobile-copyright">&copy; 2024–2025 {{ gettext('Все права защищены') }}</p>
+        </main>
     </div>
 
     <!-- Bootstrap JS -->
     <script src="/static/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Theme Toggle JavaScript -->
+    <!-- Custom Scripts -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const themeToggle = document.getElementById('themeToggle');
-            const themeIcon = document.getElementById('themeIcon');
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const icon = themeToggle.querySelector('svg');
+        
+        // Check for saved theme preference or default to 'auto'
+        const currentTheme = localStorage.getItem('theme') || 'auto';
+        document.documentElement.setAttribute('data-bs-theme', currentTheme);
+        
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+            let newTheme = 'light';
             
-            // Check for saved theme preference or default to 'light'
-            const currentTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-bs-theme', currentTheme);
-            
-            // Update icon based on current theme
-            updateThemeIcon(currentTheme);
-            
-            function updateThemeIcon(theme) {
-                if (theme === 'dark') {
-                    themeIcon.innerHTML = '<path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>';
-                } else {
-                    themeIcon.innerHTML = '<path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>';
-                }
+            if (currentTheme === 'light') {
+                newTheme = 'dark';
+                // Moon icon for dark mode (более контрастная)
+                icon.innerHTML = '<path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>';
+            } else {
+                newTheme = 'light';
+                // Sun icon for light mode (более контрастная)
+                icon.innerHTML = '<path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/><path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>';
             }
             
-            themeToggle.addEventListener('click', function() {
-                const currentTheme = document.documentElement.getAttribute('data-bs-theme');
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                
-                document.documentElement.setAttribute('data-bs-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
-                
-                // Update icon
-                updateThemeIcon(newTheme);
-            });
+            document.documentElement.setAttribute('data-bs-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
         });
         
+        // Set initial icon based on theme
+        if (currentTheme === 'dark') {
+            icon.innerHTML = '<path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>';
+        }
+        
+        // Error alert auto-hide
+        setTimeout(function() {
+            let alertBox = document.getElementById('error-alert');
+            if (alertBox) {
+                alertBox.classList.add('hide');
+                setTimeout(() => alertBox.remove(), 500);
+            }
+        }, 3000);
+        
         // Автоматическое удаление лишних пробелов в полях ввода
-        document.addEventListener('DOMContentLoaded', function() {
-            const loginInput = document.getElementById('login');
-            const passwordInput = document.getElementById('password');
+        const loginInput = document.getElementById('floatingInput');
+        const passwordInput = document.getElementById('floatingPassword');
+        
+        // Функция для удаления лишних пробелов
+        function trimSpaces(input) {
+            input.value = input.value.trim();
+        }
+        
+        // Удаляем пробелы при потере фокуса
+        if (loginInput) {
+            loginInput.addEventListener('blur', function() {
+                trimSpaces(this);
+            });
             
-            // Функция для удаления лишних пробелов
-            function trimSpaces(input) {
-                input.value = input.value.trim();
-            }
+            // Также удаляем пробелы при вводе (в реальном времени)
+            loginInput.addEventListener('input', function() {
+                // Удаляем пробелы в начале и конце
+                if (this.value !== this.value.trim()) {
+                    this.value = this.value.trim();
+                }
+            });
+        }
+        
+        if (passwordInput) {
+            passwordInput.addEventListener('blur', function() {
+                trimSpaces(this);
+            });
             
-            // Удаляем пробелы при потере фокуса
-            if (loginInput) {
-                loginInput.addEventListener('blur', function() {
-                    trimSpaces(this);
-                });
-                
-                // Также удаляем пробелы при вводе (в реальном времени)
-                loginInput.addEventListener('input', function() {
-                    // Удаляем пробелы в начале и конце
-                    if (this.value !== this.value.trim()) {
-                        this.value = this.value.trim();
-                    }
-                });
-            }
-            
-            if (passwordInput) {
-                passwordInput.addEventListener('blur', function() {
-                    trimSpaces(this);
-                });
-                
-                // Для пароля также удаляем пробелы при вводе
-                passwordInput.addEventListener('input', function() {
-                    // Удаляем пробелы в начале и конце
-                    if (this.value !== this.value.trim()) {
-                        this.value = this.value.trim();
-                    }
-                });
-            }
-            
-            // Дополнительная проверка при отправке формы
-            const form = document.querySelector('form');
-            if (form) {
-                form.addEventListener('submit', function(e) {
-                    // Удаляем пробелы перед отправкой
-                    if (loginInput) {
-                        loginInput.value = loginInput.value.trim();
-                    }
-                    if (passwordInput) {
-                        passwordInput.value = passwordInput.value.trim();
-                    }
-                });
-            }
-        });
+            // Для пароля также удаляем пробелы при вводе
+            passwordInput.addEventListener('input', function() {
+                // Удаляем пробелы в начале и конце
+                if (this.value !== this.value.trim()) {
+                    this.value = this.value.trim();
+                }
+            });
+        }
+        
+        // Дополнительная проверка при отправке формы
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                // Удаляем пробелы перед отправкой
+                if (loginInput) {
+                    loginInput.value = loginInput.value.trim();
+                }
+                if (passwordInput) {
+                    passwordInput.value = passwordInput.value.trim();
+                }
+            });
+        }
     </script>
 </body>
 </html>
