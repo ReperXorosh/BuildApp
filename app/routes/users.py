@@ -103,14 +103,25 @@ def login():
     # Определяем, нужно ли использовать мобильный шаблон
     from ..utils.mobile_detection import is_mobile_device
     # Проверяем параметр mobile=1 или определяем по User-Agent
-    is_mobile = request.args.get('mobile') == '1' or is_mobile_device()
+    mobile_param = request.args.get('mobile') == '1'
+    device_mobile = is_mobile_device()
+    is_mobile = mobile_param or device_mobile
+    
+    print(f"DEBUG: Параметр mobile=1: {mobile_param}, Устройство мобильное: {device_mobile}, Итоговое решение: {is_mobile}")
+    
     if is_mobile:
+        print(f"DEBUG: Отображение мобильной страницы входа")
         return render_template('main/mobile_sign_in.html')
     else:
+        print(f"DEBUG: Отображение десктопной страницы входа")
         return render_template('main/sign-in.html')
 
 @user.route('/logout')
 def logout():
+    # Определяем мобильное устройство ДО выхода из системы
+    from ..utils.mobile_detection import is_mobile_device
+    is_mobile = is_mobile_device()
+    
     # Логируем выход из системы
     if current_user.is_authenticated:
         # Отмечаем пользователя как не в сети
@@ -120,18 +131,19 @@ def logout():
             user_id=current_user.userid,
             user_login=current_user.login,
             action="Выход из системы",
-            description=f"Пользователь {current_user.login} вышел из системы",
+            description=f"Пользователь {current_user.login} вышел из системы (мобильное устройство: {is_mobile})",
             ip_address=request.remote_addr,
             page_url=request.url,
             method=request.method
         )
     logout_user()
     
-    # Определяем, нужно ли использовать мобильный шаблон для перенаправления
-    from ..utils.mobile_detection import is_mobile_device
-    if is_mobile_device():
+    # Перенаправляем на правильную страницу входа
+    if is_mobile:
+        print(f"DEBUG: Перенаправление на мобильную страницу входа")
         return redirect(url_for('user.login') + '?mobile=1')
     else:
+        print(f"DEBUG: Перенаправление на десктопную страницу входа")
         return redirect(url_for('user.login'))
 
 @user.route('/set-timezone', methods=['POST'])

@@ -25,6 +25,19 @@ def create_app():
     # login_manager.login_message = 'Пожалуйста, войдите в систему для доступа к этой странице.'
     # login_manager.login_message_category = 'info'
     
+    # Кастомный обработчик для перенаправления на страницу входа
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        """Обработчик для неавторизованных пользователей"""
+        from flask import redirect, url_for
+        from .utils.mobile_detection import is_mobile_device
+        
+        # Определяем мобильное устройство
+        if is_mobile_device():
+            return redirect(url_for('user.login') + '?mobile=1')
+        else:
+            return redirect(url_for('user.login'))
+    
     from .routes.main import main
     from .routes.users import user
     from .routes.activity_log import activity_log
