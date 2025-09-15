@@ -7,12 +7,11 @@ load_dotenv('.env')
 application = create_app()
 
 if __name__ == '__main__':
-    # Оптимизированные настройки для быстрого запуска
+    # Production настройки
     application.run(
-        debug=True, 
+        debug=False, 
         host='0.0.0.0', 
         port=5000,
-        use_reloader=True,
         threaded=True,
-        processes=1  # Один процесс для разработки
+        processes=4  # Несколько процессов для production
     )

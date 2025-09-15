@@ -5,12 +5,20 @@ import pytz
 from flask import Flask, request, session
 from .extensions import db, login_manager, migrate
 from .config import Config
-from .utils.timezone_utils import format_moscow_time
-from .utils.scheduler import scheduler
 
-def create_app():
+def create_app(config_class=None):
     app = Flask(__name__)
-    app.config.from_object(Config)
+    
+    # Выбираем конфигурацию в зависимости от режима
+    if config_class is None:
+        # Автоматически определяем конфигурацию
+        if os.environ.get('FLASK_ENV') == 'development' or os.environ.get('FLASK_DEBUG') == '1':
+            from .config_dev import DevelopmentConfig
+            config_class = DevelopmentConfig
+        else:
+            config_class = Config
+    
+    app.config.from_object(config_class)
     
     # Настройка для работы за прокси
     from werkzeug.middleware.proxy_fix import ProxyFix
@@ -50,16 +58,23 @@ def create_app():
     app.register_blueprint(supply, url_prefix='/supply')
     app.register_blueprint(objects_bp, url_prefix='/objects')
     
-    # Инициализация планировщика задач
-    scheduler.init_app(app)
+    # Инициализация планировщика задач (только в production)
+    if not app.debug:
+        from .utils.scheduler import scheduler
+        scheduler.init_app(app)
     
-    # Отладочная информация о зарегистрированных маршрутах
-    print("DEBUG: Зарегистрированные маршруты objects_bp:")
-    for rule in app.url_map.iter_rules():
-        if rule.endpoint.startswith('objects.'):
-            print(f"  {rule.rule} -> {rule.endpoint}")
+    # Регистрируем фильтры и контекстные процессоры
+    _register_template_filters(app)
+    _register_context_processors(app)
     
-    # Регистрируем фильтры для московского времени
+    return app
+
+
+def _register_template_filters(app):
+    """Регистрирует все фильтры шаблонов"""
+    from .utils.timezone_utils import format_moscow_time, format_user_time, to_moscow_time, get_moscow_now, to_user_time, get_user_now
+    import json
+    
     @app.template_filter('moscow_time')
     def moscow_time_filter(dt):
         """Фильтр для отображения времени в московском часовом поясе"""
@@ -81,10 +96,8 @@ def create_app():
         if dt is None:
             return 'Не указано'
         
-        from app.utils.timezone_utils import to_moscow_time, get_moscow_now
         moscow_time = to_moscow_time(dt)
         now = get_moscow_now()
-        
         diff = now - moscow_time
         
         if diff.days > 0:
@@ -98,23 +111,19 @@ def create_app():
         else:
             return "Только что"
     
-    # Новые фильтры для работы с часовым поясом пользователя
     @app.template_filter('user_time')
     def user_time_filter(dt):
         """Фильтр для отображения времени в часовом поясе пользователя"""
-        from app.utils.timezone_utils import format_user_time
         return format_user_time(dt)
     
     @app.template_filter('user_date')
     def user_date_filter(dt):
         """Фильтр для отображения только даты в часовом поясе пользователя"""
-        from app.utils.timezone_utils import format_user_time
         return format_user_time(dt, '%d.%m.%Y')
     
     @app.template_filter('user_time_short')
     def user_time_short_filter(dt):
         """Фильтр для отображения времени без секунд в часовом поясе пользователя"""
-        from app.utils.timezone_utils import format_user_time
         return format_user_time(dt, '%d.%m.%Y %H:%M')
     
     @app.template_filter('user_time_relative')
@@ -123,10 +132,8 @@ def create_app():
         if dt is None:
             return 'Не указано'
         
-        from app.utils.timezone_utils import to_user_time, get_user_now
         user_time = to_user_time(dt)
         now = get_user_now()
-        
         diff = now - user_time
         
         if diff.days > 0:
@@ -143,25 +150,25 @@ def create_app():
     @app.template_filter('from_json')
     def from_json_filter(json_string):
         """Фильтр для парсинга JSON строки"""
-        import json
         if json_string:
             try:
                 return json.loads(json_string)
             except (json.JSONDecodeError, TypeError):
                 return []
         return []
+
+
+def _register_context_processors(app):
+    """Регистрирует контекстные процессоры"""
+    from .utils.timezone_utils import get_moscow_now, get_user_now, get_user_timezone
     
-    # Контекстный процессор для автоматического добавления времени
     @app.context_processor
     def inject_time_info():
         """Добавляет информацию о времени в контекст всех шаблонов"""
-        from app.utils.timezone_utils import get_moscow_now, get_user_now, get_user_timezone
         return {
             'moscow_now': get_moscow_now(),
             'moscow_timezone': 'Europe/Moscow',
             'user_now': get_user_now(),
             'user_timezone': get_user_timezone()
         }
-    
-    return app
 

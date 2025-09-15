@@ -40,3 +40,10 @@ class Config(object):
     
     # Максимальный размер загружаемого файла (5 МБ)
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024
+    
+    # Оптимизации для разработки
+    TEMPLATES_AUTO_RELOAD = True
+    EXPLAIN_TEMPLATE_LOADING = False
+    
+    # Кэширование для ускорения
+    SEND_FILE_MAX_AGE_DEFAULT = 0  # Отключаем кэширование в разработке
