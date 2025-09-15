@@ -988,7 +988,7 @@ def object_reports(object_id):
 @main.route('/reports/calendar')
 @login_required
 def reports_calendar():
-    from datetime import datetime, date
+    from datetime import datetime, date, timedelta
     from ..models.objects import DailyReport
     
     # Проверяем, что пользователь не является снабженцем
