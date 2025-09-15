@@ -96,6 +96,15 @@ class TaskScheduler:
             replace_existing=True
         )
         
+        # Проверка пропущенных отчетов - каждый день в 00:10
+        self.scheduler.add_job(
+            func=generate_missing_reports_job,
+            trigger=CronTrigger(hour=0, minute=10),
+            id='generate_missing_reports',
+            name='Проверка и генерация пропущенных отчетов',
+            replace_existing=True
+        )
+        
         logger.info("Автоматические задачи зарегистрированы")
     
     def _run_initial_tasks(self):
@@ -107,9 +116,9 @@ class TaskScheduler:
             updated_count = self.update_overdue_works()
             logger.info(f"Обновлено просроченных работ при запуске: {updated_count}")
             
-            # Генерируем отчеты за сегодня
-            generated_count = self.generate_report_for_today()
-            logger.info(f"Сгенерировано отчетов за сегодня при запуске: {generated_count}")
+            # Генерируем отчеты за все пропущенные дни (включая сегодня)
+            generated_count = self.generate_missing_reports()
+            logger.info(f"Сгенерировано пропущенных отчетов при запуске: {generated_count}")
             
         except Exception as e:
             logger.error(f"Ошибка при выполнении начальных задач: {e}")
@@ -254,6 +263,66 @@ class TaskScheduler:
                 logger.error(f"Ошибка при генерации отчетов за сегодня: {e}")
                 return 0
     
+    def generate_missing_reports(self):
+        """Генерация отчетов за все пропущенные дни (включая сегодня)"""
+        with self.app.app_context():
+            try:
+                logger.info("Начинаем генерацию пропущенных отчетов...")
+                
+                # Получаем все объекты
+                objects = Object.query.all()
+                if not objects:
+                    logger.info("Нет объектов для генерации отчетов")
+                    return 0
+                
+                # Определяем диапазон дат для проверки
+                today = get_moscow_now().date()
+                
+                # Находим самую раннюю дату отчета в системе
+                earliest_report = DailyReport.query.order_by(DailyReport.report_date.asc()).first()
+                if earliest_report:
+                    start_date = earliest_report.report_date
+                else:
+                    # Если отчетов нет, начинаем с недели назад
+                    start_date = today - timedelta(days=7)
+                
+                # Проверяем каждый день от start_date до сегодня включительно
+                current_date = start_date
+                total_generated = 0
+                
+                while current_date <= today:
+                    logger.info(f"Проверяем отчеты за {current_date}")
+                    
+                    for obj in objects:
+                        try:
+                            # Проверяем, существует ли уже отчет за эту дату
+                            existing_report = DailyReport.query.filter_by(
+                                object_id=obj.id,
+                                report_date=current_date
+                            ).first()
+                            
+                            if existing_report:
+                                continue
+                            
+                            # Генерируем новый отчет
+                            report = self._generate_report_for_object(obj.id, current_date)
+                            if report:
+                                total_generated += 1
+                                logger.info(f"Создан отчет для объекта {obj.name} за {current_date}")
+                            
+                        except Exception as e:
+                            logger.error(f"Ошибка при создании отчета для объекта {obj.id} за {current_date}: {e}")
+                            continue
+                    
+                    current_date += timedelta(days=1)
+                
+                logger.info(f"Всего сгенерировано пропущенных отчетов: {total_generated}")
+                return total_generated
+                
+            except Exception as e:
+                logger.error(f"Ошибка при генерации пропущенных отчетов: {e}")
+                return 0
+    
     def shutdown(self):
         """Остановка планировщика"""
         if self.scheduler:
@@ -310,6 +379,20 @@ def generate_daily_reports_job():
             
         except Exception as e:
             logger.error(f"Ошибка при автоматической генерации отчетов: {e}")
+            return 0
+
+def generate_missing_reports_job():
+    """Задача для генерации пропущенных отчетов"""
+    from flask import current_app
+    with current_app.app_context():
+        try:
+            from app.utils.scheduler import scheduler
+            generated_count = scheduler.generate_missing_reports()
+            logger.info(f"Автоматически сгенерировано пропущенных отчетов: {generated_count}")
+            return generated_count
+            
+        except Exception as e:
+            logger.error(f"Ошибка при автоматической генерации пропущенных отчетов: {e}")
             return 0
 
 def _generate_report_for_object_job(object_id, report_date):

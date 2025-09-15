@@ -38,6 +38,12 @@
                                 Создать отчеты
                             </button>
                         </form>
+                        <form method="POST" action="{{ url_for('objects.manual_generate_missing_reports') }}" class="d-inline">
+                            <button type="submit" class="btn btn-success btn-sm" title="Сгенерировать все пропущенные отчеты">
+                                <i class="bi bi-calendar-plus me-1"></i>
+                                Восстановить отчеты
+                            </button>
+                        </form>
                     </div>
                     
                     <a href="{{ url_for('objects.all_planned_works') }}" class="btn btn-primary me-2">

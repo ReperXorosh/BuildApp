@@ -1807,6 +1807,28 @@ def manual_generate_daily_reports():
     
     return redirect(request.referrer or url_for('objects.planned_works_overview'))
 
+@objects_bp.route('/admin/generate-missing-reports', methods=['POST'])
+@login_required
+def manual_generate_missing_reports():
+    """Ручная генерация всех пропущенных отчетов"""
+    try:
+        from app.utils.scheduler import scheduler
+        generated_count = scheduler.generate_missing_reports()
+        
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            action='manual_generate_missing_reports',
+            details=f'Восстановлено пропущенных отчетов: {generated_count}',
+            method=request.method
+        )
+        
+        flash(f'Восстановлено пропущенных отчетов: {generated_count}', 'success')
+        
+    except Exception as e:
+        flash(f'Ошибка при восстановлении отчетов: {str(e)}', 'error')
+    
+    return redirect(request.referrer or url_for('objects.planned_works_overview'))
+
 # ==================== ЕЖЕДНЕВНЫЕ ОТЧЕТЫ ====================
 
 def generate_daily_report_for_date(object_id, report_date):
