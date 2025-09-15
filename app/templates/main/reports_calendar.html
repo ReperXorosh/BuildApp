@@ -5,78 +5,101 @@
 
 {% block extra_head %}
 <style>
-    .calendar-container {
-        background: var(--bs-body-bg);
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    .calendar-wrapper {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         overflow: hidden;
     }
     
     .calendar-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 1.5rem;
+        padding: 2rem;
         text-align: center;
+    }
+    
+    .calendar-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+    }
+    
+    .calendar-subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin: 0;
     }
     
     .calendar-nav {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1rem;
+        margin-top: 1.5rem;
     }
     
-    .calendar-nav button {
+    .nav-btn {
         background: rgba(255, 255, 255, 0.2);
         border: none;
         color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
         transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
     
-    .calendar-nav button:hover {
+    .nav-btn:hover {
         background: rgba(255, 255, 255, 0.3);
+        color: white;
         transform: translateY(-2px);
     }
     
-    .calendar-title {
+    .month-year {
         font-size: 1.5rem;
         font-weight: 600;
-        margin: 0;
     }
     
     .calendar-grid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 1px;
-        background: #e9ecef;
+        gap: 0;
+        background: #f8f9fa;
     }
     
-    .calendar-day-header {
-        background: #f8f9fa;
-        padding: 0.75rem 0.5rem;
+    .day-header {
+        background: #e9ecef;
+        padding: 1rem 0.5rem;
         text-align: center;
         font-weight: 600;
-        color: #6c757d;
+        color: #495057;
         font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     
     .calendar-day {
         background: white;
-        min-height: 100px;
-        padding: 0.5rem;
+        min-height: 120px;
+        padding: 0.75rem;
         border: 1px solid #e9ecef;
         position: relative;
         cursor: pointer;
         transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
     }
     
     .calendar-day:hover {
         background: #f8f9fa;
         transform: scale(1.02);
         z-index: 10;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     }
     
     .calendar-day.other-month {
@@ -100,83 +123,139 @@
     }
     
     .day-number {
-        font-size: 0.875rem;
+        font-size: 1.1rem;
         font-weight: 600;
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.5rem;
     }
     
     .day-reports {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .report-badge {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
         font-size: 0.75rem;
-        opacity: 0.9;
+        font-weight: 500;
+        text-align: center;
     }
     
-    .day-reports .badge {
-        font-size: 0.65rem;
-        margin: 1px;
+    .report-badge.manual {
+        background: rgba(255, 255, 255, 0.3);
     }
     
-    .reports-popup {
+    .report-badge.daily {
+        background: rgba(46, 204, 113, 0.8);
+    }
+    
+    .reports-tooltip {
         position: absolute;
         top: 100%;
         left: 0;
         right: 0;
         background: white;
         border: 1px solid #dee2e6;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
         z-index: 1000;
-        padding: 0.75rem;
+        padding: 1rem;
         display: none;
-        max-height: 200px;
+        max-height: 300px;
         overflow-y: auto;
     }
     
-    .calendar-day:hover .reports-popup {
+    .calendar-day:hover .reports-tooltip {
         display: block;
     }
     
-    .report-item {
-        padding: 0.25rem 0;
-        border-bottom: 1px solid #f1f3f4;
-        font-size: 0.8rem;
+    .tooltip-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: #495057;
+        font-size: 0.9rem;
     }
     
-    .report-item:last-child {
+    .tooltip-object {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f1f3f4;
+        font-size: 0.85rem;
+    }
+    
+    .tooltip-object:last-child {
         border-bottom: none;
     }
     
-    .report-item a {
+    .tooltip-object a {
         color: #495057;
         text-decoration: none;
+        font-weight: 500;
     }
     
-    .report-item a:hover {
+    .tooltip-object a:hover {
         color: #007bff;
     }
     
-    .month-stats {
-        background: #f8f9fa;
-        padding: 1rem;
-        border-top: 1px solid #dee2e6;
+    .tooltip-footer {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid #f1f3f4;
     }
     
-    .stat-item {
+    .tooltip-footer a {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    
+    .tooltip-footer a:hover {
+        text-decoration: underline;
+    }
+    
+    .stats-section {
+        background: #f8f9fa;
+        padding: 2rem;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
         text-align: center;
-        padding: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
     
     .stat-number {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #007bff;
+        font-size: 2rem;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 0.5rem;
     }
     
     .stat-label {
-        font-size: 0.875rem;
+        font-size: 0.9rem;
         color: #6c757d;
+        font-weight: 500;
     }
     
-    /* Dark theme support */
+    /* Dark theme */
+    [data-bs-theme="dark"] .calendar-wrapper {
+        background: #2d3748;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    
     [data-bs-theme="dark"] .calendar-day {
         background: #2d3748;
         border-color: #4a5568;
@@ -192,125 +271,193 @@
         color: #718096;
     }
     
-    [data-bs-theme="dark"] .calendar-day-header {
+    [data-bs-theme="dark"] .day-header {
         background: #2d3748;
         color: #a0aec0;
     }
     
-    [data-bs-theme="dark"] .reports-popup {
+    [data-bs-theme="dark"] .reports-tooltip {
         background: #2d3748;
         border-color: #4a5568;
         color: #e2e8f0;
     }
     
-    [data-bs-theme="dark"] .report-item {
-        border-color: #4a5568;
-    }
-    
-    [data-bs-theme="dark"] .report-item a {
+    [data-bs-theme="dark"] .tooltip-title {
         color: #e2e8f0;
     }
     
-    [data-bs-theme="dark"] .report-item a:hover {
+    [data-bs-theme="dark"] .tooltip-object {
+        border-color: #4a5568;
+    }
+    
+    [data-bs-theme="dark"] .tooltip-object a {
+        color: #e2e8f0;
+    }
+    
+    [data-bs-theme="dark"] .tooltip-object a:hover {
         color: #63b3ed;
     }
     
-    [data-bs-theme="dark"] .month-stats {
-        background: #2d3748;
+    [data-bs-theme="dark"] .tooltip-footer {
         border-color: #4a5568;
+    }
+    
+    [data-bs-theme="dark"] .tooltip-footer a {
+        color: #63b3ed;
+    }
+    
+    [data-bs-theme="dark"] .stats-section {
+        background: #1a202c;
+        border-color: #4a5568;
+    }
+    
+    [data-bs-theme="dark"] .stat-card {
+        background: #2d3748;
+        color: #e2e8f0;
+    }
+    
+    [data-bs-theme="dark"] .stat-label {
+        color: #a0aec0;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .calendar-wrapper {
+            margin: 0 1rem;
+        }
+        
+        .calendar-header {
+            padding: 1.5rem 1rem;
+        }
+        
+        .calendar-title {
+            font-size: 1.5rem;
+        }
+        
+        .calendar-day {
+            min-height: 80px;
+            padding: 0.5rem;
+        }
+        
+        .day-number {
+            font-size: 1rem;
+        }
+        
+        .report-badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.4rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .stat-card {
+            padding: 1rem;
+        }
+        
+        .stat-number {
+            font-size: 1.5rem;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3" style="margin-top: 80px;">
+<div class="container-fluid py-4" style="margin-top: 80px;">
     <div class="row">
         <div class="col-12">
-            <div class="mb-4">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item">
-                            <a href="{{ url_for('main.reports') }}">
-                                <svg class="bi me-1" width="16" height="16" fill="currentColor">
-                                    <use xlink:href="#clipboard-data"></use>
-                                </svg>
-                                Отчёты
-                            </a>
-                        </li>
-                        <li class="breadcrumb-item active" aria-current="page">Календарь</li>
-                    </ol>
-                </nav>
-                
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h1 class="h3 mb-2">
-                            <svg class="bi me-2" width="24" height="24" fill="currentColor">
-                                <use xlink:href="#calendar"></use>
-                            </svg>
-                            Календарь отчётов
-                        </h1>
-                        <p class="text-muted mb-0">Выберите дату для просмотра отчётов по объектам</p>
-                    </div>
-                    <div>
-                        <a href="{{ url_for('main.reports') }}" class="btn btn-outline-primary">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{{ url_for('main.reports') }}" class="text-decoration-none">
                             <svg class="bi me-1" width="16" height="16" fill="currentColor">
-                                <use xlink:href="#building"></use>
+                                <use xlink:href="#clipboard-data"></use>
                             </svg>
-                            Список объектов
+                            Отчёты
                         </a>
-                    </div>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Календарь</li>
+                </ol>
+            </nav>
+            
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-2">
+                        <svg class="bi me-2" width="24" height="24" fill="currentColor">
+                            <use xlink:href="#calendar"></use>
+                        </svg>
+                        Календарь отчётов
+                    </h1>
+                    <p class="text-muted mb-0">Выберите дату для просмотра отчётов по объектам</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('main.reports') }}" class="btn btn-outline-primary">
+                        <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                            <use xlink:href="#building"></use>
+                        </svg>
+                        Список объектов
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Календарь -->
+    <!-- Calendar -->
     <div class="row">
         <div class="col-12">
-            <div class="calendar-container">
+            <div class="calendar-wrapper">
+                <!-- Calendar Header -->
                 <div class="calendar-header">
+                    <h2 class="calendar-title">Календарь отчётов</h2>
+                    <p class="calendar-subtitle">Выберите дату для просмотра отчётов</p>
+                    
                     <div class="calendar-nav">
                         <a href="{{ url_for('main.reports_calendar', year=current_year, month=current_month-1) if current_month > 1 else url_for('main.reports_calendar', year=current_year-1, month=12) }}" 
-                           class="btn">
-                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                           class="nav-btn">
+                            <svg class="bi" width="16" height="16" fill="currentColor">
                                 <use xlink:href="#chevron-left"></use>
                             </svg>
                             Предыдущий
                         </a>
                         
-                        <h2 class="calendar-title">
+                        <div class="month-year">
                             {% set month_names = ['', 'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 
                                                  'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'] %}
                             {{ month_names[current_month] }} {{ current_year }}
-                        </h2>
+                        </div>
                         
                         <a href="{{ url_for('main.reports_calendar', year=current_year, month=current_month+1) if current_month < 12 else url_for('main.reports_calendar', year=current_year+1, month=1) }}" 
-                           class="btn">
+                           class="nav-btn">
                             Следующий
-                            <svg class="bi ms-1" width="16" height="16" fill="currentColor">
+                            <svg class="bi" width="16" height="16" fill="currentColor">
                                 <use xlink:href="#chevron-right"></use>
                             </svg>
                         </a>
                     </div>
                 </div>
                 
+                <!-- Calendar Grid -->
                 <div class="calendar-grid">
-                    <!-- Заголовки дней недели -->
-                    <div class="calendar-day-header">Пн</div>
-                    <div class="calendar-day-header">Вт</div>
-                    <div class="calendar-day-header">Ср</div>
-                    <div class="calendar-day-header">Чт</div>
-                    <div class="calendar-day-header">Пт</div>
-                    <div class="calendar-day-header">Сб</div>
-                    <div class="calendar-day-header">Вс</div>
+                    <!-- Day Headers -->
+                    <div class="day-header">Пн</div>
+                    <div class="day-header">Вт</div>
+                    <div class="day-header">Ср</div>
+                    <div class="day-header">Чт</div>
+                    <div class="day-header">Пт</div>
+                    <div class="day-header">Сб</div>
+                    <div class="day-header">Вс</div>
                     
-                    <!-- Дни календаря -->
+                    <!-- Calendar Days -->
                     {% set first_day = namespace(date=date(current_year, current_month, 1)) %}
                     {% set first_weekday = first_day.date.weekday() %}
                     {% set days_in_month = (date(current_year, current_month + 1, 1) - timedelta(days=1)).day %}
                     {% set today = date.today() %}
                     
-                    <!-- Дни предыдущего месяца -->
+                    <!-- Previous Month Days -->
                     {% for i in range(first_weekday) %}
                         {% set prev_date = first_day.date - timedelta(days=first_weekday - i) %}
                         <div class="calendar-day other-month">
@@ -318,7 +465,7 @@
                         </div>
                     {% endfor %}
                     
-                    <!-- Дни текущего месяца -->
+                    <!-- Current Month Days -->
                     {% for day in range(1, days_in_month + 1) %}
                         {% set current_date = date(current_year, current_month, day) %}
                         {% set date_key = current_date.strftime('%Y-%m-%d') %}
@@ -333,25 +480,25 @@
                                 <div class="day-reports">
                                     {% set date_data = objects_by_date[date_key] %}
                                     {% if date_data.reports_count > 0 %}
-                                        <span class="badge bg-primary">{{ date_data.reports_count }} ручных</span>
+                                        <div class="report-badge manual">{{ date_data.reports_count }} ручных</div>
                                     {% endif %}
                                     {% if date_data.daily_reports_count > 0 %}
-                                        <span class="badge bg-success">{{ date_data.daily_reports_count }} ежедневных</span>
+                                        <div class="report-badge daily">{{ date_data.daily_reports_count }} ежедневных</div>
                                     {% endif %}
                                 </div>
                                 
-                                <!-- Всплывающее окно с отчётами -->
-                                <div class="reports-popup">
-                                    <div class="fw-bold mb-2">{{ current_date.strftime('%d.%m.%Y') }}</div>
+                                <!-- Tooltip -->
+                                <div class="reports-tooltip">
+                                    <div class="tooltip-title">{{ current_date.strftime('%d.%m.%Y') }}</div>
                                     {% for object in date_data.objects %}
-                                        <div class="report-item">
+                                        <div class="tooltip-object">
                                             <a href="{{ url_for('main.object_report_by_date', object_id=object.id, date=date_key) }}">
                                                 {{ object.name }}
                                             </a>
                                         </div>
                                     {% endfor %}
-                                    <div class="report-item mt-2">
-                                        <a href="{{ url_for('main.reports_by_date', date=date_key) }}" class="text-primary">
+                                    <div class="tooltip-footer">
+                                        <a href="{{ url_for('main.reports_by_date', date=date_key) }}">
                                             <svg class="bi me-1" width="12" height="12" fill="currentColor">
                                                 <use xlink:href="#clipboard-data"></use>
                                             </svg>
@@ -363,7 +510,7 @@
                         </div>
                     {% endfor %}
                     
-                    <!-- Дни следующего месяца -->
+                    <!-- Next Month Days -->
                     {% set remaining_days = 42 - (first_weekday + days_in_month) %}
                     {% for day in range(1, remaining_days + 1) %}
                         {% set next_date = date(current_year, current_month, days_in_month) + timedelta(days=day) %}
@@ -373,42 +520,34 @@
                     {% endfor %}
                 </div>
                 
-                <!-- Статистика месяца -->
-                <div class="month-stats">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="stat-item">
-                                <div class="stat-number">{{ objects_by_date|length }}</div>
-                                <div class="stat-label">Дней с отчётами</div>
-                            </div>
+                <!-- Statistics -->
+                <div class="stats-section">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ objects_by_date|length }}</div>
+                            <div class="stat-label">Дней с отчётами</div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="stat-item">
-                                {% set total_reports = objects_by_date.values() | map(attribute='reports_count') | sum %}
-                                <div class="stat-number">{{ total_reports }}</div>
-                                <div class="stat-label">Ручных отчётов</div>
-                            </div>
+                        <div class="stat-card">
+                            {% set total_reports = objects_by_date.values() | map(attribute='reports_count') | sum %}
+                            <div class="stat-number">{{ total_reports }}</div>
+                            <div class="stat-label">Ручных отчётов</div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="stat-item">
-                                {% set total_daily = objects_by_date.values() | map(attribute='daily_reports_count') | sum %}
-                                <div class="stat-number">{{ total_daily }}</div>
-                                <div class="stat-label">Ежедневных отчётов</div>
-                            </div>
+                        <div class="stat-card">
+                            {% set total_daily = objects_by_date.values() | map(attribute='daily_reports_count') | sum %}
+                            <div class="stat-number">{{ total_daily }}</div>
+                            <div class="stat-label">Ежедневных отчётов</div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="stat-item">
-                                {% set unique_objects = [] %}
-                                {% for date_data in objects_by_date.values() %}
-                                    {% for obj in date_data.objects %}
-                                        {% if obj not in unique_objects %}
-                                            {% set _ = unique_objects.append(obj) %}
-                                        {% endif %}
-                                    {% endfor %}
+                        <div class="stat-card">
+                            {% set unique_objects = [] %}
+                            {% for date_data in objects_by_date.values() %}
+                                {% for obj in date_data.objects %}
+                                    {% if obj not in unique_objects %}
+                                        {% set _ = unique_objects.append(obj) %}
+                                    {% endif %}
                                 {% endfor %}
-                                <div class="stat-number">{{ unique_objects|length }}</div>
-                                <div class="stat-label">Уникальных объектов</div>
-                            </div>
+                            {% endfor %}
+                            <div class="stat-number">{{ unique_objects|length }}</div>
+                            <div class="stat-label">Уникальных объектов</div>
                         </div>
                     </div>
                 </div>
@@ -419,24 +558,23 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Добавляем обработчики кликов для дней с отчётами
+    // Click handlers for days with reports
     document.querySelectorAll('.calendar-day.has-reports').forEach(function(day) {
         day.addEventListener('click', function() {
             const date = this.dataset.date;
             if (date) {
-                // Переходим на страницу со всеми отчётами за эту дату
                 window.location.href = "{{ url_for('main.reports_by_date', date='DATE_PLACEHOLDER') }}".replace('DATE_PLACEHOLDER', date);
             }
         });
     });
     
-    // Добавляем обработчики для дней без отчётов (переход на создание отчёта)
+    // Click handlers for days without reports
     document.querySelectorAll('.calendar-day:not(.has-reports):not(.other-month)').forEach(function(day) {
         day.addEventListener('click', function() {
             const date = this.dataset.date;
             if (date) {
-                // Можно добавить логику для создания нового отчёта
                 console.log('Создание отчёта за дату:', date);
+                // Можно добавить логику для создания нового отчёта
             }
         });
     });
