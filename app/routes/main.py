@@ -937,7 +937,12 @@ def reports():
         method=request.method
     )
     
-    return render_template('main/reports.html', objects=objects)
+    # Определяем, нужно ли использовать мобильный шаблон
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return render_template('main/mobile_reports.html', objects=objects, active_page='reports')
+    else:
+        return render_template('main/reports.html', objects=objects, active_page='reports')
 
 @main.route('/reports/object/<object_id>')
 @login_required

@@ -1,0 +1,79 @@
+{% extends "main/mobile_layout.html" %}
+
+{% block title %}Отчёты{% endblock %}
+{% block mobile_title %}Отчёты{% endblock %}
+
+{% block content %}
+<div class="mobile-mb-3">
+    <h2 class="mobile-card-title mobile-text-center">Отчёты по объектам</h2>
+    <p class="mobile-text-muted mobile-text-center">Выберите объект для просмотра отчётов</p>
+</div>
+
+{% if objects %}
+    {% for obj in objects %}
+    <div class="mobile-card" onclick="window.location.href='{{ url_for('main.object_reports', object_id=obj.id) }}'">
+        <div class="mobile-card-title">{{ obj.name }}</div>
+        <div class="mobile-card-text mobile-mb-2">
+            <strong>Адрес:</strong> {{ obj.address or 'Не указан' }}
+        </div>
+        <div class="mobile-card-text mobile-mb-2">
+            <strong>Отчётов:</strong> 
+            <span class="badge bg-primary">{{ obj.reports|length + obj.daily_reports|length }}</span>
+        </div>
+        <div class="mobile-card-text mobile-mb-2">
+            <strong>Ручных:</strong> {{ obj.reports|length }} | 
+            <strong>Ежедневных:</strong> {{ obj.daily_reports|length }}
+        </div>
+        {% if obj.reports or obj.daily_reports %}
+        <div class="mobile-card-text">
+            <strong>Последний отчёт:</strong> 
+            {% set last_report = (obj.reports + obj.daily_reports)|sort(attribute='created_at', reverse=true)|first %}
+            {% if last_report %}
+                {{ last_report.created_at.strftime('%d.%m.%Y') if last_report.created_at else 'Не указан' }}
+            {% else %}
+                Нет отчётов
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="mobile-card mobile-text-center">
+        <div class="mobile-card-title">Объекты не найдены</div>
+        <div class="mobile-card-text">В системе пока нет объектов с отчётами</div>
+    </div>
+{% endif %}
+
+<!-- Статистика -->
+{% if objects %}
+<div class="mobile-mt-3">
+    <div class="mobile-card">
+        <div class="mobile-card-title">Статистика отчётов</div>
+        <div class="mobile-card-text">
+            <strong>Всего объектов:</strong> {{ objects|length }}<br>
+            <strong>Всего отчётов:</strong> {{ objects|sum(attribute='reports')|length + objects|sum(attribute='daily_reports')|length }}<br>
+            <strong>Ручных отчётов:</strong> {{ objects|sum(attribute='reports')|length }}<br>
+            <strong>Ежедневных отчётов:</strong> {{ objects|sum(attribute='daily_reports')|length }}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Быстрые действия -->
+{% if current_user.role in ['Инженер ПТО', 'Зам. директор', 'Ген. директор'] %}
+<div class="mobile-mt-3">
+    <div class="mobile-card">
+        <div class="mobile-card-title">Быстрые действия</div>
+        <div class="mobile-mt-2">
+            <button class="mobile-btn mobile-btn-outline" onclick="window.location.href='{{ url_for('objects.planned_works_overview') }}'">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 8px;">
+                    <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+                </svg>
+                Запланированные работы
+            </button>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

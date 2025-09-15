@@ -91,9 +91,19 @@ def login():
                 page_url=request.url,
                 method=request.method
             )
-            return render_template('main/sign-in.html', error=gettext("Неверный логин или пароль"))
+            # Определяем, нужно ли использовать мобильный шаблон
+            from ..utils.mobile_detection import is_mobile_device
+            if is_mobile_device():
+                return render_template('main/mobile_sign_in.html', error=gettext("Неверный логин или пароль"))
+            else:
+                return render_template('main/sign-in.html', error=gettext("Неверный логин или пароль"))
 
-    return render_template('main/sign-in.html')
+    # Определяем, нужно ли использовать мобильный шаблон
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return render_template('main/mobile_sign_in.html')
+    else:
+        return render_template('main/sign-in.html')
 
 @user.route('/logout')
 def logout():

@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="ru" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>{% block title %}СтройКомплекс{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.svg" sizes="180x180">
+    <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="СтройКомплекс">
+    <meta name="theme-color" content="#007bff">
+    
+    <!-- Mobile CSS -->
+    <link href="/static/css/mobile.css" rel="stylesheet">
+    
+    <style>
+        /* Специальные стили для мобильного приложения */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        /* Мобильный контейнер */
+        .mobile-app {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Мобильный хедер */
+        .mobile-header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .mobile-header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .mobile-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .mobile-menu-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 8px;
+            padding: 8px;
+            color: white;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .mobile-menu-btn:active {
+            background: rgba(255,255,255,0.3);
+            transform: scale(0.95);
+        }
+        
+        /* Мобильный контент */
+        .mobile-content {
+            flex: 1;
+            padding: 16px;
+            padding-bottom: 80px; /* Отступ для нижней навигации */
+        }
+        
+        /* Мобильные карточки */
+        .mobile-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: none;
+            transition: all 0.2s ease;
+        }
+        
+        .mobile-card:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        
+        .mobile-card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+            color: #333;
+        }
+        
+        .mobile-card-text {
+            font-size: 14px;
+            color: #666;
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        /* Мобильные кнопки */
+        .mobile-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+            min-height: 48px;
+        }
+        
+        .mobile-btn-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+        
+        .mobile-btn-primary:active {
+            background: linear-gradient(135deg, #0056b3, #004085);
+            transform: scale(0.98);
+        }
+        
+        .mobile-btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .mobile-btn-secondary:active {
+            background: #5a6268;
+            transform: scale(0.98);
+        }
+        
+        .mobile-btn-outline {
+            background: white;
+            color: #007bff;
+            border: 2px solid #007bff;
+        }
+        
+        .mobile-btn-outline:active {
+            background: #f8f9fa;
+            transform: scale(0.98);
+        }
+        
+        /* Мобильные формы */
+        .mobile-form-group {
+            margin-bottom: 16px;
+        }
+        
+        .mobile-form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .mobile-form-control {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 16px;
+            background: white;
+            transition: border-color 0.2s ease;
+        }
+        
+        .mobile-form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+        
+        /* Мобильная навигация */
+        .mobile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            padding: 8px 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 12px;
+            text-decoration: none;
+            color: #6c757d;
+            transition: color 0.2s ease;
+            min-width: 60px;
+        }
+        
+        .mobile-nav-item.active {
+            color: #007bff;
+        }
+        
+        .mobile-nav-icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+        }
+        
+        .mobile-nav-text {
+            font-size: 10px;
+            font-weight: 500;
+        }
+        
+        /* Мобильное меню */
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100vh;
+            background: white;
+            z-index: 1050;
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+        
+        .mobile-menu.open {
+            left: 0;
+        }
+        
+        .mobile-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1045;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .mobile-menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .mobile-menu-header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 20px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .mobile-menu-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .mobile-menu-close {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 6px;
+            padding: 6px;
+            color: white;
+            width: 32px;
+            height: 32px;
+        }
+        
+        .mobile-menu-nav {
+            padding: 16px 0;
+        }
+        
+        .mobile-menu-item {
+            display: block;
+            padding: 16px 20px;
+            color: #333;
+            text-decoration: none;
+            border-bottom: 1px solid #f8f9fa;
+            transition: background-color 0.2s ease;
+        }
+        
+        .mobile-menu-item:active {
+            background-color: #f8f9fa;
+        }
+        
+        .mobile-menu-item.active {
+            background-color: #e3f2fd;
+            color: #007bff;
+            border-left: 4px solid #007bff;
+        }
+        
+        /* Мобильные таблицы */
+        .mobile-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .mobile-table-item {
+            padding: 16px;
+            border-bottom: 1px solid #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .mobile-table-item:last-child {
+            border-bottom: none;
+        }
+        
+        .mobile-table-item:active {
+            background-color: #f8f9fa;
+        }
+        
+        /* Мобильные алерты */
+        .mobile-alert {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border: none;
+        }
+        
+        .mobile-alert-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .mobile-alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .mobile-alert-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .mobile-alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        /* Утилиты */
+        .mobile-text-center { text-align: center; }
+        .mobile-text-muted { color: #6c757d; }
+        .mobile-mb-0 { margin-bottom: 0; }
+        .mobile-mb-1 { margin-bottom: 8px; }
+        .mobile-mb-2 { margin-bottom: 16px; }
+        .mobile-mb-3 { margin-bottom: 24px; }
+        .mobile-mt-1 { margin-top: 8px; }
+        .mobile-mt-2 { margin-top: 16px; }
+        .mobile-mt-3 { margin-top: 24px; }
+        
+        /* Анимации */
+        @keyframes slideInUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .mobile-card {
+            animation: slideInUp 0.3s ease;
+        }
+        
+        /* Скрытие элементов на мобильных */
+        .desktop-only {
+            display: none !important;
+        }
+        
+        .mobile-only {
+            display: block !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-app">
+        <!-- Мобильный хедер -->
+        <header class="mobile-header">
+            <div class="mobile-header-content">
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+                    </svg>
+                </button>
+                <h1 class="mobile-title">{% block mobile_title %}{{ gettext('СтройКомплекс') }}{% endblock %}</h1>
+                <div style="width: 40px;"></div> <!-- Spacer -->
+            </div>
+        </header>
+        
+        <!-- Мобильный контент -->
+        <main class="mobile-content">
+            {% block content %}{% endblock %}
+        </main>
+        
+        <!-- Мобильная навигация -->
+        <nav class="mobile-nav">
+            <a href="{{ url_for('objects.object_list') }}" class="mobile-nav-item {{ 'active' if active_page == 'objects' else '' }}">
+                <svg class="mobile-nav-icon" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
+                </svg>
+                <span class="mobile-nav-text">Объекты</span>
+            </a>
+            <a href="{{ url_for('main.reports') }}" class="mobile-nav-item {{ 'active' if active_page == 'reports' else '' }}">
+                <svg class="mobile-nav-icon" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
+                </svg>
+                <span class="mobile-nav-text">Отчёты</span>
+            </a>
+            {% if current_user.role in ['Инженер ПТО', 'Зам. директор', 'Ген. директор'] %}
+            <a href="{{ url_for('objects.planned_works_overview') }}" class="mobile-nav-item {{ 'active' if active_page == 'planned_works' else '' }}">
+                <svg class="mobile-nav-icon" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+                </svg>
+                <span class="mobile-nav-text">Работы</span>
+            </a>
+            {% endif %}
+            <a href="{{ url_for('main.profile') }}" class="mobile-nav-item {{ 'active' if active_page == 'profile' else '' }}">
+                <svg class="mobile-nav-icon" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+                </svg>
+                <span class="mobile-nav-text">Профиль</span>
+            </a>
+        </nav>
+    </div>
+    
+    <!-- Мобильное меню -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <h2 class="mobile-menu-title">{{ gettext('Меню') }}</h2>
+            <button class="mobile-menu-close" id="mobileMenuClose">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                </svg>
+            </button>
+        </div>
+        <nav class="mobile-menu-nav">
+            <a href="{{ url_for('objects.object_list') }}" class="mobile-menu-item {{ 'active' if active_page == 'objects' else '' }}">
+                {{ gettext('Список объектов') }}
+            </a>
+            <a href="{{ url_for('main.reports') }}" class="mobile-menu-item {{ 'active' if active_page == 'reports' else '' }}">
+                {{ gettext('Отчёты') }}
+            </a>
+            {% if current_user.role in ['Инженер ПТО', 'Зам. директор', 'Ген. директор'] %}
+            <a href="{{ url_for('objects.planned_works_overview') }}" class="mobile-menu-item {{ 'active' if active_page == 'planned_works' else '' }}">
+                {{ gettext('Запланированные работы') }}
+            </a>
+            {% endif %}
+            {% if current_user.role in ['Инженер ПТО', 'Зам. директор', 'Ген. директор'] %}
+            <a href="{{ url_for('main.activity_log') }}" class="mobile-menu-item {{ 'active' if active_page == 'activity_log' else '' }}">
+                {{ gettext('Журнал действий') }}
+            </a>
+            {% endif %}
+            {% if current_user.role in ['Снабженец', 'Инженер ПТО'] %}
+            <a href="{{ url_for('supply.supply_dashboard') }}" class="mobile-menu-item {{ 'active' if active_page == 'supply' else '' }}">
+                {{ gettext('Снабжение') }}
+            </a>
+            {% endif %}
+            <a href="{{ url_for('main.profile') }}" class="mobile-menu-item {{ 'active' if active_page == 'profile' else '' }}">
+                {{ gettext('Профиль') }}
+            </a>
+            <hr style="margin: 16px 0; border: none; border-top: 1px solid #e9ecef;">
+            <a href="{{ url_for('user.logout') }}" class="mobile-menu-item">
+                {{ gettext('Выйти') }}
+            </a>
+        </nav>
+    </div>
+    
+    <!-- Оверлей для мобильного меню -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+    
+    <!-- Bootstrap JS -->
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Мобильное меню JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+            const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+            const mobileMenuClose = document.getElementById('mobileMenuClose');
+            
+            function openMobileMenu() {
+                mobileMenu.classList.add('open');
+                mobileMenuOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            function closeMobileMenu() {
+                mobileMenu.classList.remove('open');
+                mobileMenuOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+            
+            // Открытие меню
+            mobileMenuBtn.addEventListener('click', openMobileMenu);
+            
+            // Закрытие меню
+            mobileMenuClose.addEventListener('click', closeMobileMenu);
+            mobileMenuOverlay.addEventListener('click', closeMobileMenu);
+            
+            // Закрытие при клике на ссылку
+            const menuItems = mobileMenu.querySelectorAll('.mobile-menu-item');
+            menuItems.forEach(item => {
+                item.addEventListener('click', closeMobileMenu);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -139,7 +139,12 @@ def object_list():
         method=request.method
     )
     
-    return render_template('objects/object_list.html', objects=objects)
+    # Определяем, нужно ли использовать мобильный шаблон
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return render_template('objects/mobile_object_list.html', objects=objects, active_page='objects')
+    else:
+        return render_template('objects/object_list.html', objects=objects, active_page='objects')
 
 @objects_bp.route('/planned-works-overview')
 @login_required

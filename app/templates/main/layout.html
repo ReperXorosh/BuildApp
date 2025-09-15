@@ -1,3 +1,6 @@
+{% if is_mobile %}
+    {% extends "main/mobile_layout.html" %}
+{% else %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -790,6 +793,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+{% endif %}
 {% endif %}
 </body>
 </html>
