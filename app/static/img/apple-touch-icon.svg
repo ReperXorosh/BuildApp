@@ -1,0 +1,24 @@
+<svg width="180" height="180" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#007bff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0056b3;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Фон с градиентом -->
+  <rect width="180" height="180" rx="20" ry="20" fill="url(#bg)"/>
+  
+  <!-- Белый круг для текста -->
+  <circle cx="90" cy="90" r="70" fill="white" opacity="0.95"/>
+  
+  <!-- Текст "СК" -->
+  <text x="90" y="110" font-family="Arial, sans-serif" font-size="48" font-weight="bold" 
+        text-anchor="middle" fill="#007bff">СК</text>
+  
+  <!-- Декоративные элементы -->
+  <circle cx="50" cy="50" r="8" fill="white" opacity="0.3"/>
+  <circle cx="130" cy="50" r="6" fill="white" opacity="0.2"/>
+  <circle cx="50" cy="130" r="6" fill="white" opacity="0.2"/>
+  <circle cx="130" cy="130" r="8" fill="white" opacity="0.3"/>
+</svg>
