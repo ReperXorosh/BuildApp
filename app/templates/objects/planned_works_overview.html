@@ -11,6 +11,98 @@
         vertical-align: -.125em;
         fill: currentColor;
     }
+    
+    /* Улучшенные стили для кнопок в заголовке */
+    .header-buttons .btn {
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border: none;
+    }
+    
+    .header-buttons .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    .header-buttons .btn:active {
+        transform: translateY(0);
+    }
+    
+    .header-buttons .btn-warning {
+        background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+        color: #000;
+    }
+    
+    .header-buttons .btn-warning:hover {
+        background: linear-gradient(135deg, #e0a800 0%, #d39e00 100%);
+        color: #000;
+    }
+    
+    .header-buttons .btn-info {
+        background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%);
+        color: #fff;
+    }
+    
+    .header-buttons .btn-info:hover {
+        background: linear-gradient(135deg, #0aa2c0 0%, #0982a0 100%);
+        color: #fff;
+    }
+    
+    .header-buttons .btn-success {
+        background: linear-gradient(135deg, #198754 0%, #157347 100%);
+        color: #fff;
+    }
+    
+    .header-buttons .btn-success:hover {
+        background: linear-gradient(135deg, #157347 0%, #146c43 100%);
+        color: #fff;
+    }
+    
+    .header-buttons .btn-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        color: #fff;
+    }
+    
+    .header-buttons .btn-primary:hover {
+        background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+        color: #fff;
+    }
+    
+    .header-buttons .btn-outline-secondary {
+        border: 2px solid #6c757d;
+        color: #6c757d;
+        background: transparent;
+    }
+    
+    .header-buttons .btn-outline-secondary:hover {
+        background: #6c757d;
+        color: #fff;
+        border-color: #6c757d;
+    }
+    
+    /* Вертикальный разделитель */
+    .header-buttons .vr {
+        height: 2rem;
+        opacity: 0.3;
+        background-color: #dee2e6;
+    }
+    
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .header-buttons {
+            flex-direction: column;
+            align-items: stretch !important;
+        }
+        
+        .header-buttons .d-flex {
+            justify-content: center;
+        }
+        
+        .header-buttons .vr {
+            display: none !important;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -23,37 +115,41 @@
                     <i class="bi bi-calendar-check me-2"></i>
                     Обзор запланированных работ
                 </h1>
-                <div>
+                <div class="d-flex flex-wrap gap-2 align-items-center header-buttons">
                     <!-- Кнопки автоматизации -->
-                    <div class="btn-group me-2" role="group">
+                    <div class="d-flex gap-2">
                         <form method="POST" action="{{ url_for('objects.manual_update_overdue_works') }}" class="d-inline">
-                            <button type="submit" class="btn btn-warning btn-sm" title="Обновить статус просроченных работ">
+                            <button type="submit" class="btn btn-warning btn-sm shadow-sm" title="Обновить статус просроченных работ">
                                 <i class="bi bi-clock-history me-1"></i>
                                 Обновить просрочки
                             </button>
                         </form>
                         <form method="POST" action="{{ url_for('objects.manual_generate_daily_reports') }}" class="d-inline">
-                            <button type="submit" class="btn btn-info btn-sm" title="Сгенерировать отчеты за сегодня">
+                            <button type="submit" class="btn btn-info btn-sm shadow-sm" title="Сгенерировать отчеты за сегодня">
                                 <i class="bi bi-file-earmark-text me-1"></i>
                                 Создать отчеты
                             </button>
                         </form>
                         <form method="POST" action="{{ url_for('objects.manual_generate_missing_reports') }}" class="d-inline">
-                            <button type="submit" class="btn btn-success btn-sm" title="Сгенерировать все пропущенные отчеты">
+                            <button type="submit" class="btn btn-success btn-sm shadow-sm" title="Сгенерировать все пропущенные отчеты">
                                 <i class="bi bi-calendar-plus me-1"></i>
                                 Восстановить отчеты
                             </button>
                         </form>
                     </div>
                     
-                    <a href="{{ url_for('objects.all_planned_works') }}" class="btn btn-primary me-2">
-                        <i class="bi bi-table me-1"></i>
-                        Все работы (таблица)
-                    </a>
-                    <a href="{{ url_for('objects.object_list') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left me-1"></i>
-                        К списку объектов
-                    </a>
+                    <div class="vr d-none d-md-block"></div>
+                    
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('objects.all_planned_works') }}" class="btn btn-primary btn-sm shadow-sm">
+                            <i class="bi bi-table me-1"></i>
+                            Все работы (таблица)
+                        </a>
+                        <a href="{{ url_for('objects.object_list') }}" class="btn btn-outline-secondary btn-sm shadow-sm">
+                            <i class="bi bi-arrow-left me-1"></i>
+                            К списку объектов
+                        </a>
+                    </div>
                 </div>
             </div>
 
