@@ -881,7 +881,13 @@ def profile():
         db.session.commit()
         flash('Профиль обновлён', 'success')
         return redirect(url_for('main.profile'))
-    return render_template('main/profile.html')
+    
+    # Определяем, нужно ли использовать мобильный шаблон
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return render_template('main/mobile_profile.html', active_page='profile')
+    else:
+        return render_template('main/profile.html')
 
 @main.route('/user/<user_id>')
 @login_required
@@ -1098,12 +1104,23 @@ def reports_calendar():
         method=request.method
     )
     
-    return render_template('main/reports_calendar.html', 
-                         objects_by_date=objects_by_date, 
-                         current_year=year, 
-                         current_month=month,
-                         timedelta=timedelta,
-                         date=date)
+    # Определяем, нужно ли использовать мобильный шаблон
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return render_template('main/mobile_reports_calendar.html', 
+                             objects_by_date=objects_by_date, 
+                             current_year=year, 
+                             current_month=month,
+                             timedelta=timedelta,
+                             date=date,
+                             active_page='reports')
+    else:
+        return render_template('main/reports_calendar.html', 
+                             objects_by_date=objects_by_date, 
+                             current_year=year, 
+                             current_month=month,
+                             timedelta=timedelta,
+                             date=date)
 
 @main.route('/reports/date/<date>')
 @login_required

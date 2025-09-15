@@ -1,0 +1,142 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'profile' %}
+
+{% block title %}Профиль{% endblock %}
+{% block mobile_title %}Профиль{% endblock %}
+
+{% block content %}
+<div class="mobile-mb-3">
+    <h2 class="mobile-card-title mobile-text-center">Мой профиль</h2>
+    <p class="mobile-text-muted mobile-text-center">Управление личными данными</p>
+</div>
+
+<!-- Информация о пользователе -->
+<div class="mobile-card">
+    <div class="mobile-card-title">
+        <i class="bi bi-person-circle me-2"></i>
+        Личная информация
+    </div>
+    <div class="mobile-card-text mobile-mb-2">
+        <strong>Логин:</strong> {{ current_user.login }}
+    </div>
+    <div class="mobile-card-text mobile-mb-2">
+        <strong>Имя:</strong> {{ current_user.name or 'Не указано' }}
+    </div>
+    <div class="mobile-card-text mobile-mb-2">
+        <strong>Фамилия:</strong> {{ current_user.surname or 'Не указано' }}
+    </div>
+    <div class="mobile-card-text mobile-mb-2">
+        <strong>Роль:</strong> 
+        <span class="badge bg-primary">{{ current_user.role }}</span>
+    </div>
+    <div class="mobile-card-text mobile-mb-2">
+        <strong>Телефон:</strong> {{ current_user.phone or 'Не указан' }}
+    </div>
+    <div class="mobile-card-text mobile-mb-2">
+        <strong>Email:</strong> {{ current_user.email or 'Не указан' }}
+    </div>
+    <div class="mobile-card-text">
+        <strong>Дата регистрации:</strong> 
+        {{ current_user.created_at.strftime('%d.%m.%Y %H:%M') if current_user.created_at else 'Не указана' }}
+    </div>
+</div>
+
+<!-- Статистика активности -->
+<div class="mobile-card">
+    <div class="mobile-card-title">
+        <i class="bi bi-graph-up me-2"></i>
+        Статистика активности
+    </div>
+    <div class="row text-center">
+        <div class="col-6">
+            <div class="text-primary">
+                <i class="bi bi-calendar-check fs-4"></i>
+                <div class="small">{{ current_user.last_activity.strftime('%d.%m.%Y') if current_user.last_activity else 'Никогда' }}</div>
+                <div class="small text-muted">Последняя активность</div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="text-success">
+                <i class="bi bi-clock-history fs-4"></i>
+                <div class="small">{{ current_user.login_count or 0 }}</div>
+                <div class="small text-muted">Входов в систему</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Форма редактирования профиля -->
+<div class="mobile-card">
+    <div class="mobile-card-title">
+        <i class="bi bi-pencil-square me-2"></i>
+        Редактировать профиль
+    </div>
+    <form method="POST" action="{{ url_for('main.profile') }}">
+        <div class="mobile-form-group">
+            <label class="mobile-form-label">Имя</label>
+            <input type="text" name="name" class="mobile-form-control" 
+                   value="{{ current_user.name or '' }}" placeholder="Введите имя">
+        </div>
+        
+        <div class="mobile-form-group">
+            <label class="mobile-form-label">Фамилия</label>
+            <input type="text" name="surname" class="mobile-form-control" 
+                   value="{{ current_user.surname or '' }}" placeholder="Введите фамилию">
+        </div>
+        
+        <div class="mobile-form-group">
+            <label class="mobile-form-label">Телефон</label>
+            <input type="tel" name="phone" class="mobile-form-control" 
+                   value="{{ current_user.phone or '' }}" placeholder="Введите телефон">
+        </div>
+        
+        <div class="mobile-form-group">
+            <label class="mobile-form-label">Email</label>
+            <input type="email" name="email" class="mobile-form-control" 
+                   value="{{ current_user.email or '' }}" placeholder="Введите email">
+        </div>
+        
+        <div class="mobile-form-group">
+            <label class="mobile-form-label">Текущий пароль</label>
+            <input type="password" name="current_password" class="mobile-form-control" 
+                   placeholder="Введите текущий пароль для подтверждения">
+        </div>
+        
+        <div class="mobile-form-group">
+            <label class="mobile-form-label">Новый пароль (необязательно)</label>
+            <input type="password" name="new_password" class="mobile-form-control" 
+                   placeholder="Введите новый пароль">
+        </div>
+        
+        <div class="mobile-form-group">
+            <label class="mobile-form-label">Подтверждение пароля</label>
+            <input type="password" name="confirm_password" class="mobile-form-control" 
+                   placeholder="Подтвердите новый пароль">
+        </div>
+        
+        <button type="submit" class="mobile-btn mobile-btn-primary">
+            <i class="bi bi-check-circle me-2"></i>
+            Сохранить изменения
+        </button>
+    </form>
+</div>
+
+<!-- Дополнительные действия -->
+<div class="mobile-mt-3">
+    <div class="mobile-card">
+        <div class="mobile-card-title">Дополнительные действия</div>
+        <div class="mobile-mt-2">
+            {% if current_user.role == 'Инженер ПТО' %}
+            <button class="mobile-btn mobile-btn-outline" onclick="window.location.href='{{ url_for('main.users') }}'">
+                <i class="bi bi-people me-2"></i>
+                Управление пользователями
+            </button>
+            {% endif %}
+            <button class="mobile-btn mobile-btn-outline" onclick="window.location.href='{{ url_for('main.activity_log') }}'">
+                <i class="bi bi-journal-text me-2"></i>
+                Журнал действий
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

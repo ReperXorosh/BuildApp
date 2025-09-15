@@ -8,22 +8,22 @@
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h1 class="h3 mb-2">
+                    <div>
+                        <h1 class="h3 mb-2">
                         <i class="bi bi-calendar3 me-2"></i>
-                        Календарь отчётов
-                    </h1>
+                            Календарь отчётов
+                        </h1>
                     <p class="text-muted mb-0">Выберите дату для просмотра отчётов по объектам</p>
-                </div>
-                <div>
-                    <a href="{{ url_for('main.reports') }}" class="btn btn-outline-primary">
+                    </div>
+                    <div>
+                        <a href="{{ url_for('main.reports') }}" class="btn btn-outline-primary">
                         <i class="bi bi-building me-1"></i>
-                        Список объектов
-                    </a>
+                            Список объектов
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
 <style>
     .cal-month,
@@ -139,12 +139,12 @@
                     <div class="cal-pickers">
                         <select id="cal-month" class="form-select form-select-sm"></select>
                         <select id="cal-year" class="form-select form-select-sm"></select>
-                    </div>
+    </div>
 
                     <button class="btn cal-btn" type="button" id="cal-next" aria-label="Следующий месяц">
                         <i class="bi bi-chevron-right"></i>
                     </button>
-                </div>
+                            </div>
                 <div class="cal-weekdays text-body-secondary">
                     <div class="cal-weekday">Пн</div>
                     <div class="cal-weekday">Вт</div>
@@ -153,14 +153,14 @@
                     <div class="cal-weekday">Пт</div>
                     <div class="cal-weekday">Сб</div>
                     <div class="cal-weekday">Вс</div>
-                </div>
+                        </div>
                 <div class="cal-days">
                     <!-- Дни будут генерироваться JavaScript -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 
 <script>
 (function () {

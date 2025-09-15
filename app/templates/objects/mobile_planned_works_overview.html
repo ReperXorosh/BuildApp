@@ -1,0 +1,163 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'planned_works' %}
+
+{% block title %}Запланированные работы{% endblock %}
+{% block mobile_title %}Запланированные работы{% endblock %}
+
+{% block content %}
+<div class="mobile-mb-3">
+    <h2 class="mobile-card-title mobile-text-center">Обзор запланированных работ</h2>
+    <p class="mobile-text-muted mobile-text-center">Управление работами по объектам</p>
+</div>
+
+<!-- Общая статистика -->
+<div class="mobile-card">
+    <div class="mobile-card-title">Статистика</div>
+    <div class="row text-center">
+        <div class="col-3">
+            <div class="text-primary">
+                <i class="bi bi-building fs-4"></i>
+                <div class="small">{{ objects|length }}</div>
+                <div class="small text-muted">Объектов</div>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="text-info">
+                <i class="bi bi-list-task fs-4"></i>
+                <div class="small">{{ objects|sum(attribute='planned_works_count') }}</div>
+                <div class="small text-muted">Всего работ</div>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="text-success">
+                <i class="bi bi-check-circle fs-4"></i>
+                <div class="small">{{ objects|sum(attribute='completed_works_count') }}</div>
+                <div class="small text-muted">Завершено</div>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="text-warning">
+                <i class="bi bi-gear fs-4"></i>
+                <div class="small">{{ objects|sum(attribute='in_progress_works_count') }}</div>
+                <div class="small text-muted">В работе</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Быстрые действия -->
+{% if current_user.role in ['Инженер ПТО', 'Зам. директор', 'Ген. директор'] %}
+<div class="mobile-card">
+    <div class="mobile-card-title">Быстрые действия</div>
+    <div class="mobile-mt-2">
+        <form method="POST" action="{{ url_for('objects.manual_update_overdue_works') }}" class="d-inline w-100">
+            <button type="submit" class="mobile-btn mobile-btn-outline">
+                <i class="bi bi-clock-history me-2"></i>
+                Обновить просрочки
+            </button>
+        </form>
+        <form method="POST" action="{{ url_for('objects.manual_generate_daily_reports') }}" class="d-inline w-100">
+            <button type="submit" class="mobile-btn mobile-btn-outline">
+                <i class="bi bi-file-earmark-text me-2"></i>
+                Создать отчеты
+            </button>
+        </form>
+        <form method="POST" action="{{ url_for('objects.manual_generate_missing_reports') }}" class="d-inline w-100">
+            <button type="submit" class="mobile-btn mobile-btn-outline">
+                <i class="bi bi-calendar-plus me-2"></i>
+                Восстановить отчеты
+            </button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<!-- Список объектов -->
+{% if objects %}
+    {% for obj in objects %}
+    <div class="mobile-card" onclick="window.location.href='{{ url_for('objects.planned_works_list', object_id=obj.id) }}'">
+        <div class="mobile-card-title">
+            <i class="bi bi-building me-2"></i>
+            {{ obj.name }}
+        </div>
+        {% if obj.location %}
+        <div class="mobile-card-text mobile-mb-2">
+            <i class="bi bi-geo-alt me-1"></i>
+            {{ obj.location }}
+        </div>
+        {% endif %}
+        
+        <!-- Статистика работ по объекту -->
+        {% if obj.planned_works_count > 0 %}
+        <div class="row text-center mobile-mb-2">
+            <div class="col-4">
+                <div class="text-warning">
+                    <i class="bi bi-clock fs-5"></i>
+                    <div class="small">{{ obj.pending_works_count }}</div>
+                    <div class="small text-muted">Ожидают</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="text-info">
+                    <i class="bi bi-gear fs-5"></i>
+                    <div class="small">{{ obj.in_progress_works_count }}</div>
+                    <div class="small text-muted">В работе</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="text-success">
+                    <i class="bi bi-check-circle fs-5"></i>
+                    <div class="small">{{ obj.completed_works_count }}</div>
+                    <div class="small text-muted">Завершено</div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center mobile-mb-2">
+            <div class="text-success">
+                <i class="bi bi-check-circle fs-4"></i>
+                <div class="small">Нет запланированных работ</div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="mobile-card-text">
+            <strong>Всего работ:</strong> 
+            <span class="badge bg-{{ 'success' if obj.planned_works_count == 0 else 'warning' if obj.pending_works_count > 0 else 'info' }}">
+                {{ obj.planned_works_count }}
+            </span>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="mobile-card mobile-text-center">
+        <div class="mobile-card-title">Объекты отсутствуют</div>
+        <div class="mobile-card-text">Сначала создайте объекты для планирования работ</div>
+        <div class="mobile-mt-2">
+            <button class="mobile-btn mobile-btn-primary" onclick="window.location.href='{{ url_for('objects.add_object') }}'">
+                <i class="bi bi-plus-circle me-2"></i>
+                Создать объект
+            </button>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Дополнительные действия -->
+{% if objects %}
+<div class="mobile-mt-3">
+    <div class="mobile-card">
+        <div class="mobile-card-title">Дополнительные действия</div>
+        <div class="mobile-mt-2">
+            <button class="mobile-btn mobile-btn-outline" onclick="window.location.href='{{ url_for('objects.all_planned_works') }}'">
+                <i class="bi bi-table me-2"></i>
+                Все работы (таблица)
+            </button>
+            <button class="mobile-btn mobile-btn-outline" onclick="window.location.href='{{ url_for('objects.object_list') }}'">
+                <i class="bi bi-arrow-left me-2"></i>
+                К списку объектов
+            </button>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

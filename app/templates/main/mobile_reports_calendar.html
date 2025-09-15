@@ -1,0 +1,207 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'reports' %}
+
+{% block title %}Календарь отчётов{% endblock %}
+{% block mobile_title %}Календарь отчётов{% endblock %}
+
+{% block content %}
+<div class="mobile-mb-3">
+    <h2 class="mobile-card-title mobile-text-center">Календарь отчётов</h2>
+    <p class="mobile-text-muted mobile-text-center">Выберите дату для просмотра отчётов</p>
+</div>
+
+<!-- Навигация по месяцам -->
+<div class="mobile-card">
+    <div class="mobile-card-title">Навигация</div>
+    <div class="row text-center">
+        <div class="col-4">
+            <button class="mobile-btn mobile-btn-outline" onclick="changeMonth(-1)">
+                <i class="bi bi-chevron-left me-1"></i>
+                Предыдущий
+            </button>
+        </div>
+        <div class="col-4">
+            <div class="mobile-card-text">
+                <strong>{{ current_month|month_name }} {{ current_year }}</strong>
+            </div>
+        </div>
+        <div class="col-4">
+            <button class="mobile-btn mobile-btn-outline" onclick="changeMonth(1)">
+                Следующий
+                <i class="bi bi-chevron-right ms-1"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Календарь -->
+<div class="mobile-card">
+    <div class="mobile-card-title">Календарь</div>
+    <div id="reports-data" data-dates="{{ objects_by_date.keys() | list | join(',') }}" class="d-none"></div>
+    
+    <!-- Дни недели -->
+    <div class="row text-center mobile-mb-2">
+        <div class="col"><small class="text-muted">Пн</small></div>
+        <div class="col"><small class="text-muted">Вт</small></div>
+        <div class="col"><small class="text-muted">Ср</small></div>
+        <div class="col"><small class="text-muted">Чт</small></div>
+        <div class="col"><small class="text-muted">Пт</small></div>
+        <div class="col"><small class="text-muted">Сб</small></div>
+        <div class="col"><small class="text-muted">Вс</small></div>
+    </div>
+    
+    <!-- Календарная сетка -->
+    <div id="calendar-grid">
+        <!-- Дни будут генерироваться JavaScript -->
+    </div>
+</div>
+
+<!-- Список отчётов за выбранную дату -->
+<div id="selected-date-reports" class="mobile-card" style="display: none;">
+    <div class="mobile-card-title">Отчёты за <span id="selected-date-text"></span></div>
+    <div id="reports-list">
+        <!-- Отчёты будут загружаться динамически -->
+    </div>
+</div>
+
+<!-- Быстрые действия -->
+<div class="mobile-mt-3">
+    <div class="mobile-card">
+        <div class="mobile-card-title">Быстрые действия</div>
+        <div class="mobile-mt-2">
+            <button class="mobile-btn mobile-btn-outline" onclick="window.location.href='{{ url_for('main.reports') }}'">
+                <i class="bi bi-building me-2"></i>
+                Список объектов
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const monthNames = [
+        'Январь','Февраль','Март','Апрель','Май','Июнь',
+        'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'
+    ];
+
+    // Текущее состояние
+    let state = { 
+        m: {{ current_month - 1 }}, 
+        y: {{ current_year }} 
+    };
+
+    // Рендер месяца
+    function render(m, y) {
+        const grid = document.getElementById('calendar-grid');
+        grid.innerHTML = '';
+
+        // День недели 1-го числа (0=вс, 1=пн, ...)
+        const firstWeekday = new Date(y, m, 1).getDay();
+        const daysInMonth = new Date(y, m + 1, 0).getDate();
+        const daysInPrev = new Date(y, m, 0).getDate();
+
+        // Сколько «хвостиков» предыдущего месяца показать слева
+        const leading = firstWeekday === 0 ? 6 : firstWeekday - 1; // Понедельник = 0
+        const frag = document.createDocumentFragment();
+
+        // Предыдущий месяц (disabled)
+        for (let i = leading - 1; i >= 0; i--) {
+            const day = makeDayElement(daysInPrev - i, true);
+            frag.appendChild(day);
+        }
+        
+        // Текущий месяц
+        for (let d = 1; d <= daysInMonth; d++) {
+            const day = makeDayElement(d, false);
+            frag.appendChild(day);
+        }
+        
+        // Хвост следующего месяца
+        const total = leading + daysInMonth;
+        const trailing = (Math.ceil(total / 7) * 7) - total;
+        for (let d = 1; d <= trailing; d++) {
+            const day = makeDayElement(d, true);
+            frag.appendChild(day);
+        }
+
+        grid.appendChild(frag);
+    }
+
+    function makeDayElement(text, disabled) {
+        const day = document.createElement('div');
+        day.className = 'col text-center p-2';
+        
+        if (disabled) {
+            day.innerHTML = `<small class="text-muted">${text}</small>`;
+        } else {
+            const dayNum = parseInt(text);
+            const month = state.m + 1;
+            const year = state.y;
+            const dateStr = year + '-' + month.toString().padStart(2, '0') + '-' + dayNum.toString().padStart(2, '0');
+            
+            // Проверяем, есть ли отчёты в этот день
+            const dataEl = document.getElementById('reports-data');
+            const csv = dataEl ? (dataEl.getAttribute('data-dates') || '') : '';
+            const reportsDates = csv ? csv.split(',') : [];
+            const hasReports = reportsDates.includes(dateStr);
+            
+            // Проверяем, является ли это сегодняшним днем
+            const today = new Date();
+            const isToday = state.m === today.getMonth() && state.y === today.getFullYear() && dayNum === today.getDate();
+            
+            let dayClass = 'btn btn-sm w-100';
+            if (isToday) {
+                dayClass += ' btn-primary';
+            } else if (hasReports) {
+                dayClass += ' btn-success';
+            } else {
+                dayClass += ' btn-outline-secondary';
+            }
+            
+            day.innerHTML = `
+                <button class="${dayClass}" onclick="selectDate('${dateStr}', ${dayNum})">
+                    ${text}
+                    ${hasReports ? '<br><small>📊</small>' : ''}
+                </button>
+            `;
+        }
+        
+        return day;
+    }
+
+    // Функция выбора даты
+    window.selectDate = function(dateStr, dayNum) {
+        const selectedDateText = document.getElementById('selected-date-text');
+        const selectedDateReports = document.getElementById('selected-date-reports');
+        const reportsList = document.getElementById('reports-list');
+        
+        selectedDateText.textContent = dayNum + ' ' + monthNames[state.m] + ' ' + state.y;
+        selectedDateReports.style.display = 'block';
+        
+        // Переходим на страницу с отчётами по этой дате
+        window.location.href = '/reports/date/' + dateStr;
+    };
+
+    // Функция изменения месяца
+    window.changeMonth = function(delta) {
+        state.m += delta;
+        if (state.m < 0) { 
+            state.m = 11; 
+            state.y--; 
+        } else if (state.m > 11) { 
+            state.m = 0; 
+            state.y++; 
+        }
+        
+        // Обновляем URL
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.set('year', state.y);
+        newUrl.searchParams.set('month', state.m + 1);
+        window.location.href = newUrl.toString();
+    };
+
+    // Первый рендер
+    render(state.m, state.y);
+})();
+</script>
+{% endblock %}

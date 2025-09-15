@@ -185,7 +185,12 @@ def planned_works_overview():
         method=request.method
     )
     
-    return render_template('objects/planned_works_overview.html', objects=objects)
+    # Определяем, нужно ли использовать мобильный шаблон
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return render_template('objects/mobile_planned_works_overview.html', objects=objects, active_page='planned_works')
+    else:
+        return render_template('objects/planned_works_overview.html', objects=objects)
 
 @objects_bp.route('/all-planned-works')
 @login_required
@@ -236,11 +241,21 @@ def all_planned_works():
     # Проверяем, является ли пользователь инженером ПТО
     is_pto = is_pto_engineer(current_user)
     
-    return render_template('objects/all_planned_works.html', 
-                         planned_works=planned_works, 
-                         all_objects=all_objects,
-                         selected_object_id=object_filter,
-                         is_pto=is_pto)
+    # Определяем, нужно ли использовать мобильный шаблон
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return render_template('objects/mobile_all_planned_works.html', 
+                             planned_works=planned_works, 
+                             all_objects=all_objects,
+                             selected_object_id=object_filter,
+                             is_pto=is_pto,
+                             active_page='planned_works')
+    else:
+        return render_template('objects/all_planned_works.html', 
+                             planned_works=planned_works, 
+                             all_objects=all_objects,
+                             selected_object_id=object_filter,
+                             is_pto=is_pto)
 
 @objects_bp.route('/debug/planned-works')
 @login_required
