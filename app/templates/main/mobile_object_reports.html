@@ -25,7 +25,7 @@
             <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M3.5 0a.5.5 0 0 1 .5.5V1h6V.5a.5.5 0 0 1 1 0V1h1a.5.5 0 0 1 .5.5v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-11a.5.5 0 0 1 .5-.5H1V.5a.5.5 0 0 1 1 0V1h.5V.5a.5.5 0 0 1 1 0zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
             </svg>
-            {{ date_key | moscow_date }}
+            {{ date_key.split('-')[2] }}.{{ date_key.split('-')[1] }}.{{ date_key.split('-')[0] }}
         </div>
         
         {% for report in reports %}
