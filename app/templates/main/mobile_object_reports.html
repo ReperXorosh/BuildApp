@@ -1,0 +1,134 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'reports' %}
+
+{% block title %}Отчёты объекта - {{ object_obj.name }}{% endblock %}
+{% block mobile_title %}{{ object_obj.name }}{% endblock %}
+
+{% block content %}
+<div class="mobile-card">
+    <div class="mobile-card-title d-flex align-items-center">
+        <svg width="18" height="18" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
+        </svg>
+        Отчёты объекта
+    </div>
+    <p class="mobile-card-text mobile-mb-2">
+        <strong>{{ object_obj.name }}</strong>
+        {% if object_obj.location %}<br>{{ object_obj.location }}{% endif %}
+    </p>
+</div>
+
+{% if reports_by_date %}
+    {% for date_key, reports in reports_by_date.items() %}
+    <div class="mobile-card">
+        <div class="mobile-card-title">
+            <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M3.5 0a.5.5 0 0 1 .5.5V1h6V.5a.5.5 0 0 1 1 0V1h1a.5.5 0 0 1 .5.5v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-11a.5.5 0 0 1 .5-.5H1V.5a.5.5 0 0 1 1 0V1h.5V.5a.5.5 0 0 1 1 0zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+            </svg>
+            {{ date_key | moscow_date }}
+        </div>
+        
+        {% for report in reports %}
+        <div class="mobile-card-text mobile-mb-2" style="border-left: 3px solid var(--bs-primary); padding-left: 12px;">
+            <div class="d-flex justify-content-between align-items-start">
+                <div style="flex: 1;">
+                    <strong>{{ report.title or 'Отчёт' }}</strong>
+                    {% if report.report_type == 'daily' %}
+                    <span class="badge bg-info ms-1">Ежедневный</span>
+                    {% endif %}
+                </div>
+                <div class="text-end">
+                    {% if report.status == 'approved' %}
+                    <span class="badge bg-success">Одобрен</span>
+                    {% elif report.status == 'pending' %}
+                    <span class="badge bg-warning">На рассмотрении</span>
+                    {% elif report.status == 'rejected' %}
+                    <span class="badge bg-danger">Отклонён</span>
+                    {% else %}
+                    <span class="badge bg-secondary">{{ report.status or 'Не указан' }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if report.creator %}
+            <div class="mobile-mt-1">
+                <small class="text-muted">
+                    <svg width="12" height="12" class="me-1" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/>
+                    </svg>
+                    {{ report.creator.login }}
+                </small>
+            </div>
+            {% endif %}
+            
+            {% if report.content %}
+            <div class="mobile-mt-1">
+                <small class="text-muted">{{ report.content[:100] }}{% if report.content|length > 100 %}...{% endif %}</small>
+            </div>
+            {% endif %}
+            
+            <div class="mobile-mt-1">
+                <a href="{{ url_for('main.object_report_by_date', object_id=object_obj.id, date=date_key) }}" class="btn btn-sm btn-outline-primary">
+                    <svg width="12" height="12" class="me-1" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.389.389 0 0 0-.029-.518z"/>
+                    </svg>
+                    Подробнее
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="mobile-card">
+        <div class="mobile-card-title">Нет отчётов</div>
+        <div class="mobile-card-text text-center text-muted">
+            <svg width="48" height="48" class="mb-2" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
+            </svg>
+            <p>Для этого объекта пока нет отчётов</p>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Навигация -->
+<div class="mobile-card">
+    <div class="mobile-card-title">Навигация</div>
+    <a href="{{ url_for('main.reports') }}" class="mobile-btn mobile-btn-outline">
+        <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
+        </svg>
+        Все отчёты
+    </a>
+    <a href="{{ url_for('main.reports_calendar') }}" class="mobile-btn mobile-btn-outline">
+        <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h6V.5a.5.5 0 0 1 1 0V1h1a.5.5 0 0 1 .5.5v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-11a.5.5 0 0 1 .5-.5H1V.5a.5.5 0 0 1 1 0V1h.5V.5a.5.5 0 0 1 1 0zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+        </svg>
+        Календарь отчётов
+    </a>
+    <a href="{{ url_for('objects.object_detail', object_id=object_obj.id) }}" class="mobile-btn mobile-btn-outline">
+        <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
+        </svg>
+        Информация об объекте
+    </a>
+</div>
+
+<!-- Дополнительный отступ для нижней панели -->
+<div style="height: 140px"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Улучшаем скролл (тема уже инициализирована в layout)
+    const content = document.querySelector('.mobile-content');
+    if (content) {
+        content.style.webkitOverflowScrolling = 'touch';
+        content.style.scrollBehavior = 'smooth';
+        const currentPaddingBottom = parseInt(window.getComputedStyle(content).paddingBottom || '0', 10);
+        if (currentPaddingBottom < 140) {
+            content.style.paddingBottom = '140px';
+        }
+    }
+});
+</script>
+{% endblock %}

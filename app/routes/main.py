@@ -1025,6 +1025,13 @@ def object_reports(object_id):
         method=request.method
     )
     
+    # Проверяем мобильное устройство
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return render_template('main/mobile_object_reports.html', 
+                             object_obj=object_obj, 
+                             reports_by_date=reports_by_date)
+    
     return render_template('main/object_reports.html', 
                          object_obj=object_obj, 
                          reports_by_date=reports_by_date)
