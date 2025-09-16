@@ -1,0 +1,53 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'objects' %}
+
+{% block title %}Добавить элемент{% endblock %}
+{% block mobile_title %}Добавить элемент{% endblock %}
+
+{% block content %}
+<div class="mobile-card">
+    <div class="mobile-card-title">
+        <i class="bi bi-plus-circle me-2"></i>
+        Добавить элемент
+    </div>
+    <div class="mobile-card-text mobile-mb-2">
+        Объект: <a href="{{ url_for('objects.object_detail', object_id=object.id) }}">{{ object.name }}</a>
+    </div>
+    <form method="POST">
+        <div class="mobile-form-group">
+            <label class="mobile-form-label">Тип элемента</label>
+            <select name="element_type" class="mobile-form-control" required>
+                <option value="">Выберите тип</option>
+                <option value="zdf">ЗДФ</option>
+                <option value="bracket">Кронштейн</option>
+                <option value="luminaire">Светильник</option>
+            </select>
+        </div>
+        <div class="mobile-form-group">
+            <label class="mobile-form-label">Номер</label>
+            <input type="text" name="element_number" class="mobile-form-control" placeholder="Введите номер" required>
+        </div>
+        <div class="mobile-form-group">
+            <label class="mobile-form-label">Название (необязательно)</label>
+            <input type="text" name="element_name" class="mobile-form-control" placeholder="Введите название">
+        </div>
+        <div class="mobile-form-group">
+            <label class="mobile-form-label">Примечания</label>
+            <textarea name="notes" class="mobile-form-control" rows="3" placeholder="Добавьте примечание"></textarea>
+        </div>
+        <button type="submit" class="mobile-btn mobile-btn-primary">Сохранить</button>
+        <a href="{{ url_for('objects.supports_list', object_id=object.id) }}" class="mobile-btn mobile-btn-outline">Назад</a>
+    </form>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="mobile-mt-2">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+</div>
+{% endblock %}
+
+

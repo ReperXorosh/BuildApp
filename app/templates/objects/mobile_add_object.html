@@ -1,0 +1,44 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'objects' %}
+
+{% block title %}Добавить объект{% endblock %}
+{% block mobile_title %}Добавить объект{% endblock %}
+
+{% block content %}
+<div class="mobile-card">
+    <div class="mobile-card-title">
+        <i class="bi bi-building me-2"></i>
+        Информация об объекте
+    </div>
+    <form method="POST">
+        <div class="mobile-form-group">
+            <label class="mobile-form-label" for="name">Название объекта *</label>
+            <input type="text" class="mobile-form-control" id="name" name="name" placeholder="Введите название" required>
+        </div>
+
+        <div class="mobile-form-group">
+            <label class="mobile-form-label" for="location">Местоположение</label>
+            <input type="text" class="mobile-form-control" id="location" name="location" placeholder="Город, адрес">
+        </div>
+
+        <div class="mobile-form-group">
+            <label class="mobile-form-label" for="description">Описание</label>
+            <textarea class="mobile-form-control" id="description" name="description" rows="4" placeholder="Краткое описание"></textarea>
+        </div>
+
+        <button type="submit" class="mobile-btn mobile-btn-primary">Сохранить</button>
+        <a class="mobile-btn mobile-btn-outline" href="{{ url_for('objects.object_list') }}">Назад к списку</a>
+    </form>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="mobile-mt-2">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+</div>
+{% endblock %}
+
+

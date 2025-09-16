@@ -357,6 +357,9 @@ def debug_db_structure():
 @login_required
 def add_object():
     """Добавление нового объекта"""
+    # Мобильный рендер
+    from ..utils.mobile_detection import is_mobile_device
+    is_mobile = is_mobile_device()
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
         description = request.form.get('description', '').strip()
@@ -364,7 +367,7 @@ def add_object():
         
         if not name:
             flash('Название объекта обязательно для заполнения', 'error')
-            return render_template('objects/add_object.html')
+            return render_template('objects/mobile_add_object.html' if is_mobile else 'objects/add_object.html')
         
         # Создаем новый объект
         new_object = Object(
@@ -392,7 +395,7 @@ def add_object():
         flash('Объект успешно создан', 'success')
         return redirect(url_for('objects.object_list'))
     
-    return render_template('objects/add_object.html')
+    return render_template('objects/mobile_add_object.html' if is_mobile else 'objects/add_object.html')
 
 @objects_bp.route('/<uuid:object_id>')
 @login_required
@@ -438,6 +441,8 @@ def supports_list(object_id):
 def add_support(object_id):
     """Добавление опоры (только для инженера ПТО)"""
     obj = Object.query.get_or_404(object_id)
+    from ..utils.mobile_detection import is_mobile_device
+    is_mobile = is_mobile_device()
     
     # Получаем данные о ЗДФ, Кронштейнах и Светильниках для данного объекта
     zdf_list = ZDF.query.filter_by(object_id=object_id, status='planned').order_by(ZDF.zdf_number.asc()).all()
@@ -456,7 +461,7 @@ def add_support(object_id):
         
         if not support_number:
             flash('Номер опоры обязателен для заполнения', 'error')
-            return render_template('objects/add_support.html', object=obj, zdf_list=zdf_list, brackets_list=brackets_list, luminaires_list=luminaires_list)
+            return render_template('objects/mobile_add_support.html' if is_mobile else 'objects/add_support.html', object=obj, zdf_list=zdf_list, brackets_list=brackets_list, luminaires_list=luminaires_list)
         
         new_support = Support(
             id=str(uuid.uuid4()),
@@ -509,13 +514,15 @@ def add_support(object_id):
         flash('Опора по проекту успешно добавлена. Запланированная работа для установки опоры создана автоматически.', 'success')
         return redirect(url_for('objects.supports_list', object_id=object_id))
     
-    return render_template('objects/add_support.html', object=obj, zdf_list=zdf_list, brackets_list=brackets_list, luminaires_list=luminaires_list)
+    return render_template('objects/mobile_add_support.html' if is_mobile else 'objects/add_support.html', object=obj, zdf_list=zdf_list, brackets_list=brackets_list, luminaires_list=luminaires_list)
 
 @objects_bp.route('/<uuid:object_id>/elements/add', methods=['GET', 'POST'])
 @login_required
 def add_element(object_id):
     """Добавление элемента (ЗДФ, Кронштейн, Светильник) - только для инженера ПТО"""
     obj = Object.query.get_or_404(object_id)
+    from ..utils.mobile_detection import is_mobile_device
+    is_mobile = is_mobile_device()
     
     # Проверяем права доступа - только инженер ПТО может добавлять элементы
     if current_user.role != 'Инженер ПТО':
@@ -530,7 +537,7 @@ def add_element(object_id):
         
         if not element_type or not element_number:
             flash('Тип элемента и номер обязательны для заполнения', 'error')
-            return render_template('objects/add_element.html', object=obj)
+            return render_template('objects/mobile_add_element.html' if is_mobile else 'objects/add_element.html', object=obj)
         
         # Создаем элемент в зависимости от типа
         if element_type == 'zdf':
@@ -568,7 +575,7 @@ def add_element(object_id):
             element_type_name = 'Светильник'
         else:
             flash('Неверный тип элемента', 'error')
-            return render_template('objects/add_element.html', object=obj)
+            return render_template('objects/mobile_add_element.html' if is_mobile else 'objects/add_element.html', object=obj)
         
         db.session.add(new_element)
         db.session.commit()
@@ -586,7 +593,7 @@ def add_element(object_id):
         flash(f'{element_type_name} успешно добавлен', 'success')
         return redirect(url_for('objects.supports_list', object_id=object_id))
     
-    return render_template('objects/add_element.html', object=obj)
+    return render_template('objects/mobile_add_element.html' if is_mobile else 'objects/add_element.html', object=obj)
 
 @objects_bp.route('/<uuid:object_id>/supports/<uuid:support_id>')
 @login_required
@@ -689,6 +696,8 @@ def trenches_list(object_id):
 def add_trench(object_id):
     """Добавление траншеи"""
     obj = Object.query.get_or_404(object_id)
+    from ..utils.mobile_detection import is_mobile_device
+    is_mobile = is_mobile_device()
     
     if request.method == 'POST':
         planned_length = request.form.get('planned_length')
@@ -701,7 +710,7 @@ def add_trench(object_id):
         
         if not planned_length:
             flash('Запланированная длина обязательна для заполнения', 'error')
-            return render_template('objects/add_trench.html', object=obj)
+            return render_template('objects/mobile_add_trench.html' if is_mobile else 'objects/add_trench.html', object=obj)
         
         # Преобразуем дату
         if excavation_date:
@@ -718,16 +727,16 @@ def add_trench(object_id):
             depth = float(depth) if depth else None
         except ValueError:
             flash('Некорректные числовые значения', 'error')
-            return render_template('objects/add_trench.html', object=obj)
+            return render_template('objects/mobile_add_trench.html' if is_mobile else 'objects/add_trench.html', object=obj)
         
         # Проверяем валидность значений
         if planned_length <= 0:
             flash('Запланированная длина должна быть больше 0', 'error')
-            return render_template('objects/add_trench.html', object=obj)
+            return render_template('objects/mobile_add_trench.html' if is_mobile else 'objects/add_trench.html', object=obj)
         
         if current_length > planned_length:
             flash('Текущая длина не может быть больше запланированной', 'error')
-            return render_template('objects/add_trench.html', object=obj)
+            return render_template('objects/mobile_add_trench.html' if is_mobile else 'objects/add_trench.html', object=obj)
         
         new_trench = Trench(
             id=str(uuid.uuid4()),
@@ -806,7 +815,7 @@ def add_trench(object_id):
         
         return redirect(url_for('objects.trenches_list', object_id=object_id))
     
-    return render_template('objects/add_trench.html', object=obj)
+    return render_template('objects/mobile_add_trench.html' if is_mobile else 'objects/add_trench.html', object=obj)
 
 # Маршруты для отчётов
 @objects_bp.route('/<uuid:object_id>/reports')
@@ -933,6 +942,8 @@ def add_checklist_item(object_id):
         abort(403)
     
     obj = Object.query.get_or_404(object_id)
+    from ..utils.mobile_detection import is_mobile_device
+    is_mobile = is_mobile_device()
     
     if request.method == 'POST':
         item_text = request.form.get('item_text', '').strip()
@@ -940,7 +951,7 @@ def add_checklist_item(object_id):
         
         if not item_text:
             flash('Текст позиции обязателен для заполнения', 'error')
-            return render_template('objects/add_checklist_item.html', object=obj)
+            return render_template('objects/mobile_add_checklist_item.html' if is_mobile else 'objects/add_checklist_item.html', object=obj)
         
         # Get or create checklist for the object
         if not obj.checklist:
@@ -1015,7 +1026,7 @@ def add_checklist_item(object_id):
         flash('Позиция чек-листа успешно добавлена', 'success')
         return redirect(url_for('objects.checklist_view', object_id=object_id))
     
-    return render_template('objects/add_checklist_item.html', object=obj)
+    return render_template('objects/mobile_add_checklist_item.html' if is_mobile else 'objects/add_checklist_item.html', object=obj)
 
 @objects_bp.route('/<uuid:object_id>/checklist/<uuid:item_id>/edit', methods=['GET', 'POST'])
 @login_required
