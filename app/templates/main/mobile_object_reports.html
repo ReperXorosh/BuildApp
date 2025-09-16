@@ -10,10 +10,8 @@
     display: block;
     text-decoration: none;
     color: inherit;
-    padding: 12px;
-    border-radius: 8px;
     transition: background-color 0.2s;
-    margin-bottom: 8px;
+    margin-bottom: 16px;
 }
 
 .report-card-link:hover {
@@ -42,7 +40,7 @@
 
 {% if reports_by_date %}
     {% for date_key, reports in reports_by_date.items() %}
-    <div class="mobile-card">
+    <a href="{{ url_for('main.object_report_by_date', object_id=object_obj.id, date=date_key) }}" class="mobile-card report-card-link">
         <div class="mobile-card-title">
             <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M3.5 0a.5.5 0 0 1 .5.5V1h6V.5a.5.5 0 0 1 1 0V1h1a.5.5 0 0 1 .5.5v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-11a.5.5 0 0 1 .5-.5H1V.5a.5.5 0 0 1 1 0V1h.5V.5a.5.5 0 0 1 1 0zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
@@ -51,10 +49,13 @@
         </div>
         
         {% for report in reports %}
-        <a href="{{ url_for('main.object_report_by_date', object_id=object_obj.id, date=date_key) }}" class="report-card-link">
+        <div class="mobile-card-text mobile-mb-2">
             <div class="d-flex justify-content-between align-items-start">
                 <div style="flex: 1;">
-                    <strong style="color: var(--bs-primary);">{{ report.title or 'Отчёт' }}</strong>
+                    <strong>{{ report.title or 'Отчёт' }}</strong>
+                    {% if report.report_type == 'daily' %}
+                    <span class="badge bg-secondary ms-1">Ежедневный</span>
+                    {% endif %}
                 </div>
                 <div class="text-end">
                     {% if report.status == 'approved' %}
@@ -85,9 +86,9 @@
                 <small class="text-muted">{{ report.content[:100] }}{% if report.content|length > 100 %}...{% endif %}</small>
             </div>
             {% endif %}
-        </a>
+        </div>
         {% endfor %}
-    </div>
+    </a>
     {% endfor %}
 {% else %}
     <div class="mobile-card">
