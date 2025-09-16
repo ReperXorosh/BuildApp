@@ -26,6 +26,32 @@
     </div>
     <a href="{{ url_for('objects.object_list') }}" class="mobile-btn mobile-btn-outline mobile-mt-2">Назад к списку</a>
 </div>
+
+<!-- Дополнительный отступ, чтобы контент не перекрывался нижней панелью навигации -->
+<div style="height: 140px"></div>
+
+<script>
+// Гарантируем применение сохранённой темы и плавный скролл
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || savedTheme === 'light') {
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        }
+        // Добавочный safeguard для скроллинга
+        const content = document.querySelector('.mobile-content');
+        if (content) {
+            content.style.webkitOverflowScrolling = 'touch';
+            content.style.scrollBehavior = 'smooth';
+            // На всякий случай усилим нижний внутренний отступ
+            const currentPaddingBottom = parseInt(window.getComputedStyle(content).paddingBottom || '0', 10);
+            if (currentPaddingBottom < 140) {
+                content.style.paddingBottom = '140px';
+            }
+        }
+    } catch (e) { /* noop */ }
+});
+</script>
 {% endblock %}
 
 
