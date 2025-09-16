@@ -421,6 +421,12 @@
             transform: scale(0.95);
         }
         
+        .mobile-theme-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
         .mobile-theme-btn svg {
             transition: transform 0.3s ease;
         }
@@ -674,23 +680,34 @@
                 item.addEventListener('click', closeMobileMenu);
             });
             
-            // Переключение темы с максимальной защитой
+            // Переключение темы с агрессивной защитой
             let isThemeChanging = false;
             let themeChangeTimeout = null;
+            let lastClickTime = 0;
             
             function toggleTheme() {
+                const now = Date.now();
+                
+                // Агрессивная защита от спама - блокируем клики чаще чем раз в 100мс
+                if (now - lastClickTime < 100) {
+                    return;
+                }
+                lastClickTime = now;
+                
                 // Множественная защита от спама
                 if (isThemeChanging || !mobileThemeToggle || mobileThemeToggle.disabled) {
                     return;
                 }
                 
+                // Немедленная блокировка
+                isThemeChanging = true;
+                mobileThemeToggle.disabled = true;
+                mobileThemeToggle.style.pointerEvents = 'none';
+                
                 // Очищаем предыдущий таймаут если есть
                 if (themeChangeTimeout) {
                     clearTimeout(themeChangeTimeout);
                 }
-                
-                isThemeChanging = true;
-                mobileThemeToggle.disabled = true;
                 
                 try {
                     const currentTheme = document.documentElement.getAttribute('data-bs-theme');
@@ -712,18 +729,20 @@
                     // Добавляем анимацию
                     mobileThemeToggle.classList.add('active');
                     
-                    // Устанавливаем таймаут для разблокировки
+                    // Устанавливаем таймаут для разблокировки (сохраняем скорость анимации)
                     themeChangeTimeout = setTimeout(() => {
                         mobileThemeToggle.classList.remove('active');
                         mobileThemeToggle.disabled = false;
+                        mobileThemeToggle.style.pointerEvents = 'auto';
                         isThemeChanging = false;
                         themeChangeTimeout = null;
-                    }, 500); // Увеличил время до 500мс
+                    }, 300); // Возвращаем к оригинальной скорости анимации
                     
                 } catch (e) {
                     console.error('Ошибка при переключении темы:', e);
                     // Принудительная разблокировка при ошибке
                     mobileThemeToggle.disabled = false;
+                    mobileThemeToggle.style.pointerEvents = 'auto';
                     mobileThemeToggle.classList.remove('active');
                     isThemeChanging = false;
                     if (themeChangeTimeout) {
