@@ -1,0 +1,38 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'objects' %}
+
+{% block title %}Траншеи - {{ object.name }}{% endblock %}
+{% block mobile_title %}Траншеи{% endblock %}
+
+{% block content %}
+<div class="mobile-card">
+    <div class="mobile-card-title">{{ object.name }}</div>
+    <div class="mobile-card-text">Всего траншей: {{ trenches|length }}</div>
+</div>
+
+<div class="mobile-card">
+    <div class="mobile-card-title d-flex justify-content-between align-items-center">
+        Список траншей
+        <a href="{{ url_for('objects.add_trench', object_id=object.id) }}" class="btn btn-sm btn-primary">Добавить</a>
+    </div>
+    {% if trenches %}
+    <div class="list-group">
+        {% for t in trenches %}
+        <div class="list-group-item">
+            <div class="d-flex justify-content-between">
+                <span>Длина план/текущая: {{ t.planned_length }} / {{ t.current_length or 0 }} м</span>
+                <span class="badge bg-{{ 'success' if t.is_completed else 'warning' }}">{{ 'Завершена' if t.is_completed else 'В работе' }}</span>
+            </div>
+            {% if t.excavation_date %}
+            <small class="text-muted">Дата рытья: {{ t.excavation_date.strftime('%d.%m.%Y') }}</small>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="mobile-card-text">Пока нет траншей</div>
+    {% endif %}
+</div>
+{% endblock %}
+
+

@@ -1,0 +1,33 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'objects' %}
+
+{% block title %}Опоры - {{ object.name }}{% endblock %}
+{% block mobile_title %}Опоры{% endblock %}
+
+{% block content %}
+<div class="mobile-card">
+    <div class="mobile-card-title">{{ object.name }}</div>
+    <div class="mobile-card-text">Всего опор: {{ supports|length }}</div>
+</div>
+
+<div class="mobile-card">
+    <div class="mobile-card-title d-flex justify-content-between align-items-center">
+        Список опор
+        <a href="{{ url_for('objects.add_support', object_id=object.id) }}" class="btn btn-sm btn-primary">Добавить</a>
+    </div>
+    {% if supports %}
+    <div class="list-group">
+        {% for s in supports %}
+        <a class="list-group-item d-flex justify-content-between align-items-center" href="{{ url_for('objects.support_detail', object_id=object.id, support_id=s.id) }}">
+            <span>Опора {{ s.support_number }}{% if s.support_type %} ({{ s.support_type }}){% endif %}</span>
+            <span class="badge bg-secondary">{{ s.status }}</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="mobile-card-text">Пока нет опор</div>
+    {% endif %}
+</div>
+{% endblock %}
+
+

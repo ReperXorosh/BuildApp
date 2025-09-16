@@ -414,7 +414,11 @@ def object_detail(object_id):
         method=request.method
     )
     
-    return render_template('objects/object_detail.html', object=obj)
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return render_template('objects/mobile_object_detail.html', object=obj)
+    else:
+        return render_template('objects/object_detail.html', object=obj)
 
 # Маршруты для опор
 @objects_bp.route('/<uuid:object_id>/supports')
@@ -434,7 +438,11 @@ def supports_list(object_id):
         method=request.method
     )
     
-    return render_template('objects/supports_list.html', object=obj, supports=supports)
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return render_template('objects/mobile_supports_list.html', object=obj, supports=supports)
+    else:
+        return render_template('objects/supports_list.html', object=obj, supports=supports)
 
 @objects_bp.route('/<uuid:object_id>/supports/add', methods=['GET', 'POST'])
 @login_required
@@ -689,7 +697,11 @@ def trenches_list(object_id):
         method=request.method
     )
     
-    return render_template('objects/trenches_list.html', object=obj, trenches=trenches)
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return render_template('objects/mobile_trenches_list.html', object=obj, trenches=trenches)
+    else:
+        return render_template('objects/trenches_list.html', object=obj, trenches=trenches)
 
 @objects_bp.route('/<uuid:object_id>/trenches/add', methods=['GET', 'POST'])
 @login_required
@@ -842,7 +854,11 @@ def reports_list(object_id):
         method=request.method
     )
     
-    return render_template('objects/reports_list.html', object=obj, reports=reports, daily_reports=daily_reports, today=date.today())
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return render_template('objects/mobile_reports_list.html', object=obj, reports=reports, daily_reports=daily_reports, today=date.today())
+    else:
+        return render_template('objects/reports_list.html', object=obj, reports=reports, daily_reports=daily_reports, today=date.today())
 
 @objects_bp.route('/<uuid:object_id>/reports/add', methods=['GET', 'POST'])
 @login_required

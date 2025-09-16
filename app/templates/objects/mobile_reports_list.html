@@ -1,0 +1,38 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'objects' %}
+
+{% block title %}Отчёты - {{ object.name }}{% endblock %}
+{% block mobile_title %}Отчёты{% endblock %}
+
+{% block content %}
+<div class="mobile-card">
+    <div class="mobile-card-title">{{ object.name }}</div>
+    <div class="mobile-card-text">Всего отчётов: {{ reports|length }}</div>
+</div>
+
+<div class="mobile-card">
+    <div class="mobile-card-title d-flex justify-content-between align-items-center">
+        Список отчётов
+        <a href="{{ url_for('objects.add_report', object_id=object.id) }}" class="btn btn-sm btn-primary">Добавить</a>
+    </div>
+    {% if reports %}
+    <div class="list-group">
+        {% for r in reports %}
+        <div class="list-group-item">
+            <div class="d-flex justify-content-between">
+                <span>№ {{ r.report_number }} — {{ r.title }}</span>
+                {% if r.report_date %}<small class="text-muted">{{ r.report_date.strftime('%d.%m.%Y') }}</small>{% endif %}
+            </div>
+            {% if r.report_type %}
+            <small class="text-muted">Тип: {{ r.report_type }}</small>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="mobile-card-text">Пока нет отчётов</div>
+    {% endif %}
+</div>
+{% endblock %}
+
+
