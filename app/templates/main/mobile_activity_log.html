@@ -65,7 +65,7 @@
                     <strong>{{ activity.action }}</strong><br>
                     <small class="text-muted">{{ activity.user_login }}</small>
                 </div>
-                <small class="text-muted">{{ activity.timestamp.strftime('%d.%m %H:%M') }}</small>
+                <small class="text-muted">{{ activity.created_at.strftime('%d.%m %H:%M') }}</small>
             </div>
             {% if activity.description %}
             <div class="mobile-mt-1">
