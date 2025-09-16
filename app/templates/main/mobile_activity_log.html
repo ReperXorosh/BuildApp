@@ -1,0 +1,173 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'activity_log' %}
+
+{% block title %}{{ gettext('Журнал действий') }}{% endblock %}
+{% block mobile_title %}{{ gettext('Журнал действий') }}{% endblock %}
+
+{% block content %}
+<div class="mobile-card">
+    <div class="mobile-card-title d-flex align-items-center">
+        <svg width="18" height="18" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+        </svg>
+        {{ gettext('Журнал действий') }}
+    </div>
+    <p class="mobile-card-text mobile-mb-2">История всех действий в системе</p>
+</div>
+
+<!-- Статистика -->
+<div class="mobile-card">
+    <div class="mobile-card-title">Статистика</div>
+    <div class="row g-2">
+        <div class="col-6">
+            <div class="mobile-card-text">
+                <strong>{{ total_activities }}</strong><br>
+                <small class="text-muted">Всего записей</small>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="mobile-card-text">
+                <strong>{{ today_activities }}</strong><br>
+                <small class="text-muted">Сегодня</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Фильтры -->
+{% if user_id_filter and filtered_user %}
+<div class="mobile-card">
+    <div class="mobile-card-title">Активный фильтр</div>
+    <div class="mobile-card-text">
+        <strong>Пользователь:</strong> {{ filtered_user.login }}
+        {% if filtered_user.firstname or filtered_user.secondname %}
+            ({{ filtered_user.secondname or '' }} {{ filtered_user.firstname or '' }})
+        {% endif %}
+    </div>
+    <a href="{{ url_for('activity_log.view_activity_log') }}" class="mobile-btn mobile-btn-outline mobile-mt-2">
+        <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+        </svg>
+        Сбросить фильтр
+    </a>
+</div>
+{% endif %}
+
+<!-- Список действий -->
+<div class="mobile-card">
+    <div class="mobile-card-title">Последние действия</div>
+    {% if activities.items %}
+        {% for activity in activities.items %}
+        <div class="mobile-card-text mobile-mb-2" style="border-left: 3px solid var(--bs-primary); padding-left: 12px;">
+            <div class="d-flex justify-content-between align-items-start">
+                <div style="flex: 1;">
+                    <strong>{{ activity.action }}</strong><br>
+                    <small class="text-muted">{{ activity.user_login }}</small>
+                </div>
+                <small class="text-muted">{{ activity.timestamp.strftime('%d.%m %H:%M') }}</small>
+            </div>
+            {% if activity.description %}
+            <div class="mobile-mt-1">
+                <small class="text-muted">{{ activity.description }}</small>
+            </div>
+            {% endif %}
+            {% if activity.page_url %}
+            <div class="mobile-mt-1">
+                <small class="text-muted">
+                    <svg width="12" height="12" class="me-1" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
+                    </svg>
+                    {{ activity.page_url }}
+                </small>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="mobile-card-text text-center text-muted">
+            <svg width="48" height="48" class="mb-2" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+            </svg>
+            <p>Нет записей для отображения</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Пагинация -->
+{% if activities.pages > 1 %}
+<div class="mobile-card">
+    <div class="mobile-card-title">Страницы</div>
+    <div class="d-flex justify-content-center">
+        <nav aria-label="Навигация по страницам">
+            <ul class="pagination pagination-sm">
+                {% if activities.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('activity_log.view_activity_log', page=activities.prev_num, user=user_filter, action=action_filter, date=date_filter) }}">
+                        <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+                        </svg>
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for page_num in activities.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != activities.page %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('activity_log.view_activity_log', page=page_num, user=user_filter, action=action_filter, date=date_filter) }}">{{ page_num }}</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">…</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if activities.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('activity_log.view_activity_log', page=activities.next_num, user=user_filter, action=action_filter, date=date_filter) }}">
+                        <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endif %}
+
+<!-- Дополнительный отступ для нижней панели -->
+<div style="height: 140px"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Применяем тему из localStorage
+    try {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || savedTheme === 'light') {
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        }
+    } catch (e) {}
+    
+    // Улучшаем скролл
+    const content = document.querySelector('.mobile-content');
+    if (content) {
+        content.style.webkitOverflowScrolling = 'touch';
+        content.style.scrollBehavior = 'smooth';
+        const currentPaddingBottom = parseInt(window.getComputedStyle(content).paddingBottom || '0', 10);
+        if (currentPaddingBottom < 140) {
+            content.style.paddingBottom = '140px';
+        }
+    }
+});
+</script>
+{% endblock %}

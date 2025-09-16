@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from app.models.supply import Material, Equipment, SupplyOrder, SupplyOrderItem
 from app.models.activity_log import ActivityLog
 from app.extensions import db
+from app.utils.mobile_detection import is_mobile_device
 from datetime import datetime, timedelta, timezone
 
 supply = Blueprint('supply', __name__)
@@ -52,6 +53,16 @@ def supply_dashboard():
     recent_orders = SupplyOrder.query.order_by(
         SupplyOrder.created_at.desc()
     ).limit(5).all()
+    
+    # Проверяем мобильное устройство
+    if is_mobile_device():
+        return render_template('supply/mobile_dashboard.html',
+                             materials_count=materials_count,
+                             equipment_count=equipment_count,
+                             pending_orders=pending_orders,
+                             delivered_orders=delivered_orders,
+                             low_stock_materials=low_stock_materials,
+                             recent_orders=recent_orders)
     
     return render_template('supply/dashboard.html',
                          materials_count=materials_count,

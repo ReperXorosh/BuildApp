@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from app.models.activity_log import ActivityLog
 from app.models.users import Users
 from app.extensions import db
+from app.utils.mobile_detection import is_mobile_device
 from datetime import datetime, timedelta, timezone
 
 activity_log = Blueprint('activity_log', __name__)
@@ -166,6 +167,18 @@ def view_activity_log():
     filtered_user = None
     if user_id_filter:
         filtered_user = Users.query.get(user_id_filter)
+    
+    # Проверяем мобильное устройство
+    if is_mobile_device():
+        return render_template('main/mobile_activity_log.html',
+                             activities=activities,
+                             total_activities=total_activities,
+                             today_activities=today_activities,
+                             user_filter=user_filter,
+                             user_id_filter=user_id_filter,
+                             filtered_user=filtered_user,
+                             action_filter=action_filter,
+                             date_filter=date_filter)
     
     return render_template('main/activity_log.html',
                          activities=activities,

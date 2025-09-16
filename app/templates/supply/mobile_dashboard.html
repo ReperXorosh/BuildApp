@@ -1,0 +1,123 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'supply' %}
+
+{% block title %}Система снабжения{% endblock %}
+{% block mobile_title %}Снабжение{% endblock %}
+
+{% block content %}
+<div class="mobile-card">
+    <div class="mobile-card-title d-flex align-items-center">
+        <svg width="18" height="18" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
+        </svg>
+        Система снабжения
+    </div>
+    <p class="mobile-card-text mobile-mb-2">Управление материалами, техникой и заказами</p>
+</div>
+
+<!-- Статистика -->
+<div class="mobile-card">
+    <div class="mobile-card-title">Статистика</div>
+    <div class="row g-2">
+        <div class="col-6">
+            <div class="mobile-card-text">
+                <strong>{{ materials_count }}</strong><br>
+                <small class="text-muted">Материалов</small>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="mobile-card-text">
+                <strong>{{ equipment_count }}</strong><br>
+                <small class="text-muted">Единиц техники</small>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="mobile-card-text">
+                <strong>{{ pending_orders }}</strong><br>
+                <small class="text-muted">Заказов в работе</small>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="mobile-card-text">
+                <strong>{{ delivered_orders }}</strong><br>
+                <small class="text-muted">Выполнено</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Навигация -->
+<div class="mobile-card">
+    <div class="mobile-card-title">Разделы</div>
+    <a href="{{ url_for('supply.materials_list') }}" class="mobile-btn mobile-btn-outline">
+        <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.389.389 0 0 0-.029-.518z"/>
+        </svg>
+        Материалы
+    </a>
+    <a href="{{ url_for('supply.equipment_list') }}" class="mobile-btn mobile-btn-outline">
+        <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z"/>
+        </svg>
+        Техника
+    </a>
+    <a href="{{ url_for('supply.orders_list') }}" class="mobile-btn mobile-btn-outline">
+        <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+        </svg>
+        Заказы
+    </a>
+</div>
+
+{% if low_stock_materials %}
+<!-- Материалы с низким запасом -->
+<div class="mobile-card">
+    <div class="mobile-card-title">⚠️ Низкий запас</div>
+    {% for material in low_stock_materials %}
+    <div class="mobile-card-text mobile-mb-1">
+        <strong>{{ material.name }}</strong><br>
+        <small class="text-muted">Остаток: {{ material.current_quantity }} / {{ material.min_quantity }}</small>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if recent_orders %}
+<!-- Последние заказы -->
+<div class="mobile-card">
+    <div class="mobile-card-title">Последние заказы</div>
+    {% for order in recent_orders %}
+    <div class="mobile-card-text mobile-mb-1">
+        <strong>Заказ #{{ order.id }}</strong><br>
+        <small class="text-muted">{{ order.status }} • {{ order.created_at.strftime('%d.%m.%Y') }}</small>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Дополнительный отступ для нижней панели -->
+<div style="height: 140px"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Применяем тему из localStorage
+    try {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || savedTheme === 'light') {
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        }
+    } catch (e) {}
+    
+    // Улучшаем скролл
+    const content = document.querySelector('.mobile-content');
+    if (content) {
+        content.style.webkitOverflowScrolling = 'touch';
+        content.style.scrollBehavior = 'smooth';
+        const currentPaddingBottom = parseInt(window.getComputedStyle(content).paddingBottom || '0', 10);
+        if (currentPaddingBottom < 140) {
+            content.style.paddingBottom = '140px';
+        }
+    }
+});
+</script>
+{% endblock %}
