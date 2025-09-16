@@ -2,33 +2,67 @@
 {% set active_page = 'objects' %}
 
 {% block title %}Добавить объект{% endblock %}
-{% block mobile_title %}Добавить объект{% endblock %}
+{% block mobile_title %}Новый объект{% endblock %}
 
 {% block content %}
 <div class="mobile-card">
-    <div class="mobile-card-title">
-        <i class="bi bi-building me-2"></i>
-        Информация об объекте
+    <div class="mobile-card-title d-flex align-items-center">
+        <svg width="18" height="18" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M6.5 0a.5.5 0 0 0-.5.5V1H2.5A1.5 1.5 0 0 0 1 2.5v11A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5V5h-.5a.5.5 0 0 1-.5-.5V3H9.5A1.5 1.5 0 0 1 8 1.5V1h-2V.5a.5.5 0 0 0-.5-.5z"/>
+        </svg>
+        Добавить объект
     </div>
-    <form method="POST">
+    <p class="mobile-card-text mobile-mb-2">Заполните минимальные данные. Остальное можно добавить позже.</p>
+
+    <form method="POST" id="add-object-form" novalidate>
         <div class="mobile-form-group">
             <label class="mobile-form-label" for="name">Название объекта *</label>
-            <input type="text" class="mobile-form-control" id="name" name="name" placeholder="Введите название" required>
+            <input type="text"
+                   class="mobile-form-control"
+                   id="name"
+                   name="name"
+                   placeholder="Например, ЖК Солнечный, корпус 3"
+                   inputmode="text"
+                   autocomplete="organization"
+                   maxlength="80"
+                   required>
+            <div class="small text-muted" id="name-help">До 80 символов. Уникальное и понятное название.</div>
+            <div class="invalid-feedback" style="display:none" id="name-error">Укажите название (минимум 2 символа).</div>
         </div>
 
         <div class="mobile-form-group">
             <label class="mobile-form-label" for="location">Местоположение</label>
-            <input type="text" class="mobile-form-control" id="location" name="location" placeholder="Город, адрес">
+            <input type="text"
+                   class="mobile-form-control"
+                   id="location"
+                   name="location"
+                   placeholder="Город, улица и номер дома"
+                   inputmode="text"
+                   autocomplete="street-address"
+                   maxlength="120">
+            <div class="small text-muted">Укажите адрес в свободной форме.</div>
         </div>
 
         <div class="mobile-form-group">
             <label class="mobile-form-label" for="description">Описание</label>
-            <textarea class="mobile-form-control" id="description" name="description" rows="4" placeholder="Краткое описание"></textarea>
+            <textarea class="mobile-form-control"
+                      id="description"
+                      name="description"
+                      rows="4"
+                      maxlength="500"
+                      placeholder="Коротко: тип работ, особенности, сроки и т.п."></textarea>
+            <div class="small text-muted" id="desc-counter">0 / 500</div>
         </div>
 
-        <button type="submit" class="mobile-btn mobile-btn-primary">Сохранить</button>
+        <button type="submit" class="mobile-btn mobile-btn-primary" id="submit-btn">
+            <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M6 2a.5.5 0 0 1 .5.5V6h3.5a.5.5 0 0 1 0 1H6.5v3.5a.5.5 0 0 1-1 0V7H2a.5.5 0 0 1 0-1h3.5V2.5A.5.5 0 0 1 6 2z"/>
+            </svg>
+            Сохранить объект
+        </button>
         <a class="mobile-btn mobile-btn-outline" href="{{ url_for('objects.object_list') }}">Назад к списку</a>
     </form>
+
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     <div class="mobile-mt-2">
@@ -39,6 +73,74 @@
     {% endif %}
     {% endwith %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('add-object-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const nameInput = document.getElementById('name');
+    const nameError = document.getElementById('name-error');
+    const desc = document.getElementById('description');
+    const descCounter = document.getElementById('desc-counter');
+
+    // Фокус на названии
+    if (nameInput) nameInput.focus();
+
+    // Счетчик для описания
+    if (desc && descCounter) {
+        const updateCounter = () => {
+            descCounter.textContent = `${desc.value.length} / 500`;
+        };
+        desc.addEventListener('input', updateCounter);
+        updateCounter();
+    }
+
+    // Тримминг пробелов
+    const trimField = (el) => {
+        if (!el) return;
+        el.value = el.value.trim().replace(/\s{2,}/g, ' ');
+    };
+
+    [nameInput, document.getElementById('location'), desc].forEach(el => {
+        if (!el) return;
+        el.addEventListener('blur', () => trimField(el));
+    });
+
+    // Простая валидация названия
+    const isNameValid = () => (nameInput.value.trim().length >= 2);
+
+    nameInput.addEventListener('input', () => {
+        if (isNameValid()) {
+            nameError.style.display = 'none';
+        }
+    });
+
+    form.addEventListener('submit', function(e) {
+        trimField(nameInput);
+        trimField(desc);
+
+        if (!isNameValid()) {
+            e.preventDefault();
+            nameError.style.display = 'block';
+            nameInput.focus();
+            return false;
+        }
+
+        // Индикатор отправки
+        submitBtn.disabled = true;
+        const original = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Сохранение...';
+
+        // На случай client-side ошибок вернуть кнопку
+        setTimeout(() => {
+            if (!form.checkValidity()) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = original;
+            }
+        }, 3000);
+    });
+});
+</script>
 {% endblock %}
 
 
