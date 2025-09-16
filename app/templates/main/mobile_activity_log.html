@@ -150,15 +150,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Применяем тему из localStorage
-    try {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark' || savedTheme === 'light') {
-            document.documentElement.setAttribute('data-bs-theme', savedTheme);
-        }
-    } catch (e) {}
-    
-    // Улучшаем скролл
+    // Улучшаем скролл (тема уже инициализирована в layout)
     const content = document.querySelector('.mobile-content');
     if (content) {
         content.style.webkitOverflowScrolling = 'touch';

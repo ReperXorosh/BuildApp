@@ -31,14 +31,9 @@
 <div style="height: 140px"></div>
 
 <script>
-// Гарантируем применение сохранённой темы и плавный скролл
+// Плавный скролл (тема уже инициализирована в layout)
 document.addEventListener('DOMContentLoaded', function() {
-    try {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark' || savedTheme === 'light') {
-            document.documentElement.setAttribute('data-bs-theme', savedTheme);
-        }
-        // Добавочный safeguard для скроллинга
+    // Добавочный safeguard для скроллинга
         const content = document.querySelector('.mobile-content');
         if (content) {
             content.style.webkitOverflowScrolling = 'touch';

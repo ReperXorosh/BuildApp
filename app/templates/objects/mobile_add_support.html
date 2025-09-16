@@ -119,13 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const notes = document.getElementById('notes');
     const notesCounter = document.getElementById('notes-counter');
 
-    // Тема из localStorage (safeguard на случай, если базовый layout ещё не применил)
-    try {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark' || savedTheme === 'light') {
-            document.documentElement.setAttribute('data-bs-theme', savedTheme);
-        }
-    } catch (e) {}
+    // Тема уже инициализирована в layout
 
     // Мягкий скролл и нижний padding у контейнера
     const content = document.querySelector('.mobile-content');
