@@ -674,16 +674,23 @@
                 item.addEventListener('click', closeMobileMenu);
             });
             
-            // Переключение темы с защитой от спама
+            // Переключение темы с максимальной защитой
             let isThemeChanging = false;
+            let themeChangeTimeout = null;
             
             function toggleTheme() {
-                // Защита от множественных кликов
-                if (isThemeChanging) {
+                // Множественная защита от спама
+                if (isThemeChanging || !mobileThemeToggle || mobileThemeToggle.disabled) {
                     return;
                 }
                 
+                // Очищаем предыдущий таймаут если есть
+                if (themeChangeTimeout) {
+                    clearTimeout(themeChangeTimeout);
+                }
+                
                 isThemeChanging = true;
+                mobileThemeToggle.disabled = true;
                 
                 try {
                     const currentTheme = document.documentElement.getAttribute('data-bs-theme');
@@ -702,19 +709,27 @@
                     // Обновляем иконку
                     updateThemeIcon(newTheme);
                     
-                    // Отключаем кнопку и добавляем анимацию
-                    mobileThemeToggle.disabled = true;
+                    // Добавляем анимацию
                     mobileThemeToggle.classList.add('active');
-                    setTimeout(() => {
+                    
+                    // Устанавливаем таймаут для разблокировки
+                    themeChangeTimeout = setTimeout(() => {
                         mobileThemeToggle.classList.remove('active');
                         mobileThemeToggle.disabled = false;
-                        isThemeChanging = false; // Разблокируем после анимации
-                    }, 300);
+                        isThemeChanging = false;
+                        themeChangeTimeout = null;
+                    }, 500); // Увеличил время до 500мс
                     
                 } catch (e) {
                     console.error('Ошибка при переключении темы:', e);
-                    mobileThemeToggle.disabled = false; // Включаем кнопку обратно
-                    isThemeChanging = false; // Разблокируем при ошибке
+                    // Принудительная разблокировка при ошибке
+                    mobileThemeToggle.disabled = false;
+                    mobileThemeToggle.classList.remove('active');
+                    isThemeChanging = false;
+                    if (themeChangeTimeout) {
+                        clearTimeout(themeChangeTimeout);
+                        themeChangeTimeout = null;
+                    }
                 }
             }
             
@@ -742,8 +757,17 @@
             document.documentElement.setAttribute('data-bs-theme', savedTheme);
             updateThemeIcon(savedTheme);
             
-            // Обработчик переключения темы
-            mobileThemeToggle.addEventListener('click', toggleTheme);
+            // Обработчик переключения темы с максимальной защитой
+            if (mobileThemeToggle) {
+                // Удаляем все предыдущие обработчики
+                mobileThemeToggle.removeEventListener('click', toggleTheme);
+                // Добавляем новый обработчик
+                mobileThemeToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleTheme();
+                });
+            }
         });
     </script>
 </body>
