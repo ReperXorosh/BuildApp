@@ -5,6 +5,28 @@
 {% block mobile_title %}{{ object_obj.name }}{% endblock %}
 
 {% block content %}
+<style>
+.report-card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    padding: 12px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+    margin-bottom: 8px;
+}
+
+.report-card-link:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    text-decoration: none;
+    color: inherit;
+}
+
+.report-card-link:active {
+    background-color: rgba(var(--bs-primary-rgb), 0.2);
+}
+</style>
+
 <div class="mobile-card">
     <div class="mobile-card-title d-flex align-items-center">
         <svg width="18" height="18" class="me-2" fill="currentColor" viewBox="0 0 16 16">
@@ -29,13 +51,10 @@
         </div>
         
         {% for report in reports %}
-        <div class="mobile-card-text mobile-mb-2" style="border-left: 3px solid var(--bs-primary); padding-left: 12px;">
+        <a href="{{ url_for('main.object_report_by_date', object_id=object_obj.id, date=date_key) }}" class="report-card-link">
             <div class="d-flex justify-content-between align-items-start">
                 <div style="flex: 1;">
-                    <strong>{{ report.title or 'Отчёт' }}</strong>
-                    {% if report.report_type == 'daily' %}
-                    <span class="badge bg-info ms-1">Ежедневный</span>
-                    {% endif %}
+                    <strong style="color: var(--bs-primary);">{{ report.title or 'Отчёт' }}</strong>
                 </div>
                 <div class="text-end">
                     {% if report.status == 'approved' %}
@@ -66,16 +85,7 @@
                 <small class="text-muted">{{ report.content[:100] }}{% if report.content|length > 100 %}...{% endif %}</small>
             </div>
             {% endif %}
-            
-            <div class="mobile-mt-1">
-                <a href="{{ url_for('main.object_report_by_date', object_id=object_obj.id, date=date_key) }}" class="btn btn-sm btn-outline-primary">
-                    <svg width="12" height="12" class="me-1" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.389.389 0 0 0-.029-.518z"/>
-                    </svg>
-                    Подробнее
-                </a>
-            </div>
-        </div>
+        </a>
         {% endfor %}
     </div>
     {% endfor %}
