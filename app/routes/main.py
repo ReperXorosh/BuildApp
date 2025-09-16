@@ -1025,16 +1025,19 @@ def object_reports(object_id):
         method=request.method
     )
     
+    # Сортируем даты по убыванию (самые новые сначала)
+    sorted_reports_by_date = dict(sorted(reports_by_date.items(), key=lambda x: x[0], reverse=True))
+    
     # Проверяем мобильное устройство
     from ..utils.mobile_detection import is_mobile_device
     if is_mobile_device():
         return render_template('main/mobile_object_reports.html', 
                              object_obj=object_obj, 
-                             reports_by_date=reports_by_date)
+                             reports_by_date=sorted_reports_by_date)
     
     return render_template('main/object_reports.html', 
                          object_obj=object_obj, 
-                         reports_by_date=reports_by_date)
+                         reports_by_date=sorted_reports_by_date)
 
 @main.route('/reports/calendar')
 @login_required
