@@ -1,0 +1,435 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+
+{% block title %}Настройка PIN{% endblock %}
+{% block mobile_title %}Настройка PIN{% endblock %}
+
+{% block mobile_header_actions %}{% endblock %}
+
+{% block content %}
+<div class="pin-setup-container">
+    <div class="pin-header">
+        <div class="pin-icon">
+            <svg width="64" height="64" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+            </svg>
+        </div>
+        <h2 class="pin-title">Настройка PIN-кода</h2>
+        <p class="pin-subtitle">Создайте 4-значный PIN-код для быстрого входа</p>
+    </div>
+
+    <div class="pin-display">
+        <div class="pin-dots">
+            <div class="pin-dot" id="dot1"></div>
+            <div class="pin-dot" id="dot2"></div>
+            <div class="pin-dot" id="dot3"></div>
+            <div class="pin-dot" id="dot4"></div>
+        </div>
+        <div class="pin-step" id="pinStep">
+            <span class="step-text">Введите новый PIN-код</span>
+        </div>
+    </div>
+
+    <div class="pin-keypad">
+        <div class="pin-row">
+            <button class="pin-key" data-key="1">1</button>
+            <button class="pin-key" data-key="2">2</button>
+            <button class="pin-key" data-key="3">3</button>
+        </div>
+        <div class="pin-row">
+            <button class="pin-key" data-key="4">4</button>
+            <button class="pin-key" data-key="5">5</button>
+            <button class="pin-key" data-key="6">6</button>
+        </div>
+        <div class="pin-row">
+            <button class="pin-key" data-key="7">7</button>
+            <button class="pin-key" data-key="8">8</button>
+            <button class="pin-key" data-key="9">9</button>
+        </div>
+        <div class="pin-row">
+            <button class="pin-key pin-key-biometric" id="biometricBtn" style="display: none;">
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+                </svg>
+            </button>
+            <button class="pin-key" data-key="0">0</button>
+            <button class="pin-key pin-key-delete" id="deleteBtn">
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                    <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="pin-footer">
+        <button class="pin-skip" onclick="window.location.href='{{ url_for('main.dashboard') }}'">
+            Пропустить
+        </button>
+    </div>
+</div>
+
+<style>
+.pin-setup-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 120px);
+    padding: 20px;
+}
+
+.pin-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.pin-icon {
+    color: #007bff;
+    margin-bottom: 20px;
+}
+
+.pin-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--bs-body-color);
+}
+
+.pin-subtitle {
+    color: var(--bs-secondary-color);
+    font-size: 16px;
+}
+
+.pin-display {
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.pin-dots {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.pin-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--bs-border-color);
+    background: transparent;
+    transition: all 0.2s ease;
+}
+
+.pin-dot.filled {
+    background: #007bff;
+    border-color: #007bff;
+}
+
+.pin-step {
+    margin-top: 20px;
+}
+
+.step-text {
+    color: var(--bs-secondary-color);
+    font-size: 16px;
+}
+
+.pin-keypad {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.pin-row {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.pin-key {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 2px solid var(--bs-border-color);
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    font-size: 24px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.pin-key:hover {
+    background: var(--bs-secondary-bg);
+    border-color: #007bff;
+}
+
+.pin-key:active {
+    transform: scale(0.95);
+    background: #007bff;
+    color: white;
+}
+
+.pin-key-biometric {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border-color: #007bff;
+}
+
+.pin-key-delete {
+    background: var(--bs-danger-bg-subtle);
+    color: var(--bs-danger);
+    border-color: var(--bs-danger-border-subtle);
+}
+
+.pin-footer {
+    text-align: center;
+}
+
+.pin-skip {
+    background: none;
+    border: none;
+    color: var(--bs-secondary-color);
+    text-decoration: underline;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.pin-skip:hover {
+    color: var(--bs-body-color);
+}
+
+/* Темная тема */
+[data-bs-theme="dark"] .pin-key {
+    border-color: #495057;
+}
+
+[data-bs-theme="dark"] .pin-key:hover {
+    background: #343a40;
+    border-color: #007bff;
+}
+
+[data-bs-theme="dark"] .pin-dot {
+    border-color: #495057;
+}
+</style>
+
+<script>
+let currentPin = '';
+let confirmPin = '';
+let isConfirming = false;
+const maxPinLength = 4;
+
+// Проверяем поддержку биометрии
+async function checkBiometricSupport() {
+    if ('credentials' in navigator && 'create' in navigator.credentials) {
+        try {
+            const biometricBtn = document.getElementById('biometricBtn');
+            biometricBtn.style.display = 'flex';
+            
+            biometricBtn.addEventListener('click', async () => {
+                try {
+                    const credential = await navigator.credentials.create({
+                        publicKey: {
+                            challenge: new Uint8Array(32),
+                            rp: { name: "СтройКомплекс" },
+                            user: {
+                                id: new Uint8Array(16),
+                                name: "user",
+                                displayName: "Пользователь"
+                            },
+                            pubKeyCredParams: [{alg: -7, type: "public-key"}],
+                            authenticatorSelection: {
+                                authenticatorAttachment: "platform",
+                                userVerification: "required"
+                            }
+                        }
+                    });
+                    
+                    // Включаем биометрическую аутентификацию
+                    const response = await fetch('/pin/biometric/toggle', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ enabled: true })
+                    });
+                    
+                    if (response.ok) {
+                        showSuccess('Биометрическая аутентификация включена!');
+                    }
+                } catch (error) {
+                    console.log('Биометрическая аутентификация недоступна:', error);
+                }
+            });
+        } catch (error) {
+            console.log('Биометрия не поддерживается');
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    checkBiometricSupport();
+    
+    const pinKeys = document.querySelectorAll('.pin-key[data-key]');
+    const deleteBtn = document.getElementById('deleteBtn');
+    
+    pinKeys.forEach(key => {
+        key.addEventListener('click', () => {
+            const digit = key.dataset.key;
+            addDigit(digit);
+        });
+    });
+    
+    deleteBtn.addEventListener('click', () => {
+        removeDigit();
+    });
+    
+    // Вибрация при нажатии
+    pinKeys.forEach(key => {
+        key.addEventListener('click', () => {
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        });
+    });
+});
+
+function addDigit(digit) {
+    if (isConfirming) {
+        if (confirmPin.length < maxPinLength) {
+            confirmPin += digit;
+            updateDots();
+            
+            if (confirmPin.length === maxPinLength) {
+                if (currentPin === confirmPin) {
+                    savePin();
+                } else {
+                    showError('PIN-коды не совпадают');
+                    resetPins();
+                }
+            }
+        }
+    } else {
+        if (currentPin.length < maxPinLength) {
+            currentPin += digit;
+            updateDots();
+            
+            if (currentPin.length === maxPinLength) {
+                setTimeout(() => {
+                    startConfirmation();
+                }, 300);
+            }
+        }
+    }
+}
+
+function removeDigit() {
+    if (isConfirming) {
+        if (confirmPin.length > 0) {
+            confirmPin = confirmPin.slice(0, -1);
+            updateDots();
+        }
+    } else {
+        if (currentPin.length > 0) {
+            currentPin = currentPin.slice(0, -1);
+            updateDots();
+        }
+    }
+}
+
+function updateDots() {
+    const activePin = isConfirming ? confirmPin : currentPin;
+    
+    for (let i = 1; i <= maxPinLength; i++) {
+        const dot = document.getElementById(`dot${i}`);
+        if (i <= activePin.length) {
+            dot.classList.add('filled');
+        } else {
+            dot.classList.remove('filled');
+        }
+    }
+}
+
+function startConfirmation() {
+    isConfirming = true;
+    confirmPin = '';
+    updateDots();
+    updateStepText('Подтвердите PIN-код');
+}
+
+function resetPins() {
+    currentPin = '';
+    confirmPin = '';
+    isConfirming = false;
+    updateDots();
+    updateStepText('Введите новый PIN-код');
+}
+
+function updateStepText(text) {
+    document.querySelector('.step-text').textContent = text;
+}
+
+async function savePin() {
+    try {
+        const response = await fetch('/pin/setup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+                pin: currentPin, 
+                confirm_pin: confirmPin 
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showSuccess('PIN-код успешно установлен!');
+            setTimeout(() => {
+                window.location.href = '{{ url_for("main.dashboard") }}';
+            }, 1500);
+        } else {
+            showError(result.message);
+            resetPins();
+        }
+    } catch (error) {
+        console.error('Ошибка при сохранении PIN:', error);
+        showError('Произошла ошибка');
+        resetPins();
+    }
+}
+
+function showSuccess(message) {
+    document.querySelectorAll('.pin-dot').forEach(dot => {
+        dot.style.background = '#28a745';
+        dot.style.borderColor = '#28a745';
+    });
+    
+    updateStepText(message);
+    
+    if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]);
+    }
+}
+
+function showError(message) {
+    document.querySelectorAll('.pin-dot').forEach(dot => {
+        dot.style.background = '#dc3545';
+        dot.style.borderColor = '#dc3545';
+    });
+    
+    updateStepText(message);
+    
+    if (navigator.vibrate) {
+        navigator.vibrate([200, 100, 200]);
+    }
+}
+</script>
+{% endblock %}
