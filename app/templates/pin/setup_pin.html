@@ -155,6 +155,9 @@
     user-select: none;
     -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
+    pointer-events: auto;
+    position: relative;
+    z-index: 10;
 }
 
 .pin-key:hover {
@@ -348,45 +351,90 @@ document.addEventListener('DOMContentLoaded', function() {
             const dot = document.getElementById(`dot${i}`);
             console.log(`Dot ${i}:`, dot);
         }
+        
+        // Тест ввода
+        console.log('Testing manual input...');
+        setTimeout(() => {
+            addDigit('1');
+        }, 2000);
     }, 1000);
     
     const pinKeys = document.querySelectorAll('.pin-key[data-key]');
     const deleteBtn = document.getElementById('deleteBtn');
     
+    console.log('Found pin keys:', pinKeys.length);
+    console.log('Found delete button:', deleteBtn);
+    
+    pinKeys.forEach((key, index) => {
+        console.log(`Key ${index}:`, key, 'data-key:', key.dataset.key);
+    });
+    
+    // Делегирование событий на контейнер клавиатуры
+    const keypad = document.querySelector('.pin-keypad');
+    if (keypad) {
+        console.log('Adding event delegation to keypad');
+        
+        keypad.addEventListener('click', (e) => {
+            e.preventDefault();
+            const key = e.target.closest('.pin-key[data-key]');
+            if (key) {
+                console.log('Delegated click on key:', key.dataset.key);
+                const digit = key.dataset.key;
+                addDigit(digit);
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+            }
+        });
+        
+        keypad.addEventListener('touchstart', (e) => {
+            const key = e.target.closest('.pin-key[data-key]');
+            if (key) {
+                e.preventDefault();
+                console.log('Delegated touch start on key:', key.dataset.key);
+                key.style.transform = 'scale(0.95)';
+                key.style.background = '#007bff';
+                key.style.color = 'white';
+            }
+        });
+        
+        keypad.addEventListener('touchend', (e) => {
+            const key = e.target.closest('.pin-key[data-key]');
+            if (key) {
+                e.preventDefault();
+                console.log('Delegated touch end on key:', key.dataset.key);
+                key.style.transform = '';
+                key.style.background = '';
+                key.style.color = '';
+                
+                const digit = key.dataset.key;
+                addDigit(digit);
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+            }
+        });
+    }
+    
+    // Также добавим прямые обработчики для надежности
     pinKeys.forEach(key => {
+        console.log('Adding direct event listeners to key:', key.dataset.key);
+        
         // Обработка клика
-        key.addEventListener('click', () => {
+        key.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Direct click event on key:', key.dataset.key);
             const digit = key.dataset.key;
             addDigit(digit);
             if (navigator.vibrate) {
                 navigator.vibrate(50);
             }
         });
-        
-        // Обработка touch событий для лучшей анимации
-        key.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            key.style.transform = 'scale(0.95)';
-            key.style.background = '#007bff';
-            key.style.color = 'white';
-        });
-        
-        key.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            key.style.transform = '';
-            key.style.background = '';
-            key.style.color = '';
-        });
-        
-        key.addEventListener('touchcancel', (e) => {
-            e.preventDefault();
-            key.style.transform = '';
-            key.style.background = '';
-            key.style.color = '';
-        });
     });
     
-    deleteBtn.addEventListener('click', () => {
+    deleteBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('Delete button clicked');
         removeDigit();
         if (navigator.vibrate) {
             navigator.vibrate(50);
@@ -396,16 +444,23 @@ document.addEventListener('DOMContentLoaded', function() {
     // Touch события для кнопки удаления
     deleteBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
+        console.log('Delete button touch start');
         deleteBtn.style.transform = 'scale(0.95)';
     });
     
     deleteBtn.addEventListener('touchend', (e) => {
         e.preventDefault();
+        console.log('Delete button touch end');
         deleteBtn.style.transform = '';
+        removeDigit();
+        if (navigator.vibrate) {
+            navigator.vibrate(50);
+        }
     });
     
     deleteBtn.addEventListener('touchcancel', (e) => {
         e.preventDefault();
+        console.log('Delete button touch cancel');
         deleteBtn.style.transform = '';
     });
 });
@@ -447,14 +502,18 @@ function addDigit(digit) {
 }
 
 function removeDigit() {
+    console.log('Removing digit, isConfirming:', isConfirming);
+    
     if (isConfirming) {
         if (confirmPin.length > 0) {
             confirmPin = confirmPin.slice(0, -1);
+            console.log('Confirm PIN after remove:', confirmPin);
             updateDots();
         }
     } else {
         if (currentPin.length > 0) {
             currentPin = currentPin.slice(0, -1);
+            console.log('Current PIN after remove:', currentPin);
             updateDots();
         }
     }
