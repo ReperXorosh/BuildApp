@@ -475,10 +475,18 @@ function addDigit(digit) {
             updateDots();
             
             if (confirmPin.length === maxPinLength) {
-                console.log('Comparing PINs:', currentPin, 'vs', confirmPin);
+                console.log('Comparing PINs:');
+                console.log('  currentPin:', currentPin, 'type:', typeof currentPin, 'length:', currentPin.length);
+                console.log('  confirmPin:', confirmPin, 'type:', typeof confirmPin, 'length:', confirmPin.length);
+                console.log('  Are equal:', currentPin === confirmPin);
+                console.log('  Are equal (strict):', currentPin === confirmPin);
+                console.log('  Are equal (trimmed):', currentPin.trim() === confirmPin.trim());
+                
                 if (currentPin === confirmPin) {
+                    console.log('PINs match, saving...');
                     savePin();
                 } else {
+                    console.log('PINs do not match!');
                     showError('PIN-коды не совпадают');
                     setTimeout(() => {
                         resetPins();
@@ -565,7 +573,16 @@ function updateStepText(text) {
 }
 
 async function savePin() {
-    console.log('Saving PIN:', currentPin, 'Confirm:', confirmPin);
+    console.log('=== SAVING PIN ===');
+    console.log('currentPin:', currentPin, 'type:', typeof currentPin, 'length:', currentPin.length);
+    console.log('confirmPin:', confirmPin, 'type:', typeof confirmPin, 'length:', confirmPin.length);
+    
+    const requestData = { 
+        pin: currentPin, 
+        confirm_pin: confirmPin 
+    };
+    console.log('Request data:', requestData);
+    console.log('JSON string:', JSON.stringify(requestData));
     
     try {
         const response = await fetch('/pin/setup', {
@@ -573,13 +590,19 @@ async function savePin() {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ 
-                pin: currentPin, 
-                confirm_pin: confirmPin 
-            })
+            body: JSON.stringify(requestData)
         });
         
         console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        
+        if (!response.ok) {
+            console.log('Response not ok, status:', response.status);
+            const errorText = await response.text();
+            console.log('Error response text:', errorText);
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
         const result = await response.json();
         console.log('Response result:', result);
         
