@@ -145,6 +145,31 @@
             margin-left: 16px; /* Отступ от гамбургер-меню */
         }
         
+        .mobile-header-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 8px;
+            padding: 8px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .mobile-header-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            color: white;
+        }
+        
+        .mobile-header-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        
         .mobile-menu-btn {
             background: rgba(255,255,255,0.2);
             border: none;
@@ -527,7 +552,7 @@
                     </svg>
                 </button>
                 <h1 class="mobile-title">{% block mobile_title %}{{ gettext('СтройКомплекс') }}{% endblock %}</h1>
-                <div style="width: 40px;"></div> <!-- Spacer -->
+                {% block mobile_header_actions %}<div style="width: 40px;"></div>{% endblock %} <!-- Spacer or actions -->
             </div>
         </header>
         
