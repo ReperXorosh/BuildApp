@@ -146,11 +146,10 @@
         }
         
         .mobile-header-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: none;
+            border: none;
             color: white;
-            border-radius: 8px;
-            padding: 8px;
+            padding: 0;
             width: 40px;
             height: 40px;
             display: flex;
@@ -160,31 +159,32 @@
         }
         
         .mobile-header-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            border-color: rgba(255, 255, 255, 0.5);
-            color: white;
+            color: rgba(255, 255, 255, 0.8);
         }
         
         .mobile-header-btn svg {
-            width: 18px;
-            height: 18px;
+            width: 24px;
+            height: 24px;
         }
         
         .mobile-menu-btn {
-            background: rgba(255,255,255,0.2);
+            background: none;
             border: none;
-            border-radius: 8px;
-            padding: 8px;
             color: white;
+            padding: 0;
             width: 40px;
             height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .mobile-menu-btn:hover {
+            color: rgba(255, 255, 255, 0.8);
         }
         
         .mobile-menu-btn:active {
-            background: rgba(255,255,255,0.3);
             transform: scale(0.95);
         }
         
@@ -547,7 +547,7 @@
         <header class="mobile-header">
             <div class="mobile-header-content">
                 <button class="mobile-menu-btn" id="mobileMenuBtn">
-                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
                     </svg>
                 </button>
