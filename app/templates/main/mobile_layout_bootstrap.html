@@ -135,6 +135,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            position: relative;
         }
         
         .mobile-title {
@@ -156,6 +157,10 @@
             align-items: center;
             justify-content: center;
             transition: all 0.2s ease;
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
         }
         
         .mobile-header-btn:hover {
@@ -552,7 +557,7 @@
                     </svg>
                 </button>
                 <h1 class="mobile-title">{% block mobile_title %}{{ gettext('СтройКомплекс') }}{% endblock %}</h1>
-                {% block mobile_header_actions %}<div style="width: 40px;"></div>{% endblock %} <!-- Spacer or actions -->
+                {% block mobile_header_actions %}{% endblock %}
             </div>
         </header>
         
