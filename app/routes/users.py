@@ -79,6 +79,18 @@ def login():
                 page_url=request.url,
                 method=request.method
             )
+            
+            # Проверяем, нужно ли предложить настройку PIN-кода
+            from ..models.user_pin import UserPIN
+            from ..utils.mobile_detection import is_mobile_device
+            
+            user_pin = UserPIN.query.filter_by(user_id=user.userid).first()
+            is_mobile = is_mobile_device()
+            
+            # Если это мобильное устройство и PIN не настроен, предлагаем настройку
+            if is_mobile and not user_pin:
+                return redirect(url_for('pin_auth.setup_pin'))
+            
             return redirect(url_for('objects.object_list'))
         else:
             # Логируем неудачную попытку входа

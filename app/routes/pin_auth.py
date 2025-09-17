@@ -55,10 +55,16 @@ def pin_login():
                 return jsonify({
                     'success': True, 
                     'message': 'Успешный вход',
-                    'redirect': url_for('main.dashboard')
+                    'redirect': url_for('objects.object_list')
                 })
         
         return jsonify({'success': False, 'message': 'Неверный PIN-код'})
+    
+    # Проверяем, есть ли настроенные PIN-коды
+    pin_count = UserPIN.query.count()
+    if pin_count == 0:
+        # Если PIN-кодов нет, перенаправляем на обычный вход
+        return redirect(url_for('user.login'))
     
     return render_template('pin/pin_login.html')
 
