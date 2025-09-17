@@ -22,16 +22,33 @@ def setup_pin():
         if pin != confirm_pin:
             return jsonify({'success': False, 'message': 'PIN-коды не совпадают'})
         
-        # Создаем или обновляем PIN для пользователя
-        user_pin = UserPIN.query.filter_by(user_id=current_user.userid).first()
-        if not user_pin:
-            user_pin = UserPIN(user_id=current_user.userid)
-            db.session.add(user_pin)
-        
-        user_pin.set_pin(pin)
-        db.session.commit()
-        
-        return jsonify({'success': True, 'message': 'PIN-код успешно установлен'})
+        try:
+            # Создаем или обновляем PIN для пользователя
+            user_pin = UserPIN.query.filter_by(user_id=current_user.userid).first()
+            if not user_pin:
+                user_pin = UserPIN(user_id=current_user.userid)
+                db.session.add(user_pin)
+            
+            user_pin.set_pin(pin)
+            db.session.commit()
+            
+            return jsonify({'success': True, 'message': 'PIN-код успешно установлен'})
+        except Exception as e:
+            # Если таблица не существует, создаем её
+            print(f"Creating user_pins table: {e}")
+            try:
+                db.create_all()
+                db.session.commit()
+                
+                # Повторяем попытку создания PIN
+                user_pin = UserPIN(user_id=current_user.userid)
+                db.session.add(user_pin)
+                user_pin.set_pin(pin)
+                db.session.commit()
+                
+                return jsonify({'success': True, 'message': 'PIN-код успешно установлен'})
+            except Exception as e2:
+                return jsonify({'success': False, 'message': f'Ошибка при создании PIN: {str(e2)}'})
     
     return render_template('pin/setup_pin.html')
 
@@ -61,9 +78,14 @@ def pin_login():
         return jsonify({'success': False, 'message': 'Неверный PIN-код'})
     
     # Проверяем, есть ли настроенные PIN-коды
-    pin_count = UserPIN.query.count()
-    if pin_count == 0:
-        # Если PIN-кодов нет, перенаправляем на обычный вход
+    try:
+        pin_count = UserPIN.query.count()
+        if pin_count == 0:
+            # Если PIN-кодов нет, перенаправляем на обычный вход
+            return redirect(url_for('user.login'))
+    except Exception as e:
+        # Если таблица не существует, перенаправляем на обычный вход
+        print(f"PIN table not found: {e}")
         return redirect(url_for('user.login'))
     
     return render_template('pin/pin_login.html')

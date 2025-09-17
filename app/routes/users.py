@@ -81,15 +81,30 @@ def login():
             )
             
             # Проверяем, нужно ли предложить настройку PIN-кода
-            from ..models.user_pin import UserPIN
             from ..utils.mobile_detection import is_mobile_device
             
-            user_pin = UserPIN.query.filter_by(user_id=user.userid).first()
             is_mobile = is_mobile_device()
             
-            # Если это мобильное устройство и PIN не настроен, предлагаем настройку
-            if is_mobile and not user_pin:
-                return redirect(url_for('pin_auth.setup_pin'))
+            # Если это мобильное устройство, проверяем наличие PIN-кода
+            if is_mobile:
+                try:
+                    from ..models.user_pin import UserPIN
+                    user_pin = UserPIN.query.filter_by(user_id=user.userid).first()
+                    
+                    # Если PIN не настроен, предлагаем настройку
+                    if not user_pin:
+                        return redirect(url_for('pin_auth.setup_pin'))
+                except Exception as e:
+                    # Если таблица не существует, создаем её и предлагаем настройку PIN
+                    print(f"PIN table not found, creating and offering setup: {e}")
+                    try:
+                        from .. import db
+                        db.create_all()
+                        db.session.commit()
+                    except Exception as e2:
+                        print(f"Error creating table: {e2}")
+                    
+                    return redirect(url_for('pin_auth.setup_pin'))
             
             return redirect(url_for('objects.object_list'))
         else:
