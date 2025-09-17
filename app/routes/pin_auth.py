@@ -111,6 +111,23 @@ def pin_login():
     if request.method == 'POST':
         data = request.get_json()
         pin = data.get('pin')
+        biometric = data.get('biometric', False)
+        
+        if biometric:
+            # Обработка биометрического входа
+            # Пока что просто находим первого пользователя с включенной биометрией
+            user_pin = UserPIN.query.filter_by(is_biometric_enabled=True).first()
+            if user_pin:
+                print(f"Biometric login for user: {user_pin.user_id}")
+                login_user(user_pin.user)
+                session['pin_authenticated'] = True
+                return jsonify({
+                    'success': True, 
+                    'message': 'Успешный вход по Face ID',
+                    'redirect': url_for('objects.object_list')
+                })
+            else:
+                return jsonify({'success': False, 'message': 'Face ID не настроен'})
         
         if not pin or len(pin) != 4 or not pin.isdigit():
             return jsonify({'success': False, 'message': 'Введите корректный PIN-код'})
@@ -139,12 +156,17 @@ def pin_login():
         if pin_count == 0:
             # Если PIN-кодов нет, перенаправляем на настройку
             return redirect(url_for('pin_auth.setup_pin'))
+        
+        # Проверяем, есть ли пользователи с настроенным Face ID
+        biometric_users = UserPIN.query.filter_by(is_biometric_enabled=True).count()
+        print(f"Found {biometric_users} users with biometric enabled")
+        
     except Exception as e:
         # Если таблица не существует, перенаправляем на настройку
         print(f"PIN table not found: {e}")
         return redirect(url_for('pin_auth.setup_pin'))
     
-    return render_template('pin/pin_login.html')
+    return render_template('pin/pin_login.html', has_biometric_users=biometric_users > 0)
 
 @pin_auth_bp.route('/pin/verify', methods=['POST'])
 @login_required

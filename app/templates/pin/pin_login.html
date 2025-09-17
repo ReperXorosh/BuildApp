@@ -57,7 +57,7 @@
     </div>
 
     <div class="pin-footer">
-        <button class="pin-link" onclick="window.location.href='{{ url_for('auth.login') }}'">
+        <button class="pin-link" onclick="window.location.href='{{ url_for('user.login') }}'">
             Войти по логину
         </button>
     </div>
@@ -260,6 +260,18 @@ async function checkBiometricSupport() {
 // Обработка нажатий клавиш
 document.addEventListener('DOMContentLoaded', function() {
     checkBiometricSupport();
+    
+    // Если есть пользователи с настроенным Face ID, автоматически предлагаем его
+    {% if has_biometric_users %}
+    console.log('Users with biometric enabled found, offering Face ID');
+    setTimeout(() => {
+        const biometricBtn = document.getElementById('biometricBtn');
+        if (biometricBtn && biometricBtn.style.display !== 'none') {
+            console.log('Automatically triggering Face ID');
+            biometricBtn.click();
+        }
+    }, 1000); // Небольшая задержка для лучшего UX
+    {% endif %}
     
     const pinKeys = document.querySelectorAll('.pin-key[data-key]');
     const deleteBtn = document.getElementById('deleteBtn');

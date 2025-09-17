@@ -331,6 +331,10 @@ let currentPin = '';
 let confirmPin = '';
 let isConfirming = false;
 const maxPinLength = 4;
+let lastDigitTime = 0;
+let lastDeleteTime = 0;
+const DIGIT_DEBOUNCE_TIME = 300; // 300ms между нажатиями
+const DELETE_DEBOUNCE_TIME = 200; // 200ms между удалениями
 
 // Проверяем поддержку биометрии (упрощенная версия)
 async function checkBiometricSupport() {
@@ -369,21 +373,33 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(`Key ${index}:`, key, 'data-key:', key.dataset.key);
     });
     
-    // Делегирование событий на контейнер клавиатуры
+    // Используем только делегирование событий для предотвращения дублирования
     const keypad = document.querySelector('.pin-keypad');
     if (keypad) {
         console.log('Adding event delegation to keypad');
         
+        // Флаг для предотвращения двойного срабатывания
+        let isProcessing = false;
+        
         keypad.addEventListener('click', (e) => {
-            e.preventDefault();
+            if (isProcessing) return;
+            
             const key = e.target.closest('.pin-key[data-key]');
             if (key) {
-                console.log('Delegated click on key:', key.dataset.key);
+                e.preventDefault();
+                isProcessing = true;
+                
+                console.log('Click on key:', key.dataset.key);
                 const digit = key.dataset.key;
                 addDigit(digit);
                 if (navigator.vibrate) {
                     navigator.vibrate(50);
                 }
+                
+                // Сбрасываем флаг через небольшую задержку
+                setTimeout(() => {
+                    isProcessing = false;
+                }, 200);
             }
         });
         
@@ -391,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const key = e.target.closest('.pin-key[data-key]');
             if (key) {
                 e.preventDefault();
-                console.log('Delegated touch start on key:', key.dataset.key);
+                console.log('Touch start on key:', key.dataset.key);
                 key.style.transform = 'scale(0.95)';
                 key.style.background = '#007bff';
                 key.style.color = 'white';
@@ -402,46 +418,39 @@ document.addEventListener('DOMContentLoaded', function() {
             const key = e.target.closest('.pin-key[data-key]');
             if (key) {
                 e.preventDefault();
-                console.log('Delegated touch end on key:', key.dataset.key);
+                console.log('Touch end on key:', key.dataset.key);
                 key.style.transform = '';
                 key.style.background = '';
                 key.style.color = '';
                 
-                const digit = key.dataset.key;
-                addDigit(digit);
-                if (navigator.vibrate) {
-                    navigator.vibrate(50);
-                }
+                // Не добавляем цифру при touchend, чтобы избежать дублирования с click
+                // Цифра будет добавлена только при click событии
             }
         });
     }
     
-    // Также добавим прямые обработчики для надежности
-    pinKeys.forEach(key => {
-        console.log('Adding direct event listeners to key:', key.dataset.key);
-        
-        // Обработка клика
-        key.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('Direct click event on key:', key.dataset.key);
-            const digit = key.dataset.key;
-            addDigit(digit);
-            if (navigator.vibrate) {
-                navigator.vibrate(50);
-            }
-        });
-    });
+    // Обработка кнопки удаления с защитой от дублирования
+    let isDeleteProcessing = false;
     
     deleteBtn.addEventListener('click', (e) => {
+        if (isDeleteProcessing) return;
+        
         e.preventDefault();
+        isDeleteProcessing = true;
+        
         console.log('Delete button clicked');
         removeDigit();
         if (navigator.vibrate) {
             navigator.vibrate(50);
         }
+        
+        // Сбрасываем флаг через небольшую задержку
+        setTimeout(() => {
+            isDeleteProcessing = false;
+        }, 200);
     });
     
-    // Touch события для кнопки удаления
+    // Touch события для кнопки удаления (только анимация)
     deleteBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
         console.log('Delete button touch start');
@@ -452,10 +461,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         console.log('Delete button touch end');
         deleteBtn.style.transform = '';
-        removeDigit();
-        if (navigator.vibrate) {
-            navigator.vibrate(50);
-        }
+        // Не вызываем removeDigit() здесь, чтобы избежать дублирования
     });
     
     deleteBtn.addEventListener('touchcancel', (e) => {
@@ -466,6 +472,14 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function addDigit(digit) {
+    // Защита от быстрых повторных нажатий
+    const currentTime = Date.now();
+    if (currentTime - lastDigitTime < DIGIT_DEBOUNCE_TIME) {
+        console.log('Digit input debounced');
+        return;
+    }
+    lastDigitTime = currentTime;
+    
     console.log('Adding digit:', digit, 'isConfirming:', isConfirming);
     
     if (isConfirming) {
@@ -510,6 +524,14 @@ function addDigit(digit) {
 }
 
 function removeDigit() {
+    // Защита от быстрых повторных нажатий
+    const currentTime = Date.now();
+    if (currentTime - lastDeleteTime < DELETE_DEBOUNCE_TIME) {
+        console.log('Delete input debounced');
+        return;
+    }
+    lastDeleteTime = currentTime;
+    
     console.log('Removing digit, isConfirming:', isConfirming);
     
     if (isConfirming) {

@@ -117,6 +117,17 @@ def login():
     print(f"DEBUG: Параметр mobile=1: {mobile_param}, Устройство мобильное: {device_mobile}, Итоговое решение: {is_mobile}")
     
     if is_mobile:
+        # Для мобильных устройств проверяем, есть ли настроенные PIN-коды
+        try:
+            from ..models.user_pin import UserPIN
+            pin_count = UserPIN.query.count()
+            if pin_count > 0:
+                # Если есть настроенные PIN-коды, сразу показываем PIN-вход
+                print(f"DEBUG: Найдено {pin_count} настроенных PIN-кодов, перенаправляем на PIN-вход")
+                return redirect(url_for('pin_auth.pin_login'))
+        except Exception as e:
+            print(f"DEBUG: Ошибка при проверке PIN-кодов: {e}")
+        
         print(f"DEBUG: Отображение мобильной страницы входа")
         return render_template('main/mobile_sign_in.html')
     else:
