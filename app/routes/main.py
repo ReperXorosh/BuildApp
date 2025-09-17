@@ -123,6 +123,32 @@ def log_theme_change():
 @main.route('/sign-in')
 @main.route('/')
 def sign_in():
+    # Проверяем, если пользователь уже авторизован и это мобильное устройство
+    if current_user.is_authenticated:
+        from ..utils.mobile_detection import is_mobile_device
+        if is_mobile_device():
+            try:
+                from ..models.user_pin import UserPIN
+                user_pin = UserPIN.query.filter_by(user_id=current_user.userid).first()
+                
+                # Если PIN не настроен, предлагаем настройку
+                if not user_pin:
+                    return redirect(url_for('pin_auth.setup_pin'))
+            except Exception as e:
+                # Если таблица не существует, создаем её и предлагаем настройку PIN
+                print(f"PIN table not found for authenticated user on main page, creating and offering setup: {e}")
+                try:
+                    from .. import db
+                    db.create_all()
+                    db.session.commit()
+                except Exception as e2:
+                    print(f"Error creating table: {e2}")
+                
+                return redirect(url_for('pin_auth.setup_pin'))
+        
+        # Если не мобильное устройство или PIN настроен, идем в приложение
+        return redirect(url_for('objects.object_list'))
+    
     # Определяем, нужно ли использовать мобильный шаблон
     from ..utils.mobile_detection import is_mobile_device
     # Проверяем параметр mobile=1 или определяем по User-Agent
