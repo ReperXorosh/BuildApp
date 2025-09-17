@@ -62,7 +62,7 @@
     </div>
 
     <div class="pin-footer">
-        <button class="pin-skip" onclick="window.location.href='{{ url_for('main.dashboard') }}'">
+        <button class="pin-skip" onclick="window.location.href='{{ url_for('objects.object_list') }}'">
             Пропустить
         </button>
     </div>
@@ -393,7 +393,7 @@ async function savePin() {
         if (result.success) {
             showSuccess('PIN-код успешно установлен!');
             setTimeout(() => {
-                window.location.href = '{{ url_for("main.dashboard") }}';
+                window.location.href = '{{ url_for("objects.object_list") }}';
             }, 1500);
         } else {
             showError(result.message);
