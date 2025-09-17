@@ -211,6 +211,111 @@
 [data-bs-theme="dark"] .pin-dot {
     border-color: #495057;
 }
+
+/* Стили для настройки биометрии */
+.biometric-setup-section {
+    text-align: center;
+    width: 100%;
+}
+
+.biometric-icon {
+    color: #007bff;
+    margin-bottom: 20px;
+}
+
+.biometric-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--bs-body-color);
+}
+
+.biometric-subtitle {
+    color: var(--bs-secondary-color);
+    font-size: 16px;
+    margin-bottom: 30px;
+}
+
+.biometric-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+}
+
+.biometric-btn {
+    width: 100%;
+    max-width: 280px;
+    padding: 15px 20px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+}
+
+.biometric-btn-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+}
+
+.biometric-btn-primary:hover {
+    background: linear-gradient(135deg, #0056b3, #004085);
+    transform: translateY(-2px);
+}
+
+.biometric-btn-secondary {
+    background: var(--bs-secondary-bg);
+    color: var(--bs-secondary-color);
+    border: 2px solid var(--bs-border-color);
+}
+
+.biometric-btn-secondary:hover {
+    background: var(--bs-tertiary-bg);
+    color: var(--bs-body-color);
+}
+
+.biometric-success,
+.biometric-error {
+    text-align: center;
+}
+
+.success-icon,
+.error-icon {
+    margin-bottom: 20px;
+}
+
+.success-title,
+.error-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--bs-body-color);
+}
+
+.success-subtitle,
+.error-subtitle {
+    color: var(--bs-secondary-color);
+    font-size: 16px;
+    margin-bottom: 30px;
+}
+
+/* Темная тема для биометрии */
+[data-bs-theme="dark"] .biometric-btn-secondary {
+    background: #343a40;
+    color: #f8f9fa;
+    border-color: #495057;
+}
+
+[data-bs-theme="dark"] .biometric-btn-secondary:hover {
+    background: #495057;
+    color: #f8f9fa;
+}
 </style>
 
 <script>
@@ -219,51 +324,12 @@ let confirmPin = '';
 let isConfirming = false;
 const maxPinLength = 4;
 
-// Проверяем поддержку биометрии
+// Проверяем поддержку биометрии (упрощенная версия)
 async function checkBiometricSupport() {
-    if ('credentials' in navigator && 'create' in navigator.credentials) {
-        try {
-            const biometricBtn = document.getElementById('biometricBtn');
-            biometricBtn.style.display = 'flex';
-            
-            biometricBtn.addEventListener('click', async () => {
-                try {
-                    const credential = await navigator.credentials.create({
-                        publicKey: {
-                            challenge: new Uint8Array(32),
-                            rp: { name: "СтройКомплекс" },
-                            user: {
-                                id: new Uint8Array(16),
-                                name: "user",
-                                displayName: "Пользователь"
-                            },
-                            pubKeyCredParams: [{alg: -7, type: "public-key"}],
-                            authenticatorSelection: {
-                                authenticatorAttachment: "platform",
-                                userVerification: "required"
-                            }
-                        }
-                    });
-                    
-                    // Включаем биометрическую аутентификацию
-                    const response = await fetch('/pin/biometric/toggle', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ enabled: true })
-                    });
-                    
-                    if (response.ok) {
-                        showSuccess('Биометрическая аутентификация включена!');
-                    }
-                } catch (error) {
-                    console.log('Биометрическая аутентификация недоступна:', error);
-                }
-            });
-        } catch (error) {
-            console.log('Биометрия не поддерживается');
-        }
+    // Просто скрываем кнопку биометрии в клавиатуре, так как теперь у нас есть отдельный экран
+    const biometricBtn = document.getElementById('biometricBtn');
+    if (biometricBtn) {
+        biometricBtn.style.display = 'none';
     }
 }
 
@@ -387,7 +453,7 @@ async function savePin() {
         if (result.success) {
             showSuccess('PIN-код успешно установлен!');
             setTimeout(() => {
-                window.location.href = '{{ url_for("objects.object_list") }}';
+                offerBiometricSetup();
             }, 1500);
         } else {
             showError(result.message);
@@ -424,6 +490,129 @@ function showError(message) {
     if (navigator.vibrate) {
         navigator.vibrate([200, 100, 200]);
     }
+}
+
+function offerBiometricSetup() {
+    // Скрываем клавиатуру и точки
+    document.querySelector('.pin-keypad').style.display = 'none';
+    document.querySelector('.pin-display').style.display = 'none';
+    
+    // Показываем предложение настройки биометрии
+    const biometricSection = document.createElement('div');
+    biometricSection.className = 'biometric-setup-section';
+    biometricSection.innerHTML = `
+        <div class="biometric-icon">
+            <svg width="64" height="64" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+            </svg>
+        </div>
+        <h3 class="biometric-title">Настроить Face ID?</h3>
+        <p class="biometric-subtitle">Используйте Face ID для еще более быстрого входа в приложение</p>
+        <div class="biometric-buttons">
+            <button class="biometric-btn biometric-btn-primary" id="enableBiometric">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+                </svg>
+                Включить Face ID
+            </button>
+            <button class="biometric-btn biometric-btn-secondary" id="skipBiometric">
+                Пропустить
+            </button>
+        </div>
+    `;
+    
+    document.querySelector('.pin-setup-container').appendChild(biometricSection);
+    
+    // Обработчики кнопок
+    document.getElementById('enableBiometric').addEventListener('click', enableBiometric);
+    document.getElementById('skipBiometric').addEventListener('click', skipBiometric);
+}
+
+async function enableBiometric() {
+    try {
+        // Показываем индикатор загрузки
+        document.getElementById('enableBiometric').innerHTML = `
+            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+            Настройка...
+        `;
+        document.getElementById('enableBiometric').disabled = true;
+        
+        // Пытаемся создать биометрический ключ
+        const credential = await navigator.credentials.create({
+            publicKey: {
+                challenge: new Uint8Array(32),
+                rp: { name: "СтройКомплекс" },
+                user: {
+                    id: new Uint8Array(16),
+                    name: "user",
+                    displayName: "Пользователь"
+                },
+                pubKeyCredParams: [{alg: -7, type: "public-key"}],
+                authenticatorSelection: {
+                    authenticatorAttachment: "platform",
+                    userVerification: "required"
+                }
+            }
+        });
+        
+        // Включаем биометрическую аутентификацию на сервере
+        const response = await fetch('/pin/biometric/toggle', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ enabled: true })
+        });
+        
+        if (response.ok) {
+            showBiometricSuccess();
+        } else {
+            throw new Error('Ошибка сервера');
+        }
+    } catch (error) {
+        console.log('Биометрическая аутентификация недоступна:', error);
+        showBiometricError();
+    }
+}
+
+function skipBiometric() {
+    // Переходим в приложение без настройки биометрии
+    window.location.href = '{{ url_for("objects.object_list") }}';
+}
+
+function showBiometricSuccess() {
+    document.querySelector('.biometric-setup-section').innerHTML = `
+        <div class="biometric-success">
+            <div class="success-icon">
+                <svg width="64" height="64" fill="#28a745" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.061L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                </svg>
+            </div>
+            <h3 class="success-title">Face ID настроен!</h3>
+            <p class="success-subtitle">Теперь вы можете входить в приложение с помощью Face ID</p>
+        </div>
+    `;
+    
+    setTimeout(() => {
+        window.location.href = '{{ url_for("objects.object_list") }}';
+    }, 2000);
+}
+
+function showBiometricError() {
+    document.querySelector('.biometric-setup-section').innerHTML = `
+        <div class="biometric-error">
+            <div class="error-icon">
+                <svg width="64" height="64" fill="#dc3545" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/>
+                </svg>
+            </div>
+            <h3 class="error-title">Face ID недоступен</h3>
+            <p class="error-subtitle">Ваше устройство не поддерживает Face ID или он не настроен</p>
+            <button class="biometric-btn biometric-btn-primary" onclick="skipBiometric()">
+                Продолжить без Face ID
+            </button>
+        </div>
+    `;
 }
 </script>
 {% endblock %}
