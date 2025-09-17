@@ -7,6 +7,13 @@ import json
 
 pin_auth_bp = Blueprint('pin_auth', __name__)
 
+@pin_auth_bp.context_processor
+def inject_gettext():
+    """Делает функцию gettext доступной в шаблонах"""
+    def gettext(text):
+        return text
+    return dict(gettext=gettext)
+
 @pin_auth_bp.route('/pin/setup', methods=['GET', 'POST'])
 @login_required
 def setup_pin():
