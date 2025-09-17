@@ -44,11 +44,7 @@
             <button class="pin-key" data-key="9">9</button>
         </div>
         <div class="pin-row">
-            <button class="pin-key pin-key-biometric" id="biometricBtn" style="display: none;">
-                <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
-                </svg>
-            </button>
+            <div class="pin-key-placeholder"></div>
             <button class="pin-key" data-key="0">0</button>
             <button class="pin-key pin-key-delete" id="deleteBtn">
                 <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
@@ -154,8 +150,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
     cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .pin-key:hover {
@@ -167,6 +166,12 @@
     transform: scale(0.95);
     background: #007bff;
     color: white;
+    transition: all 0.1s ease;
+}
+
+.pin-key-placeholder {
+    width: 70px;
+    height: 70px;
 }
 
 .pin-key-biometric {
@@ -340,23 +345,59 @@ document.addEventListener('DOMContentLoaded', function() {
     const deleteBtn = document.getElementById('deleteBtn');
     
     pinKeys.forEach(key => {
+        // Обработка клика
         key.addEventListener('click', () => {
             const digit = key.dataset.key;
             addDigit(digit);
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        });
+        
+        // Обработка touch событий для лучшей анимации
+        key.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            key.style.transform = 'scale(0.95)';
+            key.style.background = '#007bff';
+            key.style.color = 'white';
+        });
+        
+        key.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            key.style.transform = '';
+            key.style.background = '';
+            key.style.color = '';
+        });
+        
+        key.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            key.style.transform = '';
+            key.style.background = '';
+            key.style.color = '';
         });
     });
     
     deleteBtn.addEventListener('click', () => {
         removeDigit();
+        if (navigator.vibrate) {
+            navigator.vibrate(50);
+        }
     });
     
-    // Вибрация при нажатии
-    pinKeys.forEach(key => {
-        key.addEventListener('click', () => {
-            if (navigator.vibrate) {
-                navigator.vibrate(50);
-            }
-        });
+    // Touch события для кнопки удаления
+    deleteBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        deleteBtn.style.transform = 'scale(0.95)';
+    });
+    
+    deleteBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        deleteBtn.style.transform = '';
+    });
+    
+    deleteBtn.addEventListener('touchcancel', (e) => {
+        e.preventDefault();
+        deleteBtn.style.transform = '';
     });
 });
 
@@ -371,7 +412,9 @@ function addDigit(digit) {
                     savePin();
                 } else {
                     showError('PIN-коды не совпадают');
-                    resetPins();
+                    setTimeout(() => {
+                        resetPins();
+                    }, 1500);
                 }
             }
         }
@@ -429,6 +472,12 @@ function resetPins() {
     isConfirming = false;
     updateDots();
     updateStepText('Введите новый PIN-код');
+    
+    // Сбрасываем стили точек
+    document.querySelectorAll('.pin-dot').forEach(dot => {
+        dot.style.background = '';
+        dot.style.borderColor = '';
+    });
 }
 
 function updateStepText(text) {
@@ -457,12 +506,16 @@ async function savePin() {
             }, 1500);
         } else {
             showError(result.message);
-            resetPins();
+            setTimeout(() => {
+                resetPins();
+            }, 1500);
         }
     } catch (error) {
         console.error('Ошибка при сохранении PIN:', error);
         showError('Произошла ошибка');
-        resetPins();
+        setTimeout(() => {
+            resetPins();
+        }, 1500);
     }
 }
 
@@ -480,6 +533,7 @@ function showSuccess(message) {
 }
 
 function showError(message) {
+    // Временно показываем красные точки
     document.querySelectorAll('.pin-dot').forEach(dot => {
         dot.style.background = '#dc3545';
         dot.style.borderColor = '#dc3545';
@@ -490,6 +544,14 @@ function showError(message) {
     if (navigator.vibrate) {
         navigator.vibrate([200, 100, 200]);
     }
+    
+    // Через 1.5 секунды сбрасываем стили
+    setTimeout(() => {
+        document.querySelectorAll('.pin-dot').forEach(dot => {
+            dot.style.background = '';
+            dot.style.borderColor = '';
+        });
+    }, 1500);
 }
 
 function offerBiometricSetup() {
@@ -506,7 +568,7 @@ function offerBiometricSetup() {
                 <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
             </svg>
         </div>
-        <h3 class="biometric-title">Настроить Face ID?</h3>
+        <h3 class="biometric-title">Настроить Face ID</h3>
         <p class="biometric-subtitle">Используйте Face ID для еще более быстрого входа в приложение</p>
         <div class="biometric-buttons">
             <button class="biometric-btn biometric-btn-primary" id="enableBiometric">
@@ -515,9 +577,6 @@ function offerBiometricSetup() {
                 </svg>
                 Включить Face ID
             </button>
-            <button class="biometric-btn biometric-btn-secondary" id="skipBiometric">
-                Пропустить
-            </button>
         </div>
     `;
     
@@ -525,7 +584,6 @@ function offerBiometricSetup() {
     
     // Обработчики кнопок
     document.getElementById('enableBiometric').addEventListener('click', enableBiometric);
-    document.getElementById('skipBiometric').addEventListener('click', skipBiometric);
 }
 
 async function enableBiometric() {
@@ -575,10 +633,6 @@ async function enableBiometric() {
     }
 }
 
-function skipBiometric() {
-    // Переходим в приложение без настройки биометрии
-    window.location.href = '{{ url_for("objects.object_list") }}';
-}
 
 function showBiometricSuccess() {
     document.querySelector('.biometric-setup-section').innerHTML = `
@@ -608,11 +662,14 @@ function showBiometricError() {
             </div>
             <h3 class="error-title">Face ID недоступен</h3>
             <p class="error-subtitle">Ваше устройство не поддерживает Face ID или он не настроен</p>
-            <button class="biometric-btn biometric-btn-primary" onclick="skipBiometric()">
-                Продолжить без Face ID
-            </button>
+            <p class="error-subtitle">Переходим в приложение...</p>
         </div>
     `;
+    
+    // Автоматически переходим в приложение через 2 секунды
+    setTimeout(() => {
+        window.location.href = '{{ url_for("objects.object_list") }}';
+    }, 2000);
 }
 </script>
 {% endblock %}
