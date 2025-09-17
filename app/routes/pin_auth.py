@@ -44,7 +44,21 @@ def setup_pin():
             # Если таблица не существует, создаем её
             print(f"Creating user_pins table: {e}")
             try:
-                db.create_all()
+                # Создаем таблицу напрямую через SQL
+                from sqlalchemy import text
+                create_table_sql = """
+                CREATE TABLE IF NOT EXISTS user_pins (
+                    id SERIAL PRIMARY KEY,
+                    user_id UUID NOT NULL REFERENCES users(userid) ON DELETE CASCADE,
+                    pin_hash VARCHAR(255) NOT NULL,
+                    is_biometric_enabled BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_used TIMESTAMP,
+                    UNIQUE(user_id)
+                );
+                """
+                db.engine.execute(text(create_table_sql))
                 db.session.commit()
                 
                 # Повторяем попытку создания PIN
@@ -55,6 +69,7 @@ def setup_pin():
                 
                 return jsonify({'success': True, 'message': 'PIN-код успешно установлен'})
             except Exception as e2:
+                print(f"Error creating table or PIN: {e2}")
                 return jsonify({'success': False, 'message': f'Ошибка при создании PIN: {str(e2)}'})
     
     return render_template('pin/setup_pin.html')
@@ -88,12 +103,12 @@ def pin_login():
     try:
         pin_count = UserPIN.query.count()
         if pin_count == 0:
-            # Если PIN-кодов нет, перенаправляем на обычный вход
-            return redirect(url_for('user.login'))
+            # Если PIN-кодов нет, перенаправляем на настройку
+            return redirect(url_for('pin_auth.setup_pin'))
     except Exception as e:
-        # Если таблица не существует, перенаправляем на обычный вход
+        # Если таблица не существует, перенаправляем на настройку
         print(f"PIN table not found: {e}")
-        return redirect(url_for('user.login'))
+        return redirect(url_for('pin_auth.setup_pin'))
     
     return render_template('pin/pin_login.html')
 

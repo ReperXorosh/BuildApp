@@ -153,12 +153,28 @@ def dashboard():
             # Если PIN не настроен, предлагаем настройку
             if not user_pin:
                 return redirect(url_for('pin_auth.setup_pin'))
+            else:
+                # Если PIN настроен, перенаправляем на страницу входа по PIN
+                return redirect(url_for('pin_auth.pin_login'))
         except Exception as e:
             # Если таблица не существует, создаем её и предлагаем настройку PIN
             print(f"PIN table not found for authenticated user, creating and offering setup: {e}")
             try:
-                from .. import db
-                db.create_all()
+                # Создаем таблицу напрямую через SQL
+                from sqlalchemy import text
+                create_table_sql = """
+                CREATE TABLE IF NOT EXISTS user_pins (
+                    id SERIAL PRIMARY KEY,
+                    user_id UUID NOT NULL REFERENCES users(userid) ON DELETE CASCADE,
+                    pin_hash VARCHAR(255) NOT NULL,
+                    is_biometric_enabled BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_used TIMESTAMP,
+                    UNIQUE(user_id)
+                );
+                """
+                db.engine.execute(text(create_table_sql))
                 db.session.commit()
             except Exception as e2:
                 print(f"Error creating table: {e2}")
