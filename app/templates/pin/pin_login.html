@@ -1,13 +1,11 @@
-{% extends "main/mobile_layout_bootstrap.html" %}
+{% extends "pin/pin_layout.html" %}
 
 {% block title %}Вход по PIN{% endblock %}
-{% block mobile_title %}Вход{% endblock %}
-
-{% block mobile_header_actions %}{% endblock %}
+{% block header_title %}Вход{% endblock %}
 
 {% block content %}
 <div class="pin-login-container">
-    <div class="pin-header">
+    <div class="pin-icon-section">
         <div class="pin-icon">
             <svg width="64" height="64" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
@@ -71,11 +69,12 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: calc(100vh - 120px);
-    padding: 20px;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
 }
 
-.pin-header {
+.pin-icon-section {
     text-align: center;
     margin-bottom: 40px;
 }
