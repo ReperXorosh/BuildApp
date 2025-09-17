@@ -58,7 +58,7 @@ def create_app(config_class=None):
     app.register_blueprint(activity_log, url_prefix='/admin')
     app.register_blueprint(supply, url_prefix='/supply')
     app.register_blueprint(objects_bp, url_prefix='/objects')
-    app.register_blueprint(pin_auth_bp, url_prefix='/pin')
+    app.register_blueprint(pin_auth_bp)
     
     # Инициализация планировщика задач (только в production)
     if not app.debug:
