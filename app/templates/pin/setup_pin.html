@@ -112,8 +112,8 @@
 }
 
 .pin-dot.filled {
-    background: #007bff;
-    border-color: #007bff;
+    background: #007bff !important;
+    border-color: #007bff !important;
 }
 
 .pin-step {
@@ -341,6 +341,15 @@ async function checkBiometricSupport() {
 document.addEventListener('DOMContentLoaded', function() {
     checkBiometricSupport();
     
+    // Тест точек
+    console.log('Testing dots...');
+    setTimeout(() => {
+        for (let i = 1; i <= 4; i++) {
+            const dot = document.getElementById(`dot${i}`);
+            console.log(`Dot ${i}:`, dot);
+        }
+    }, 1000);
+    
     const pinKeys = document.querySelectorAll('.pin-key[data-key]');
     const deleteBtn = document.getElementById('deleteBtn');
     
@@ -402,12 +411,16 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function addDigit(digit) {
+    console.log('Adding digit:', digit, 'isConfirming:', isConfirming);
+    
     if (isConfirming) {
         if (confirmPin.length < maxPinLength) {
             confirmPin += digit;
+            console.log('Confirm PIN now:', confirmPin);
             updateDots();
             
             if (confirmPin.length === maxPinLength) {
+                console.log('Comparing PINs:', currentPin, 'vs', confirmPin);
                 if (currentPin === confirmPin) {
                     savePin();
                 } else {
@@ -421,6 +434,7 @@ function addDigit(digit) {
     } else {
         if (currentPin.length < maxPinLength) {
             currentPin += digit;
+            console.log('Current PIN now:', currentPin);
             updateDots();
             
             if (currentPin.length === maxPinLength) {
@@ -448,13 +462,20 @@ function removeDigit() {
 
 function updateDots() {
     const activePin = isConfirming ? confirmPin : currentPin;
+    console.log('Updating dots for PIN:', activePin, 'length:', activePin.length);
     
     for (let i = 1; i <= maxPinLength; i++) {
         const dot = document.getElementById(`dot${i}`);
-        if (i <= activePin.length) {
-            dot.classList.add('filled');
+        if (dot) {
+            if (i <= activePin.length) {
+                dot.classList.add('filled');
+                console.log(`Dot ${i} filled`);
+            } else {
+                dot.classList.remove('filled');
+                console.log(`Dot ${i} cleared`);
+            }
         } else {
-            dot.classList.remove('filled');
+            console.log(`Dot ${i} not found`);
         }
     }
 }
@@ -485,6 +506,8 @@ function updateStepText(text) {
 }
 
 async function savePin() {
+    console.log('Saving PIN:', currentPin, 'Confirm:', confirmPin);
+    
     try {
         const response = await fetch('/pin/setup', {
             method: 'POST',
@@ -497,7 +520,9 @@ async function savePin() {
             })
         });
         
+        console.log('Response status:', response.status);
         const result = await response.json();
+        console.log('Response result:', result);
         
         if (result.success) {
             showSuccess('PIN-код успешно установлен!');
@@ -512,7 +537,7 @@ async function savePin() {
         }
     } catch (error) {
         console.error('Ошибка при сохранении PIN:', error);
-        showError('Произошла ошибка');
+        showError('Произошла ошибка при сохранении');
         setTimeout(() => {
             resetPins();
         }, 1500);

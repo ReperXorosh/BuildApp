@@ -174,7 +174,9 @@ def dashboard():
                     UNIQUE(user_id)
                 );
                 """
-                db.engine.execute(text(create_table_sql))
+                with db.engine.connect() as conn:
+                    conn.execute(text(create_table_sql))
+                    conn.commit()
                 db.session.commit()
             except Exception as e2:
                 print(f"Error creating table: {e2}")

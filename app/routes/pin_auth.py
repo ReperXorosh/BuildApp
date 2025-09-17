@@ -23,21 +23,32 @@ def setup_pin():
         pin = data.get('pin')
         confirm_pin = data.get('confirm_pin')
         
+        print(f"PIN setup request: pin={pin}, confirm_pin={confirm_pin}, user_id={current_user.userid}")
+        
         if not pin or len(pin) != 4 or not pin.isdigit():
+            print(f"Invalid PIN format: {pin}")
             return jsonify({'success': False, 'message': 'PIN должен содержать 4 цифры'})
         
         if pin != confirm_pin:
+            print(f"PIN mismatch: {pin} != {confirm_pin}")
             return jsonify({'success': False, 'message': 'PIN-коды не совпадают'})
         
         try:
             # Создаем или обновляем PIN для пользователя
+            print(f"Looking for existing PIN for user: {current_user.userid}")
             user_pin = UserPIN.query.filter_by(user_id=current_user.userid).first()
             if not user_pin:
+                print("Creating new PIN record")
                 user_pin = UserPIN(user_id=current_user.userid)
                 db.session.add(user_pin)
+            else:
+                print("Updating existing PIN record")
             
+            print(f"Setting PIN: {pin}")
             user_pin.set_pin(pin)
+            print("Committing to database")
             db.session.commit()
+            print("PIN saved successfully")
             
             return jsonify({'success': True, 'message': 'PIN-код успешно установлен'})
         except Exception as e:
@@ -58,7 +69,9 @@ def setup_pin():
                     UNIQUE(user_id)
                 );
                 """
-                db.engine.execute(text(create_table_sql))
+                with db.engine.connect() as conn:
+                    conn.execute(text(create_table_sql))
+                    conn.commit()
                 db.session.commit()
                 
                 # Повторяем попытку создания PIN
