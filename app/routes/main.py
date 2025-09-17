@@ -148,7 +148,7 @@ def dashboard():
     if is_mobile_device():
         try:
             from ..models.user_pin import UserPIN
-            user_pin = UserPIN.query.filter_by(user_id=current_user.userid).first()
+            user_pin = UserPIN.query.filter_by(user_id=str(current_user.userid)).first()
             
             # Если PIN не настроен, предлагаем настройку
             if not user_pin:
@@ -158,25 +158,9 @@ def dashboard():
                 return redirect(url_for('pin_auth.pin_login'))
         except Exception as e:
             # Если таблица не существует, создаем её и предлагаем настройку PIN
-            print(f"PIN table not found for authenticated user, creating and offering setup: {e}")
+            print(f"PIN table not found, creating and offering setup: {e}")
             try:
-                # Создаем таблицу напрямую через SQL
-                from sqlalchemy import text
-                create_table_sql = """
-                CREATE TABLE IF NOT EXISTS user_pins (
-                    id SERIAL PRIMARY KEY,
-                    user_id UUID NOT NULL REFERENCES users(userid) ON DELETE CASCADE,
-                    pin_hash VARCHAR(255) NOT NULL,
-                    is_biometric_enabled BOOLEAN DEFAULT FALSE,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    last_used TIMESTAMP,
-                    UNIQUE(user_id)
-                );
-                """
-                with db.engine.connect() as conn:
-                    conn.execute(text(create_table_sql))
-                    conn.commit()
+                db.create_all()
                 db.session.commit()
             except Exception as e2:
                 print(f"Error creating table: {e2}")

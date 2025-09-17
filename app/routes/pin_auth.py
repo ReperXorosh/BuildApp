@@ -63,66 +63,44 @@ def setup_pin():
             return jsonify({'success': False, 'message': 'PIN-коды не совпадают'})
         
         try:
-            # Создаем или обновляем PIN для пользователя
-            print(f"Looking for existing PIN for user: {current_user.userid}")
+            # Простое создание PIN без сложной логики
+            print(f"Creating PIN for user: {current_user.userid}")
             
-            # Проверяем подключение к базе данных
-            try:
-                db.session.execute(text("SELECT 1"))
-                print("Database connection OK")
-            except Exception as db_e:
-                print(f"Database connection error: {db_e}")
-                return jsonify({'success': False, 'message': f'Ошибка подключения к базе данных: {str(db_e)}'})
+            # Удаляем существующий PIN если есть
+            existing_pin = UserPIN.query.filter_by(user_id=str(current_user.userid)).first()
+            if existing_pin:
+                db.session.delete(existing_pin)
+                db.session.commit()
+                print("Deleted existing PIN")
             
-            user_pin = UserPIN.query.filter_by(user_id=current_user.userid).first()
-            if not user_pin:
-                print("Creating new PIN record")
-                user_pin = UserPIN(user_id=current_user.userid)
-                db.session.add(user_pin)
-            else:
-                print("Updating existing PIN record")
-            
-            print(f"Setting PIN: {pin}")
+            # Создаем новый PIN
+            user_pin = UserPIN(user_id=str(current_user.userid))
             user_pin.set_pin(pin)
-            print("Committing to database")
+            db.session.add(user_pin)
             db.session.commit()
             print("PIN saved successfully")
             
             return jsonify({'success': True, 'message': 'PIN-код успешно установлен'})
+            
         except Exception as e:
-            # Если таблица не существует, создаем её
-            print(f"Creating user_pins table: {e}")
+            print(f"Error saving PIN: {e}")
+            # Пробуем создать таблицу и повторить
             try:
-                # Создаем таблицу напрямую через SQL
-                print("Creating user_pins table...")
-                create_table_sql = """
-                CREATE TABLE IF NOT EXISTS user_pins (
-                    id SERIAL PRIMARY KEY,
-                    user_id UUID NOT NULL REFERENCES users(userid) ON DELETE CASCADE,
-                    pin_hash VARCHAR(255) NOT NULL,
-                    is_biometric_enabled BOOLEAN DEFAULT FALSE,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    last_used TIMESTAMP,
-                    UNIQUE(user_id)
-                );
-                """
-                print(f"Executing SQL: {create_table_sql}")
-                with db.engine.connect() as conn:
-                    conn.execute(text(create_table_sql))
-                    conn.commit()
-                print("Table created successfully")
+                print("Trying to create table and retry...")
+                db.create_all()
                 db.session.commit()
                 
-                # Повторяем попытку создания PIN
-                user_pin = UserPIN(user_id=current_user.userid)
-                db.session.add(user_pin)
+                # Повторяем попытку
+                user_pin = UserPIN(user_id=str(current_user.userid))
                 user_pin.set_pin(pin)
+                db.session.add(user_pin)
                 db.session.commit()
+                print("PIN saved after table creation")
                 
                 return jsonify({'success': True, 'message': 'PIN-код успешно установлен'})
+                
             except Exception as e2:
-                print(f"Error creating table or PIN: {e2}")
+                print(f"Error after table creation: {e2}")
                 return jsonify({'success': False, 'message': f'Ошибка при создании PIN: {str(e2)}'})
     
     return render_template('pin/setup_pin.html')
@@ -139,8 +117,11 @@ def pin_login():
         
         # Ищем пользователя по PIN-коду
         user_pins = UserPIN.query.all()
+        print(f"Found {len(user_pins)} PIN records")
         for user_pin in user_pins:
+            print(f"Checking PIN for user: {user_pin.user_id}")
             if user_pin.check_pin(pin):
+                print(f"PIN match found for user: {user_pin.user_id}")
                 # Входим в систему
                 login_user(user_pin.user)
                 session['pin_authenticated'] = True
