@@ -1,4 +1,5 @@
 from datetime import datetime
+import uuid
 from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -7,7 +8,7 @@ class UserPIN(db.Model):
     __tablename__ = 'user_pins'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.userid'), nullable=False, unique=True)
+    user_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'), nullable=False, unique=True)
     pin_hash = db.Column(db.String(255), nullable=False)
     is_biometric_enabled = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -15,7 +16,7 @@ class UserPIN(db.Model):
     last_used = db.Column(db.DateTime)
     
     # Связь с пользователем
-    user = db.relationship('User', backref=db.backref('pin', uselist=False))
+    user = db.relationship('Users', backref=db.backref('pin', uselist=False))
     
     def set_pin(self, pin):
         """Установить PIN-код"""

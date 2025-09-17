@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, flash
 from flask_login import login_required, current_user, login_user, logout_user
 from app.models.user_pin import UserPIN
-from app.models.user import User
+from app.models.users import Users
 from app import db
 import json
 
