@@ -15,36 +15,36 @@
 {% block content %}
 <div class="mobile-content">
     <!-- Прогресс-бар -->
-    <div class="progress-container mb-4">
-        <div class="progress" style="height: 4px;">
+    <div class="progress-container mb-3">
+        <div class="progress" style="height: 3px;">
             <div class="progress-bar" id="progressBar" role="progressbar" style="width: 33%" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
-        <div class="d-flex justify-content-between mt-2">
+        <div class="d-flex justify-content-between mt-1">
             <small class="text-muted">Шаг 1 из 3</small>
             <small class="text-muted" id="stepTitle">Текущий PIN</small>
         </div>
     </div>
 
     <!-- Иконка и заголовок -->
-    <div class="text-center mb-4">
-        <div class="pin-icon-large mb-3">
-            <svg width="80" height="80" fill="currentColor" viewBox="0 0 16 16" id="pinIcon">
+    <div class="text-center mb-3">
+        <div class="pin-icon-large mb-2">
+            <svg width="60" height="60" fill="currentColor" viewBox="0 0 16 16" id="pinIcon">
                 <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
             </svg>
         </div>
-        <h4 class="mb-2" id="mainTitle">Введите текущий PIN-код</h4>
-        <p class="text-muted mb-0" id="mainSubtitle">Для смены PIN-кода необходимо подтвердить текущий</p>
+        <h5 class="mb-1" id="mainTitle">Введите текущий PIN-код</h5>
+        <p class="text-muted mb-0 small" id="mainSubtitle">Для смены PIN-кода необходимо подтвердить текущий</p>
     </div>
 
     <!-- Отображение PIN -->
-    <div class="pin-display-container mb-4">
+    <div class="pin-display-container mb-3">
         <div class="pin-dots-container">
             <div class="pin-dot" id="dot1"></div>
             <div class="pin-dot" id="dot2"></div>
             <div class="pin-dot" id="dot3"></div>
             <div class="pin-dot" id="dot4"></div>
         </div>
-        <div class="pin-status mt-3" id="pinStatus">
+        <div class="pin-status mt-2" id="pinStatus">
             <small class="text-muted">Введите 4 цифры</small>
         </div>
     </div>
@@ -93,14 +93,11 @@
             </button>
         </div>
         <div class="keypad-row">
-            <button class="keypad-btn keypad-btn-secondary" onclick="clearPin()">
-                <span class="keypad-text">Очистить</span>
-            </button>
             <button class="keypad-btn" onclick="addDigit('0')">
                 <span class="keypad-number">0</span>
             </button>
             <button class="keypad-btn keypad-btn-delete" onclick="removeDigit()">
-                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
                     <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
                 </svg>
@@ -147,19 +144,19 @@
 
 .pin-display-container {
     text-align: center;
-    padding: 20px;
+    padding: 10px 20px;
 }
 
 .pin-dots-container {
     display: flex;
     justify-content: center;
-    gap: 16px;
-    margin-bottom: 16px;
+    gap: 12px;
+    margin-bottom: 8px;
 }
 
 .pin-dot {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     border: 2px solid var(--bs-border-color);
     border-radius: 50%;
     background: transparent;
@@ -189,21 +186,21 @@
 }
 
 .pin-keypad {
-    padding: 20px;
-    max-width: 300px;
+    padding: 10px 20px;
+    max-width: 280px;
     margin: 0 auto;
 }
 
 .keypad-row {
     display: flex;
     justify-content: center;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 10px;
+    margin-bottom: 10px;
 }
 
 .keypad-btn {
-    width: 70px;
-    height: 70px;
+    width: 60px;
+    height: 60px;
     border: 2px solid var(--bs-border-color);
     border-radius: 50%;
     background: var(--bs-body-bg);
@@ -212,7 +209,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 600;
     transition: all 0.2s ease;
     cursor: pointer;
@@ -220,36 +217,61 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-.keypad-btn:active {
-    transform: scale(0.95);
+.keypad-btn:hover {
     background: var(--bs-secondary-bg);
+    border-color: #007bff;
 }
 
-.keypad-btn.keypad-btn-secondary {
-    font-size: 14px;
-    font-weight: 500;
+.keypad-btn:active {
+    transform: scale(0.95);
+    background: #007bff;
+    color: white;
 }
 
 .keypad-btn.keypad-btn-delete {
-    font-size: 16px;
+    background: var(--bs-danger-bg-subtle);
+    color: var(--bs-danger);
+    border-color: var(--bs-danger-border-subtle);
+    font-size: 18px;
+}
+
+.keypad-btn.keypad-btn-delete:hover {
+    background: var(--bs-danger);
+    color: white;
+    border-color: var(--bs-danger);
 }
 
 .keypad-letters {
-    font-size: 10px;
+    font-size: 8px;
     font-weight: 400;
     opacity: 0.6;
-    margin-top: 2px;
+    margin-top: 1px;
 }
 
 .pin-actions {
     padding: 0 20px;
+    margin-top: 10px;
+}
+
+/* Темная тема */
+[data-bs-theme="dark"] .keypad-btn {
+    border-color: #495057;
+}
+
+[data-bs-theme="dark"] .keypad-btn:hover {
+    background: #343a40;
+    border-color: #007bff;
+}
+
+[data-bs-theme="dark"] .pin-dot {
+    border-color: #495057;
 }
 
 @media (max-width: 480px) {
     .keypad-btn {
-        width: 60px;
-        height: 60px;
-        font-size: 20px;
+        width: 55px;
+        height: 55px;
+        font-size: 18px;
     }
     
     .keypad-row {
@@ -257,7 +279,16 @@
     }
     
     .pin-keypad {
-        padding: 15px;
+        padding: 8px 15px;
+    }
+    
+    .pin-dots-container {
+        gap: 10px;
+    }
+    
+    .pin-dot {
+        width: 14px;
+        height: 14px;
     }
 }
 </style>
@@ -308,10 +339,6 @@ function removeDigit() {
     }
 }
 
-function clearPin() {
-    setActivePin('');
-    updateDots();
-}
 
 function getActivePin() {
     switch (currentStep) {
