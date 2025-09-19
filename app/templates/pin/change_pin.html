@@ -1,0 +1,394 @@
+{% extends "pin/pin_layout.html" %}
+
+{% block title %}Смена PIN-кода{% endblock %}
+{% block header_title %}Смена PIN-кода{% endblock %}
+
+{% block content %}
+<div class="pin-setup-container">
+    <div class="pin-icon-section">
+        <div class="pin-icon">
+            <svg width="64" height="64" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+            </svg>
+        </div>
+        <h2 class="pin-title">Смена PIN-кода</h2>
+        <p class="pin-subtitle">Введите текущий PIN и создайте новый</p>
+    </div>
+
+    <div class="pin-display">
+        <div class="pin-dots">
+            <div class="pin-dot" id="dot1"></div>
+            <div class="pin-dot" id="dot2"></div>
+            <div class="pin-dot" id="dot3"></div>
+            <div class="pin-dot" id="dot4"></div>
+        </div>
+        <div class="pin-step" id="pinStep">
+            <span class="step-text">Введите текущий PIN-код</span>
+        </div>
+    </div>
+
+    <div class="pin-keypad">
+        <div class="keypad-row">
+            <button class="keypad-btn" onclick="addDigit('1')" ontouchstart="handleTouchStart(this)" ontouchend="handleTouchEnd(this)">
+                <span class="keypad-number">1</span>
+            </button>
+            <button class="keypad-btn" onclick="addDigit('2')" ontouchstart="handleTouchStart(this)" ontouchend="handleTouchEnd(this)">
+                <span class="keypad-number">2</span>
+                <span class="keypad-letters">ABC</span>
+            </button>
+            <button class="keypad-btn" onclick="addDigit('3')" ontouchstart="handleTouchStart(this)" ontouchend="handleTouchEnd(this)">
+                <span class="keypad-number">3</span>
+                <span class="keypad-letters">DEF</span>
+            </button>
+        </div>
+        <div class="keypad-row">
+            <button class="keypad-btn" onclick="addDigit('4')" ontouchstart="handleTouchStart(this)" ontouchend="handleTouchEnd(this)">
+                <span class="keypad-number">4</span>
+                <span class="keypad-letters">GHI</span>
+            </button>
+            <button class="keypad-btn" onclick="addDigit('5')" ontouchstart="handleTouchStart(this)" ontouchend="handleTouchEnd(this)">
+                <span class="keypad-number">5</span>
+                <span class="keypad-letters">JKL</span>
+            </button>
+            <button class="keypad-btn" onclick="addDigit('6')" ontouchstart="handleTouchStart(this)" ontouchend="handleTouchEnd(this)">
+                <span class="keypad-number">6</span>
+                <span class="keypad-letters">MNO</span>
+            </button>
+        </div>
+        <div class="keypad-row">
+            <button class="keypad-btn" onclick="addDigit('7')" ontouchstart="handleTouchStart(this)" ontouchend="handleTouchEnd(this)">
+                <span class="keypad-number">7</span>
+                <span class="keypad-letters">PQRS</span>
+            </button>
+            <button class="keypad-btn" onclick="addDigit('8')" ontouchstart="handleTouchStart(this)" ontouchend="handleTouchEnd(this)">
+                <span class="keypad-number">8</span>
+                <span class="keypad-letters">TUV</span>
+            </button>
+            <button class="keypad-btn" onclick="addDigit('9')" ontouchstart="handleTouchStart(this)" ontouchend="handleTouchEnd(this)">
+                <span class="keypad-number">9</span>
+                <span class="keypad-letters">WXYZ</span>
+            </button>
+        </div>
+        <div class="keypad-row">
+            <button class="keypad-btn keypad-btn-secondary" onclick="clearPin()" ontouchstart="handleTouchStart(this)" ontouchend="handleTouchEnd(this)">
+                <span class="keypad-text">Очистить</span>
+            </button>
+            <button class="keypad-btn" onclick="addDigit('0')" ontouchstart="handleTouchStart(this)" ontouchend="handleTouchEnd(this)">
+                <span class="keypad-number">0</span>
+            </button>
+            <button class="keypad-btn keypad-btn-delete" onclick="removeDigit()" ontouchstart="handleTouchStart(this)" ontouchend="handleTouchEnd(this)">
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                    <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Кнопка отмены -->
+    <div class="pin-actions">
+        <a href="{{ url_for('main.profile') }}" class="btn btn-outline-secondary">
+            <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+            </svg>
+            Отменить
+        </a>
+    </div>
+</div>
+
+<script>
+// Состояние PIN-кода
+let currentPin = '';
+let newPin = '';
+let confirmPin = '';
+let isCurrentPinEntered = false;
+let isNewPinEntered = false;
+let isConfirming = false;
+const maxPinLength = 4;
+let lastDigitTime = 0;
+const DIGIT_DEBOUNCE_TIME = 150; // Защита от быстрых повторных нажатий
+
+// Обработчики касаний для улучшения отклика
+function handleTouchStart(button) {
+    button.style.transform = 'scale(0.95)';
+    button.style.opacity = '0.8';
+}
+
+function handleTouchEnd(button) {
+    setTimeout(() => {
+        button.style.transform = '';
+        button.style.opacity = '';
+    }, 100);
+}
+
+// Инициализация
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('PIN Change page loaded');
+    
+    // Добавляем обработчики касаний для всех кнопок
+    const keypadButtons = document.querySelectorAll('.keypad-btn');
+    keypadButtons.forEach(button => {
+        button.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleTouchStart(button);
+        });
+        
+        button.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleTouchEnd(button);
+        });
+        
+        button.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            handleTouchEnd(button);
+        });
+    });
+});
+
+function addDigit(digit) {
+    // Защита от быстрых повторных нажатий
+    const currentTime = Date.now();
+    if (currentTime - lastDigitTime < DIGIT_DEBOUNCE_TIME) {
+        console.log('Digit input debounced');
+        return;
+    }
+    lastDigitTime = currentTime;
+    
+    console.log('Adding digit:', digit, 'isCurrentPinEntered:', isCurrentPinEntered, 'isNewPinEntered:', isNewPinEntered, 'isConfirming:', isConfirming);
+    
+    if (!isCurrentPinEntered) {
+        // Ввод текущего PIN
+        if (currentPin.length < maxPinLength) {
+            currentPin += digit;
+            updateDots();
+            
+            if (currentPin.length === maxPinLength) {
+                verifyCurrentPin();
+            }
+        }
+    } else if (!isNewPinEntered) {
+        // Ввод нового PIN
+        if (newPin.length < maxPinLength) {
+            newPin += digit;
+            updateDots();
+            
+            if (newPin.length === maxPinLength) {
+                startConfirmation();
+            }
+        }
+    } else if (isConfirming) {
+        // Подтверждение нового PIN
+        if (confirmPin.length < maxPinLength) {
+            confirmPin += digit;
+            updateDots();
+            
+            if (confirmPin.length === maxPinLength) {
+                if (newPin === confirmPin) {
+                    saveNewPin();
+                } else {
+                    showError('PIN-коды не совпадают');
+                    setTimeout(() => {
+                        resetNewPin();
+                    }, 1500);
+                }
+            }
+        }
+    }
+}
+
+function removeDigit() {
+    if (!isCurrentPinEntered) {
+        if (currentPin.length > 0) {
+            currentPin = currentPin.slice(0, -1);
+            updateDots();
+        }
+    } else if (!isNewPinEntered) {
+        if (newPin.length > 0) {
+            newPin = newPin.slice(0, -1);
+            updateDots();
+        }
+    } else if (isConfirming) {
+        if (confirmPin.length > 0) {
+            confirmPin = confirmPin.slice(0, -1);
+            updateDots();
+        }
+    }
+}
+
+function clearPin() {
+    if (!isCurrentPinEntered) {
+        currentPin = '';
+        updateDots();
+    } else if (!isNewPinEntered) {
+        newPin = '';
+        updateDots();
+    } else if (isConfirming) {
+        confirmPin = '';
+        updateDots();
+    }
+}
+
+function updateDots() {
+    let activePin = '';
+    if (!isCurrentPinEntered) {
+        activePin = currentPin;
+    } else if (!isNewPinEntered) {
+        activePin = newPin;
+    } else if (isConfirming) {
+        activePin = confirmPin;
+    }
+    
+    for (let i = 1; i <= maxPinLength; i++) {
+        const dot = document.getElementById(`dot${i}`);
+        if (i <= activePin.length) {
+            dot.classList.add('filled');
+        } else {
+            dot.classList.remove('filled');
+        }
+    }
+}
+
+async function verifyCurrentPin() {
+    console.log('Verifying current PIN:', currentPin);
+    
+    try {
+        const response = await fetch('/pin/verify', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ pin: currentPin })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Текущий PIN верный
+            document.querySelectorAll('.pin-dot').forEach(dot => {
+                dot.style.background = '#28a745';
+                dot.style.borderColor = '#28a745';
+            });
+            
+            setTimeout(() => {
+                isCurrentPinEntered = true;
+                currentPin = '';
+                updateDots();
+                updateStepText('Введите новый PIN-код');
+                
+                // Сбрасываем стили точек
+                document.querySelectorAll('.pin-dot').forEach(dot => {
+                    dot.style.background = '';
+                    dot.style.borderColor = '';
+                });
+            }, 500);
+        } else {
+            // Неверный текущий PIN
+            showError(result.message || 'Неверный PIN-код');
+            setTimeout(() => {
+                resetCurrentPin();
+            }, 1500);
+        }
+    } catch (error) {
+        console.error('Error verifying PIN:', error);
+        showError('Ошибка при проверке PIN-кода');
+        setTimeout(() => {
+            resetCurrentPin();
+        }, 1500);
+    }
+}
+
+function startConfirmation() {
+    isNewPinEntered = true;
+    isConfirming = true;
+    confirmPin = '';
+    updateDots();
+    updateStepText('Подтвердите новый PIN-код');
+}
+
+function resetCurrentPin() {
+    currentPin = '';
+    isCurrentPinEntered = false;
+    updateDots();
+    updateStepText('Введите текущий PIN-код');
+    
+    // Сбрасываем стили точек
+    document.querySelectorAll('.pin-dot').forEach(dot => {
+        dot.style.background = '';
+        dot.style.borderColor = '';
+    });
+}
+
+function resetNewPin() {
+    newPin = '';
+    confirmPin = '';
+    isNewPinEntered = false;
+    isConfirming = false;
+    updateDots();
+    updateStepText('Введите новый PIN-код');
+    
+    // Сбрасываем стили точек
+    document.querySelectorAll('.pin-dot').forEach(dot => {
+        dot.style.background = '';
+        dot.style.borderColor = '';
+    });
+}
+
+function updateStepText(text) {
+    document.querySelector('.step-text').textContent = text;
+}
+
+function showError(message) {
+    document.querySelectorAll('.pin-dot').forEach(dot => {
+        dot.style.background = '#dc3545';
+        dot.style.borderColor = '#dc3545';
+    });
+    
+    updateStepText(message);
+}
+
+async function saveNewPin() {
+    console.log('Saving new PIN:', newPin);
+    
+    try {
+        const response = await fetch('/pin/change', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                current_pin: currentPin,
+                new_pin: newPin,
+                confirm_pin: confirmPin
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Успешная смена PIN
+            document.querySelectorAll('.pin-dot').forEach(dot => {
+                dot.style.background = '#28a745';
+                dot.style.borderColor = '#28a745';
+            });
+            
+            updateStepText('PIN-код успешно изменен!');
+            
+            setTimeout(() => {
+                window.location.href = "{{ url_for('main.profile') }}";
+            }, 2000);
+        } else {
+            showError(result.message || 'Ошибка при смене PIN-кода');
+            setTimeout(() => {
+                resetNewPin();
+            }, 1500);
+        }
+    } catch (error) {
+        console.error('Error saving PIN:', error);
+        showError('Ошибка при смене PIN-кода');
+        setTimeout(() => {
+            resetNewPin();
+        }, 1500);
+    }
+}
+</script>
+{% endblock %}
