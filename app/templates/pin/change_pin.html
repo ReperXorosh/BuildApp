@@ -237,7 +237,7 @@ html, body {
     justify-content: center;
     font-size: 20px;
     font-weight: 600;
-    transition: all 0.2s ease;
+    transition: transform 0.1s ease;
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -245,6 +245,8 @@ html, body {
     appearance: none;
     position: relative;
     overflow: hidden;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .keypad-btn:hover {
@@ -262,13 +264,8 @@ html, body {
 }
 
 .keypad-btn:active {
-    transform: none; /* убираем масштаб при нажатии, оставляем только ripple */
-    transition: none;
-}
-
-.keypad-btn:not(:active) {
-    transform: scale(1);
-    transition: transform 100ms ease-out;
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
 }
 
 .keypad-btn:focus,
@@ -281,7 +278,15 @@ html, body {
 }
 
 /* Убираем внутреннюю синюю обводку Safari/Chrome */
-.keypad-btn::-webkit-focus-inner { border: 0; outline: none; }
+.keypad-btn::-webkit-focus-inner { 
+    border: 0 !important; 
+    outline: none !important; 
+    box-shadow: none !important;
+}
+
+/* Дополнительные хаки для разных браузеров */
+.keypad-btn::-moz-focus-inner { border: 0 !important; }
+.keypad-btn:focus-visible { outline: none !important; }
 
 /* Глобально отключаем подсветку для всех кнопок на странице */
 .mobile-content button {
@@ -739,30 +744,18 @@ function attachKeypadInteractions() {
         
         // Только один отклик: тач на мобильных, клик на десктопе
         key.addEventListener('touchstart', function(e) {
-            // Предотвращаем системный highlight и фокус сразу
-            try { e.preventDefault(); } catch(_) {}
-            key.blur();
             createRipple(e);
-        }, { passive: false });
+        }, { passive: true });
         key.addEventListener('click', createRipple, { passive: true });
         
         // Убираем залипание активного и hover состояний
         key.addEventListener('touchend', function() {
             key.blur();
-            // Принудительно убираем hover состояние на мобильных
-            key.style.pointerEvents = 'none';
-            setTimeout(() => {
-                key.style.pointerEvents = 'auto';
-            }, 100);
         }, { passive: true });
         
         // Дополнительная защита от залипания hover
         key.addEventListener('touchcancel', function() {
             key.blur();
-            key.style.pointerEvents = 'none';
-            setTimeout(() => {
-                key.style.pointerEvents = 'auto';
-            }, 100);
         }, { passive: true });
     });
 }
