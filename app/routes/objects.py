@@ -624,9 +624,19 @@ def support_detail(object_id, support_id):
     )
     
     from ..utils.mobile_detection import is_mobile_device
-    if is_mobile_device():
+    # Проверяем параметр mobile=1 или определяем по User-Agent
+    mobile_param = request.args.get('mobile') == '1'
+    device_mobile = is_mobile_device()
+    is_mobile = mobile_param or device_mobile
+    
+    print(f"DEBUG support_detail: mobile_param = {mobile_param}, device_mobile = {device_mobile}, is_mobile = {is_mobile}")
+    print(f"DEBUG support_detail: User-Agent = {request.headers.get('User-Agent', '')}")
+    
+    if is_mobile:
+        print("DEBUG support_detail: Rendering mobile template")
         return render_template('objects/mobile_support_detail.html', object=obj, support=support)
     else:
+        print("DEBUG support_detail: Rendering desktop template")
         return render_template('objects/support_detail.html', object=obj, support=support)
 
 @objects_bp.route('/<uuid:object_id>/supports/<uuid:support_id>/confirm-installation', methods=['GET', 'POST'])
@@ -651,7 +661,10 @@ def confirm_support_installation(object_id, support_id):
         if not installation_date:
             flash('Дата установки обязательна для заполнения', 'error')
             from ..utils.mobile_detection import is_mobile_device
-            if is_mobile_device():
+            mobile_param = request.args.get('mobile') == '1'
+            device_mobile = is_mobile_device()
+            is_mobile = mobile_param or device_mobile
+            if is_mobile:
                 return render_template('objects/mobile_confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
             else:
                 return render_template('objects/confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
@@ -661,7 +674,10 @@ def confirm_support_installation(object_id, support_id):
         except ValueError:
             flash('Некорректный формат даты', 'error')
             from ..utils.mobile_detection import is_mobile_device
-            if is_mobile_device():
+            mobile_param = request.args.get('mobile') == '1'
+            device_mobile = is_mobile_device()
+            is_mobile = mobile_param or device_mobile
+            if is_mobile:
                 return render_template('objects/mobile_confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
             else:
                 return render_template('objects/confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
@@ -687,12 +703,27 @@ def confirm_support_installation(object_id, support_id):
         )
         
         flash('Установка опоры успешно подтверждена', 'success')
-        return redirect(url_for('objects.support_detail', object_id=object_id, support_id=support_id))
+        # Сохраняем параметр mobile при редиректе
+        mobile_param = request.args.get('mobile') == '1'
+        if mobile_param:
+            return redirect(url_for('objects.support_detail', object_id=object_id, support_id=support_id, mobile=1))
+        else:
+            return redirect(url_for('objects.support_detail', object_id=object_id, support_id=support_id))
     
     from ..utils.mobile_detection import is_mobile_device
-    if is_mobile_device():
+    # Проверяем параметр mobile=1 или определяем по User-Agent
+    mobile_param = request.args.get('mobile') == '1'
+    device_mobile = is_mobile_device()
+    is_mobile = mobile_param or device_mobile
+    
+    print(f"DEBUG confirm_support_installation: mobile_param = {mobile_param}, device_mobile = {device_mobile}, is_mobile = {is_mobile}")
+    print(f"DEBUG confirm_support_installation: User-Agent = {request.headers.get('User-Agent', '')}")
+    
+    if is_mobile:
+        print("DEBUG confirm_support_installation: Rendering mobile template")
         return render_template('objects/mobile_confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
     else:
+        print("DEBUG confirm_support_installation: Rendering desktop template")
         return render_template('objects/confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
 
 # Маршруты для траншей
