@@ -503,7 +503,21 @@ def users():
         # Получаем всех пользователей из базы данных
         all_users = Users.query.all()
     
-    return render_template('main/users.html', users=all_users, search_query=search_query)
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return render_template('main/mobile_users.html', users=all_users, search_query=search_query)
+    else:
+        return render_template('main/users.html', users=all_users, search_query=search_query)
+
+@main.route('/timezone-settings')
+@login_required
+def timezone_settings():
+    """Страница настроек часового пояса"""
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return render_template('main/mobile_timezone_settings.html')
+    else:
+        return render_template('main/timezone_settings.html')
 
 @main.route('/add_user', methods=['GET', 'POST'])
 @login_required

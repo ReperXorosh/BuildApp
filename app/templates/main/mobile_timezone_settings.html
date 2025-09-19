@@ -1,0 +1,215 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+
+{% block title %}Настройки часового пояса{% endblock %}
+
+{% block mobile_title %}
+    <i class="bi bi-clock me-2"></i>
+    Часовой пояс
+{% endblock %}
+
+{% block mobile_header_actions %}
+    <a href="javascript:history.back()" class="mobile-header-btn">
+        <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+        </svg>
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="mobile-content">
+    <!-- Информация о текущем часовом поясе -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-info-circle me-2"></i>
+                Текущий часовой пояс
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex align-items-center">
+                <div class="me-3">
+                    <i class="bi bi-clock text-primary" style="font-size: 2rem;"></i>
+                </div>
+                <div>
+                    <h6 class="mb-1" id="currentTimezone">{{ current_user.timezone or 'Europe/Moscow' }}</h6>
+                    <small class="text-muted" id="currentTime">{{ moment().format('DD.MM.YYYY HH:mm:ss') }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Выбор часового пояса -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-geo-alt me-2"></i>
+                Выберите часовой пояс
+            </h5>
+        </div>
+        <div class="card-body">
+            <form id="timezoneForm">
+                <div class="mb-3">
+                    <label for="timezone" class="form-label">Часовой пояс</label>
+                    <select class="form-select form-select-lg" id="timezone" name="timezone" required>
+                        <option value="">Выберите часовой пояс...</option>
+                        <optgroup label="Россия">
+                            <option value="Europe/Moscow" {{ 'selected' if current_user.timezone == 'Europe/Moscow' else '' }}>Москва (UTC+3)</option>
+                            <option value="Europe/Samara" {{ 'selected' if current_user.timezone == 'Europe/Samara' else '' }}>Самара (UTC+4)</option>
+                            <option value="Asia/Yekaterinburg" {{ 'selected' if current_user.timezone == 'Asia/Yekaterinburg' else '' }}>Екатеринбург (UTC+5)</option>
+                            <option value="Asia/Omsk" {{ 'selected' if current_user.timezone == 'Asia/Omsk' else '' }}>Омск (UTC+6)</option>
+                            <option value="Asia/Novosibirsk" {{ 'selected' if current_user.timezone == 'Asia/Novosibirsk' else '' }}>Новосибирск (UTC+7)</option>
+                            <option value="Asia/Krasnoyarsk" {{ 'selected' if current_user.timezone == 'Asia/Krasnoyarsk' else '' }}>Красноярск (UTC+7)</option>
+                            <option value="Asia/Irkutsk" {{ 'selected' if current_user.timezone == 'Asia/Irkutsk' else '' }}>Иркутск (UTC+8)</option>
+                            <option value="Asia/Yakutsk" {{ 'selected' if current_user.timezone == 'Asia/Yakutsk' else '' }}>Якутск (UTC+9)</option>
+                            <option value="Asia/Vladivostok" {{ 'selected' if current_user.timezone == 'Asia/Vladivostok' else '' }}>Владивосток (UTC+10)</option>
+                            <option value="Asia/Magadan" {{ 'selected' if current_user.timezone == 'Asia/Magadan' else '' }}>Магадан (UTC+11)</option>
+                            <option value="Asia/Kamchatka" {{ 'selected' if current_user.timezone == 'Asia/Kamchatka' else '' }}>Камчатка (UTC+12)</option>
+                        </optgroup>
+                        <optgroup label="Европа">
+                            <option value="Europe/London" {{ 'selected' if current_user.timezone == 'Europe/London' else '' }}>Лондон (UTC+0/+1)</option>
+                            <option value="Europe/Paris" {{ 'selected' if current_user.timezone == 'Europe/Paris' else '' }}>Париж (UTC+1/+2)</option>
+                            <option value="Europe/Berlin" {{ 'selected' if current_user.timezone == 'Europe/Berlin' else '' }}>Берлин (UTC+1/+2)</option>
+                            <option value="Europe/Rome" {{ 'selected' if current_user.timezone == 'Europe/Rome' else '' }}>Рим (UTC+1/+2)</option>
+                            <option value="Europe/Madrid" {{ 'selected' if current_user.timezone == 'Europe/Madrid' else '' }}>Мадрид (UTC+1/+2)</option>
+                        </optgroup>
+                        <optgroup label="Азия">
+                            <option value="Asia/Tokyo" {{ 'selected' if current_user.timezone == 'Asia/Tokyo' else '' }}>Токио (UTC+9)</option>
+                            <option value="Asia/Shanghai" {{ 'selected' if current_user.timezone == 'Asia/Shanghai' else '' }}>Шанхай (UTC+8)</option>
+                            <option value="Asia/Seoul" {{ 'selected' if current_user.timezone == 'Asia/Seoul' else '' }}>Сеул (UTC+9)</option>
+                            <option value="Asia/Singapore" {{ 'selected' if current_user.timezone == 'Asia/Singapore' else '' }}>Сингапур (UTC+8)</option>
+                        </optgroup>
+                        <optgroup label="Америка">
+                            <option value="America/New_York" {{ 'selected' if current_user.timezone == 'America/New_York' else '' }}>Нью-Йорк (UTC-5/-4)</option>
+                            <option value="America/Chicago" {{ 'selected' if current_user.timezone == 'America/Chicago' else '' }}>Чикаго (UTC-6/-5)</option>
+                            <option value="America/Denver" {{ 'selected' if current_user.timezone == 'America/Denver' else '' }}>Денвер (UTC-7/-6)</option>
+                            <option value="America/Los_Angeles" {{ 'selected' if current_user.timezone == 'America/Los_Angeles' else '' }}>Лос-Анджелес (UTC-8/-7)</option>
+                        </optgroup>
+                    </select>
+                    <div class="form-text">Выберите ваш часовой пояс для корректного отображения времени</div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg" id="saveTimezoneBtn">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Сохранить
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-lg" onclick="resetTimezone()">
+                        <i class="bi bi-arrow-clockwise me-2"></i>
+                        Сбросить к Москве
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Справка -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-question-circle me-2"></i>
+                Справка
+            </h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-2">
+                <strong>Зачем нужен часовой пояс?</strong>
+            </p>
+            <p class="text-muted mb-3">
+                Правильная настройка часового пояса обеспечивает корректное отображение времени во всех разделах приложения.
+            </p>
+            
+            <p class="text-muted mb-2">
+                <strong>Как выбрать?</strong>
+            </p>
+            <p class="text-muted">
+                Выберите город, который находится в вашем часовом поясе. Если вы находитесь в России, рекомендуется выбрать ближайший российский город.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const timezoneForm = document.getElementById('timezoneForm');
+    const saveBtn = document.getElementById('saveTimezoneBtn');
+    const currentTimezone = document.getElementById('currentTimezone');
+    const currentTime = document.getElementById('currentTime');
+    
+    // Обновляем время каждую секунду
+    function updateTime() {
+        const now = new Date();
+        const timeString = now.toLocaleString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        currentTime.textContent = timeString;
+    }
+    
+    updateTime();
+    setInterval(updateTime, 1000);
+    
+    // Обработка отправки формы
+    timezoneForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const timezone = document.getElementById('timezone').value;
+        if (!timezone) {
+            alert('Пожалуйста, выберите часовой пояс');
+            return;
+        }
+        
+        // Показываем индикатор загрузки
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Сохранение...';
+        
+        try {
+            const response = await fetch('/set-timezone', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ timezone: timezone })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Обновляем отображение
+                currentTimezone.textContent = timezone;
+                
+                // Показываем успешное сообщение
+                saveBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Сохранено!';
+                saveBtn.classList.remove('btn-primary');
+                saveBtn.classList.add('btn-success');
+                
+                setTimeout(() => {
+                    saveBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Сохранить';
+                    saveBtn.classList.remove('btn-success');
+                    saveBtn.classList.add('btn-primary');
+                    saveBtn.disabled = false;
+                }, 2000);
+            } else {
+                throw new Error(result.error || 'Ошибка при сохранении');
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            alert('Ошибка при сохранении часового пояса: ' + error.message);
+            
+            saveBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Сохранить';
+            saveBtn.disabled = false;
+        }
+    });
+});
+
+function resetTimezone() {
+    if (confirm('Сбросить часовой пояс к Москве?')) {
+        document.getElementById('timezone').value = 'Europe/Moscow';
+        document.getElementById('timezoneForm').dispatchEvent(new Event('submit'));
+    }
+}
+</script>
+{% endblock %}

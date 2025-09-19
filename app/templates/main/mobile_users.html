@@ -1,0 +1,196 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'users' %}
+
+{% block title %}Пользователи{% endblock %}
+
+{% block mobile_title %}
+    <i class="bi bi-people me-2"></i>
+    Пользователи
+{% endblock %}
+
+{% block mobile_header_actions %}
+    {% if current_user.role == 'Инженер ПТО' %}
+    <a href="{{ url_for('main.add_user') }}" class="mobile-header-btn">
+        <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+        </svg>
+    </a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="mobile-content">
+    <!-- Форма поиска -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('main.users') }}">
+                <div class="mb-3">
+                    <label for="search" class="form-label">
+                        <i class="bi bi-search me-1"></i>
+                        Поиск пользователей
+                    </label>
+                    <input type="text" 
+                           class="form-control form-control-lg" 
+                           id="search" 
+                           name="search" 
+                           value="{{ search_query or '' }}"
+                           placeholder="Введите логин, имя, фамилию...">
+                    <div class="form-text">Поиск по логину, имени, фамилии или отчеству</div>
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-search me-2"></i>
+                        Найти
+                    </button>
+                    {% if search_query %}
+                    <a href="{{ url_for('main.users') }}" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-x-circle me-2"></i>
+                        Сбросить
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Результаты поиска -->
+    {% if search_query %}
+    <div class="alert alert-info mb-3">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>Результаты поиска:</strong> Найдено {{ users|length }} пользователей по запросу "{{ search_query }}"
+    </div>
+    {% endif %}
+
+    <!-- Список пользователей -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-people me-2"></i>
+                Список пользователей ({{ users|length }})
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            {% if users %}
+            <div class="list-group list-group-flush">
+                {% for user in users %}
+                <div class="list-group-item">
+                    <div class="d-flex align-items-start">
+                        <!-- Аватар -->
+                        <div class="me-3">
+                            {% if user.avatar %}
+                                <img src="{{ user.avatar }}" alt="Аватар" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                    <i class="bi bi-person text-white" style="font-size: 24px;"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Информация о пользователе -->
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center mb-1">
+                                {% if current_user.role == 'Инженер ПТО' %}
+                                    <a href="{{ url_for('main.view_user_profile', user_id=user.userid) }}" 
+                                       class="text-decoration-none fw-bold text-primary me-2">
+                                        {{ user.login }}
+                                    </a>
+                                {% else %}
+                                    <strong class="me-2">{{ user.login }}</strong>
+                                {% endif %}
+                                
+                                {% if user.userid == current_user.userid %}
+                                    <span class="badge bg-primary">Вы</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-1">
+                                {% if user.secondname or user.firstname %}
+                                    <span class="text-muted">{{ (user.secondname or '') + ' ' + (user.firstname or '') + ' ' + (user.thirdname or '') }}</span>
+                                {% else %}
+                                    <span class="text-muted">ФИО не указано</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-1">
+                                <span class="badge bg-{{ 'success' if user.role == 'Ген. директор' else 'warning' if user.role == 'Зам. директор' else 'info' if user.role == 'Инженер ПТО' else 'secondary' }}">
+                                    {{ user.role }}
+                                </span>
+                            </div>
+                            
+                            {% if user.phonenumber %}
+                            <div class="mb-1">
+                                <small class="text-muted">
+                                    <i class="bi bi-telephone me-1"></i>
+                                    +7 ({{ user.phonenumber[:3] }}) {{ user.phonenumber[3:6] }}-{{ user.phonenumber[6:8] }}-{{ user.phonenumber[8:10] }}
+                                </small>
+                            </div>
+                            {% endif %}
+                            
+                            <div>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar me-1"></i>
+                                    {{ user.created_at | moscow_date }}
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Действия -->
+                        {% if current_user.role == 'Инженер ПТО' %}
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('main.view_user_profile', user_id=user.userid) }}">
+                                        <i class="bi bi-eye me-2"></i>
+                                        Просмотр
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('main.edit_user', user_id=user.userid) }}">
+                                        <i class="bi bi-pencil me-2"></i>
+                                        Редактировать
+                                    </a>
+                                </li>
+                                {% if user.userid != current_user.userid %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="#" onclick="confirmDelete('{{ user.userid }}', '{{ user.login }}')">
+                                        <i class="bi bi-trash me-2"></i>
+                                        Удалить
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+                <h5 class="text-muted mt-3">Пользователи не найдены</h5>
+                {% if search_query %}
+                    <p class="text-muted">Попробуйте изменить поисковый запрос</p>
+                {% else %}
+                    <p class="text-muted">В системе пока нет пользователей</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(userId, login) {
+    if (confirm(`Вы уверены, что хотите удалить пользователя "${login}"?`)) {
+        // Здесь можно добавить AJAX запрос для удаления пользователя
+        // или перенаправить на страницу удаления
+        window.location.href = `/delete_user/${userId}`;
+    }
+}
+</script>
+{% endblock %}
