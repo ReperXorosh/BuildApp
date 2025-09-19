@@ -122,14 +122,12 @@ html, body {
     height: 100%;
     overflow: hidden;
     overscroll-behavior: none;
-    position: fixed;
-    width: 100%;
     -webkit-overflow-scrolling: touch;
 }
 
 .mobile-content {
-    height: calc(100vh - 56px);
-    max-height: calc(100vh - 56px);
+    height: calc(100dvh - var(--mobile-header-height, 56px));
+    max-height: calc(100dvh - var(--mobile-header-height, 56px));
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -137,6 +135,7 @@ html, body {
     -webkit-overflow-scrolling: touch;
     touch-action: manipulation;
     position: relative;
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 .pin-icon-large {
@@ -252,10 +251,15 @@ html, body {
 }
 
 .keypad-btn:active {
-    transform: scale(0.95);
-    background: #007bff;
-    color: #fff;
-    transition: all 0.1s ease-out;
+    transform: scale(0.97);
+    transition: transform 100ms ease-out;
+}
+
+.keypad-btn:focus,
+.keypad-btn:focus-visible,
+.keypad-btn:focus-within {
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .keypad-btn.keypad-btn-delete {
@@ -269,6 +273,16 @@ html, body {
     background: var(--bs-danger);
     color: white;
     border-color: var(--bs-danger);
+}
+
+/* Убираем синий системный хайлайт на мобилках */
+.keypad-btn, .btn, button {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Делаем ripple белым поверх фона, без синей заливки самой кнопки */
+.keypad-btn .ripple {
+    mix-blend-mode: screen;
 }
 
 .keypad-btn-empty {
@@ -365,28 +379,19 @@ const DIGIT_DEBOUNCE_TIME = 150;
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
     console.log('PIN Change page loaded');
-    
-    // Полная блокировка скролла
+
+    // Блокировка прокрутки без фиксирования body
     document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
     document.documentElement.style.overflow = 'hidden';
-    
-    // Предотвращение скролла на мобильных
-    document.addEventListener('touchmove', function(e) {
-        e.preventDefault();
-    }, { passive: false });
-    
+
     updateUI();
-    
+
     // Подключаем ripple и тактильные анимации
     attachKeypadInteractions();
 });
 
 window.addEventListener('beforeunload', function() {
     document.body.style.overflow = '';
-    document.body.style.position = '';
-    document.body.style.width = '';
     document.documentElement.style.overflow = '';
 });
 
