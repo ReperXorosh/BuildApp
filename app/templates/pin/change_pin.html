@@ -250,6 +250,14 @@ html, body {
     border-color: #007bff;
 }
 
+/* Убираем hover на мобильных устройствах */
+@media (hover: none) and (pointer: coarse) {
+    .keypad-btn:hover {
+        background: var(--bs-body-bg);
+        border-color: var(--bs-border-color);
+    }
+}
+
 .keypad-btn:active {
     transform: scale(0.97);
     transition: transform 100ms ease-out;
@@ -703,9 +711,23 @@ function attachKeypadInteractions() {
         // Тач для мобильных
         key.addEventListener('touchstart', createRipple, { passive: true });
         
-        // Убираем залипание активного состояния
+        // Убираем залипание активного и hover состояний
         key.addEventListener('touchend', function() {
             key.blur();
+            // Принудительно убираем hover состояние на мобильных
+            key.style.pointerEvents = 'none';
+            setTimeout(() => {
+                key.style.pointerEvents = 'auto';
+            }, 100);
+        }, { passive: true });
+        
+        // Дополнительная защита от залипания hover
+        key.addEventListener('touchcancel', function() {
+            key.blur();
+            key.style.pointerEvents = 'none';
+            setTimeout(() => {
+                key.style.pointerEvents = 'auto';
+            }, 100);
         }, { passive: true });
     });
 }
