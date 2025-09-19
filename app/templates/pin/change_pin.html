@@ -52,57 +52,57 @@
     <!-- Цифровая клавиатура -->
     <div class="pin-keypad">
         <div class="keypad-row">
-            <button class="keypad-btn" onclick="addDigit('1')">
+            <div class="keypad-btn" data-digit="1">
                 <span class="keypad-number">1</span>
-            </button>
-            <button class="keypad-btn" onclick="addDigit('2')">
+            </div>
+            <div class="keypad-btn" data-digit="2">
                 <span class="keypad-number">2</span>
                 <span class="keypad-letters">ABC</span>
-            </button>
-            <button class="keypad-btn" onclick="addDigit('3')">
+            </div>
+            <div class="keypad-btn" data-digit="3">
                 <span class="keypad-number">3</span>
                 <span class="keypad-letters">DEF</span>
-            </button>
+            </div>
         </div>
         <div class="keypad-row">
-            <button class="keypad-btn" onclick="addDigit('4')">
+            <div class="keypad-btn" data-digit="4">
                 <span class="keypad-number">4</span>
                 <span class="keypad-letters">GHI</span>
-            </button>
-            <button class="keypad-btn" onclick="addDigit('5')">
+            </div>
+            <div class="keypad-btn" data-digit="5">
                 <span class="keypad-number">5</span>
                 <span class="keypad-letters">JKL</span>
-            </button>
-            <button class="keypad-btn" onclick="addDigit('6')">
+            </div>
+            <div class="keypad-btn" data-digit="6">
                 <span class="keypad-number">6</span>
                 <span class="keypad-letters">MNO</span>
-            </button>
+            </div>
         </div>
         <div class="keypad-row">
-            <button class="keypad-btn" onclick="addDigit('7')">
+            <div class="keypad-btn" data-digit="7">
                 <span class="keypad-number">7</span>
                 <span class="keypad-letters">PQRS</span>
-            </button>
-            <button class="keypad-btn" onclick="addDigit('8')">
+            </div>
+            <div class="keypad-btn" data-digit="8">
                 <span class="keypad-number">8</span>
                 <span class="keypad-letters">TUV</span>
-            </button>
-            <button class="keypad-btn" onclick="addDigit('9')">
+            </div>
+            <div class="keypad-btn" data-digit="9">
                 <span class="keypad-number">9</span>
                 <span class="keypad-letters">WXYZ</span>
-            </button>
+            </div>
         </div>
         <div class="keypad-row">
             <div class="keypad-btn keypad-btn-empty"></div>
-            <button class="keypad-btn" onclick="addDigit('0')">
+            <div class="keypad-btn" data-digit="0">
                 <span class="keypad-number">0</span>
-            </button>
-            <button class="keypad-btn keypad-btn-delete" onclick="removeDigit()">
+            </div>
+            <div class="keypad-btn keypad-btn-delete" data-action="delete">
                 <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
                     <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
                 </svg>
-            </button>
+            </div>
         </div>
     </div>
 
@@ -240,53 +240,19 @@ html, body {
     transition: transform 0.1s ease;
     cursor: pointer;
     user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-appearance: none;
-    appearance: none;
     position: relative;
     overflow: hidden;
-    outline: none !important;
-    box-shadow: none !important;
 }
 
 .keypad-btn:hover {
-    /* Полностью отключаем визуальную подсветку при наведении */
-    background: var(--bs-body-bg);
-    border-color: var(--bs-border-color);
-}
-
-/* Убираем hover на мобильных устройствах */
-@media (hover: none) and (pointer: coarse) {
-    .keypad-btn:hover {
-        background: var(--bs-body-bg);
-        border-color: var(--bs-border-color);
-    }
+    background: var(--bs-secondary-bg);
+    border-color: #007bff;
 }
 
 .keypad-btn:active {
     transform: scale(0.95);
     transition: transform 0.1s ease;
 }
-
-.keypad-btn:focus,
-.keypad-btn:focus-visible,
-.keypad-btn:focus-within {
-    outline: none !important;
-    outline-color: transparent !important;
-    box-shadow: none !important;
-    border-color: var(--bs-border-color) !important;
-}
-
-/* Убираем внутреннюю синюю обводку Safari/Chrome */
-.keypad-btn::-webkit-focus-inner { 
-    border: 0 !important; 
-    outline: none !important; 
-    box-shadow: none !important;
-}
-
-/* Дополнительные хаки для разных браузеров */
-.keypad-btn::-moz-focus-inner { border: 0 !important; }
-.keypad-btn:focus-visible { outline: none !important; }
 
 /* Глобально отключаем подсветку для всех кнопок на странице */
 .mobile-content button {
@@ -703,19 +669,11 @@ function goBack() {
 function attachKeypadInteractions() {
     const keys = document.querySelectorAll('.keypad-btn');
     keys.forEach(key => {
-        // Создаем ripple эффект (единый обработчик для touch, предотвращаем click)
+        // Создаем ripple эффект
         function createRipple(e) {
-            if (e.type === 'touchstart') {
-                key.dataset.touching = '1';
-            }
-            if (e.type === 'click' && key.dataset.touching === '1') {
-                // подавляем дублирующий клик после тача
-                key.dataset.touching = '';
-                return;
-            }
             const rect = key.getBoundingClientRect();
             const ripple = document.createElement('span');
-            const size = Math.max(rect.width, rect.height) * 0.45; // компактный ripple
+            const size = Math.max(rect.width, rect.height) * 0.45;
             
             // Получаем координаты клика/тача
             let x, y;
@@ -742,22 +700,27 @@ function attachKeypadInteractions() {
             }, 200);
         }
         
-        // Только один отклик: тач на мобильных, клик на десктопе
-        key.addEventListener('touchstart', function(e) {
+        // Обработчик нажатия
+        function handlePress(e) {
+            e.preventDefault();
             createRipple(e);
-        }, { passive: true });
-        key.addEventListener('click', createRipple, { passive: true });
+            
+            // Определяем действие
+            const digit = key.dataset.digit;
+            const action = key.dataset.action;
+            
+            if (digit) {
+                addDigit(digit);
+            } else if (action === 'delete') {
+                removeDigit();
+            }
+        }
         
-        // Убираем залипание активного и hover состояний
-        key.addEventListener('touchend', function() {
-            key.blur();
-        }, { passive: true });
-        
-        // Дополнительная защита от залипания hover
-        key.addEventListener('touchcancel', function() {
-            key.blur();
-        }, { passive: true });
+        // Добавляем обработчики
+        key.addEventListener('touchstart', handlePress, { passive: false });
+        key.addEventListener('click', handlePress, { passive: false });
     });
 }
 </script>
 {% endblock %}
+
