@@ -126,16 +126,16 @@ html, body {
 }
 
 .mobile-content {
-    height: calc(100dvh - var(--mobile-header-height, 56px));
-    max-height: calc(100dvh - var(--mobile-header-height, 56px));
+    height: calc(100vh - 56px);
+    max-height: calc(100vh - 56px);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     overflow: hidden;
     -webkit-overflow-scrolling: touch;
     touch-action: manipulation;
     position: relative;
-    padding-bottom: env(safe-area-inset-bottom);
+    padding: 10px 0 20px 0;
 }
 
 .pin-icon-large {
@@ -214,7 +214,7 @@ html, body {
 .pin-keypad {
     padding: 10px 20px;
     max-width: 280px;
-    margin: 0 auto;
+    margin: 20px auto 0 auto;
 }
 
 .keypad-row {
@@ -252,6 +252,11 @@ html, body {
 
 .keypad-btn:active {
     transform: scale(0.97);
+    transition: transform 100ms ease-out;
+}
+
+.keypad-btn:not(:active) {
+    transform: scale(1);
     transition: transform 100ms ease-out;
 }
 
@@ -323,7 +328,8 @@ html, body {
 
 .pin-actions {
     padding: 0 20px;
-    margin-top: 10px;
+    margin-top: 20px;
+    flex-shrink: 0;
 }
 
 /* Темная тема */
@@ -696,6 +702,11 @@ function attachKeypadInteractions() {
         
         // Тач для мобильных
         key.addEventListener('touchstart', createRipple, { passive: true });
+        
+        // Убираем залипание активного состояния
+        key.addEventListener('touchend', function() {
+            key.blur();
+        }, { passive: true });
     });
 }
 </script>
