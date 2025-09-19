@@ -122,16 +122,21 @@ html, body {
     height: 100%;
     overflow: hidden;
     overscroll-behavior: none;
+    position: fixed;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
 }
 
 .mobile-content {
-    min-height: calc(100dvh - 56px);
+    height: calc(100vh - 56px);
+    max-height: calc(100vh - 56px);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     overflow: hidden;
-    -webkit-overflow-scrolling: auto;
+    -webkit-overflow-scrolling: touch;
     touch-action: manipulation;
+    position: relative;
 }
 
 .pin-icon-large {
@@ -247,9 +252,10 @@ html, body {
 }
 
 .keypad-btn:active {
-    transform: scale(0.96);
+    transform: scale(0.95);
     background: #007bff;
     color: #fff;
+    transition: all 0.1s ease-out;
 }
 
 .keypad-btn.keypad-btn-delete {
@@ -270,19 +276,26 @@ html, body {
     pointer-events: none;
 }
 
-/* Ripple */
+/* Ripple - как в крутых ОС */
 .ripple {
     position: absolute;
     border-radius: 50%;
     transform: scale(0);
-    animation: ripple 320ms cubic-bezier(.22,.61,.36,1);
-    background: currentColor;
-    opacity: 0.2;
+    animation: ripple 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(255, 255, 255, 0.3);
+    pointer-events: none;
 }
 
 @keyframes ripple {
-    to {
-        transform: scale(2.2);
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+    100% {
+        transform: scale(1.8);
         opacity: 0;
     }
 }
@@ -352,19 +365,29 @@ const DIGIT_DEBOUNCE_TIME = 150;
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
     console.log('PIN Change page loaded');
-    try { document.body.style.overflow = 'hidden'; document.documentElement.style.overflow='hidden'; } catch(e) {}
+    
+    // Полная блокировка скролла
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.documentElement.style.overflow = 'hidden';
+    
+    // Предотвращение скролла на мобильных
+    document.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+    }, { passive: false });
+    
     updateUI();
-    // Подгоняем высоту контента под экран
-    const content = document.querySelector('.mobile-content');
-    if (content) {
-        content.style.height = 'calc(100dvh - 56px)';
-    }
+    
     // Подключаем ripple и тактильные анимации
     attachKeypadInteractions();
 });
 
 window.addEventListener('beforeunload', function() {
-    try { document.body.style.overflow = ''; document.documentElement.style.overflow=''; } catch(e) {}
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.documentElement.style.overflow = '';
 });
 
 function addDigit(digit) {
@@ -632,32 +655,42 @@ function goBack() {
 function attachKeypadInteractions() {
     const keys = document.querySelectorAll('.keypad-btn');
     keys.forEach(key => {
-        key.addEventListener('click', (e) => {
+        // Создаем ripple эффект
+        function createRipple(e) {
             const rect = key.getBoundingClientRect();
             const ripple = document.createElement('span');
-            const size = Math.max(rect.width, rect.height);
+            const size = Math.max(rect.width, rect.height) * 0.6; // Меньший размер для изящества
+            
+            // Получаем координаты клика/тача
+            let x, y;
+            if (e.touches && e.touches[0]) {
+                x = e.touches[0].clientX;
+                y = e.touches[0].clientY;
+            } else {
+                x = e.clientX;
+                y = e.clientY;
+            }
+            
             ripple.style.width = ripple.style.height = size + 'px';
-            const x = (e.clientX || (e.touches && e.touches[0].clientX) || (rect.left + rect.width/2));
-            const y = (e.clientY || (e.touches && e.touches[0].clientY) || (rect.top + rect.height/2));
             ripple.style.left = (x - rect.left - size / 2) + 'px';
             ripple.style.top = (y - rect.top - size / 2) + 'px';
             ripple.className = 'ripple';
+            
             key.appendChild(ripple);
-            ripple.addEventListener('animationend', () => ripple.remove());
-        }, { passive: true });
-        // Для тач-событий
-        key.addEventListener('touchstart', (e) => {
-            const rect = key.getBoundingClientRect();
-            const ripple = document.createElement('span');
-            const size = Math.max(rect.width, rect.height);
-            const t = e.touches[0];
-            ripple.style.width = ripple.style.height = size + 'px';
-            ripple.style.left = (t.clientX - rect.left - size / 2) + 'px';
-            ripple.style.top = (t.clientY - rect.top - size / 2) + 'px';
-            ripple.className = 'ripple';
-            key.appendChild(ripple);
-            ripple.addEventListener('animationend', () => ripple.remove());
-        }, { passive: true });
+            
+            // Удаляем после анимации
+            setTimeout(() => {
+                if (ripple.parentNode) {
+                    ripple.remove();
+                }
+            }, 200);
+        }
+        
+        // Клик для десктопа
+        key.addEventListener('click', createRipple, { passive: true });
+        
+        // Тач для мобильных
+        key.addEventListener('touchstart', createRipple, { passive: true });
     });
 }
 </script>
