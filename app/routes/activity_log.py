@@ -224,24 +224,36 @@ def clear_activity_log():
         return jsonify({'error': gettext("У вас нет прав для очистки журнала действий")}), 403
     
     try:
+        # Сохраняем информацию для логирования перед удалением
+        user_id = current_user.userid
+        user_login = current_user.login
+        ip_address = request.remote_addr
+        page_url = request.url
+        method = request.method
+        
         # Удаляем все записи
-        ActivityLog.query.delete()
+        deleted_count = ActivityLog.query.delete()
         db.session.commit()
         
-        # Логируем действие очистки
-        ActivityLog.log_action(
-            user_id=current_user.userid,
-            user_login=current_user.login,
-            action="Очистка журнала",
-            description=f"Администратор {current_user.login} очистил весь журнал действий",
-            ip_address=request.remote_addr,
-            page_url=request.url,
-            method=request.method
-        )
+        # Логируем действие очистки в новой транзакции
+        try:
+            ActivityLog.log_action(
+                user_id=user_id,
+                user_login=user_login,
+                action="Очистка журнала",
+                description=f"Администратор {user_login} очистил весь журнал действий ({deleted_count} записей)",
+                ip_address=ip_address,
+                page_url=page_url,
+                method=method
+            )
+        except Exception as log_error:
+            # Если не удалось залогировать, это не критично
+            print(f"Не удалось залогировать очистку журнала: {log_error}")
         
-        return jsonify({'success': True, 'message': 'Журнал действий очищен'})
+        return jsonify({'success': True, 'message': f'Журнал действий очищен ({deleted_count} записей удалено)'})
     except Exception as e:
         db.session.rollback()
+        print(f"Ошибка при очистке журнала: {e}")
         return jsonify({'error': f'Ошибка при очистке журнала: {str(e)}'}), 500
 
 @activity_log.route('/api/activity-log/export')
