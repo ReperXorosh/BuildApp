@@ -1,0 +1,142 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+
+{% block title %}Опора {{ support.support_number }}{% endblock %}
+
+{% block mobile_title %}
+    <i class="bi bi-pin-angle me-2"></i>
+    Опора {{ support.support_number }}
+{% endblock %}
+
+{% block mobile_header_actions %}
+    <a href="{{ url_for('objects.supports_list', object_id=object.id) }}" class="btn btn-outline-light btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>
+        Назад
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="mobile-content">
+    <!-- Информация об объекте -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <h6 class="card-title text-muted mb-2">Объект</h6>
+            <p class="mb-0">
+                <a href="{{ url_for('objects.object_detail', object_id=object.id) }}" class="text-decoration-none">
+                    {{ object.name }}
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Основная информация об опоре -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-info-circle me-2"></i>
+                Детали опоры
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-6">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Номер опоры</small>
+                        <strong>{{ support.support_number }}</strong>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Статус</small>
+                        <span class="badge bg-{{ 'success' if support.status == 'completed' else 'warning' if support.status == 'in_progress' else 'secondary' }}">
+                            {% if support.status == 'completed' %}
+                                Установлена
+                            {% elif support.status == 'in_progress' %}
+                                В процессе
+                            {% else %}
+                                Запланирована
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-12">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Название опоры</small>
+                        <span>{{ support.support_type or 'Не указано' }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-12">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Дата установки</small>
+                        <span>
+                            {% if support.installation_date %}
+                                {{ support.installation_date | moscow_date }}
+                            {% else %}
+                                Не установлена
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            {% if support.notes %}
+            <div class="mt-3">
+                <small class="text-muted d-block">Примечания</small>
+                <p class="text-muted mb-0">{{ support.notes }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- История -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-clock-history me-2"></i>
+                История
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <small class="text-muted d-block">Создана</small>
+                <strong>{{ support.created_at | moscow_date }}</strong>
+            </div>
+            
+            {% if support.updated_at != support.created_at %}
+            <div class="mb-3">
+                <small class="text-muted d-block">Обновлена</small>
+                <strong>{{ support.updated_at | moscow_date }}</strong>
+            </div>
+            {% endif %}
+            
+            {% if support.installation_date %}
+            <div class="mb-3">
+                <small class="text-muted d-block">Установлена</small>
+                <strong class="text-success">{{ support.installation_date | moscow_date }}</strong>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Действия -->
+    {% if support.status != 'completed' %}
+    <div class="card mb-3">
+        <div class="card-body text-center">
+            <i class="bi bi-info-circle text-info mb-3" style="font-size: 2.5rem;"></i>
+            <h6 class="card-title">Опора готова к установке</h6>
+            <p class="text-muted mb-3">Подтвердите установку опоры</p>
+            <a href="{{ url_for('objects.confirm_support_installation', object_id=object.id, support_id=support.id) }}" 
+               class="btn btn-success btn-lg w-100">
+                <i class="bi bi-check-circle me-2"></i>
+                Подтвердить установку
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

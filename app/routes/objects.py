@@ -623,7 +623,11 @@ def support_detail(object_id, support_id):
         method=request.method
     )
     
-    return render_template('objects/support_detail.html', object=obj, support=support)
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return render_template('objects/mobile_support_detail.html', object=obj, support=support)
+    else:
+        return render_template('objects/support_detail.html', object=obj, support=support)
 
 @objects_bp.route('/<uuid:object_id>/supports/<uuid:support_id>/confirm-installation', methods=['GET', 'POST'])
 @login_required
@@ -646,13 +650,21 @@ def confirm_support_installation(object_id, support_id):
         # Проверяем, что дата указана
         if not installation_date:
             flash('Дата установки обязательна для заполнения', 'error')
-            return render_template('objects/confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
+            from ..utils.mobile_detection import is_mobile_device
+            if is_mobile_device():
+                return render_template('objects/mobile_confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
+            else:
+                return render_template('objects/confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
         
         try:
             installation_date = datetime.strptime(installation_date, '%Y-%m-%d').date()
         except ValueError:
             flash('Некорректный формат даты', 'error')
-            return render_template('objects/confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
+            from ..utils.mobile_detection import is_mobile_device
+            if is_mobile_device():
+                return render_template('objects/mobile_confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
+            else:
+                return render_template('objects/confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
         
         # Обновляем статус опоры
         support.status = 'completed'
@@ -677,7 +689,11 @@ def confirm_support_installation(object_id, support_id):
         flash('Установка опоры успешно подтверждена', 'success')
         return redirect(url_for('objects.support_detail', object_id=object_id, support_id=support_id))
     
-    return render_template('objects/confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return render_template('objects/mobile_confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
+    else:
+        return render_template('objects/confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
 
 # Маршруты для траншей
 @objects_bp.route('/<uuid:object_id>/trenches')

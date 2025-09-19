@@ -1,0 +1,137 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+
+{% block title %}Подтверждение установки{% endblock %}
+
+{% block mobile_title %}
+    <i class="bi bi-check-circle me-2"></i>
+    Подтверждение установки
+{% endblock %}
+
+{% block mobile_header_actions %}
+    <a href="{{ url_for('objects.support_detail', object_id=object.id, support_id=support.id) }}" class="btn btn-outline-light btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>
+        Назад
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="mobile-content">
+    <!-- Информация об опоре -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-info-circle me-2"></i>
+                Информация об опоре
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-6">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Номер опоры</small>
+                        <strong>{{ support.support_number }}</strong>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Статус</small>
+                        <span class="badge bg-{{ 'success' if support.status == 'completed' else 'warning' if support.status == 'in_progress' else 'secondary' }}">
+                            {% if support.status == 'completed' %}
+                                Установлена
+                            {% elif support.status == 'in_progress' %}
+                                В процессе
+                            {% else %}
+                                Запланирована
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-12">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Название опоры</small>
+                        <span>{{ support.support_type or 'Не указано' }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-12">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Объект</small>
+                        <a href="{{ url_for('objects.object_detail', object_id=object.id) }}" class="text-decoration-none">
+                            {{ object.name }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Форма подтверждения -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-check-circle me-2"></i>
+                Подтверждение установки
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if support.status == 'completed' %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Эта опора уже установлена!</strong><br>
+                Дата установки: {{ support.installation_date | moscow_date }}
+            </div>
+            {% else %}
+            <form method="POST">
+                <div class="mb-3">
+                    <label for="installation_date" class="form-label">
+                        <i class="bi bi-calendar me-1"></i>
+                        Дата установки <span class="text-danger">*</span>
+                    </label>
+                    <input type="date" 
+                           class="form-control form-control-lg" 
+                           id="installation_date" 
+                           name="installation_date" 
+                           value="{{ today_date or '' }}"
+                           required>
+                    <div class="form-text">Укажите дату фактической установки опоры</div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="installation_notes" class="form-label">
+                        <i class="bi bi-pencil me-1"></i>
+                        Примечания по установке
+                    </label>
+                    <textarea class="form-control" 
+                              id="installation_notes" 
+                              name="installation_notes" 
+                              rows="4"
+                              placeholder="Дополнительная информация о процессе установки..."></textarea>
+                    <div class="form-text">Необязательно. Можно указать особенности установки, использованные материалы и т.д.</div>
+                </div>
+                
+                <div class="alert alert-warning mb-4">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Внимание!</strong> После подтверждения установки статус опоры изменится на "Установлена" и её нельзя будет изменить.
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Подтвердить установку
+                    </button>
+                    <a href="{{ url_for('objects.support_detail', object_id=object.id, support_id=support.id) }}" 
+                       class="btn btn-outline-secondary btn-lg">
+                        Отмена
+                    </a>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
