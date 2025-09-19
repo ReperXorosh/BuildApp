@@ -746,8 +746,8 @@
             mobileMenuClose.addEventListener('click', closeMobileMenu);
             mobileMenuOverlay.addEventListener('click', closeMobileMenu);
             
-            // Закрытие при клике на ссылку (кроме переключателя темы)
-            const menuItems = mobileMenu.querySelectorAll('.mobile-menu-item:not(.mobile-menu-theme-toggle)');
+            // Закрытие при клике на ссылку (кроме переключателя темы и заголовка настроек)
+            const menuItems = mobileMenu.querySelectorAll('.mobile-menu-item:not(.mobile-menu-theme-toggle):not(.mobile-menu-settings-title)');
             menuItems.forEach(item => {
                 item.addEventListener('click', closeMobileMenu);
             });
