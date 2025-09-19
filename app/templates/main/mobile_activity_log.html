@@ -189,7 +189,7 @@ function clearActivityLog() {
     clearBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Очистка...';
     
     // Отправляем запрос на очистку
-    fetch('/api/activity-log/clear', {
+    fetch('/admin/api/activity-log/clear', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
