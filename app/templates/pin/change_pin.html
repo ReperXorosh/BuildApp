@@ -118,6 +118,14 @@
 </div>
 
 <style>
+.mobile-content {
+    min-height: calc(100vh - 56px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+}
+
 .pin-icon-large {
     color: var(--bs-primary);
     transition: all 0.3s ease;
@@ -143,6 +151,10 @@
     padding: 0 20px;
 }
 
+.progress .progress-bar {
+    transition: width 300ms ease;
+}
+
 .pin-display-container {
     text-align: center;
     padding: 10px 20px;
@@ -161,12 +173,13 @@
     border: 2px solid var(--bs-border-color);
     border-radius: 50%;
     background: transparent;
-    transition: all 0.3s ease;
+    transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease;
 }
 
 .pin-dot.filled {
     background: var(--bs-primary);
     border-color: var(--bs-primary);
+    transform: scale(1.08);
 }
 
 .pin-dot.success {
@@ -216,6 +229,8 @@
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    position: relative;
+    overflow: hidden;
 }
 
 .keypad-btn:hover {
@@ -245,6 +260,23 @@
 .keypad-btn-empty {
     visibility: hidden;
     pointer-events: none;
+}
+
+/* Ripple */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    animation: ripple 450ms ease-out;
+    background: currentColor;
+    opacity: 0.2;
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(2.5);
+        opacity: 0;
+    }
 }
 
 .keypad-letters {
@@ -312,7 +344,19 @@ const DIGIT_DEBOUNCE_TIME = 150;
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
     console.log('PIN Change page loaded');
+    try { document.body.style.overflow = 'hidden'; } catch(e) {}
     updateUI();
+    // Подгоняем высоту контента под экран
+    const content = document.querySelector('.mobile-content');
+    if (content) {
+        content.style.height = 'calc(100vh - 56px)';
+    }
+    // Подключаем ripple и тактильные анимации
+    attachKeypadInteractions();
+});
+
+window.addEventListener('beforeunload', function() {
+    try { document.body.style.overflow = ''; } catch(e) {}
 });
 
 function addDigit(digit) {
@@ -571,6 +615,23 @@ function goBack() {
         updateUI();
         updateDots();
     }
+}
+
+function attachKeypadInteractions() {
+    const keys = document.querySelectorAll('.keypad-btn');
+    keys.forEach(key => {
+        key.addEventListener('click', (e) => {
+            const rect = key.getBoundingClientRect();
+            const ripple = document.createElement('span');
+            const size = Math.max(rect.width, rect.height);
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+            ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+            ripple.className = 'ripple';
+            key.appendChild(ripple);
+            ripple.addEventListener('animationend', () => ripple.remove());
+        }, { passive: true });
+    });
 }
 </script>
 {% endblock %}
