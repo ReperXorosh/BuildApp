@@ -246,8 +246,9 @@ html, body {
 }
 
 .keypad-btn:hover {
-    background: var(--bs-secondary-bg);
-    border-color: #007bff;
+    /* Полностью отключаем визуальную подсветку при наведении */
+    background: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
 }
 
 /* Убираем hover на мобильных устройствах */
@@ -273,6 +274,19 @@ html, body {
 .keypad-btn:focus-within {
     outline: none !important;
     box-shadow: none !important;
+}
+
+/* Глобально отключаем подсветку для всех кнопок на странице */
+.mobile-content button {
+    -webkit-tap-highlight-color: transparent;
+}
+.mobile-content button:focus,
+.mobile-content button:focus-visible,
+.mobile-content button:active {
+    outline: none !important;
+    box-shadow: none !important;
+    background: inherit !important;
+    border-color: inherit !important;
 }
 
 .keypad-btn.keypad-btn-delete {
