@@ -20,7 +20,7 @@
             <div class="progress-bar" id="progressBar" role="progressbar" style="width: 33%" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
         <div class="d-flex justify-content-between mt-1">
-            <small class="text-muted">Шаг 1 из 3</small>
+            <small class="text-muted" id="stepCounter">Шаг 1 из 3</small>
             <small class="text-muted" id="stepTitle">Текущий PIN</small>
         </div>
     </div>
@@ -118,12 +118,20 @@
 </div>
 
 <style>
+html, body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
 .mobile-content {
-    min-height: calc(100vh - 56px);
+    min-height: calc(100dvh - 56px);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     overflow: hidden;
+    -webkit-overflow-scrolling: auto;
+    touch-action: manipulation;
 }
 
 .pin-icon-large {
@@ -152,7 +160,7 @@
 }
 
 .progress .progress-bar {
-    transition: width 300ms ease;
+    transition: width 320ms cubic-bezier(.22,.61,.36,1);
 }
 
 .pin-display-container {
@@ -173,7 +181,7 @@
     border: 2px solid var(--bs-border-color);
     border-radius: 50%;
     background: transparent;
-    transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease;
+    transition: transform 180ms cubic-bezier(.2,.6,.4,1), background-color 180ms ease, border-color 180ms ease;
 }
 
 .pin-dot.filled {
@@ -239,9 +247,9 @@
 }
 
 .keypad-btn:active {
-    transform: scale(0.95);
+    transform: scale(0.96);
     background: #007bff;
-    color: white;
+    color: #fff;
 }
 
 .keypad-btn.keypad-btn-delete {
@@ -267,14 +275,14 @@
     position: absolute;
     border-radius: 50%;
     transform: scale(0);
-    animation: ripple 450ms ease-out;
+    animation: ripple 320ms cubic-bezier(.22,.61,.36,1);
     background: currentColor;
     opacity: 0.2;
 }
 
 @keyframes ripple {
     to {
-        transform: scale(2.5);
+        transform: scale(2.2);
         opacity: 0;
     }
 }
@@ -344,19 +352,19 @@ const DIGIT_DEBOUNCE_TIME = 150;
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
     console.log('PIN Change page loaded');
-    try { document.body.style.overflow = 'hidden'; } catch(e) {}
+    try { document.body.style.overflow = 'hidden'; document.documentElement.style.overflow='hidden'; } catch(e) {}
     updateUI();
     // Подгоняем высоту контента под экран
     const content = document.querySelector('.mobile-content');
     if (content) {
-        content.style.height = 'calc(100vh - 56px)';
+        content.style.height = 'calc(100dvh - 56px)';
     }
     // Подключаем ripple и тактильные анимации
     attachKeypadInteractions();
 });
 
 window.addEventListener('beforeunload', function() {
-    try { document.body.style.overflow = ''; } catch(e) {}
+    try { document.body.style.overflow = ''; document.documentElement.style.overflow=''; } catch(e) {}
 });
 
 function addDigit(digit) {
@@ -423,6 +431,7 @@ function updateDots() {
 function updateUI() {
     const progressBar = document.getElementById('progressBar');
     const stepTitle = document.getElementById('stepTitle');
+    const stepCounter = document.getElementById('stepCounter');
     const mainTitle = document.getElementById('mainTitle');
     const mainSubtitle = document.getElementById('mainSubtitle');
     const backBtn = document.getElementById('backBtn');
@@ -434,6 +443,7 @@ function updateUI() {
     switch (currentStep) {
         case 1:
             progressBar.style.width = '33%';
+            stepCounter.textContent = 'Шаг 1 из 3';
             stepTitle.textContent = 'Текущий PIN';
             mainTitle.textContent = 'Введите текущий PIN-код';
             mainSubtitle.textContent = 'Для смены PIN-кода необходимо подтвердить текущий';
@@ -441,6 +451,7 @@ function updateUI() {
             break;
         case 2:
             progressBar.style.width = '66%';
+            stepCounter.textContent = 'Шаг 2 из 3';
             stepTitle.textContent = 'Новый PIN';
             mainTitle.textContent = 'Введите новый PIN-код';
             mainSubtitle.textContent = 'Придумайте новый 4-значный PIN-код';
@@ -448,6 +459,7 @@ function updateUI() {
             break;
         case 3:
             progressBar.style.width = '100%';
+            stepCounter.textContent = 'Шаг 3 из 3';
             stepTitle.textContent = 'Подтверждение';
             mainTitle.textContent = 'Подтвердите новый PIN-код';
             mainSubtitle.textContent = 'Повторите новый PIN-код для подтверждения';
@@ -625,8 +637,23 @@ function attachKeypadInteractions() {
             const ripple = document.createElement('span');
             const size = Math.max(rect.width, rect.height);
             ripple.style.width = ripple.style.height = size + 'px';
-            ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
-            ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+            const x = (e.clientX || (e.touches && e.touches[0].clientX) || (rect.left + rect.width/2));
+            const y = (e.clientY || (e.touches && e.touches[0].clientY) || (rect.top + rect.height/2));
+            ripple.style.left = (x - rect.left - size / 2) + 'px';
+            ripple.style.top = (y - rect.top - size / 2) + 'px';
+            ripple.className = 'ripple';
+            key.appendChild(ripple);
+            ripple.addEventListener('animationend', () => ripple.remove());
+        }, { passive: true });
+        // Для тач-событий
+        key.addEventListener('touchstart', (e) => {
+            const rect = key.getBoundingClientRect();
+            const ripple = document.createElement('span');
+            const size = Math.max(rect.width, rect.height);
+            const t = e.touches[0];
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = (t.clientX - rect.left - size / 2) + 'px';
+            ripple.style.top = (t.clientY - rect.top - size / 2) + 'px';
             ripple.className = 'ripple';
             key.appendChild(ripple);
             ripple.addEventListener('animationend', () => ripple.remove());
