@@ -241,6 +241,8 @@ html, body {
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    -webkit-appearance: none;
+    appearance: none;
     position: relative;
     overflow: hidden;
 }
@@ -273,8 +275,13 @@ html, body {
 .keypad-btn:focus-visible,
 .keypad-btn:focus-within {
     outline: none !important;
+    outline-color: transparent !important;
     box-shadow: none !important;
+    border-color: var(--bs-border-color) !important;
 }
+
+/* Убираем внутреннюю синюю обводку Safari/Chrome */
+.keypad-btn::-webkit-focus-inner { border: 0; outline: none; }
 
 /* Глобально отключаем подсветку для всех кнопок на странице */
 .mobile-content button {
@@ -287,6 +294,12 @@ html, body {
     box-shadow: none !important;
     background: inherit !important;
     border-color: inherit !important;
+}
+
+/* iOS Safari специфичная подсветка тэньей */
+.mobile-content button:focus:not(:focus-visible) {
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .keypad-btn.keypad-btn-delete {
@@ -725,7 +738,12 @@ function attachKeypadInteractions() {
         }
         
         // Только один отклик: тач на мобильных, клик на десктопе
-        key.addEventListener('touchstart', createRipple, { passive: true });
+        key.addEventListener('touchstart', function(e) {
+            // Предотвращаем системный highlight и фокус сразу
+            try { e.preventDefault(); } catch(_) {}
+            key.blur();
+            createRipple(e);
+        }, { passive: false });
         key.addEventListener('click', createRipple, { passive: true });
         
         // Убираем залипание активного и hover состояний
