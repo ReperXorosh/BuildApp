@@ -123,11 +123,53 @@ def pin_login():
                 print(f"Biometric login for user: {user_pin.user_id}")
                 login_user(user_pin.user)
                 session['pin_authenticated'] = True
-                return jsonify({
+                
+                response_data = {
                     'success': True, 
                     'message': 'Успешный вход по Face ID',
                     'redirect': url_for('objects.object_list')
-                })
+                }
+                
+                # Проверяем, хочет ли пользователь запомнить устройство
+                remember_device = data.get('remember_device', False)
+                if remember_device:
+                    print(f"💾 Создание токена для запоминания устройства (биометрия) пользователя {user_pin.user_id}")
+                    device_fingerprint = generate_device_fingerprint()
+                    device_name = get_device_name()
+                    user_agent = request.headers.get('User-Agent', '')
+                    ip_address = get_client_ip()
+                    
+                    print(f"🔍 Отпечаток устройства: {device_fingerprint[:20]}...")
+                    print(f"📱 Название устройства: {device_name}")
+                    
+                    # Проверяем, есть ли уже такое устройство
+                    existing_device = RememberedDevice.find_by_user_and_fingerprint(
+                        str(user_pin.user_id), device_fingerprint
+                    )
+                    
+                    if existing_device:
+                        print("🔄 Обновление существующего устройства (биометрия)")
+                        # Обновляем существующее устройство
+                        existing_device.update_last_used()
+                        existing_device.extend_expiry()
+                        device_token = existing_device.device_token
+                    else:
+                        print("🆕 Создание нового запомненного устройства (биометрия)")
+                        # Создаем новое запомненное устройство
+                        device = RememberedDevice.create_for_user(
+                            user_id=str(user_pin.user_id),
+                            device_name=device_name,
+                            device_fingerprint=device_fingerprint,
+                            user_agent=user_agent,
+                            ip_address=ip_address,
+                            days_valid=30
+                        )
+                        device_token = device.device_token
+                        print(f"✅ Устройство создано с токеном: {device_token[:20]}...")
+                    
+                    response_data['device_token'] = device_token
+                
+                return jsonify(response_data)
             else:
                 return jsonify({'success': False, 'message': 'Face ID не настроен'})
         
@@ -155,10 +197,14 @@ def pin_login():
                 
                 # Если пользователь хочет запомнить устройство
                 if remember_device:
+                    print(f"💾 Создание токена для запоминания устройства пользователя {user_pin.user_id}")
                     device_fingerprint = generate_device_fingerprint()
                     device_name = get_device_name()
                     user_agent = request.headers.get('User-Agent', '')
                     ip_address = get_client_ip()
+                    
+                    print(f"🔍 Отпечаток устройства: {device_fingerprint[:20]}...")
+                    print(f"📱 Название устройства: {device_name}")
                     
                     # Проверяем, есть ли уже такое устройство
                     existing_device = RememberedDevice.find_by_user_and_fingerprint(
@@ -166,11 +212,13 @@ def pin_login():
                     )
                     
                     if existing_device:
+                        print("🔄 Обновление существующего устройства")
                         # Обновляем существующее устройство
                         existing_device.update_last_used()
                         existing_device.extend_expiry()
                         device_token = existing_device.device_token
                     else:
+                        print("🆕 Создание нового запомненного устройства")
                         # Создаем новое запомненное устройство
                         device = RememberedDevice.create_for_user(
                             user_id=str(user_pin.user_id),
@@ -181,6 +229,7 @@ def pin_login():
                             days_valid=30
                         )
                         device_token = device.device_token
+                        print(f"✅ Устройство создано с токеном: {device_token[:20]}...")
                     
                     response_data['device_token'] = device_token
                 
@@ -212,27 +261,44 @@ def check_remembered_device():
     data = request.get_json()
     device_token = data.get('device_token')
     
+    print(f"🔍 Проверка устройства, токен: {device_token[:10] if device_token else 'None'}...")
+    
     if not device_token:
+        print("❌ Токен устройства не предоставлен")
         return jsonify({'success': False, 'message': 'Токен устройства не предоставлен'})
     
-    # Ищем устройство по токену
-    device = RememberedDevice.find_by_token(device_token)
-    
-    if not device or not device.is_valid():
-        return jsonify({'success': False, 'message': 'Устройство не запомнено или токен истек'})
-    
-    # Обновляем время последнего использования
-    device.update_last_used()
-    
-    # Входим в систему
-    login_user(device.user)
-    session['pin_authenticated'] = True
-    
-    return jsonify({
-        'success': True,
-        'message': 'Автоматический вход выполнен',
-        'redirect': url_for('objects.object_list')
-    })
+    try:
+        # Ищем устройство по токену
+        device = RememberedDevice.find_by_token(device_token)
+        print(f"🔍 Найдено устройство: {device}")
+        
+        if not device:
+            print("❌ Устройство не найдено")
+            return jsonify({'success': False, 'message': 'Устройство не найдено'})
+        
+        if not device.is_valid():
+            print("❌ Токен устройства истек или неактивен")
+            return jsonify({'success': False, 'message': 'Токен устройства истек или неактивен'})
+        
+        print(f"✅ Устройство валидно, пользователь: {device.user.login}")
+        
+        # Обновляем время последнего использования
+        device.update_last_used()
+        
+        # Входим в систему
+        login_user(device.user)
+        session['pin_authenticated'] = True
+        
+        print("✅ Автоматический вход выполнен успешно")
+        return jsonify({
+            'success': True,
+            'message': 'Автоматический вход выполнен',
+            'redirect': url_for('objects.object_list')
+        })
+        
+    except Exception as e:
+        print(f"❌ Ошибка при проверке устройства: {e}")
+        return jsonify({'success': False, 'message': f'Ошибка при проверке устройства: {str(e)}'})
 
 @pin_auth_bp.route('/pin/verify', methods=['POST'])
 @login_required

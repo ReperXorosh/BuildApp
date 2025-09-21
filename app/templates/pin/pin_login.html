@@ -302,16 +302,24 @@ async function checkBiometricSupport() {
                     });
                     
                     // Если биометрия успешна, входим в систему
+                    const rememberDevice = document.getElementById('rememberDevice').checked;
                     const response = await fetch('/pin/login', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ biometric: true })
+                        body: JSON.stringify({ 
+                            biometric: true,
+                            remember_device: rememberDevice
+                        })
                     });
                     
                     const result = await response.json();
                     if (result.success) {
+                        // Сохраняем токен устройства в localStorage, если он предоставлен
+                        if (result.device_token) {
+                            localStorage.setItem('device_token', result.device_token);
+                        }
                         window.location.href = result.redirect;
                     }
                 } catch (error) {
@@ -458,9 +466,11 @@ async function verifyPin() {
 // Проверка запомненного устройства
 async function checkRememberedDevice() {
     const deviceToken = localStorage.getItem('device_token');
+    console.log('🔍 Проверка запомненного устройства, токен:', deviceToken ? 'найден' : 'не найден');
     
     if (deviceToken) {
         try {
+            console.log('📡 Отправка запроса на проверку устройства...');
             const response = await fetch('/pin/check-device', {
                 method: 'POST',
                 headers: {
@@ -470,18 +480,23 @@ async function checkRememberedDevice() {
             });
             
             const result = await response.json();
+            console.log('📥 Ответ сервера:', result);
             
             if (result.success) {
+                console.log('✅ Автоматический вход выполнен, перенаправление...');
                 // Автоматический вход выполнен
                 window.location.href = result.redirect;
             } else {
+                console.log('❌ Токен недействителен, удаляем его');
                 // Токен недействителен, удаляем его
                 localStorage.removeItem('device_token');
             }
         } catch (error) {
-            console.error('Ошибка при проверке устройства:', error);
+            console.error('❌ Ошибка при проверке устройства:', error);
             localStorage.removeItem('device_token');
         }
+    } else {
+        console.log('ℹ️ Токен устройства не найден, показываем форму входа');
     }
 }
 </script>
