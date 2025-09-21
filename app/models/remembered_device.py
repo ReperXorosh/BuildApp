@@ -8,7 +8,7 @@ class RememberedDevice(db.Model):
     __tablename__ = 'remembered_devices'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.userid'), nullable=False)
+    user_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'), nullable=False)
     device_token = db.Column(db.String(255), nullable=False, unique=True)
     device_name = db.Column(db.String(255), nullable=True)  # Название устройства (iPhone, Chrome, etc.)
     device_fingerprint = db.Column(db.String(255), nullable=True)  # Отпечаток устройства
@@ -32,6 +32,10 @@ class RememberedDevice(db.Model):
         """Создает новую запись запомненного устройства для пользователя"""
         token = RememberedDevice.generate_token()
         expires_at = datetime.utcnow() + timedelta(days=days_valid)
+        
+        # Преобразуем user_id в UUID если это строка
+        if isinstance(user_id, str):
+            user_id = uuid.UUID(user_id)
         
         device = RememberedDevice(
             user_id=user_id,
@@ -58,6 +62,10 @@ class RememberedDevice(db.Model):
     @staticmethod
     def find_by_user_and_fingerprint(user_id, device_fingerprint):
         """Находит устройство по пользователю и отпечатку"""
+        # Преобразуем user_id в UUID если это строка
+        if isinstance(user_id, str):
+            user_id = uuid.UUID(user_id)
+            
         return RememberedDevice.query.filter_by(
             user_id=user_id,
             device_fingerprint=device_fingerprint,
@@ -99,6 +107,10 @@ class RememberedDevice(db.Model):
     @staticmethod
     def get_user_devices(user_id):
         """Получает все активные устройства пользователя"""
+        # Преобразуем user_id в UUID если это строка
+        if isinstance(user_id, str):
+            user_id = uuid.UUID(user_id)
+            
         return RememberedDevice.query.filter_by(
             user_id=user_id,
             is_active=True
