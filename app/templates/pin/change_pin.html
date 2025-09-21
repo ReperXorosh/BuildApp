@@ -245,8 +245,8 @@ html, body {
 }
 
 .keypad-btn:hover {
-    background: var(--bs-secondary-bg);
-    border-color: #007bff;
+    background: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
 }
 
 .keypad-btn:active {
@@ -281,9 +281,9 @@ html, body {
 }
 
 .keypad-btn.keypad-btn-delete:hover {
-    background: var(--bs-danger);
-    color: white;
-    border-color: var(--bs-danger);
+    background: var(--bs-body-bg);
+    color: var(--bs-danger);
+    border-color: var(--bs-danger-border-subtle);
 }
 
 /* Убираем синий системный хайлайт на мобилках */
@@ -307,7 +307,7 @@ html, body {
     border-radius: 50%;
     transform: scale(0);
     animation: ripple 160ms cubic-bezier(0.4, 0, 0.2, 1);
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.18);
     pointer-events: none;
 }
 

@@ -989,7 +989,12 @@ def view_user_profile(user_id):
         method=request.method
     )
     
-    return render_template('main/view_user_profile.html', user=user)
+    # Определяем мобильное устройство и выбираем соответствующий шаблон
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return render_template('main/mobile_view_user_profile.html', user=user)
+    else:
+        return render_template('main/view_user_profile.html', user=user)
 
 @main.route('/reports')
 @login_required

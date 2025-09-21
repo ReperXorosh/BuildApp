@@ -1,0 +1,200 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'users' %}
+
+{% block title %}Профиль пользователя {{ user.login }}{% endblock %}
+
+{% block mobile_title %}
+    <i class="bi bi-person me-2"></i>
+    {{ user.login }}
+{% endblock %}
+
+{% block mobile_header_actions %}
+    <a href="{{ url_for('main.users') }}" class="mobile-header-btn">
+        <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+        </svg>
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="mobile-content">
+    <!-- Аватар и основная информация -->
+    <div class="card mb-3">
+        <div class="card-body text-center">
+            <!-- Аватар пользователя -->
+            {% if user.avatar %}
+            <img src="{{ url_for('static', filename='uploads/avatars/' ~ user.avatar) }}"
+                 alt="Avatar" class="rounded-circle mb-3"
+                 style="width:120px;height:120px;object-fit:cover;">
+            {% else %}
+            <img src="{{ url_for('static', filename='img/default-avatar.png') }}"
+                 alt="Avatar" class="rounded-circle mb-3"
+                 style="width:120px;height:120px;object-fit:cover;">
+            {% endif %}
+
+            <!-- Основная информация -->
+            <h5 class="card-title mb-2">{{ user.login }}</h5>
+            <p class="text-muted mb-3">
+                <span class="badge bg-{{ 'success' if user.role == 'Ген. директор' else 'warning' if user.role == 'Зам. директор' else 'info' if user.role == 'Инженер ПТО' else 'secondary' }}">
+                    {{ user.role }}
+                </span>
+            </p>
+            
+            <!-- Статус активности -->
+            <div class="mb-3">
+                <span class="badge bg-{{ 'success' if user.is_online else 'secondary' }} px-3 py-2">
+                    <i class="bi bi-circle-fill me-1" style="font-size: 8px;"></i>
+                    {{ 'В сети' if user.is_online else 'Не в сети' }}
+                </span>
+                <div class="mt-2">
+                    <small class="text-muted d-block">
+                        <i class="bi bi-clock me-1"></i>
+                        {{ user.get_online_status() }}
+                    </small>
+                    <small class="text-muted d-block">
+                        <i class="bi bi-calendar me-1"></i>
+                        Зарегистрирован: {{ user.registration_date | moscow_date if user.registration_date else 'Не указано' }}
+                    </small>
+                </div>
+            </div>
+
+            <!-- Действия -->
+            {% if current_user.role == 'Инженер ПТО' %}
+            <div class="d-grid gap-2">
+                <a href="{{ url_for('main.edit_user', user_id=user.userid) }}" class="btn btn-primary">
+                    <i class="bi bi-pencil me-2"></i>
+                    Редактировать
+                </a>
+                {% if user.userid != current_user.userid %}
+                <button type="button" class="btn btn-outline-danger" 
+                        onclick="confirmDelete('{{ user.userid }}', '{{ user.login }}')">
+                    <i class="bi bi-trash me-2"></i>
+                    Удалить пользователя
+                </button>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Личная информация -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <h6 class="card-title mb-0">
+                <i class="bi bi-person me-2"></i>
+                Личная информация
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-6">
+                    <label class="form-label fw-bold small">Фамилия</label>
+                    <p class="form-control-plaintext small">
+                        {{ user.secondname or 'Не указано' }}
+                    </p>
+                </div>
+                <div class="col-6">
+                    <label class="form-label fw-bold small">Имя</label>
+                    <p class="form-control-plaintext small">
+                        {{ user.firstname or 'Не указано' }}
+                    </p>
+                </div>
+                <div class="col-6">
+                    <label class="form-label fw-bold small">Отчество</label>
+                    <p class="form-control-plaintext small">
+                        {{ user.thirdname or 'Не указано' }}
+                    </p>
+                </div>
+                <div class="col-6">
+                    <label class="form-label fw-bold small">Телефон</label>
+                    <p class="form-control-plaintext small">
+                        {% if user.phonenumber %}
+                            <code class="text-primary">+7 ({{ user.phonenumber[:3] }}) {{ user.phonenumber[3:6] }}-{{ user.phonenumber[6:8] }}-{{ user.phonenumber[8:10] }}</code>
+                        {% else %}
+                            <span class="text-muted">Не указан</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Системная информация -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <h6 class="card-title mb-0">
+                <i class="bi bi-gear me-2"></i>
+                Системная информация
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-6">
+                    <label class="form-label fw-bold small">ID пользователя</label>
+                    <p class="form-control-plaintext small">
+                        <code>{{ user.userid }}</code>
+                    </p>
+                </div>
+                <div class="col-6">
+                    <label class="form-label fw-bold small">Роль в системе</label>
+                    <p class="form-control-plaintext small">
+                        <span class="badge bg-{{ 'success' if user.role == 'Ген. директор' else 'warning' if user.role == 'Зам. директор' else 'info' if user.role == 'Инженер ПТО' else 'secondary' }}">
+                            {{ user.role }}
+                        </span>
+                    </p>
+                </div>
+                <div class="col-6">
+                    <label class="form-label fw-bold small">Статус аккаунта</label>
+                    <p class="form-control-plaintext small">
+                        <span class="badge bg-success">Активен</span>
+                    </p>
+                </div>
+                <div class="col-6">
+                    <label class="form-label fw-bold small">Последняя активность</label>
+                    <p class="form-control-plaintext small">
+                        {% if user.last_activity %}
+                            <span class="text-primary">{{ user.last_activity | moscow_date }}</span>
+                        {% else %}
+                            <span class="text-muted">Никогда не был активен</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-6">
+                    <label class="form-label fw-bold small">Последний вход</label>
+                    <p class="form-control-plaintext small">
+                        {% if user.last_login %}
+                            <span class="text-primary">{{ user.last_login | moscow_date }}</span>
+                        {% else %}
+                            <span class="text-muted">Никогда не входил</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-6">
+                    <label class="form-label fw-bold small">Журнал действий</label>
+                    <p class="form-control-plaintext small">
+                        <a href="{{ url_for('activity_log.view_activity_log', user_id=user.userid) }}" 
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-list-ul me-1"></i>
+                            Просмотреть
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Скрытая форма для удаления -->
+<form id="deleteForm" method="POST" style="display: none;">
+</form>
+
+<script>
+function confirmDelete(userId, userName) {
+    if (confirm('Вы уверены, что хотите удалить пользователя "' + userName + '"?\n\nЭто действие нельзя отменить!')) {
+        const form = document.getElementById('deleteForm');
+        form.action = '/delete_user/' + userId;
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

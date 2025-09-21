@@ -30,7 +30,7 @@
                         Поиск пользователей
                     </label>
                     <input type="text" 
-                           class="form-control form-control-lg" 
+                           class="form-control" 
                            id="search" 
                            name="search" 
                            value="{{ search_query or '' }}"
@@ -38,12 +38,12 @@
                     <div class="form-text">Поиск по логину, имени, фамилии или отчеству</div>
                 </div>
                 <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-primary btn-lg">
+                    <button type="submit" class="btn btn-primary">
                         <i class="bi bi-search me-2"></i>
                         Найти
                     </button>
                     {% if search_query %}
-                    <a href="{{ url_for('main.users') }}" class="btn btn-outline-secondary btn-lg">
+                    <a href="{{ url_for('main.users') }}" class="btn btn-outline-secondary">
                         <i class="bi bi-x-circle me-2"></i>
                         Сбросить
                     </a>
@@ -74,15 +74,13 @@
             <div class="list-group list-group-flush">
                 {% for user in users %}
                 <div class="list-group-item">
-                    <div class="d-flex align-items-start">
+                    <div class="d-flex align-items-center">
                         <!-- Аватар -->
                         <div class="me-3">
                             {% if user.avatar %}
-                                <img src="{{ user.avatar }}" alt="Аватар" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
+                                <img src="{{ url_for('static', filename='uploads/avatars/' ~ user.avatar) }}" alt="Аватар" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
                             {% else %}
-                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                                    <i class="bi bi-person text-white" style="font-size: 24px;"></i>
-                                </div>
+                                <img src="{{ url_for('static', filename='img/default-avatar.png') }}" alt="Аватар" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
                             {% endif %}
                         </div>
                         
@@ -105,66 +103,23 @@
                             
                             <div class="mb-1">
                                 {% if user.secondname or user.firstname %}
-                                    <span class="text-muted">{{ (user.secondname or '') + ' ' + (user.firstname or '') + ' ' + (user.thirdname or '') }}</span>
+                                    <span class="text-muted small">{{ (user.secondname or '') + ' ' + (user.firstname or '') + ' ' + (user.thirdname or '') }}</span>
                                 {% else %}
-                                    <span class="text-muted">ФИО не указано</span>
+                                    <span class="text-muted small">ФИО не указано</span>
                                 {% endif %}
                             </div>
                             
-                            <div class="mb-1">
+                            <div class="d-flex align-items-center justify-content-between">
                                 <span class="badge bg-{{ 'success' if user.role == 'Ген. директор' else 'warning' if user.role == 'Зам. директор' else 'info' if user.role == 'Инженер ПТО' else 'secondary' }}">
                                     {{ user.role }}
                                 </span>
-                            </div>
-                            
-                            {% if user.phonenumber %}
-                            <div class="mb-1">
-                                <small class="text-muted">
-                                    <i class="bi bi-telephone me-1"></i>
-                                    +7 ({{ user.phonenumber[:3] }}) {{ user.phonenumber[3:6] }}-{{ user.phonenumber[6:8] }}-{{ user.phonenumber[8:10] }}
-                                </small>
-                            </div>
-                            {% endif %}
-                            
-                            <div>
+                                
                                 <small class="text-muted">
                                     <i class="bi bi-calendar me-1"></i>
                                     {{ user.registration_date | moscow_date }}
                                 </small>
                             </div>
                         </div>
-                        
-                        <!-- Действия -->
-                        {% if current_user.role == 'Инженер ПТО' %}
-                        <div class="dropdown">
-                            <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-three-dots-vertical"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <a class="dropdown-item" href="{{ url_for('main.view_user_profile', user_id=user.userid) }}">
-                                        <i class="bi bi-eye me-2"></i>
-                                        Просмотр
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{{ url_for('main.edit_user', user_id=user.userid) }}">
-                                        <i class="bi bi-pencil me-2"></i>
-                                        Редактировать
-                                    </a>
-                                </li>
-                                {% if user.userid != current_user.userid %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item text-danger" href="#" onclick="confirmDelete('{{ user.userid }}', '{{ user.login }}')">
-                                        <i class="bi bi-trash me-2"></i>
-                                        Удалить
-                                    </a>
-                                </li>
-                                {% endif %}
-                            </ul>
-                        </div>
-                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
