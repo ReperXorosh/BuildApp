@@ -52,7 +52,16 @@ class Users(db.Model, UserMixin):
         
         from ..utils.timezone_utils import get_moscow_now
         now = get_moscow_now()
-        time_diff = now - self.last_activity
+        
+        # Убеждаемся, что last_activity имеет timezone info
+        last_activity = self.last_activity
+        if last_activity.tzinfo is None:
+            # Если last_activity naive, считаем его московским временем
+            import pytz
+            moscow_tz = pytz.timezone('Europe/Moscow')
+            last_activity = moscow_tz.localize(last_activity)
+        
+        time_diff = now - last_activity
         
         if self.is_online:
             return "В сети"

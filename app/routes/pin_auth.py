@@ -1,9 +1,11 @@
-from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, flash
+from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, flash, make_response
 from flask_login import login_required, current_user, login_user, logout_user
 from app.models.user_pin import UserPIN
 from app.models.users import Users
+from app.models.remembered_device import RememberedDevice
 from app import db
 from sqlalchemy import text
+from app.utils.device_utils import generate_device_fingerprint, get_device_name, get_client_ip
 import json
 
 pin_auth_bp = Blueprint('pin_auth', __name__)
@@ -129,6 +131,8 @@ def pin_login():
             else:
                 return jsonify({'success': False, 'message': 'Face ID не настроен'})
         
+        remember_device = data.get('remember_device', False)
+        
         if not pin or len(pin) != 4 or not pin.isdigit():
             return jsonify({'success': False, 'message': 'Введите корректный PIN-код'})
         
@@ -142,11 +146,45 @@ def pin_login():
                 # Входим в систему
                 login_user(user_pin.user)
                 session['pin_authenticated'] = True
-                return jsonify({
+                
+                response_data = {
                     'success': True, 
                     'message': 'Успешный вход',
                     'redirect': url_for('objects.object_list')
-                })
+                }
+                
+                # Если пользователь хочет запомнить устройство
+                if remember_device:
+                    device_fingerprint = generate_device_fingerprint()
+                    device_name = get_device_name()
+                    user_agent = request.headers.get('User-Agent', '')
+                    ip_address = get_client_ip()
+                    
+                    # Проверяем, есть ли уже такое устройство
+                    existing_device = RememberedDevice.find_by_user_and_fingerprint(
+                        str(user_pin.user_id), device_fingerprint
+                    )
+                    
+                    if existing_device:
+                        # Обновляем существующее устройство
+                        existing_device.update_last_used()
+                        existing_device.extend_expiry()
+                        device_token = existing_device.device_token
+                    else:
+                        # Создаем новое запомненное устройство
+                        device = RememberedDevice.create_for_user(
+                            user_id=str(user_pin.user_id),
+                            device_name=device_name,
+                            device_fingerprint=device_fingerprint,
+                            user_agent=user_agent,
+                            ip_address=ip_address,
+                            days_valid=30
+                        )
+                        device_token = device.device_token
+                    
+                    response_data['device_token'] = device_token
+                
+                return jsonify(response_data)
         
         return jsonify({'success': False, 'message': 'Неверный PIN-код'})
     
@@ -167,6 +205,34 @@ def pin_login():
         return redirect(url_for('pin_auth.setup_pin'))
     
     return render_template('pin/pin_login.html', has_biometric_users=biometric_users > 0)
+
+@pin_auth_bp.route('/pin/check-device', methods=['POST'])
+def check_remembered_device():
+    """Проверяет, запомнено ли устройство"""
+    data = request.get_json()
+    device_token = data.get('device_token')
+    
+    if not device_token:
+        return jsonify({'success': False, 'message': 'Токен устройства не предоставлен'})
+    
+    # Ищем устройство по токену
+    device = RememberedDevice.find_by_token(device_token)
+    
+    if not device or not device.is_valid():
+        return jsonify({'success': False, 'message': 'Устройство не запомнено или токен истек'})
+    
+    # Обновляем время последнего использования
+    device.update_last_used()
+    
+    # Входим в систему
+    login_user(device.user)
+    session['pin_authenticated'] = True
+    
+    return jsonify({
+        'success': True,
+        'message': 'Автоматический вход выполнен',
+        'redirect': url_for('objects.object_list')
+    })
 
 @pin_auth_bp.route('/pin/verify', methods=['POST'])
 @login_required
