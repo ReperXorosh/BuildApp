@@ -4,6 +4,37 @@
 {% block title %}Отчёты объекта - {{ object_obj.name }}{% endblock %}
 {% block mobile_title %}{{ object_obj.name }}{% endblock %}
 
+{% block mobile_header_actions %}
+<div class="dropdown">
+    <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Навигация">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+        </svg>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+        <li><a class="dropdown-item" href="{{ url_for('main.reports') }}">
+            <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
+            </svg>
+            Все отчёты
+        </a></li>
+        <li><a class="dropdown-item" href="{{ url_for('main.reports_calendar') }}">
+            <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M3.5 0a.5.5 0 0 1 .5.5V1h6V.5a.5.5 0 0 1 1 0V1h1a.5.5 0 0 1 .5.5v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-11a.5.5 0 0 1 .5-.5H1V.5a.5.5 0 0 1 1 0V1h.5V.5a.5.5 0 0 1 1 0zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+            </svg>
+            Календарь отчётов
+        </a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="{{ url_for('objects.object_detail', object_id=object_obj.id) }}">
+            <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
+            </svg>
+            Информация об объекте
+        </a></li>
+    </ul>
+</div>
+{% endblock %}
+
 {% block content %}
 <style>
 .mobile-header-section {
@@ -160,31 +191,9 @@
     </div>
 {% endif %}
 
-<!-- Навигация -->
-<div class="mobile-card">
-    <div class="mobile-card-title">Навигация</div>
-    <a href="{{ url_for('main.reports') }}" class="mobile-btn mobile-btn-outline">
-        <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
-        </svg>
-        Все отчёты
-    </a>
-    <a href="{{ url_for('main.reports_calendar') }}" class="mobile-btn mobile-btn-outline">
-        <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h6V.5a.5.5 0 0 1 1 0V1h1a.5.5 0 0 1 .5.5v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-11a.5.5 0 0 1 .5-.5H1V.5a.5.5 0 0 1 1 0V1h.5V.5a.5.5 0 0 1 1 0zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
-        </svg>
-        Календарь отчётов
-    </a>
-    <a href="{{ url_for('objects.object_detail', object_id=object_obj.id) }}" class="mobile-btn mobile-btn-outline">
-        <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
-        </svg>
-        Информация об объекте
-    </a>
-</div>
 
 <!-- Дополнительный отступ для нижней панели -->
-<div style="height: 140px"></div>
+<div style="height: 80px"></div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
