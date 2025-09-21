@@ -273,6 +273,7 @@
 
 <script>
 let currentPin = '';
+let isAuthenticating = false; // Флаг для предотвращения повторной проверки
 const maxPinLength = 4;
 
 // Проверяем поддержку биометрии
@@ -316,10 +317,12 @@ async function checkBiometricSupport() {
                     
                     const result = await response.json();
                     if (result.success) {
+                        isAuthenticating = true; // Устанавливаем флаг
                         // Сохраняем токен устройства в localStorage, если он предоставлен
                         if (result.device_token) {
                             localStorage.setItem('device_token', result.device_token);
                         }
+                        console.log('✅ Биометрический вход успешен, перенаправление...');
                         window.location.href = result.redirect;
                     }
                 } catch (error) {
@@ -335,16 +338,25 @@ async function checkBiometricSupport() {
 // Обработка нажатий клавиш
 document.addEventListener('DOMContentLoaded', function() {
     checkBiometricSupport();
-    checkRememberedDevice();
+    
+    // Проверяем запомненное устройство только если пользователь не авторизован
+    if (!document.body.classList.contains('authenticated')) {
+        checkRememberedDevice();
+    }
     
     // Если есть пользователи с настроенным Face ID, автоматически предлагаем его
+    // Но только если не идет проверка запомненного устройства
     {% if has_biometric_users %}
     console.log('Users with biometric enabled found, offering Face ID');
     setTimeout(() => {
-        const biometricBtn = document.getElementById('biometricBtn');
-        if (biometricBtn && biometricBtn.style.display !== 'none') {
-            console.log('Automatically triggering Face ID');
-            biometricBtn.click();
+        if (!isAuthenticating) {
+            const biometricBtn = document.getElementById('biometricBtn');
+            if (biometricBtn && biometricBtn.style.display !== 'none') {
+                console.log('Automatically triggering Face ID');
+                biometricBtn.click();
+            }
+        } else {
+            console.log('⏳ Пропускаем автоматический Face ID - идет проверка устройства');
         }
     }, 1000); // Небольшая задержка для лучшего UX
     {% endif %}
@@ -422,6 +434,7 @@ async function verifyPin() {
         const result = await response.json();
         
         if (result.success) {
+            isAuthenticating = true; // Устанавливаем флаг
             // Сохраняем токен устройства в localStorage, если он предоставлен
             if (result.device_token) {
                 localStorage.setItem('device_token', result.device_token);
@@ -433,10 +446,12 @@ async function verifyPin() {
                 dot.style.borderColor = '#28a745';
             });
             
+            console.log('✅ PIN-вход успешен, перенаправление...');
             setTimeout(() => {
                 window.location.href = result.redirect;
             }, 500);
         } else {
+            isAuthenticating = false; // Сбрасываем флаг при ошибке
             // Неверный PIN
             document.querySelectorAll('.pin-dot').forEach(dot => {
                 dot.style.background = '#dc3545';
@@ -457,6 +472,7 @@ async function verifyPin() {
             }, 1000);
         }
     } catch (error) {
+        isAuthenticating = false; // Сбрасываем флаг при ошибке
         console.error('Ошибка при проверке PIN:', error);
         currentPin = '';
         updateDots();
@@ -465,10 +481,17 @@ async function verifyPin() {
 
 // Проверка запомненного устройства
 async function checkRememberedDevice() {
+    // Предотвращаем повторную проверку если уже идет аутентификация
+    if (isAuthenticating) {
+        console.log('⏳ Аутентификация уже в процессе, пропускаем проверку устройства');
+        return;
+    }
+    
     const deviceToken = localStorage.getItem('device_token');
     console.log('🔍 Проверка запомненного устройства, токен:', deviceToken ? 'найден' : 'не найден');
     
     if (deviceToken) {
+        isAuthenticating = true; // Устанавливаем флаг
         try {
             console.log('📡 Отправка запроса на проверку устройства...');
             const response = await fetch('/pin/check-device', {
@@ -490,10 +513,12 @@ async function checkRememberedDevice() {
                 console.log('❌ Токен недействителен, удаляем его');
                 // Токен недействителен, удаляем его
                 localStorage.removeItem('device_token');
+                isAuthenticating = false; // Сбрасываем флаг
             }
         } catch (error) {
             console.error('❌ Ошибка при проверке устройства:', error);
             localStorage.removeItem('device_token');
+            isAuthenticating = false; // Сбрасываем флаг
         }
     } else {
         console.log('ℹ️ Токен устройства не найден, показываем форму входа');

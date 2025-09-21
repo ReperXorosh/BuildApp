@@ -268,6 +268,12 @@ def check_remembered_device():
         return jsonify({'success': False, 'message': 'Токен устройства не предоставлен'})
     
     try:
+        # Убеждаемся, что таблица существует
+        try:
+            db.create_all()
+        except Exception as create_error:
+            print(f"⚠️ Ошибка при создании таблиц: {create_error}")
+        
         # Ищем устройство по токену
         device = RememberedDevice.find_by_token(device_token)
         print(f"🔍 Найдено устройство: {device}")
