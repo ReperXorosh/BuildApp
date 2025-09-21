@@ -20,7 +20,8 @@
     <div class="mobile-card object-card" 
          data-object-id="{{ obj.id }}" 
          data-object-name="{{ obj.name }}"
-         data-object-url="{{ url_for('objects.object_detail', object_id=obj.id) }}">
+         data-object-url="{{ url_for('objects.object_detail', object_id=obj.id) }}"
+         onclick="navigateToObject('{{ url_for('objects.object_detail', object_id=obj.id) }}')">
         <div class="mobile-card-title">{{ obj.name }}</div>
         <div class="mobile-card-text mobile-mb-2">
             <strong>Статус:</strong> 
@@ -69,122 +70,144 @@
 {% endblock %}
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    let longPressTimer;
-    let isLongPress = false;
-    let currentObjectId = null;
-    let currentObjectName = null;
-    let touchStartTime = 0;
-    
-    // Проверяем права пользователя
-    const userRole = '{{ current_user.role or "" }}'.toUpperCase();
-    const isAdmin = userRole.includes('АДМИН') || userRole.includes('ДИРЕКТОР') || userRole.includes('ГЕН');
-    
-    // Обработчик начала касания
-    function handleTouchStart(e) {
-        const card = e.currentTarget;
-        currentObjectId = card.dataset.objectId;
-        currentObjectName = card.dataset.objectName;
-        touchStartTime = Date.now();
-        
-        isLongPress = false;
-        
-        // Только для админов добавляем долгое нажатие
-        if (isAdmin) {
-            longPressTimer = setTimeout(() => {
-                isLongPress = true;
-                showDeleteModal();
-                // Добавляем визуальную обратную связь
-                card.style.backgroundColor = 'rgba(220, 53, 69, 0.1)';
-                card.style.border = '2px solid #dc3545';
-            }, 800); // 800ms для долгого нажатия
-        }
+// Глобальные переменные
+let longPressTimer = null;
+let isLongPress = false;
+let currentObjectId = null;
+let currentObjectName = null;
+
+// Проверяем права пользователя
+const userRole = '{{ current_user.role or "" }}'.toUpperCase();
+const isAdmin = userRole.includes('АДМИН') || userRole.includes('ДИРЕКТОР') || userRole.includes('ГЕН');
+
+// Функция навигации к объекту
+function navigateToObject(url) {
+    if (!isLongPress) {
+        window.location.href = url;
     }
-    
-    // Обработчик окончания касания
-    function handleTouchEnd(e) {
-        clearTimeout(longPressTimer);
-        
-        // Убираем визуальную обратную связь
-        const card = e.currentTarget;
-        card.style.backgroundColor = '';
-        card.style.border = '';
-        
-        // Если это не долгое нажатие и прошло достаточно времени для обычного клика
-        if (!isLongPress && (Date.now() - touchStartTime) < 800) {
-            // Переходим к объекту
-            const url = card.dataset.objectUrl;
-            if (url) {
-                window.location.href = url;
-            }
-        }
-    }
-    
-    // Обработчик отмены касания
-    function handleTouchCancel(e) {
-        clearTimeout(longPressTimer);
-        const card = e.currentTarget;
-        card.style.backgroundColor = '';
-        card.style.border = '';
-    }
-    
-    // Обработчик обычного клика (для десктопа)
-    function handleClick(e) {
-        // Если это не долгое нажатие, переходим к объекту
-        if (!isLongPress) {
-            const card = e.currentTarget;
-            const url = card.dataset.objectUrl;
-            if (url) {
-                window.location.href = url;
-            }
-        }
-    }
-    
-    // Показываем модальное окно удаления
-    function showDeleteModal() {
+}
+
+// Показываем модальное окно удаления
+function showDeleteModal() {
+    const modalElement = document.getElementById('deleteObjectModal');
+    if (modalElement) {
         document.getElementById('objectNameToDelete').textContent = currentObjectName;
-        const modal = new bootstrap.Modal(document.getElementById('deleteObjectModal'));
-        modal.show();
+        
+        // Используем Bootstrap Modal если доступен, иначе простое отображение
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        } else {
+            modalElement.style.display = 'block';
+            modalElement.classList.add('show');
+        }
+    }
+}
+
+// Скрываем модальное окно
+function hideDeleteModal() {
+    const modalElement = document.getElementById('deleteObjectModal');
+    if (modalElement) {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            }
+        } else {
+            modalElement.style.display = 'none';
+            modalElement.classList.remove('show');
+        }
+    }
+}
+
+// Обработчик подтверждения удаления
+function confirmDelete() {
+    if (currentObjectId) {
+        // Создаем форму для отправки POST запроса
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/objects/${currentObjectId}/delete`;
+        
+        // Добавляем CSRF токен если есть
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = csrfToken.getAttribute('content');
+            form.appendChild(csrfInput);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Инициализация после загрузки DOM
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Mobile object list script loaded');
+    
+    // Добавляем обработчики к кнопкам модального окна
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', confirmDelete);
     }
     
-    // Обработчик подтверждения удаления
-    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-        if (currentObjectId) {
-            // Создаем форму для отправки POST запроса
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/objects/${currentObjectId}/delete`;
-            
-            // Добавляем CSRF токен если есть
-            const csrfToken = document.querySelector('meta[name="csrf-token"]');
-            if (csrfToken) {
-                const csrfInput = document.createElement('input');
-                csrfInput.type = 'hidden';
-                csrfInput.name = 'csrf_token';
-                csrfInput.value = csrfToken.getAttribute('content');
-                form.appendChild(csrfInput);
-            }
-            
-            document.body.appendChild(form);
-            form.submit();
-        }
-    });
+    const cancelBtn = document.querySelector('[data-bs-dismiss="modal"]');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', hideDeleteModal);
+    }
     
-    // Добавляем обработчики событий к карточкам объектов
+    // Добавляем обработчики к карточкам объектов
     const objectCards = document.querySelectorAll('.object-card');
-    objectCards.forEach(card => {
-        // Touch события для мобильных устройств
-        card.addEventListener('touchstart', handleTouchStart, { passive: true });
-        card.addEventListener('touchend', handleTouchEnd, { passive: true });
-        card.addEventListener('touchcancel', handleTouchCancel, { passive: true });
+    console.log('Found object cards:', objectCards.length);
+    
+    objectCards.forEach((card, index) => {
+        console.log(`Setting up card ${index + 1}`);
         
-        // Обычный клик для десктопа
-        card.addEventListener('click', handleClick);
+        // Обработчик начала касания
+        card.addEventListener('touchstart', function(e) {
+            console.log('Touch start on card');
+            currentObjectId = this.dataset.objectId;
+            currentObjectName = this.dataset.objectName;
+            isLongPress = false;
+            
+            // Только для админов добавляем долгое нажатие
+            if (isAdmin) {
+                longPressTimer = setTimeout(() => {
+                    console.log('Long press detected');
+                    isLongPress = true;
+                    showDeleteModal();
+                    // Добавляем визуальную обратную связь
+                    this.style.backgroundColor = 'rgba(220, 53, 69, 0.1)';
+                    this.style.border = '2px solid #dc3545';
+                }, 800);
+            }
+        }, { passive: true });
+        
+        // Обработчик окончания касания
+        card.addEventListener('touchend', function(e) {
+            console.log('Touch end on card');
+            clearTimeout(longPressTimer);
+            
+            // Убираем визуальную обратную связь
+            this.style.backgroundColor = '';
+            this.style.border = '';
+        }, { passive: true });
+        
+        // Обработчик отмены касания
+        card.addEventListener('touchcancel', function(e) {
+            console.log('Touch cancel on card');
+            clearTimeout(longPressTimer);
+            this.style.backgroundColor = '';
+            this.style.border = '';
+        }, { passive: true });
         
         // Для десктопа добавляем обработчик правого клика (только для админов)
         if (isAdmin) {
             card.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
+                console.log('Right click on card');
                 currentObjectId = this.dataset.objectId;
                 currentObjectName = this.dataset.objectName;
                 showDeleteModal();
