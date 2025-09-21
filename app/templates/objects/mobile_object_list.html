@@ -17,7 +17,10 @@
 
 {% if objects %}
     {% for obj in objects %}
-    <div class="mobile-card" onclick="window.location.href='{{ url_for('objects.object_detail', object_id=obj.id) }}'">
+    <div class="mobile-card object-card" 
+         data-object-id="{{ obj.id }}" 
+         data-object-name="{{ obj.name }}"
+         onclick="handleCardClick(event, '{{ url_for('objects.object_detail', object_id=obj.id) }}')">
         <div class="mobile-card-title">{{ obj.name }}</div>
         <div class="mobile-card-text mobile-mb-2">
             <strong>Статус:</strong> 
@@ -34,4 +37,180 @@
     </div>
 {% endif %}
 
+<!-- Модальное окно подтверждения удаления -->
+<div class="modal fade" id="deleteObjectModal" tabindex="-1" aria-labelledby="deleteObjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteObjectModalLabel">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Удаление объекта
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите удалить объект <strong id="objectNameToDelete"></strong>?</p>
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Внимание!</strong> Это действие нельзя отменить. Все связанные данные (опоры, траншеи, отчёты, работы) также будут удалены.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="bi bi-trash me-1"></i>
+                    Удалить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let longPressTimer;
+    let isLongPress = false;
+    let currentObjectId = null;
+    let currentObjectName = null;
+    
+    // Проверяем права пользователя
+    const userRole = '{{ current_user.role or "" }}'.toUpperCase();
+    const isAdmin = userRole.includes('АДМИН') || userRole.includes('ДИРЕКТОР') || userRole.includes('ГЕН');
+    
+    if (!isAdmin) {
+        return; // Если не админ, не добавляем функциональность удаления
+    }
+    
+    // Обработчик начала касания
+    function handleTouchStart(e) {
+        const card = e.currentTarget;
+        currentObjectId = card.dataset.objectId;
+        currentObjectName = card.dataset.objectName;
+        
+        isLongPress = false;
+        longPressTimer = setTimeout(() => {
+            isLongPress = true;
+            showDeleteModal();
+            // Добавляем визуальную обратную связь
+            card.style.backgroundColor = 'rgba(220, 53, 69, 0.1)';
+            card.style.border = '2px solid #dc3545';
+        }, 800); // 800ms для долгого нажатия
+    }
+    
+    // Обработчик окончания касания
+    function handleTouchEnd(e) {
+        clearTimeout(longPressTimer);
+        
+        // Убираем визуальную обратную связь
+        const card = e.currentTarget;
+        card.style.backgroundColor = '';
+        card.style.border = '';
+        
+        if (!isLongPress) {
+            // Если это не долгое нажатие, переходим к объекту
+            window.location.href = card.onclick.toString().match(/'(.*?)'/)[1];
+        }
+    }
+    
+    // Обработчик отмены касания
+    function handleTouchCancel(e) {
+        clearTimeout(longPressTimer);
+        const card = e.currentTarget;
+        card.style.backgroundColor = '';
+        card.style.border = '';
+    }
+    
+    // Показываем модальное окно удаления
+    function showDeleteModal() {
+        document.getElementById('objectNameToDelete').textContent = currentObjectName;
+        const modal = new bootstrap.Modal(document.getElementById('deleteObjectModal'));
+        modal.show();
+    }
+    
+    // Обработчик клика по карточке (для обычных кликов)
+    window.handleCardClick = function(event, url) {
+        if (!isLongPress) {
+            window.location.href = url;
+        }
+    };
+    
+    // Обработчик подтверждения удаления
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+        if (currentObjectId) {
+            // Создаем форму для отправки POST запроса
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/objects/${currentObjectId}/delete`;
+            
+            // Добавляем CSRF токен если есть
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            if (csrfToken) {
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                csrfInput.value = csrfToken.getAttribute('content');
+                form.appendChild(csrfInput);
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+    
+    // Добавляем обработчики событий к карточкам объектов
+    const objectCards = document.querySelectorAll('.object-card');
+    objectCards.forEach(card => {
+        card.addEventListener('touchstart', handleTouchStart, { passive: true });
+        card.addEventListener('touchend', handleTouchEnd, { passive: true });
+        card.addEventListener('touchcancel', handleTouchCancel, { passive: true });
+        
+        // Для десктопа добавляем обработчик правого клика
+        card.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            currentObjectId = this.dataset.objectId;
+            currentObjectName = this.dataset.objectName;
+            showDeleteModal();
+        });
+    });
+});
+</script>
+
+<style>
+.object-card {
+    transition: all 0.2s ease;
+    cursor: pointer;
+    user-select: none;
+}
+
+.object-card:active {
+    transform: scale(0.98);
+}
+
+/* Стили для модального окна */
+.modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    border-radius: 12px 12px 0 0;
+}
+
+.modal-footer {
+    border-radius: 0 0 12px 12px;
+}
+
+/* Анимация для долгого нажатия */
+@keyframes longPressPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+.object-card.long-press {
+    animation: longPressPulse 0.1s ease-in-out;
+}
+</style>

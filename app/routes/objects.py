@@ -2149,5 +2149,42 @@ def reject_daily_report(object_id, date):
         flash(f'Ошибка при отклонении отчёта: {str(e)}', 'error')
         return redirect(url_for('objects.daily_report_view', object_id=object_id, date=date))
 
+@objects_bp.route('/<uuid:object_id>/delete', methods=['POST'])
+@login_required
+def delete_object(object_id):
+    """Удаление объекта (только для администраторов)"""
+    try:
+        # Получаем объект
+        obj = Object.query.get_or_404(object_id)
+        
+        # Проверяем права пользователя - только администраторы могут удалять объекты
+        user_role = current_user.role.upper() if current_user.role else ''
+        if 'АДМИН' not in user_role and 'ДИРЕКТОР' not in user_role and 'ГЕН' not in user_role:
+            flash('У вас нет прав для удаления объектов', 'error')
+            return redirect(url_for('objects.object_detail', object_id=object_id))
+        
+        # Логируем действие перед удалением
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Удаление объекта",
+            description=f"Пользователь {current_user.login} удалил объект '{obj.name}'",
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+        
+        # Удаляем объект (каскадное удаление должно быть настроено в модели)
+        db.session.delete(obj)
+        db.session.commit()
+        
+        flash(f'Объект "{obj.name}" успешно удалён', 'success')
+        return redirect(url_for('objects.object_list'))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ошибка при удалении объекта: {str(e)}', 'error')
+        return redirect(url_for('objects.object_detail', object_id=object_id))
+
 # Отладочная информация будет добавлена позже в приложении
 
