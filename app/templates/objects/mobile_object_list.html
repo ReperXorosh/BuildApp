@@ -193,6 +193,39 @@ if (isAdmin) {
 </script>
 
 <style>
+/* Четкие стили для карточек объектов */
+.object-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: var(--bs-body-bg);
+    border: 2px solid var(--bs-border-color);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.object-card:hover {
+    text-decoration: none;
+    color: inherit;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-color: var(--bs-primary);
+}
+
+.object-card:active {
+    transform: scale(0.98);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.object-card:focus {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
+}
+
 /* Стили для модального окна */
 .modal-content {
     border-radius: 12px;
@@ -212,7 +245,7 @@ if (isAdmin) {
 @keyframes longPressPulse {
     0% { 
         transform: scale(1);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
     50% { 
         transform: scale(1.02);
@@ -220,7 +253,7 @@ if (isAdmin) {
     }
     100% { 
         transform: scale(1);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 }
 
@@ -228,5 +261,30 @@ if (isAdmin) {
     animation: longPressPulse 0.3s ease-in-out;
     border-color: #dc3545 !important;
     background: rgba(220, 53, 69, 0.05) !important;
+}
+
+/* Темная тема */
+@media (prefers-color-scheme: dark) {
+    .object-card {
+        background: var(--bs-dark);
+        border-color: var(--bs-border-color);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    .object-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+}
+
+[data-bs-theme="dark"] .object-card,
+.dark .object-card {
+    background: var(--bs-dark);
+    border-color: var(--bs-border-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-bs-theme="dark"] .object-card:hover,
+.dark .object-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 </style>
