@@ -20,29 +20,52 @@
     <a href="{{ url_for('objects.object_detail', object_id=obj.id) }}" class="mobile-card object-card" 
        data-object-id="{{ obj.id }}" 
        data-object-name="{{ obj.name }}">
-        <div class="mobile-card-title">{{ obj.name }}</div>
+        <div class="mobile-card-title">
+            <svg width="18" height="18" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
+            </svg>
+            {{ obj.name }}
+        </div>
         <div class="mobile-card-text">
-            <div class="object-info">
-                <div class="status-row">
-                    <span class="status-label">Статус:</span>
+            <div class="d-flex justify-content-between align-items-start mobile-mb-2">
+                <div style="flex: 1;">
+                    <strong>Статус: {{ obj.status or 'Не указан' }}</strong>
+                </div>
+                <div class="text-end">
                     <span class="badge bg-{{ 'success' if obj.status == 'Активный' else 'secondary' }}">
                         {{ obj.status or 'Не указан' }}
                     </span>
                 </div>
-                {% if obj.location %}
-                <div class="location-row">
-                    <span class="location-label">Адрес:</span>
-                    <span class="location-text">{{ obj.location }}</span>
-                </div>
-                {% endif %}
             </div>
+            
+            {% if obj.location %}
+            <div class="mobile-mt-1">
+                <small class="text-muted">
+                    <svg width="12" height="12" class="me-1" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+                    </svg>
+                    {{ obj.location }}
+                </small>
+            </div>
+            {% endif %}
+            
+            {% if obj.description %}
+            <div class="mobile-mt-1">
+                <small class="text-muted">{{ obj.description[:100] }}{% if obj.description|length > 100 %}...{% endif %}</small>
+            </div>
+            {% endif %}
         </div>
     </a>
     {% endfor %}
 {% else %}
     <div class="mobile-card mobile-text-center">
         <div class="mobile-card-title">Объекты не найдены</div>
-        <div class="mobile-card-text">В системе пока нет объектов</div>
+        <div class="mobile-card-text text-center text-muted">
+            <svg width="48" height="48" class="mb-2" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
+            </svg>
+            <p>В системе пока нет объектов</p>
+        </div>
     </div>
 {% endif %}
 
@@ -170,64 +193,6 @@ if (isAdmin) {
 </script>
 
 <style>
-/* Простые и функциональные стили */
-.object-card {
-    text-decoration: none;
-    color: inherit;
-    display: block;
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
-
-.object-card:hover {
-    text-decoration: none;
-    color: inherit;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.object-card:active {
-    transform: scale(0.98);
-}
-
-.object-info {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.status-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.status-label {
-    font-size: 0.9rem;
-    color: #6b7280;
-    font-weight: 500;
-}
-
-.location-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-}
-
-.location-label {
-    font-size: 0.9rem;
-    color: #6b7280;
-    font-weight: 500;
-    flex-shrink: 0;
-}
-
-.location-text {
-    font-size: 0.9rem;
-    color: #374151;
-    line-height: 1.4;
-    word-wrap: break-word;
-}
-
 /* Стили для модального окна */
 .modal-content {
     border-radius: 12px;
@@ -241,30 +206,6 @@ if (isAdmin) {
 
 .modal-footer {
     border-radius: 0 0 12px 12px;
-}
-
-/* Темная тема */
-@media (prefers-color-scheme: dark) {
-    .status-label,
-    .location-label {
-        color: #d1d5db;
-    }
-    
-    .location-text {
-        color: #e5e7eb;
-    }
-}
-
-[data-bs-theme="dark"] .status-label,
-[data-bs-theme="dark"] .location-label,
-.dark .status-label,
-.dark .location-label {
-    color: #d1d5db;
-}
-
-[data-bs-theme="dark"] .location-text,
-.dark .location-text {
-    color: #e5e7eb;
 }
 
 /* Анимация для долгого нажатия */
