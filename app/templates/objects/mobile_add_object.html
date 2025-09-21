@@ -12,11 +12,12 @@
 
     <form method="POST" id="add-object-form" novalidate>
         <div class="mobile-form-group">
+            <label class="mobile-form-label" for="name">Название объекта *</label>
             <input type="text"
                    class="mobile-form-control mobile-form-control-lg"
                    id="name"
                    name="name"
-                   placeholder="Название объекта"
+                   placeholder="Введите название объекта"
                    inputmode="text"
                    autocomplete="organization"
                    maxlength="80"
@@ -25,23 +26,25 @@
         </div>
 
         <div class="mobile-form-group">
+            <label class="mobile-form-label" for="location">Местоположение</label>
             <input type="text"
                    class="mobile-form-control"
                    id="location"
                    name="location"
-                   placeholder="Местоположение (необязательно)"
+                   placeholder="Введите адрес"
                    inputmode="text"
                    autocomplete="street-address"
                    maxlength="120">
         </div>
 
         <div class="mobile-form-group">
+            <label class="mobile-form-label" for="description">Описание</label>
             <textarea class="mobile-form-control"
                       id="description"
                       name="description"
                       rows="3"
                       maxlength="500"
-                      placeholder="Описание (необязательно)"></textarea>
+                      placeholder="Введите описание объекта"></textarea>
         </div>
 
         <div class="mobile-mt-4">
@@ -49,7 +52,7 @@
                 Сохранить объект
             </button>
         </div>
-        <div class="mobile-mt-2">
+        <div class="mobile-mt-3">
             <a class="mobile-btn mobile-btn-outline w-100" href="{{ url_for('objects.object_list') }}">Назад к списку</a>
         </div>
     </form>
@@ -124,68 +127,152 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
+/* Современные стили для полей ввода */
 .mobile-form-control-lg {
     font-size: 1.1rem;
-    padding: 12px 16px;
-    border-radius: 8px;
-    border: 2px solid #e9ecef;
-    transition: all 0.2s ease;
+    padding: 16px 20px;
+    border-radius: 12px;
+    border: 2px solid #e1e5e9;
+    background: #ffffff;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    font-weight: 500;
 }
 
 .mobile-form-control-lg:focus {
     border-color: #0d6efd;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.mobile-form-control-lg::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
 }
 
 .mobile-form-control {
-    border-radius: 8px;
-    border: 2px solid #e9ecef;
-    transition: all 0.2s ease;
+    font-size: 1rem;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 2px solid #e1e5e9;
+    background: #ffffff;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    font-weight: 500;
 }
 
 .mobile-form-control:focus {
     border-color: #0d6efd;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
+    outline: none;
+    transform: translateY(-1px);
 }
 
-.mobile-card-title {
-    font-size: 1.5rem;
+.mobile-form-control::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+/* Стили для лейблов */
+.mobile-form-label {
+    display: block;
+    font-size: 0.95rem;
     font-weight: 600;
-    margin-bottom: 1.5rem;
-    color: #212529;
+    color: #374151;
+    margin-bottom: 8px;
+    letter-spacing: 0.025em;
 }
 
+/* Заголовок */
+.mobile-card-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    color: #111827;
+    letter-spacing: -0.025em;
+}
+
+/* Группы полей */
 .mobile-form-group {
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
 }
 
+/* Современные кнопки */
 .mobile-btn {
-    border-radius: 8px;
-    font-weight: 500;
-    padding: 12px 24px;
-    transition: all 0.2s ease;
+    border-radius: 12px;
+    font-weight: 600;
+    padding: 14px 28px;
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 0.025em;
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.mobile-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.mobile-btn:hover::before {
+    left: 100%;
 }
 
 .mobile-btn-primary {
     background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
-    border: none;
+    color: white;
+    box-shadow: 0 4px 14px rgba(13, 110, 253, 0.3);
 }
 
 .mobile-btn-primary:hover {
     background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(13, 110, 253, 0.4);
+}
+
+.mobile-btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 14px rgba(13, 110, 253, 0.3);
 }
 
 .mobile-btn-outline {
-    border: 2px solid #6c757d;
-    color: #6c757d;
+    border: 2px solid #d1d5db;
+    color: #6b7280;
+    background: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .mobile-btn-outline:hover {
-    background-color: #6c757d;
-    border-color: #6c757d;
-    color: white;
-    transform: translateY(-1px);
+    background: #f9fafb;
+    border-color: #9ca3af;
+    color: #374151;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-btn-outline:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Анимация для фокуса */
+@keyframes focusPulse {
+    0% { box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1); }
+    50% { box-shadow: 0 0 0 6px rgba(13, 110, 253, 0.15), 0 6px 16px rgba(0, 0, 0, 0.15); }
+    100% { box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1); }
+}
+
+.mobile-form-control:focus,
+.mobile-form-control-lg:focus {
+    animation: focusPulse 2s infinite;
 }
 </style>
 {% endblock %}
