@@ -588,6 +588,11 @@
         <!-- Мобильный хедер -->
         <header class="mobile-header">
             <div class="mobile-header-content">
+                <a class="mobile-menu-btn" id="mobileBackBtn" href="javascript:void(0)" aria-label="Назад" title="Назад" style="display:none;">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M15 8a.5.5 0 0 1-.5.5H3.707l3.147 3.146a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L3.707 7.5H14.5A.5.5 0 0 1 15 8z"/>
+                    </svg>
+                </a>
                 <button class="mobile-menu-btn" id="mobileMenuBtn">
                     <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
@@ -747,6 +752,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Загрузочный экран удалён
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileBackBtn = document.getElementById('mobileBackBtn');
             const mobileMenu = document.getElementById('mobileMenu');
             const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
             const mobileMenuClose = document.getElementById('mobileMenuClose');
@@ -765,6 +771,22 @@
                 document.body.style.overflow = '';
             }
             
+            // Показ/скрытие кнопки Назад: на главных разделах показываем гамбургер, на вложенных — стрелку
+            try {
+                const path = window.location.pathname || '';
+                const isRootObjects = /\/objects\/?$/.test(path);
+                if (mobileBackBtn && mobileMenuBtn) {
+                    if (isRootObjects) {
+                        mobileBackBtn.style.display = 'none';
+                        mobileMenuBtn.style.display = '';
+                    } else {
+                        mobileBackBtn.style.display = '';
+                        mobileMenuBtn.style.display = 'none';
+                        mobileBackBtn.addEventListener('click', () => window.history.back());
+                    }
+                }
+            } catch(e) {}
+
             // Открытие меню
             mobileMenuBtn.addEventListener('click', openMobileMenu);
             

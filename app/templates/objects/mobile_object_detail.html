@@ -24,7 +24,7 @@
         <a href="{{ url_for('objects.reports_list', object_id=object.id) }}" class="btn btn-outline-secondary flex-fill">Отчёты</a>
         <a href="{{ url_for('objects.planned_works_list', object_id=object.id) }}" class="btn btn-outline-secondary flex-fill">Работы</a>
     </div>
-    <a href="{{ url_for('objects.object_list') }}" class="mobile-btn mobile-btn-outline mobile-mt-2">Назад к списку</a>
+    {# Кнопка назад скрыта для мобильной версии. Навигация назад осуществляется стрелкой в шапке. #}
 </div>
 
 <!-- Дополнительный отступ, чтобы контент не перекрывался нижней панелью навигации -->
