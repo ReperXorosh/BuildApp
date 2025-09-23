@@ -1148,6 +1148,10 @@ def edit_checklist_item(object_id, item_id):
     if item.checklist.object_id != object_id:
         abort(404)
     
+    # Определяем мобильное устройство для выбора шаблона
+    from ..utils.mobile_detection import is_mobile_device
+    is_mobile = is_mobile_device()
+    
     if request.method == 'POST':
         item_text = request.form.get('item_text', '').strip()
         notes = request.form.get('notes', '').strip()
@@ -1173,10 +1177,10 @@ def edit_checklist_item(object_id, item_id):
                 quantity = float(quantity_str)
                 if quantity <= 0:
                     flash('Планируемое количество должно быть положительным числом (больше 0)', 'error')
-                    return render_template('objects/edit_checklist_item.html', object=obj, item=item)
+                    return render_template('objects/mobile_edit_checklist_item.html' if is_mobile else 'objects/edit_checklist_item.html', object=obj, item=item)
             except ValueError:
                 flash('Планируемое количество должно быть числом', 'error')
-                return render_template(('objects/mobile_add_checklist_item.html' if is_mobile else 'objects/edit_checklist_item.html'), object=obj, item=item)
+                return render_template('objects/mobile_edit_checklist_item.html' if is_mobile else 'objects/edit_checklist_item.html', object=obj, item=item)
         
         # Получаем единицу измерения с проверкой на пустые значения
         unit = request.form.get('unit', 'шт')
@@ -1185,7 +1189,7 @@ def edit_checklist_item(object_id, item_id):
         
         if not item_text:
             flash('Текст позиции обязателен для заполнения', 'error')
-            return render_template(('objects/mobile_add_checklist_item.html' if is_mobile else 'objects/edit_checklist_item.html'), object=obj, item=item)
+            return render_template('objects/mobile_edit_checklist_item.html' if is_mobile else 'objects/edit_checklist_item.html', object=obj, item=item)
         
         item.item_text = item_text
         item.notes = notes
@@ -1212,7 +1216,7 @@ def edit_checklist_item(object_id, item_id):
         flash('Позиция чек-листа успешно обновлена', 'success')
         return redirect(url_for('objects.checklist_view', object_id=object_id))
     
-    return render_template('objects/edit_checklist_item.html', object=obj, item=item)
+    return render_template('objects/mobile_edit_checklist_item.html' if is_mobile else 'objects/edit_checklist_item.html', object=obj, item=item)
 
 @objects_bp.route('/<uuid:object_id>/checklist/<uuid:item_id>/toggle', methods=['POST'])
 @login_required

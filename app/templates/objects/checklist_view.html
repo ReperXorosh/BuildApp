@@ -561,16 +561,16 @@
 
 <!-- Модальное окно для добавления количества -->
 <div class="modal fade" id="addQuantityModal" tabindex="-1" aria-labelledby="addQuantityModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content" style="border-radius:16px; overflow:hidden;">
+            <div class="modal-header" style="border-bottom:none; padding-bottom:0.5rem;">
                 <h5 class="modal-title" id="addQuantityModalLabel">
                     <i class="bi bi-plus-circle me-2"></i>
                     Добавить количество
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="padding-top:0.5rem; padding-bottom:0.5rem;">
                 <form id="addQuantityForm">
                     <input type="hidden" id="modalItemId" name="item_id">
                     <input type="hidden" id="modalObjectId" name="object_id">
@@ -580,14 +580,14 @@
                         <div id="modalItemText" class="form-control-plaintext"></div>
                     </div>
                     
-                    <div class="row mb-3">
+                    <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label for="modalCurrentQuantity" class="form-label">Текущее количество:</label>
-                            <div id="modalCurrentQuantity" class="form-control-plaintext"></div>
+                            <div id="modalCurrentQuantity" class="form-control-plaintext fw-semibold"></div>
                         </div>
                         <div class="col-6">
                             <label for="modalPlannedQuantity" class="form-label">Планируемое количество:</label>
-                            <div id="modalPlannedQuantity" class="form-control-plaintext"></div>
+                            <div id="modalPlannedQuantity" class="form-control-plaintext text-muted"></div>
                         </div>
                     </div>
                     
@@ -596,7 +596,7 @@
                             <i class="bi bi-plus-circle me-1"></i>
                             Сколько добавить:
                         </label>
-                        <div class="input-group">
+                        <div class="input-group input-group-sm">
                             <input type="number" 
                                    class="form-control" 
                                    id="modalAddQuantity" 
@@ -607,21 +607,19 @@
                                    required>
                             <span class="input-group-text" id="modalUnit"></span>
                         </div>
-                        <div class="form-text">
-                            Максимально можно добавить: <span id="maxAddQuantity" class="text-primary fw-bold">0</span>
-                        </div>
-                        <div class="form-text mt-2">
-                            Итоговое количество будет: <span id="totalQuantity" class="text-success fw-bold">0</span>
+                        <div class="d-flex justify-content-between mt-2">
+                            <small class="text-muted">Макс: <span id="maxAddQuantity" class="text-primary fw-bold">0</span></small>
+                            <small>Итог: <span id="totalQuantity" class="text-success fw-bold">0</span></small>
                         </div>
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <div class="modal-footer" style="border-top:none; padding-top:0;">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius:10px;">
                     <i class="bi bi-x-lg me-1"></i>
                     Отмена
                 </button>
-                <button type="button" class="btn btn-primary" onclick="confirmAddQuantity()">
+                <button type="button" class="btn btn-primary" onclick="confirmAddQuantity()" style="border-radius:10px;">
                     <i class="bi bi-check-lg me-1"></i>
                     Добавить
                 </button>
