@@ -437,7 +437,15 @@ def object_detail(object_id):
 def supports_list(object_id):
     """Список опор объекта"""
     obj = Object.query.get_or_404(object_id)
-    supports = Support.query.filter_by(object_id=object_id).order_by(Support.created_at.desc()).all()
+    from sqlalchemy.orm import load_only
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 50, type=int)
+    per_page = max(10, min(per_page, 100))
+    query = Support.query.options(
+        load_only(Support.id, Support.support_number, Support.support_type, Support.status, Support.created_at, Support.object_id)
+    ).filter_by(object_id=object_id).order_by(Support.created_at.desc())
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    supports = pagination.items
     
     ActivityLog.log_action(
         user_id=current_user.userid,
@@ -451,9 +459,9 @@ def supports_list(object_id):
     
     from ..utils.mobile_detection import is_mobile_device
     if is_mobile_device():
-        return render_template('objects/mobile_supports_list.html', object=obj, supports=supports)
+        return render_template('objects/mobile_supports_list.html', object=obj, supports=supports, pagination=pagination)
     else:
-        return render_template('objects/supports_list.html', object=obj, supports=supports)
+        return render_template('objects/supports_list.html', object=obj, supports=supports, pagination=pagination)
 
 @objects_bp.route('/<uuid:object_id>/supports/add', methods=['GET', 'POST'])
 @login_required
@@ -743,7 +751,15 @@ def confirm_support_installation(object_id, support_id):
 def trenches_list(object_id):
     """Список траншей объекта"""
     obj = Object.query.get_or_404(object_id)
-    trenches = Trench.query.filter_by(object_id=object_id).order_by(Trench.created_at.desc()).all()
+    from sqlalchemy.orm import load_only
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 50, type=int)
+    per_page = max(10, min(per_page, 100))
+    query = Trench.query.options(
+        load_only(Trench.id, Trench.planned_length, Trench.current_length, Trench.is_completed, Trench.excavation_date, Trench.created_at, Trench.object_id)
+    ).filter_by(object_id=object_id).order_by(Trench.created_at.desc())
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    trenches = pagination.items
     
     ActivityLog.log_action(
         user_id=current_user.userid,
@@ -757,9 +773,9 @@ def trenches_list(object_id):
     
     from ..utils.mobile_detection import is_mobile_device
     if is_mobile_device():
-        return render_template('objects/mobile_trenches_list.html', object=obj, trenches=trenches)
+        return render_template('objects/mobile_trenches_list.html', object=obj, trenches=trenches, pagination=pagination)
     else:
-        return render_template('objects/trenches_list.html', object=obj, trenches=trenches)
+        return render_template('objects/trenches_list.html', object=obj, trenches=trenches, pagination=pagination)
 
 @objects_bp.route('/<uuid:object_id>/trenches/add', methods=['GET', 'POST'])
 @login_required
@@ -893,12 +909,23 @@ def add_trench(object_id):
 def reports_list(object_id):
     """Список отчётов объекта"""
     obj = Object.query.get_or_404(object_id)
-    reports = Report.query.filter_by(object_id=object_id).order_by(Report.created_at.desc()).all()
+    from sqlalchemy.orm import load_only
+    # Пагинация основных отчётов
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 50, type=int)
+    per_page = max(10, min(per_page, 100))
+    reports_query = Report.query.options(
+        load_only(Report.id, Report.report_number, Report.title, Report.report_type, Report.report_date, Report.created_at, Report.object_id)
+    ).filter_by(object_id=object_id).order_by(Report.created_at.desc())
+    reports_pagination = reports_query.paginate(page=page, per_page=per_page, error_out=False)
+    reports = reports_pagination.items
     
-    # Получаем ежедневные отчеты за последние 30 дней
+    # Последние 30 дней daily_reports (без пагинации, но с выбором полей)
     from datetime import date, timedelta
     thirty_days_ago = date.today() - timedelta(days=30)
-    daily_reports = DailyReport.query.filter_by(object_id=object_id).filter(
+    daily_reports = DailyReport.query.options(
+        load_only(DailyReport.id, DailyReport.report_date, DailyReport.object_id)
+    ).filter_by(object_id=object_id).filter(
         DailyReport.report_date >= thirty_days_ago
     ).order_by(DailyReport.report_date.desc()).all()
     
@@ -914,9 +941,9 @@ def reports_list(object_id):
     
     from ..utils.mobile_detection import is_mobile_device
     if is_mobile_device():
-        return render_template('objects/mobile_reports_list.html', object=obj, reports=reports, daily_reports=daily_reports, today=date.today())
+        return render_template('objects/mobile_reports_list.html', object=obj, reports=reports, daily_reports=daily_reports, today=date.today(), pagination=reports_pagination)
     else:
-        return render_template('objects/reports_list.html', object=obj, reports=reports, daily_reports=daily_reports, today=date.today())
+        return render_template('objects/reports_list.html', object=obj, reports=reports, daily_reports=daily_reports, today=date.today(), pagination=reports_pagination)
 
 @objects_bp.route('/<uuid:object_id>/reports/add', methods=['GET', 'POST'])
 @login_required

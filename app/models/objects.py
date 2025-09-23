@@ -5,6 +5,10 @@ import uuid
 class Object(db.Model):
     """Модель объекта"""
     __tablename__ = 'objects'
+    __table_args__ = (
+        db.Index('ix_objects_created_at', 'created_at'),
+        db.Index('ix_objects_status', 'status'),
+    )
     
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = db.Column(db.String(255), nullable=False)
@@ -31,6 +35,11 @@ class Object(db.Model):
 class Support(db.Model):
     """Модель опоры"""
     __tablename__ = 'supports'
+    __table_args__ = (
+        db.Index('ix_supports_object_id', 'object_id'),
+        db.Index('ix_supports_created_at', 'created_at'),
+        db.Index('ix_supports_status', 'status'),
+    )
     
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)
@@ -52,6 +61,12 @@ class Support(db.Model):
 class Trench(db.Model):
     """Модель траншеи"""
     __tablename__ = 'trenches'
+    __table_args__ = (
+        db.Index('ix_trenches_object_id', 'object_id'),
+        db.Index('ix_trenches_created_at', 'created_at'),
+        db.Index('ix_trenches_status', 'status'),
+        db.Index('ix_trenches_excavation_date', 'excavation_date'),
+    )
     
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)
@@ -132,6 +147,12 @@ class Trench(db.Model):
 class Report(db.Model):
     """Модель отчёта"""
     __tablename__ = 'reports'
+    __table_args__ = (
+        db.Index('ix_reports_object_id', 'object_id'),
+        db.Index('ix_reports_created_at', 'created_at'),
+        db.Index('ix_reports_report_date', 'report_date'),
+        db.Index('ix_reports_status', 'status'),
+    )
     
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)
@@ -278,6 +299,12 @@ class ChecklistItem(db.Model):
 class PlannedWork(db.Model):
     """Модель запланированной работы"""
     __tablename__ = 'planned_works'
+    __table_args__ = (
+        db.Index('ix_planned_works_object_id', 'object_id'),
+        db.Index('ix_planned_works_planned_date', 'planned_date'),
+        db.Index('ix_planned_works_status', 'status'),
+        db.Index('ix_planned_works_priority', 'priority'),
+    )
     
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)
@@ -470,6 +497,11 @@ class Luminaire(db.Model):
 class DailyReport(db.Model):
     """Модель ежедневного отчёта"""
     __tablename__ = 'daily_reports'
+    __table_args__ = (
+        db.Index('ix_daily_reports_object_id', 'object_id'),
+        db.Index('ix_daily_reports_report_date', 'report_date'),
+        db.Index('ix_daily_reports_status', 'status'),
+    )
     
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)

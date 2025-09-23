@@ -3,7 +3,7 @@ from datetime import datetime
 import pytz
 
 from flask import Flask, request, session
-from .extensions import db, login_manager, migrate
+from .extensions import db, login_manager, migrate, cache
 from .config import Config
 
 def create_app(config_class=None):
@@ -27,6 +27,11 @@ def create_app(config_class=None):
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
+    # Кэш (простая память по умолчанию; можно заменить на Redis через конфиг)
+    cache.init_app(app, config={
+        'CACHE_TYPE': 'SimpleCache',
+        'CACHE_DEFAULT_TIMEOUT': 60
+    })
     
     login_manager.login_view = 'user.login'
     # Убираем сообщение о необходимости входа в систему
