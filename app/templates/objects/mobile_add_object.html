@@ -170,6 +170,20 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
+/* Локальные правки для лучшей читаемости в светлой теме только на этой странице */
+.mobile-app { background: var(--bs-body-bg); }
+[data-bs-theme="light"] .add-object-card { background: #ffffff; color: #0f172a; }
+[data-bs-theme="light"] .mobile-form-label { color: #111827; }
+[data-bs-theme="light"] .mobile-form-control,
+[data-bs-theme="light"] .mobile-form-control-lg {
+    background: #ffffff;
+    border-color: #d1d5db;
+    color: #111827;
+}
+[data-bs-theme="light"] .mobile-form-control::placeholder,
+[data-bs-theme="light"] .mobile-form-control-lg::placeholder { color: #6b7280; }
+[data-bs-theme="light"] .mobile-btn-outline { border-color: #cbd5e1; color: #334155; }
+[data-bs-theme="light"] .mobile-card-title { color: #0f172a; }
 /* Контраст и читаемость в светлой теме */
 .add-object-card {
     background: #ffffff;
