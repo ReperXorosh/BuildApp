@@ -16,9 +16,9 @@
         <a href="{{ url_for('objects.add_support', object_id=object.id) }}" class="btn btn-sm btn-primary">Добавить</a>
     </div>
     {% if supports %}
-    <div class="list-group">
+    <div class="list-group" style="--bs-list-group-border-color: rgba(255,255,255,.35);">
         {% for s in supports %}
-        <a class="list-group-item d-flex justify-content-between align-items-center" href="{{ url_for('objects.support_detail', object_id=object.id, support_id=s.id, mobile=1) }}">
+        <a class="list-group-item d-flex justify-content-between align-items-center" href="{{ url_for('objects.support_detail', object_id=object.id, support_id=s.id, mobile=1) }}" style="border-top-width:1px !important;">
             <span>Опора {{ s.support_number }}{% if s.support_type %} ({{ s.support_type }}){% endif %}</span>
             <span class="badge bg-secondary">{{ s.status }}</span>
         </a>
