@@ -11,7 +11,7 @@
     </div>
 
     <form method="POST" id="add-object-form" novalidate>
-        <div class="mobile-form-group">
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label" for="name">Название объекта *</label>
             <input type="text"
                    class="mobile-form-control mobile-form-control-lg"
@@ -21,7 +21,8 @@
                    inputmode="text"
                    autocomplete="organization"
                    maxlength="80"
-                   required>
+                   required
+                   style="border:none; box-shadow:none; background:transparent;">
             <div class="invalid-feedback" style="display:none" id="name-error">Укажите название (минимум 2 символа).</div>
         </div>
 
@@ -37,14 +38,15 @@
                    maxlength="120">
         </div>
 
-        <div class="mobile-form-group">
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label" for="description">Описание</label>
             <textarea class="mobile-form-control"
                       id="description"
                       name="description"
                       rows="3"
                       maxlength="500"
-                      placeholder="Введите описание объекта"></textarea>
+                      placeholder="Введите описание объекта"
+                      style="border:none; box-shadow:none; background:transparent;"></textarea>
         </div>
 
         <div class="mobile-mt-4">
