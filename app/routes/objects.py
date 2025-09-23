@@ -756,7 +756,7 @@ def trenches_list(object_id):
     per_page = request.args.get('per_page', 50, type=int)
     per_page = max(10, min(per_page, 100))
     query = Trench.query.options(
-        load_only(Trench.id, Trench.planned_length, Trench.current_length, Trench.is_completed, Trench.excavation_date, Trench.created_at, Trench.object_id)
+        load_only(Trench.id, Trench.planned_length, Trench.current_length, Trench.status, Trench.excavation_date, Trench.created_at, Trench.object_id)
     ).filter_by(object_id=object_id).order_by(Trench.created_at.desc())
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     trenches = pagination.items
