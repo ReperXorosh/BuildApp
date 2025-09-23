@@ -76,6 +76,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const backBtn = document.getElementById('mobileBackBtn');
     let isDirty = false;
 
+    // На этой странице уменьшаем нижний отступ контента, чтобы не было лишней прокрутки
+    try {
+        const mobileContent = document.querySelector('.mobile-content');
+        if (mobileContent) {
+            mobileContent.style.paddingBottom = '16px';
+            mobileContent.style.overflow = 'hidden';
+            mobileContent.style.height = 'auto';
+        }
+        // Отключаем прокрутку страницы
+        document.documentElement.style.overscrollBehaviorY = 'contain';
+        document.body.style.overflow = 'hidden';
+        window.scrollTo(0, 0);
+    } catch(e) {}
+
     // Фокус на названии
     if (nameInput) nameInput.focus();
 
