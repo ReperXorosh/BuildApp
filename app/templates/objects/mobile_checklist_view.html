@@ -47,7 +47,7 @@
                         onclick="openAddQuantityModalFromData(this)" title="Добавить количество">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </button>
-                    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('objects.edit_checklist_item', object_id=object.id, item_id=item.id) }}" title="Редактировать">
+                    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('objects.edit_checklist_item', object_id=object.id, item_id=item.id) }}?mobile=1" title="Редактировать">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4V20H18V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5L21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </a>
                     <button class="btn btn-sm btn-outline-danger" onclick="deleteItem('{{ item.id }}', '{{ object.id }}')" title="Удалить">
@@ -75,12 +75,12 @@
 <!-- Модалка добавления количества -->
 <div class="modal fade" id="addQuantityModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Добавить количество</h5>
+    <div class="modal-content" style="border-radius:16px; overflow:hidden;">
+      <div class="modal-header" style="background: var(--bs-primary); color: var(--bs-primary-text);">
+        <h5 class="modal-title" style="font-weight:600;">Добавить количество</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" style="background: var(--bs-body-bg);">
         <form id="addQuantityForm">
           <input type="hidden" id="modalItemId">
           <input type="hidden" id="modalObjectId">
@@ -97,8 +97,8 @@
           <div class="mt-1"><small class="text-muted">Итог: <span id="totalQuantity" class="text-success fw-bold">0</span></small></div>
         </form>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+      <div class="modal-footer" style="background: var(--bs-body-bg);">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
         <button type="button" class="btn btn-primary" onclick="confirmAddQuantity()">Добавить</button>
       </div>
     </div>
@@ -156,7 +156,19 @@ function confirmAddQuantity(){
 
 function toggleItem(itemId, objectId){
   fetch(`/objects/${objectId}/checklist/${itemId}/toggle`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({}) })
-    .then(r=>r.json()).then(d=>{ if(d.success){ location.reload(); } else { alert(d.message||'Ошибка'); } })
+    .then(r=>r.json()).then(d=>{
+      if(d.success){ location.reload(); return; }
+      // Если нужна принудительная отметка – показываем подтверждение
+      if (d.needs_confirmation) {
+        if (confirm((d.message||'Количество не соответствует плану.') + '\n\nОтметить как выполнено принудительно?')) {
+          fetch(`/objects/${objectId}/checklist/${itemId}/toggle`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ force_complete: true }) })
+            .then(rr=>rr.json()).then(dd=>{ if(dd.success){ location.reload(); } else { alert(dd.message||'Ошибка'); } })
+            .catch(()=>alert('Ошибка сети'));
+        }
+      } else {
+        alert(d.message||'Ошибка');
+      }
+    })
     .catch(()=>alert('Ошибка сети'));
 }
 

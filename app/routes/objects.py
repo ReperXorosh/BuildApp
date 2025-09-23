@@ -469,7 +469,7 @@ def add_support(object_id):
     """Добавление опоры (только для инженера ПТО)"""
     obj = Object.query.get_or_404(object_id)
     from ..utils.mobile_detection import is_mobile_device
-    is_mobile = is_mobile_device()
+    is_mobile = is_mobile_device() or (request.args.get('mobile') == '1')
     
     # Получаем данные о ЗДФ, Кронштейнах и Светильниках для данного объекта
     zdf_list = ZDF.query.filter_by(object_id=object_id, status='planned').order_by(ZDF.zdf_number.asc()).all()
@@ -1176,7 +1176,7 @@ def edit_checklist_item(object_id, item_id):
                     return render_template('objects/edit_checklist_item.html', object=obj, item=item)
             except ValueError:
                 flash('Планируемое количество должно быть числом', 'error')
-                return render_template('objects/edit_checklist_item.html', object=obj, item=item)
+                return render_template(('objects/mobile_add_checklist_item.html' if is_mobile else 'objects/edit_checklist_item.html'), object=obj, item=item)
         
         # Получаем единицу измерения с проверкой на пустые значения
         unit = request.form.get('unit', 'шт')
@@ -1185,7 +1185,7 @@ def edit_checklist_item(object_id, item_id):
         
         if not item_text:
             flash('Текст позиции обязателен для заполнения', 'error')
-            return render_template('objects/edit_checklist_item.html', object=obj, item=item)
+            return render_template(('objects/mobile_add_checklist_item.html' if is_mobile else 'objects/edit_checklist_item.html'), object=obj, item=item)
         
         item.item_text = item_text
         item.notes = notes
