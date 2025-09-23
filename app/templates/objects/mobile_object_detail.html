@@ -18,11 +18,18 @@
 
 <div class="mobile-card">
     <div class="mobile-card-title">Действия</div>
-    <div class="d-flex gap-2 flex-wrap">
-        <a href="{{ url_for('objects.supports_list', object_id=object.id) }}" class="btn btn-outline-primary flex-fill mobile-action-btn">Опоры</a>
-        <a href="{{ url_for('objects.trenches_list', object_id=object.id) }}" class="btn btn-outline-primary flex-fill mobile-action-btn">Траншеи</a>
-        <a href="{{ url_for('objects.reports_list', object_id=object.id) }}" class="btn btn-outline-primary flex-fill mobile-action-btn">Отчёты</a>
-        <a href="{{ url_for('objects.planned_works_list', object_id=object.id) }}" class="btn btn-outline-primary flex-fill mobile-action-btn">Работы</a>
+    <div class="row g-2">
+        <div class="col-6 d-flex flex-column gap-2">
+            <a href="{{ url_for('objects.supports_list', object_id=object.id) }}" class="btn btn-outline-primary w-100 mobile-action-btn">Опоры</a>
+            <a href="{{ url_for('objects.trenches_list', object_id=object.id) }}" class="btn btn-outline-primary w-100 mobile-action-btn">Траншеи</a>
+        </div>
+        <div class="col-6 d-flex flex-column gap-2">
+            <a href="{{ url_for('objects.reports_list', object_id=object.id) }}" class="btn btn-outline-primary w-100 mobile-action-btn">Отчёты</a>
+            <a href="{{ url_for('objects.checklist_view', object_id=object.id) }}" class="btn btn-outline-primary w-100 mobile-action-btn">Чек‑лист</a>
+        </div>
+        <div class="col-12 pt-1">
+            <a href="{{ url_for('objects.planned_works_overview', _external=False) }}" class="btn btn-outline-primary w-100 mobile-action-btn">Работы</a>
+        </div>
     </div>
     {# Кнопка назад скрыта для мобильной версии. Навигация назад осуществляется стрелкой в шапке. #}
 </div>
