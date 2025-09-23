@@ -67,7 +67,8 @@ def login():
             user.last_login = get_moscow_now()
             user.mark_online()
             
-            login_user(user)
+            # Включаем долгоживущую сессию (remember me)
+            login_user(user, remember=True)
             
             # Логируем успешный вход
             ActivityLog.log_action(
@@ -117,18 +118,8 @@ def login():
     print(f"DEBUG: Параметр mobile=1: {mobile_param}, Устройство мобильное: {device_mobile}, Итоговое решение: {is_mobile}")
     
     if is_mobile:
-        # Для мобильных устройств проверяем, есть ли настроенные PIN-коды
-        try:
-            from ..models.user_pin import UserPIN
-            pin_count = UserPIN.query.count()
-            if pin_count > 0:
-                # Если есть настроенные PIN-коды, сразу показываем PIN-вход
-                print(f"DEBUG: Найдено {pin_count} настроенных PIN-кодов, перенаправляем на PIN-вход")
-                return redirect(url_for('pin_auth.pin_login'))
-        except Exception as e:
-            print(f"DEBUG: Ошибка при проверке PIN-кодов: {e}")
-        
-        print(f"DEBUG: Отображение мобильной страницы входа")
+        # Временно отключаем PIN/FaceID и всегда показываем мобильную страницу логина
+        print(f"DEBUG: Отображение мобильной страницы входа (PIN отключен)")
         return render_template('main/mobile_sign_in.html')
     else:
         print(f"DEBUG: Отображение десктопной страницы входа")

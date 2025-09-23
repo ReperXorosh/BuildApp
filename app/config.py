@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 
 class Config(object):
@@ -47,3 +48,9 @@ class Config(object):
     
     # Кэширование для ускорения
     SEND_FILE_MAX_AGE_DEFAULT = 0  # Отключаем кэширование в разработке
+
+    # Настройки remember-cookie (Flask-Login)
+    REMEMBER_COOKIE_DURATION = timedelta(days=30)
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SECURE = False  # В проде на HTTPS установить True
+    REMEMBER_COOKIE_SAMESITE = 'Lax'

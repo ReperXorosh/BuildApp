@@ -4,6 +4,7 @@
 """
 
 import os
+from datetime import timedelta
 from .config import Config
 
 class DevelopmentConfig(Config):
@@ -51,3 +52,9 @@ class DevelopmentConfig(Config):
     
     # Максимальный размер загружаемого файла (5 МБ)
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024
+
+    # Настройки remember-cookie (Flask-Login) для разработки
+    REMEMBER_COOKIE_DURATION = timedelta(days=30)
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SECURE = False
+    REMEMBER_COOKIE_SAMESITE = 'Lax'

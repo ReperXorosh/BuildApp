@@ -133,18 +133,8 @@ def sign_in():
     print(f"DEBUG: Главная страница - Параметр mobile=1: {mobile_param}, Устройство мобильное: {device_mobile}, Итоговое решение: {is_mobile}")
     
     if is_mobile:
-        # Для мобильных устройств проверяем, есть ли настроенные PIN-коды
-        try:
-            from ..models.user_pin import UserPIN
-            pin_count = UserPIN.query.count()
-            if pin_count > 0:
-                # Если есть настроенные PIN-коды, сразу показываем PIN-вход
-                print(f"DEBUG: Найдено {pin_count} настроенных PIN-кодов, перенаправляем на PIN-вход")
-                return redirect(url_for('pin_auth.pin_login'))
-        except Exception as e:
-            print(f"DEBUG: Ошибка при проверке PIN-кодов: {e}")
-        
-        print(f"DEBUG: Отображение мобильной страницы входа на главной")
+        # Временно отключаем PIN/FaceID и всегда показываем мобильную страницу логина
+        print(f"DEBUG: Отображение мобильной страницы входа на главной (PIN отключен)")
         return render_template('main/mobile_sign_in.html')
     else:
         print(f"DEBUG: Отображение десктопной страницы входа на главной")
@@ -154,31 +144,7 @@ def sign_in():
 @login_required
 def dashboard():
     """Главная страница для авторизованных пользователей"""
-    from ..utils.mobile_detection import is_mobile_device
-    
-    if is_mobile_device():
-        try:
-            from ..models.user_pin import UserPIN
-            user_pin = UserPIN.query.filter_by(user_id=str(current_user.userid)).first()
-            
-            # Если PIN не настроен, предлагаем настройку
-            if not user_pin:
-                return redirect(url_for('pin_auth.setup_pin'))
-            else:
-                # Если PIN настроен, перенаправляем на страницу входа по PIN
-                return redirect(url_for('pin_auth.pin_login'))
-        except Exception as e:
-            # Если таблица не существует, создаем её и предлагаем настройку PIN
-            print(f"PIN table not found, creating and offering setup: {e}")
-            try:
-                db.create_all()
-                db.session.commit()
-            except Exception as e2:
-                print(f"Error creating table: {e2}")
-            
-            return redirect(url_for('pin_auth.setup_pin'))
-    
-    # Если не мобильное устройство или PIN настроен, идем в приложение
+    # Всегда направляем в приложение (PIN/FaceID отключены)
     return redirect(url_for('objects.object_list'))
 
 from ..models.users import Users
