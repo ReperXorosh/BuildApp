@@ -136,8 +136,14 @@
             justify-content: space-between;
             position: relative;
         }
-        /* Прижимаем кнопку действий (плюс) к правому краю шапки */
-        .mobile-header-content .mobile-header-btn { margin-left: auto; }
+        /* Кнопка действий (плюс) фиксируется в правом верхнем углу хедера */
+        .mobile-header-content .mobile-header-btn {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: 0;
+        }
         
         .mobile-title {
             font-size: 20px;
@@ -158,8 +164,7 @@
             align-items: center;
             justify-content: center;
             transition: all 0.2s ease;
-            position: static; /* прикреплено к шапке */
-            margin-left: 0;
+            position: static; /* базовое, переопределяется правилом выше внутри .mobile-header-content */
         }
         
         .mobile-header-btn:hover {
