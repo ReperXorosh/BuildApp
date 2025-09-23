@@ -4,7 +4,6 @@
 import logging
 from datetime import date, datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
-import threading
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
 from apscheduler.executors.pool import ThreadPoolExecutor
@@ -25,16 +24,11 @@ class TaskScheduler:
     def __init__(self, app=None):
         self.scheduler = None
         self.app = app
-        self.initialized = False
         if app is not None:
             self.init_app(app)
     
     def init_app(self, app):
         """Инициализация планировщика с приложением Flask"""
-        # Предотвращаем повторную инициализацию и регистрацию задач
-        if self.initialized and self.scheduler and self.scheduler.running:
-            logger.info("Планировщик уже инициализирован, пропускаем повторный старт")
-            return
         self.app = app
         
         # Настройка хранилища задач (временно используем память)
@@ -62,20 +56,15 @@ class TaskScheduler:
             timezone='Europe/Moscow'  # Московское время
         )
         
-        # Регистрация задач (однократно)
+        # Регистрация задач
         self._register_jobs()
         
         # Запуск планировщика
-        if not self.scheduler.running:
-            self.scheduler.start()
-            logger.info("Планировщик задач запущен")
-        else:
-            logger.info("Планировщик уже запущен")
+        self.scheduler.start()
+        logger.info("Планировщик задач запущен")
         
-        # Выполняем начальные задачи в фоне, чтобы не блокировать старт приложения
-        threading.Thread(target=self._run_initial_tasks, daemon=True).start()
-        
-        self.initialized = True
+        # Немедленно выполняем задачи при запуске
+        self._run_initial_tasks()
     
     def _register_jobs(self):
         """Регистрация автоматических задач"""
