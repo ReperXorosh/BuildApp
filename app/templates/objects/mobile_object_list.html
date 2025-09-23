@@ -39,7 +39,7 @@
     {% for obj in objects %}
     <a class="list-group-item list-group-item-action py-3" href="{{ url_for('objects.object_detail', object_id=obj.id) }}">
         <div class="d-flex w-100 justify-content-between">
-            <h6 class="mb-1">{{ obj.name }}</h6>
+            <h5 class="mb-1">{{ obj.name }}</h5>
             {% if obj.status %}
             <small class="text-secondary">{{ obj.status }}</small>
             {% endif %}
