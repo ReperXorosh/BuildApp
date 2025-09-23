@@ -19,6 +19,13 @@
         <a class="btn btn-sm btn-primary" href="{{ url_for('objects.add_checklist_item', object_id=object.id) }}">Добавить</a>
         {% endif %}
     </div>
+
+    <!-- Поиск по позициям чек-листа (моб.) -->
+    {% if checklist and checklist.items %}
+    <div class="mt-2">
+        <input id="checklistSearch" type="search" class="form-control form-control-sm" placeholder="Поиск по названию позиции…" autocomplete="off">
+    </div>
+    {% endif %}
 </div>
 
 {% if checklist and checklist.items %}
@@ -106,6 +113,20 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function(){
+  const searchInput = document.getElementById('checklistSearch');
+  if (!searchInput) return;
+  const listItems = Array.from(document.querySelectorAll('.list-group .list-group-item'));
+  const filter = function(){
+    const q = (searchInput.value||'').trim().toLowerCase();
+    listItems.forEach(function(li){
+      const name = (li.querySelector('.fw-semibold')?.textContent||'').toLowerCase();
+      li.style.display = !q || name.includes(q) ? '' : 'none';
+    });
+  };
+  searchInput.addEventListener('input', filter);
+});
+
 function openAddQuantityModal(itemId, objectId, currentQuantity, plannedQuantity, unit) {
   const itemEl = document.getElementById(`item-${itemId}`);
   const itemText = itemEl ? (itemEl.querySelector('.fw-semibold')?.textContent || '') : '';
