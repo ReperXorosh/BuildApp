@@ -5,7 +5,7 @@
 {% block mobile_title %}Новый объект{% endblock %}
 
 {% block content %}
-<div class="mobile-card">
+<div class="mobile-card add-object-card">
     <div class="mobile-card-title text-center">
         Добавить объект
     </div>
@@ -127,6 +127,42 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
+/* Контраст и читаемость в светлой теме */
+.add-object-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.add-object-card .mobile-form-group {
+    background: #f9fafb;
+    border: 1px solid #eef2f7;
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.add-object-card .mobile-form-group + .mobile-form-group { margin-top: 12px; }
+
+.add-object-card .mobile-card-title { color: #0f172a; }
+
+/* Разделители для лучшей структуры */
+.add-object-card .section-divider {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 16px 0;
+}
+
+/* Тёмная тема — возвращаем нейтральные тона */
+[data-bs-theme="dark"] .add-object-card {
+    background: var(--bs-body-bg);
+    border-color: #2d3748;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+[data-bs-theme="dark"] .add-object-card .mobile-form-group {
+    background: #1f2937;
+    border-color: #374151;
+}
 /* Современные стили для полей ввода */
 .mobile-form-control-lg {
     font-size: 1.1rem;

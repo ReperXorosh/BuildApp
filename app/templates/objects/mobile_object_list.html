@@ -21,8 +21,8 @@
         color: var(--bs-body-color) !important;
         background: var(--bs-body-bg) !important;
     }
-    /* Базовый цвет рамки, если не задан конкретный статус-класс */
-    .list-group-item:not(.border-success):not(.border-danger):not(.border-secondary) {
+    /* Базовый синий цвет рамки */
+    .list-group-item {
         border-color: rgba(var(--bs-primary-rgb), .35) !important;
     }
     .list-group .list-group-item:not(:first-child) {
@@ -42,16 +42,7 @@
 {% if objects and objects|length > 0 %}
 <div class="list-group">
     {% for obj in objects %}
-    {% set s = (obj.status or '')|lower %}
-    {% set border_class = 'border-success' %}
-    {% if 'overdue' in s or 'проср' in s %}
-        {% set border_class = 'border-danger' %}
-    {% elif 'complete' in s or 'заверш' in s %}
-        {% set border_class = 'border-secondary' %}
-    {% else %}
-        {% set border_class = 'border-success' %}
-    {% endif %}
-    <a class="list-group-item list-group-item-action py-3 border {{ border_class }}" href="{{ url_for('objects.object_detail', object_id=obj.id) }}">
+    <a class="list-group-item list-group-item-action py-3" href="{{ url_for('objects.object_detail', object_id=obj.id) }}">
         <div class="d-flex w-100 justify-content-between">
             <h5 class="mb-1">{{ obj.name }}</h5>
         </div>
