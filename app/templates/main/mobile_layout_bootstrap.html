@@ -145,16 +145,8 @@
             pointer-events: none;
         }
         /* Дополнительная заливка для overscroll/pull-to-refresh областей */
-        .mobile-overscroll-fill {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 220px; /* покрываем зону растяжения */
-            background: #007bff;
-            z-index: 999; /* под шапкой, над фоном */
-            pointer-events: none;
-        }
+        /* Убираем разрез при протяжке: красим фон страницы под цвет шапки */
+        html, body { background-color: #007bff; }
         
         .mobile-header-content {
             display: flex;
@@ -617,7 +609,6 @@
 <body>
     <!-- Загрузочный экран -->
     <div class="mobile-app">
-        <div class="mobile-overscroll-fill"></div>
         <div class="mobile-statusbar-fill"></div>
         <!-- Мобильный хедер -->
         <header class="mobile-header">
@@ -793,8 +784,6 @@
             const mobileThemeToggle = document.getElementById('mobileThemeToggle');
             const mobileThemeIcon = document.getElementById('mobileThemeIcon');
             const inputs = document.querySelectorAll('input, textarea');
-            const mobileContent = document.querySelector('.mobile-content');
-            const mobileNav = document.querySelector('.mobile-nav');
             
             function openMobileMenu() {
                 mobileMenu.classList.add('open');
@@ -945,47 +934,7 @@
                 });
             }
 
-            // Поддержка клавиатуры: не двигаем нижнюю панель, регулируем отступ контента и центрируем активное поле
-            let viewportHandlerAttached = false;
-            function updateForViewport(){
-                if (!window.visualViewport || !mobileContent) return;
-                const vv = window.visualViewport;
-                const keyboardHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-                const navHeight = mobileNav ? mobileNav.offsetHeight : 0;
-                mobileContent.style.paddingBottom = `${Math.max(16, navHeight + (keyboardHeight>0 ? keyboardHeight : 0) + 16)}px`;
-                // Прокрутка к активному полю в видимую область
-                const active = document.activeElement;
-                if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
-                    active.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            }
-
-            function attachViewportHandlers(){
-                if (viewportHandlerAttached || !window.visualViewport) return;
-                viewportHandlerAttached = true;
-                window.visualViewport.addEventListener('resize', updateForViewport);
-                window.visualViewport.addEventListener('scroll', updateForViewport);
-            }
-
-            document.addEventListener('focusin', function(e){
-                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
-                    attachViewportHandlers();
-                    setTimeout(updateForViewport, 50);
-                }
-            });
-            document.addEventListener('focusout', function(){
-                setTimeout(() => {
-                    if (mobileContent) {
-                        const navHeight = mobileNav ? mobileNav.offsetHeight : 0;
-                        mobileContent.style.paddingBottom = `${Math.max(16, navHeight + 16)}px`;
-                    }
-                }, 50);
-            });
-            // Инициализация отступа с учётом высоты панели
-            if (mobileContent) {
-                const navHeight = mobileNav ? mobileNav.offsetHeight : 0;
-                mobileContent.style.paddingBottom = `${Math.max(16, navHeight + 16)}px`;
-            }
+            // Отменена особая логика фиксации нижней панели — поведение по умолчанию
         });
     </script>
 </body>
