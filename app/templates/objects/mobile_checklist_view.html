@@ -6,12 +6,19 @@
 
 {% block content %}
 <div class="mobile-card">
-    <div class="mobile-card-title">{{ object.name }}</div>
-    {% if checklist %}
-    <div class="mobile-card-text">Позиций: {{ checklist.total_items or 0 }} • Выполнено: {{ checklist.completed_items or 0 }}</div>
-    {% else %}
-    <div class="mobile-card-text">Чек‑лист ещё не создан</div>
-    {% endif %}
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <div class="mobile-card-title">{{ object.name }}</div>
+            {% if checklist %}
+            <div class="mobile-card-text">Позиций: {{ checklist.total_items or 0 }} • Выполнено: {{ checklist.completed_items or 0 }}</div>
+            {% else %}
+            <div class="mobile-card-text">Чек‑лист ещё не создан</div>
+            {% endif %}
+        </div>
+        {% if current_user.role == 'Инженер ПТО' %}
+        <a class="btn btn-sm btn-primary" href="{{ url_for('objects.add_checklist_item', object_id=object.id) }}">Добавить</a>
+        {% endif %}
+    </div>
 </div>
 
 {% if checklist and checklist.items %}
@@ -19,21 +26,38 @@
     <div class="mobile-card-title">Позиции чек‑листа</div>
     <div class="list-group" style="--bs-list-group-border-color: rgba(255,255,255,.35);">
         {% for item in checklist.items %}
-        <div class="list-group-item" style="border-top-width:1px !important;">
-            <div class="d-flex justify-content-between align-items-center">
+        <div class="list-group-item" id="item-{{ item.id }}" style="border-top-width:1px !important; {% if item.is_completed %}background: var(--bs-success-bg-subtle);{% endif %}">
+            <div class="d-flex justify-content-between align-items-center mb-1">
                 <span class="fw-semibold">{{ loop.index }}. {{ item.item_text }}</span>
-                {% if item.is_completed %}
-                <span class="badge bg-success">Выполнено</span>
-                {% endif %}
+                {% if item.is_completed %}<span class="badge bg-success">Выполнено</span>{% endif %}
             </div>
-            <small class="text-secondary">
-                {% if item.unit %}Обозначение: {{ item.unit }} • {% endif %}
-                {% if item.quantity or item.current_quantity %}Кол-во: {{ item.current_quantity or 0 }} / {{ item.quantity or 0 }}{% endif %}
-            </small>
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-secondary">
+                    {% if item.unit %}Обозначение: {{ item.unit }} • {% endif %}
+                    {% if item.quantity or item.current_quantity %}Кол-во: <span class="quantity-badge">{{ item.current_quantity or 0 }} / {{ item.quantity or 0 }}</span>{% endif %}
+                </small>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-{{ 'success' if item.is_completed else 'outline-success' }}" onclick="toggleItem('{{ item.id }}', '{{ object.id }}')" title="Переключить статус">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    {% if current_user.role == 'Инженер ПТО' %}
+                    <button class="btn btn-sm btn-outline-info" 
+                        data-item-id="{{ item.id }}" data-object-id="{{ object.id }}" 
+                        data-current-quantity="{{ item.current_quantity or 0 }}" data-planned-quantity="{{ item.quantity or 0 }}" data-unit="{{ item.unit or 'шт' }}"
+                        onclick="openAddQuantityModalFromData(this)" title="Добавить количество">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('objects.edit_checklist_item', object_id=object.id, item_id=item.id) }}" title="Редактировать">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4V20H18V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5L21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </a>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteItem('{{ item.id }}', '{{ object.id }}')" title="Удалить">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 6V4H16V6M19 6V20H5V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
             {% if item.notes %}
-            <div class="mt-1">
-                <small class="text-muted">{{ item.notes }}</small>
-            </div>
+            <div class="mt-1"><small class="text-muted">{{ item.notes }}</small></div>
             {% endif %}
         </div>
         {% endfor %}
@@ -48,4 +72,85 @@
     <div class="mobile-card-text">Для объекта ещё нет чек‑листа</div>
 </div>
 {% endif %}
+<!-- Модалка добавления количества -->
+<div class="modal fade" id="addQuantityModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Добавить количество</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addQuantityForm">
+          <input type="hidden" id="modalItemId">
+          <input type="hidden" id="modalObjectId">
+          <div class="mb-2"><small class="text-muted">Позиция:</small> <div id="modalItemText" class="fw-semibold"></div></div>
+          <div class="row mb-2">
+            <div class="col-6"><small class="text-muted">Текущее:</small> <div id="modalCurrentQuantity"></div></div>
+            <div class="col-6"><small class="text-muted">План:</small> <div id="modalPlannedQuantity"></div></div>
+          </div>
+          <div class="input-group">
+            <input type="number" class="form-control" id="modalAddQuantity" min="0.01" step="0.01" placeholder="0.0">
+            <span class="input-group-text" id="modalUnit"></span>
+          </div>
+          <small class="text-muted">Макс: <span id="maxAddQuantity" class="text-primary fw-bold">0</span></small>
+          <div class="mt-1"><small class="text-muted">Итог: <span id="totalQuantity" class="text-success fw-bold">0</span></small></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        <button type="button" class="btn btn-primary" onclick="confirmAddQuantity()">Добавить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function openAddQuantityModal(itemId, objectId, currentQuantity, plannedQuantity, unit) {
+  const itemEl = document.getElementById(`item-${itemId}`);
+  const itemText = itemEl ? (itemEl.querySelector('.fw-semibold')?.textContent || '') : '';
+  document.getElementById('modalItemId').value = itemId;
+  document.getElementById('modalObjectId').value = objectId;
+  document.getElementById('modalItemText').textContent = itemText;
+  document.getElementById('modalCurrentQuantity').textContent = `${currentQuantity} ${unit}`;
+  document.getElementById('modalPlannedQuantity').textContent = `${plannedQuantity} ${unit}`;
+  document.getElementById('modalUnit').textContent = unit;
+  const maxAdd = (plannedQuantity - currentQuantity);
+  document.getElementById('maxAddQuantity').textContent = `${maxAdd} ${unit}`;
+  const input = document.getElementById('modalAddQuantity');
+  input.max = maxAdd; input.value = '';
+  document.getElementById('totalQuantity').textContent = `${currentQuantity} ${unit}`;
+  const m = new bootstrap.Modal(document.getElementById('addQuantityModal')); m.show();
+  input.addEventListener('input', function(){
+    const v = parseFloat(this.value)||0; const max = parseFloat(this.max)||0; if (v>max) this.value = max;
+    const total = currentQuantity + (parseFloat(this.value)||0);
+    document.getElementById('totalQuantity').textContent = `${total} ${unit}`;
+  }, { once: true });
+}
+
+function openAddQuantityModalFromData(el){
+  openAddQuantityModal(el.dataset.itemId, el.dataset.objectId, parseFloat(el.dataset.currentQuantity)||0, parseFloat(el.dataset.plannedQuantity)||0, el.dataset.unit||'шт');
+}
+
+function confirmAddQuantity(){
+  const addQuantity = parseFloat(document.getElementById('modalAddQuantity').value);
+  const itemId = document.getElementById('modalItemId').value;
+  const objectId = document.getElementById('modalObjectId').value;
+  if (!addQuantity || addQuantity<=0) { alert('Введите корректное количество'); return; }
+  fetch(`/objects/${objectId}/checklist/${itemId}/add-quantity`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ add_quantity:addQuantity }) })
+    .then(r=>r.json()).then(d=>{ if(d.success){ location.reload(); } else { alert(d.message||'Ошибка'); } })
+    .catch(()=>alert('Ошибка сети'));
+}
+
+function toggleItem(itemId, objectId){
+  fetch(`/objects/${objectId}/checklist/${itemId}/toggle`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({}) })
+    .then(r=>r.json()).then(d=>{ if(d.success){ location.reload(); } else { alert(d.message||'Ошибка'); } })
+    .catch(()=>alert('Ошибка сети'));
+}
+
+function deleteItem(itemId, objectId){
+  if(!confirm('Удалить позицию?')) return;
+  const form = document.createElement('form'); form.method='POST'; form.action=`/objects/${objectId}/checklist/${itemId}/delete`; document.body.appendChild(form); form.submit();
+}
+</script>
 {% endblock %}
