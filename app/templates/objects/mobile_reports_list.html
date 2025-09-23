@@ -59,9 +59,9 @@
 <div class="mobile-card">
     <div class="mobile-card-title">Ежедневные отчёты</div>
     {% if daily_reports %}
-    <div class="list-group">
+    <div class="list-group" style="--bs-list-group-border-color: rgba(255,255,255,.35);">
         {% for d in daily_reports %}
-        <div class="list-group-item d-flex justify-content-between align-items-center">
+        <div class="list-group-item d-flex justify-content-between align-items-center" style="border-top-width:1px !important;">
             <span>{{ d.report_date.strftime('%d.%m.%Y') }}</span>
             <small class="text-muted">план: {{ d.planned_works_count or 0 }}, вып.: {{ d.completed_works_count or 0 }}</small>
         </div>

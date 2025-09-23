@@ -580,6 +580,10 @@
             padding-left: 16px;
             padding-right: 16px;
         }
+        /* Глобальная правка Bootstrap: у всех элементов списка сохраняем верхнюю границу */
+        .list-group-item { border-width: 1px; }
+        .list-group .list-group-item:not(:first-child) { border-top-width: 1px !important; }
+        .list-group-item + .list-group-item { border-top-width: 1px !important; }
     </style>
 </head>
 <body>
