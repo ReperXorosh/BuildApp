@@ -128,6 +128,9 @@
             position: sticky;
             top: 0;
             z-index: 1000;
+            width: 100vw; /* растягиваем хедер на всю ширину окна */
+            left: 0;
+            right: 0;
         }
         
         .mobile-header-content {
@@ -135,6 +138,7 @@
             align-items: center;
             justify-content: space-between;
             position: relative;
+            width: 100%;
             padding-right: 56px; /* резерв под кнопку, чтобы заголовок не наезжал */
         }
         /* Резервируем место под кнопку в самой шапке и учитываем safe area */
@@ -148,8 +152,8 @@
         /* Кнопка действий (плюс) у фактического правого края экрана (c учетом safe area) */
         .mobile-header .mobile-header-btn {
             position: absolute;
-            right: calc(16px + env(safe-area-inset-right, 0px));
-            right: calc(16px + constant(safe-area-inset-right, 0px)); /* iOS < 13 */
+            right: max(16px, env(safe-area-inset-right, 0px));
+            right: max(16px, constant(safe-area-inset-right, 0px)); /* iOS < 13 */
             top: 50%;
             transform: translateY(-50%);
             margin-left: 0;
