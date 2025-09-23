@@ -7,12 +7,34 @@
 {% block content %}
 <div class="mobile-card">
     <div class="mobile-card-title">{{ object.name }}</div>
-    <div class="mobile-card-text">Всего отчётов: {{ reports|length }}</div>
-</div>
+    <div class="mobile-card-text">Ручных: {{ reports|length }} • Ежедневных: {{ daily_reports|length }}</div>
+    {% if request.args.get('kind') %}
+    <div class="mobile-card-text mt-2">
+        {% if request.args.get('kind') == 'manual' %}Список ручных отчётов{% else %}Список ежедневных отчётов{% endif %}
+    </div>
+    {% endif %}
+    </div>
 
+{% set kind = request.args.get('kind') %}
+
+{% if not kind %}
+<div class="mobile-card">
+    <div class="mobile-card-title">Выбор раздела</div>
+    <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+       href="{{ url_for('objects.reports_list', object_id=object.id) }}?kind=manual">
+        <span>Ручные отчёты</span>
+        <span class="badge bg-primary">{{ reports|length }}</span>
+    </a>
+    <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center mt-2"
+       href="{{ url_for('objects.reports_list', object_id=object.id) }}?kind=daily">
+        <span>Ежедневные отчёты</span>
+        <span class="badge bg-primary">{{ daily_reports|length }}</span>
+    </a>
+</div>
+{% elif kind == 'manual' %}
 <div class="mobile-card">
     <div class="mobile-card-title d-flex justify-content-between align-items-center">
-        Список отчётов
+        Ручные отчёты
         <a href="{{ url_for('objects.add_report', object_id=object.id) }}" class="btn btn-sm btn-primary">Добавить</a>
     </div>
     {% if reports %}
@@ -30,9 +52,26 @@
         {% endfor %}
     </div>
     {% else %}
-    <div class="mobile-card-text">Пока нет отчётов</div>
+    <div class="mobile-card-text">Пока нет ручных отчётов</div>
     {% endif %}
 </div>
+{% elif kind == 'daily' %}
+<div class="mobile-card">
+    <div class="mobile-card-title">Ежедневные отчёты</div>
+    {% if daily_reports %}
+    <div class="list-group">
+        {% for d in daily_reports %}
+        <div class="list-group-item d-flex justify-content-between align-items-center">
+            <span>{{ d.report_date.strftime('%d.%m.%Y') }}</span>
+            <small class="text-muted">план: {{ d.planned_works_count or 0 }}, вып.: {{ d.completed_works_count or 0 }}</small>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="mobile-card-text">Пока нет ежедневных отчётов</div>
+    {% endif %}
+</div>
+{% endif %}
 {% endblock %}
 
 
