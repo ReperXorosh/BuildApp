@@ -1,0 +1,51 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'objects' %}
+
+{% block title %}Чек-лист — {{ object.name }}{% endblock %}
+{% block mobile_title %}Чек‑лист{% endblock %}
+
+{% block content %}
+<div class="mobile-card">
+    <div class="mobile-card-title">{{ object.name }}</div>
+    {% if checklist %}
+    <div class="mobile-card-text">Позиций: {{ checklist.total_items or 0 }} • Выполнено: {{ checklist.completed_items or 0 }}</div>
+    {% else %}
+    <div class="mobile-card-text">Чек‑лист ещё не создан</div>
+    {% endif %}
+</div>
+
+{% if checklist and checklist.items %}
+<div class="mobile-card">
+    <div class="mobile-card-title">Позиции чек‑листа</div>
+    <div class="list-group" style="--bs-list-group-border-color: rgba(255,255,255,.35);">
+        {% for item in checklist.items %}
+        <div class="list-group-item" style="border-top-width:1px !important;">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">{{ loop.index }}. {{ item.item_text }}</span>
+                {% if item.is_completed %}
+                <span class="badge bg-success">Выполнено</span>
+                {% endif %}
+            </div>
+            <small class="text-secondary">
+                {% if item.unit %}Обозначение: {{ item.unit }} • {% endif %}
+                {% if item.quantity or item.current_quantity %}Кол-во: {{ item.current_quantity or 0 }} / {{ item.quantity or 0 }}{% endif %}
+            </small>
+            {% if item.notes %}
+            <div class="mt-1">
+                <small class="text-muted">{{ item.notes }}</small>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% elif checklist %}
+<div class="mobile-card">
+    <div class="mobile-card-text">Чек‑лист пуст</div>
+</div>
+{% else %}
+<div class="mobile-card">
+    <div class="mobile-card-text">Для объекта ещё нет чек‑листа</div>
+</div>
+{% endif %}
+{% endblock %}
