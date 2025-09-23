@@ -19,10 +19,10 @@
 <div class="mobile-card">
     <div class="mobile-card-title">Действия</div>
     <div class="d-flex gap-2 flex-wrap">
-        <a href="{{ url_for('objects.supports_list', object_id=object.id) }}" class="btn btn-outline-primary flex-fill">Опоры</a>
-        <a href="{{ url_for('objects.trenches_list', object_id=object.id) }}" class="btn btn-outline-primary flex-fill">Траншеи</a>
-        <a href="{{ url_for('objects.reports_list', object_id=object.id) }}" class="btn btn-outline-secondary flex-fill">Отчёты</a>
-        <a href="{{ url_for('objects.planned_works_list', object_id=object.id) }}" class="btn btn-outline-secondary flex-fill">Работы</a>
+        <a href="{{ url_for('objects.supports_list', object_id=object.id) }}" class="btn btn-primary flex-fill mobile-action-btn">Опоры</a>
+        <a href="{{ url_for('objects.trenches_list', object_id=object.id) }}" class="btn btn-primary flex-fill mobile-action-btn">Траншеи</a>
+        <a href="{{ url_for('objects.reports_list', object_id=object.id) }}" class="btn btn-primary flex-fill mobile-action-btn">Отчёты</a>
+        <a href="{{ url_for('objects.planned_works_list', object_id=object.id) }}" class="btn btn-primary flex-fill mobile-action-btn">Работы</a>
     </div>
     {# Кнопка назад скрыта для мобильной версии. Навигация назад осуществляется стрелкой в шапке. #}
 </div>
@@ -47,6 +47,27 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (e) { /* noop */ }
 });
 </script>
+<style>
+/* Контрастные кнопки действий для обеих тем */
+.mobile-action-btn {
+    min-height: 44px;
+    font-weight: 600;
+    border-radius: 12px;
+    border: none;
+    color: #fff !important;
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+    box-shadow: 0 6px 18px rgba(13,110,253,.35);
+}
+.mobile-action-btn:active { transform: translateY(0); }
+.mobile-action-btn:hover { filter: brightness(1.05); }
+
+/* Тёмная тема: чуть мягче, но читаемо */
+[data-bs-theme="dark"] .mobile-action-btn,
+.dark .mobile-action-btn {
+    background: linear-gradient(135deg, #1e6ffb 0%, #155ed6 100%) !important;
+    box-shadow: 0 8px 22px rgba(13,110,253,.45);
+}
+</style>
 {% endblock %}
 
 
