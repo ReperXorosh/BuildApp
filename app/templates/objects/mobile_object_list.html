@@ -5,7 +5,7 @@
 
 {% block mobile_header_actions %}
 {% if current_user.role in ['Инженер ПТО', 'Зам. директор', 'Ген. директор'] %}
-<a class="mobile-header-btn" href="{{ url_for('objects.add_object') }}" title="Добавить объект" role="button">
+<a class="mobile-header-btn" href="{{ url_for('objects.add_object') }}" title="Добавить объект" role="button" aria-label="Добавить объект">
     <svg fill="currentColor" viewBox="0 0 16 16">
         <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
     </svg>
@@ -15,213 +15,38 @@
 
 {% block content %}
 
-{% if objects %}
+{% if objects and objects|length > 0 %}
 <div class="list-group">
     {% for obj in objects %}
-    <a class="list-group-item list-group-item-action" href="{{ url_for('objects.object_detail', object_id=obj.id) }}">
-        <div class="d-flex justify-content-between">
-            <span class="fw-semibold">{{ obj.name }}</span>
+    <a class="list-group-item list-group-item-action py-3" href="{{ url_for('objects.object_detail', object_id=obj.id) }}">
+        <div class="d-flex w-100 justify-content-between">
+            <h6 class="mb-1">{{ obj.name }}</h6>
             {% if obj.status %}
-            <small class="text-muted">{{ obj.status }}</small>
+            <small class="text-body-secondary">{{ obj.status }}</small>
             {% endif %}
         </div>
         {% if obj.location %}
-        <small class="text-muted">{{ obj.location }}</small>
+        <small class="text-body-secondary">{{ obj.location }}</small>
         {% endif %}
     </a>
     {% endfor %}
 </div>
 {% else %}
-<div class="mobile-card-text">Пока нет объектов</div>
+<div class="text-center py-5 text-body-secondary">Пока нет объектов</div>
+{% endif %}
+
+{% if pagination and (pagination.pages or 0) > 1 %}
+<nav aria-label="Навигация по списку объектов" class="mt-3">
+    <ul class="pagination justify-content-center mb-0">
+        <li class="page-item {{ 'disabled' if not pagination.has_prev else '' }}">
+            <a class="page-link" href="{{ url_for('objects.object_list', page=pagination.prev_num, per_page=request.args.get('per_page', 50)) }}" tabindex="-1" aria-disabled="{{ 'true' if not pagination.has_prev else 'false' }}">Предыдущая</a>
+        </li>
+        <li class="page-item disabled"><span class="page-link">Стр. {{ pagination.page }} из {{ pagination.pages }}</span></li>
+        <li class="page-item {{ 'disabled' if not pagination.has_next else '' }}">
+            <a class="page-link" href="{{ url_for('objects.object_list', page=pagination.next_num, per_page=request.args.get('per_page', 50)) }}">Следующая</a>
+        </li>
+    </ul>
+</nav>
 {% endif %}
 
 {% endblock %}
-
-<script>
-// Проверяем права пользователя
-const userRole = '{{ current_user.role or "" }}'.toUpperCase();
-const isAdmin = userRole.includes('АДМИН') || userRole.includes('ДИРЕКТОР') || userRole.includes('ГЕН');
-
-// Только для администраторов добавляем функциональность удаления
-if (isAdmin) {
-    let longPressTimer = null;
-    let currentObjectId = null;
-    let currentObjectName = null;
-
-    // Показываем модальное окно удаления
-    function showDeleteModal() {
-        const modalElement = document.getElementById('deleteObjectModal');
-        if (modalElement) {
-            document.getElementById('objectNameToDelete').textContent = currentObjectName;
-            modalElement.style.display = 'block';
-            modalElement.classList.add('show');
-        }
-    }
-
-    // Скрываем модальное окно
-    function hideDeleteModal() {
-        const modalElement = document.getElementById('deleteObjectModal');
-        if (modalElement) {
-            modalElement.style.display = 'none';
-            modalElement.classList.remove('show');
-        }
-    }
-
-    // Обработчик подтверждения удаления
-    function confirmDelete() {
-        if (currentObjectId) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/objects/${currentObjectId}/delete`;
-            document.body.appendChild(form);
-            form.submit();
-        }
-    }
-
-    // Инициализация после загрузки DOM
-    document.addEventListener('DOMContentLoaded', function() {
-        // Обработчики кнопок модального окна
-        const confirmBtn = document.getElementById('confirmDeleteBtn');
-        if (confirmBtn) {
-            confirmBtn.onclick = confirmDelete;
-        }
-        
-        const cancelBtn = document.querySelector('[data-bs-dismiss="modal"]');
-        if (cancelBtn) {
-            cancelBtn.onclick = hideDeleteModal;
-        }
-        
-        // Обработчики к карточкам объектов
-        const objectCards = document.querySelectorAll('.object-card');
-        
-        objectCards.forEach(card => {
-            // Долгое нажатие для мобильных
-            card.addEventListener('touchstart', function(e) {
-                currentObjectId = this.dataset.objectId;
-                currentObjectName = this.dataset.objectName;
-                
-                longPressTimer = setTimeout(() => {
-                    e.preventDefault();
-                    this.classList.add('long-press');
-                    showDeleteModal();
-                }, 800);
-            });
-            
-            card.addEventListener('touchend', function() {
-                clearTimeout(longPressTimer);
-                this.classList.remove('long-press');
-            });
-            
-            card.addEventListener('touchcancel', function() {
-                clearTimeout(longPressTimer);
-                this.classList.remove('long-press');
-            });
-            
-            // Правый клик для десктопа
-            card.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-                currentObjectId = this.dataset.objectId;
-                currentObjectName = this.dataset.objectName;
-                showDeleteModal();
-            });
-        });
-    });
-}
-</script>
-
-<style>
-/* Четкие стили для карточек объектов */
-.object-card {
-    display: block;
-    text-decoration: none;
-    color: inherit;
-    background: var(--bs-body-bg);
-    border: 2px solid var(--bs-border-color);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
-
-.object-card:hover {
-    text-decoration: none;
-    color: inherit;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    border-color: var(--bs-primary);
-}
-
-.object-card:active {
-    transform: scale(0.98);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-.object-card:focus {
-    outline: 2px solid var(--bs-primary);
-    outline-offset: 2px;
-}
-
-/* Стили для модального окна */
-.modal-content {
-    border-radius: 12px;
-    border: none;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.modal-header {
-    border-radius: 12px 12px 0 0;
-}
-
-.modal-footer {
-    border-radius: 0 0 12px 12px;
-}
-
-/* Анимация для долгого нажатия */
-@keyframes longPressPulse {
-    0% { 
-        transform: scale(1);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-    50% { 
-        transform: scale(1.02);
-        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.2);
-    }
-    100% { 
-        transform: scale(1);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-}
-
-.object-card.long-press {
-    animation: longPressPulse 0.3s ease-in-out;
-    border-color: #dc3545 !important;
-    background: rgba(220, 53, 69, 0.05) !important;
-}
-
-/* Темная тема */
-@media (prefers-color-scheme: dark) {
-    .object-card {
-        background: var(--bs-dark);
-        border-color: var(--bs-border-color);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    }
-    
-    .object-card:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    }
-}
-
-[data-bs-theme="dark"] .object-card,
-.dark .object-card {
-    background: var(--bs-dark);
-    border-color: var(--bs-border-color);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-[data-bs-theme="dark"] .object-card:hover,
-.dark .object-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
-</style>
