@@ -74,7 +74,7 @@
 {% endif %}
 <!-- Модалка добавления количества -->
 <div class="modal fade" id="addQuantityModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Добавить количество</h5>
@@ -122,7 +122,11 @@ function openAddQuantityModal(itemId, objectId, currentQuantity, plannedQuantity
   document.getElementById('totalQuantity').textContent = `${currentQuantity} ${unit}`;
   // Закрываем мобильное меню, если открыто, чтобы не блокировало клики
   try { document.getElementById('mobileMenu')?.classList.remove('open'); document.getElementById('mobileMenuOverlay')?.classList.remove('active'); document.body.style.overflow=''; } catch(e){}
-  const m = new bootstrap.Modal(document.getElementById('addQuantityModal')); m.show();
+  const modalEl = document.getElementById('addQuantityModal');
+  const m = new bootstrap.Modal(modalEl, { backdrop: true, focus: true }); m.show();
+  // Фиксация скролла под модалкой на iOS
+  document.body.style.overflow = 'hidden';
+  modalEl.addEventListener('hidden.bs.modal', ()=>{ document.body.style.overflow = ''; }, { once:true });
   input.addEventListener('input', function(){
     const v = parseFloat(this.value)||0; const max = parseFloat(this.max)||0; if (v>max) this.value = max;
     const total = currentQuantity + (parseFloat(this.value)||0);
