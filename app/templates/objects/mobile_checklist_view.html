@@ -123,15 +123,21 @@ function openAddQuantityModal(itemId, objectId, currentQuantity, plannedQuantity
   // Закрываем мобильное меню, если открыто, чтобы не блокировало клики
   try { document.getElementById('mobileMenu')?.classList.remove('open'); document.getElementById('mobileMenuOverlay')?.classList.remove('active'); document.body.style.overflow=''; } catch(e){}
   const modalEl = document.getElementById('addQuantityModal');
-  const m = new bootstrap.Modal(modalEl, { backdrop: true, focus: true }); m.show();
+  // Переносим модалку в <body>, чтобы исключить влияние контейнеров с overflow/transform
+  if (modalEl && modalEl.parentElement !== document.body) {
+    document.body.appendChild(modalEl);
+  }
+  const m = new bootstrap.Modal(modalEl, { backdrop: 'static', focus: true, keyboard: true }); m.show();
   // Фиксация скролла под модалкой на iOS
   document.body.style.overflow = 'hidden';
   modalEl.addEventListener('hidden.bs.modal', ()=>{ document.body.style.overflow = ''; }, { once:true });
-  input.addEventListener('input', function(){
+  const onInput = function(){
     const v = parseFloat(this.value)||0; const max = parseFloat(this.max)||0; if (v>max) this.value = max;
     const total = currentQuantity + (parseFloat(this.value)||0);
     document.getElementById('totalQuantity').textContent = `${total} ${unit}`;
-  }, { once: true });
+  };
+  input.addEventListener('input', onInput);
+  modalEl.addEventListener('hidden.bs.modal', ()=>{ input.removeEventListener('input', onInput); }, { once:true });
 }
 
 function openAddQuantityModalFromData(el){
