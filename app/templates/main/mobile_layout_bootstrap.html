@@ -145,10 +145,10 @@
             pointer-events: none;
         }
         /* Дополнительная заливка для overscroll/pull-to-refresh областей */
-        /* Убираем разрез при протяжке: рисуем фоновый градиент на body
-           верхняя полоса совпадает с цветом шапки и видна только при overscroll */
-        html, body { background: none; }
-        body { background-image: linear-gradient(#007bff 0, #007bff 220px, var(--bs-body-bg) 220px); background-attachment: local; }
+        /* Решение «разреза»: у корневого html фон как у шапки (виден только при overscroll),
+           у body остаётся обычный фон приложения */
+        html { background-color: #007bff; }
+        body { background-color: var(--bs-body-bg); }
         
         .mobile-header-content {
             display: flex;
