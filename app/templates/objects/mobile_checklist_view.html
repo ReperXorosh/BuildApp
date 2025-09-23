@@ -26,7 +26,7 @@
     <div class="mobile-card-title">Позиции чек‑листа</div>
     <div class="list-group" style="--bs-list-group-border-color: rgba(255,255,255,.35);">
         {% for item in checklist.items %}
-        <div class="list-group-item" id="item-{{ item.id }}" style="border-top-width:1px !important; {% if item.is_completed %}background: var(--bs-success-bg-subtle);{% endif %}">
+        <div class="list-group-item{% if item.is_completed %} completed{% endif %}" id="item-{{ item.id }}" style="border-top-width:1px !important;">
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <span class="fw-semibold">{{ loop.index }}. {{ item.item_text }}</span>
                 {% if item.is_completed %}<span class="badge bg-success">Выполнено</span>{% endif %}
@@ -120,6 +120,8 @@ function openAddQuantityModal(itemId, objectId, currentQuantity, plannedQuantity
   const input = document.getElementById('modalAddQuantity');
   input.max = maxAdd; input.value = '';
   document.getElementById('totalQuantity').textContent = `${currentQuantity} ${unit}`;
+  // Закрываем мобильное меню, если открыто, чтобы не блокировало клики
+  try { document.getElementById('mobileMenu')?.classList.remove('open'); document.getElementById('mobileMenuOverlay')?.classList.remove('active'); document.body.style.overflow=''; } catch(e){}
   const m = new bootstrap.Modal(document.getElementById('addQuantityModal')); m.show();
   input.addEventListener('input', function(){
     const v = parseFloat(this.value)||0; const max = parseFloat(this.max)||0; if (v>max) this.value = max;
@@ -156,5 +158,7 @@ function deleteItem(itemId, objectId){
 <style>
 /* Не переносим значение количества на две строки */
 .quantity-badge { white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* Подсветка выполненных элементов */
+.list-group-item.completed { background: var(--bs-success-bg-subtle); }
 </style>
 {% endblock %}
