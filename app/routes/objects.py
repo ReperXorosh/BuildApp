@@ -126,7 +126,18 @@ def inject_gettext():
 @login_required
 def object_list():
     """Список всех объектов"""
-    objects = Object.query.order_by(Object.created_at.desc()).all()
+    # Пагинация и выбор только нужных полей для ускорения ответа
+    from sqlalchemy.orm import load_only
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 50, type=int)
+    per_page = max(10, min(per_page, 100))
+
+    query = Object.query.options(
+        load_only(Object.id, Object.name, Object.location, Object.status, Object.created_at)
+    ).order_by(Object.created_at.desc())
+
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    objects = pagination.items
     
     # Логируем просмотр списка объектов
     ActivityLog.log_action(
@@ -142,9 +153,9 @@ def object_list():
     # Определяем, нужно ли использовать мобильный шаблон
     from ..utils.mobile_detection import is_mobile_device
     if is_mobile_device():
-        return render_template('objects/mobile_object_list.html', objects=objects, active_page='objects')
+        return render_template('objects/mobile_object_list.html', objects=objects, active_page='objects', pagination=pagination)
     else:
-        return render_template('objects/object_list.html', objects=objects, active_page='objects')
+        return render_template('objects/object_list.html', objects=objects, active_page='objects', pagination=pagination)
 
 @objects_bp.route('/planned-works-overview')
 @login_required
