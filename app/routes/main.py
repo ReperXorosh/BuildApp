@@ -123,6 +123,10 @@ def log_theme_change():
 @main.route('/sign-in')
 @main.route('/')
 def sign_in():
+    # Если пользователь уже аутентифицирован (включая remember-cookie), сразу в приложение
+    from flask_login import current_user
+    if current_user.is_authenticated:
+        return redirect(url_for('objects.object_list'))
     # Определяем, нужно ли использовать мобильный шаблон
     from ..utils.mobile_detection import is_mobile_device
     # Проверяем параметр mobile=1 или определяем по User-Agent

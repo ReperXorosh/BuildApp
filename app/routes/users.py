@@ -55,6 +55,9 @@ from werkzeug.security import check_password_hash
 
 @user.route('/login', methods=['GET', 'POST'])
 def login():
+    # Если пользователь уже аутентифицирован (включая remember-cookie), сразу в приложение
+    if current_user.is_authenticated:
+        return redirect(url_for('objects.object_list'))
     if request.method == 'POST':
         login = request.form['login'].strip()  # Удаляем пробелы в начале и конце
         password = request.form['password'].strip()  # Удаляем пробелы в начале и конце
