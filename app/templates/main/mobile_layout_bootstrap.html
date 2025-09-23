@@ -135,12 +135,17 @@
             align-items: center;
             justify-content: space-between;
             position: relative;
-            padding-right: 56px; /* резерв под кнопку справа, чтобы заголовок не заходил под плюс */
         }
-        /* Кнопка действий (плюс) фиксируется в правом верхнем углу хедера */
-        .mobile-header-content .mobile-header-btn {
+        /* Резервируем место под кнопку в самой шапке и учитываем safe area */
+        .mobile-header {
+            padding-right: calc(56px + env(safe-area-inset-right, 0px));
+            padding-left: calc(16px + env(safe-area-inset-left, 0px));
+        }
+
+        /* Кнопка действий (плюс) позиционируется относительно всей шапки, у правого края экрана */
+        .mobile-header .mobile-header-btn {
             position: absolute;
-            right: 16px;
+            right: calc(16px + env(safe-area-inset-right, 0px));
             top: 50%;
             transform: translateY(-50%);
             margin-left: 0;
@@ -561,37 +566,10 @@
             padding-left: 16px;
             padding-right: 16px;
         }
-
-        /* Загрузочный экран */
-        .mobile-loader-overlay {
-            position: fixed;
-            inset: 0;
-            background: var(--bs-body-bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            transition: opacity .25s ease;
-        }
-        .mobile-loader-overlay.hidden { opacity: 0; pointer-events: none; }
-        .mobile-loader {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-        }
-        .mobile-loader img { width: 96px; height: auto; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,.2); }
-        .mobile-loader .spinner-border { width: 2.5rem; height: 2.5rem; }
     </style>
 </head>
 <body>
     <!-- Загрузочный экран -->
-    <div id="mobileLoader" class="mobile-loader-overlay">
-        <div class="mobile-loader">
-            <img src="/static/img/logo.jpg" alt="Logo">
-            <div class="spinner-border text-primary" role="status" aria-label="Загрузка"></div>
-        </div>
-    </div>
     <div class="mobile-app">
         <!-- Мобильный хедер -->
         <header class="mobile-header">
@@ -753,18 +731,7 @@
     <!-- Мобильное меню JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Скрываем загрузчик после рендера
-            const loader = document.getElementById('mobileLoader');
-            if (loader) {
-                setTimeout(() => loader.classList.add('hidden'), 150);
-                // Показ во время переходов по ссылкам
-                document.body.addEventListener('click', function(e) {
-                    const a = e.target.closest('a');
-                    if (a && a.getAttribute('href') && !a.getAttribute('target') && a.getAttribute('href').charAt(0) !== '#') {
-                        loader.classList.remove('hidden');
-                    }
-                }, { capture: true });
-            }
+            // Загрузочный экран удалён
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');
             const mobileMenu = document.getElementById('mobileMenu');
             const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
