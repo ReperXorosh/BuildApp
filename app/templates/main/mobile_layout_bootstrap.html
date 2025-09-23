@@ -132,6 +132,18 @@
             left: 0;
             right: 0;
         }
+        /* Заливка области статус-бара, чтобы не было разреза при pull-to-refresh */
+        .mobile-statusbar-fill {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: env(safe-area-inset-top, 0px);
+            height: constant(safe-area-inset-top, 0px);
+            background: #007bff;
+            z-index: 1001;
+            pointer-events: none;
+        }
         
         .mobile-header-content {
             display: flex;
@@ -226,6 +238,10 @@
             -webkit-overflow-scrolling: touch;
             height: calc(100vh - 60px); /* Высота экрана минус хедер */
         }
+
+        /* Во время показа клавиатуры скрываем нижнюю панель, чтобы она не прыгала */
+        .keyboard-open .mobile-nav { transform: translateY(100%); }
+        .keyboard-open .mobile-content { padding-bottom: 16px; height: auto; }
         
         /* Мобильные карточки - используем Bootstrap стили */
         .mobile-card {
@@ -592,6 +608,7 @@
 <body>
     <!-- Загрузочный экран -->
     <div class="mobile-app">
+        <div class="mobile-statusbar-fill"></div>
         <!-- Мобильный хедер -->
         <header class="mobile-header">
             <div class="mobile-header-content">
@@ -765,6 +782,7 @@
             const mobileMenuClose = document.getElementById('mobileMenuClose');
             const mobileThemeToggle = document.getElementById('mobileThemeToggle');
             const mobileThemeIcon = document.getElementById('mobileThemeIcon');
+            const inputs = document.querySelectorAll('input, textarea');
             
             function openMobileMenu() {
                 mobileMenu.classList.add('open');
@@ -914,6 +932,23 @@
                     toggleTheme();
                 });
             }
+
+            // Фиксация нижней панели: убираем её на время показа клавиатуры
+            function setKeyboardOpen(isOpen){
+                document.body.classList.toggle('keyboard-open', !!isOpen);
+            }
+            // Используем focusin/focusout как кроссплатформенный способ
+            document.addEventListener('focusin', function(e){
+                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+                    setKeyboardOpen(true);
+                }
+            });
+            document.addEventListener('focusout', function(e){
+                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+                    // Небольшая задержка, чтобы не мигало при переходе фокуса между полями
+                    setTimeout(() => setKeyboardOpen(false), 50);
+                }
+            });
         });
     </script>
 </body>
