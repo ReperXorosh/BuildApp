@@ -135,6 +135,7 @@
             align-items: center;
             justify-content: space-between;
             position: relative;
+            padding-right: 56px; /* резерв под кнопку, чтобы заголовок не наезжал */
         }
         /* Резервируем место под кнопку в самой шапке и учитываем safe area */
         .mobile-header {
@@ -174,7 +175,12 @@
             align-items: center;
             justify-content: center;
             transition: all 0.2s ease;
-            position: static; /* базовое, переопределяется правилом выше внутри .mobile-header-content */
+            position: absolute; /* фиксируем около правого края */
+            right: calc(16px + env(safe-area-inset-right, 0px));
+            right: calc(16px + constant(safe-area-inset-right, 0px));
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1001;
         }
         
         .mobile-header-btn:hover {
