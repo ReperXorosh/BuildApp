@@ -9,4 +9,11 @@ migrate = Migrate()
 @login_manager.user_loader
 def load_user(user_id):
     from .models.users import Users
-    return Users.query.get(user_id)
+    # Flask-Login хранит user_id как строку; в БД первичный ключ UUID
+    try:
+        import uuid
+        uuid_val = uuid.UUID(str(user_id))
+    except Exception:
+        # Если приведение не удалось, пробуем как есть
+        uuid_val = user_id
+    return Users.query.get(uuid_val)
