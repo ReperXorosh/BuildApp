@@ -15,6 +15,25 @@
 
 {% block content %}
 
+<style>
+    .list-group-item {
+        border-width: 1px !important;
+        border-color: rgba(var(--bs-primary-rgb), .35) !important;
+        color: var(--bs-body-color) !important;
+        background: var(--bs-body-bg) !important;
+    }
+    .list-group .list-group-item:not(:first-child) {
+        border-top-width: 1px !important;
+    }
+    .list-group-item h6 {
+        color: var(--bs-emphasis-color) !important;
+        margin: 0;
+    }
+    [data-bs-theme="dark"] .list-group-item {
+        border-color: rgba(var(--bs-primary-rgb), .5) !important;
+    }
+</style>
+
 {% if objects and objects|length > 0 %}
 <div class="list-group">
     {% for obj in objects %}
@@ -22,11 +41,11 @@
         <div class="d-flex w-100 justify-content-between">
             <h6 class="mb-1">{{ obj.name }}</h6>
             {% if obj.status %}
-            <small class="text-body-secondary">{{ obj.status }}</small>
+            <small class="text-secondary">{{ obj.status }}</small>
             {% endif %}
         </div>
         {% if obj.location %}
-        <small class="text-body-secondary">{{ obj.location }}</small>
+        <small class="text-secondary">{{ obj.location }}</small>
         {% endif %}
     </a>
     {% endfor %}
