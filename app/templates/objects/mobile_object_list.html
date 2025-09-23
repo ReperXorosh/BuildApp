@@ -5,97 +5,43 @@
 
 {% block mobile_header_actions %}
 {% if current_user.role in ['Инженер ПТО', 'Зам. директор', 'Ген. директор'] %}
-<button class="mobile-header-btn" onclick="window.location.href='{{ url_for('objects.add_object') }}'" title="Добавить объект">
+<a class="mobile-header-btn" href="{{ url_for('objects.add_object') }}" title="Добавить объект" role="button">
     <svg fill="currentColor" viewBox="0 0 16 16">
         <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
     </svg>
-</button>
+</a>
 {% endif %}
 {% endblock %}
 
 {% block content %}
 
-{% if objects %}
-    {% for obj in objects %}
-    <a href="{{ url_for('objects.object_detail', object_id=obj.id) }}" class="mobile-card object-card" 
-       data-object-id="{{ obj.id }}" 
-       data-object-name="{{ obj.name }}">
-        <div class="mobile-card-title">
-            <svg width="18" height="18" class="me-2" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
-            </svg>
-            {{ obj.name }}
-        </div>
-        <div class="mobile-card-text">
-            <div class="d-flex justify-content-between align-items-start mobile-mb-2">
-                <div style="flex: 1;">
-                    <strong>Статус: {{ obj.status or 'Не указан' }}</strong>
-                </div>
-                <div class="text-end">
-                    <span class="badge bg-{{ 'success' if obj.status == 'Активный' else 'secondary' }}">
-                        {{ obj.status or 'Не указан' }}
-                    </span>
-                </div>
-            </div>
-            
-            {% if obj.location %}
-            <div class="mobile-mt-1">
-                <small class="text-muted">
-                    <svg width="12" height="12" class="me-1" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
-                    </svg>
-                    {{ obj.location }}
-                </small>
-            </div>
-            {% endif %}
-            
-            {% if obj.description %}
-            <div class="mobile-mt-1">
-                <small class="text-muted">{{ obj.description[:100] }}{% if obj.description|length > 100 %}...{% endif %}</small>
-            </div>
-            {% endif %}
-        </div>
-    </a>
-    {% endfor %}
-{% else %}
-    <div class="mobile-card mobile-text-center">
-        <div class="mobile-card-title">Объекты не найдены</div>
-        <div class="mobile-card-text text-center text-muted">
-            <svg width="48" height="48" class="mb-2" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
-            </svg>
-            <p>В системе пока нет объектов</p>
-        </div>
+<div class="mobile-card">
+    <div class="mobile-card-title d-flex justify-content-between align-items-center">
+        Список объектов
+        {% if current_user.role in ['Инженер ПТО', 'Зам. директор', 'Ген. директор'] %}
+        <a href="{{ url_for('objects.add_object') }}" class="btn btn-sm btn-primary">Добавить</a>
+        {% endif %}
     </div>
-{% endif %}
-
-<!-- Модальное окно подтверждения удаления -->
-<div class="modal fade" id="deleteObjectModal" tabindex="-1" aria-labelledby="deleteObjectModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="deleteObjectModalLabel">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    Удаление объекта
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+    {% if objects %}
+    <div class="list-group">
+        {% for obj in objects %}
+        <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+           href="{{ url_for('objects.object_detail', object_id=obj.id) }}">
+            <div class="me-2">
+                <div class="fw-semibold">{{ obj.name }}</div>
+                {% if obj.location %}
+                <small class="text-muted">{{ obj.location }}</small>
+                {% endif %}
             </div>
-            <div class="modal-body">
-                <p>Вы уверены, что хотите удалить объект <strong id="objectNameToDelete"></strong>?</p>
-                <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    <strong>Внимание!</strong> Это действие нельзя отменить. Все связанные данные (опоры, траншеи, отчёты, работы) также будут удалены.
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
-                    <i class="bi bi-trash me-1"></i>
-                    Удалить
-                </button>
-            </div>
-        </div>
+            {% if obj.status %}
+            <span class="badge {{ 'bg-success' if obj.status == 'Активный' else 'bg-secondary' }}">{{ obj.status }}</span>
+            {% endif %}
+        </a>
+        {% endfor %}
     </div>
+    {% else %}
+    <div class="mobile-card-text">Пока нет объектов</div>
+    {% endif %}
 </div>
 
 {% endblock %}
