@@ -12,6 +12,7 @@ from flask import current_app
 
 from app.extensions import db
 from app.models.objects import PlannedWork, DailyReport, Object, WorkExecution
+from app.models.settings import SystemSetting
 from app.utils.timezone_utils import get_moscow_now
 
 # Настройка логирования
@@ -63,7 +64,7 @@ class TaskScheduler:
         self.scheduler.start()
         logger.info("Планировщик задач запущен")
         
-        # Немедленно выполняем задачи при запуске
+        # Немедленно выполняем задачи при запуске (облегченные)
         self._run_initial_tasks()
     
     def _register_jobs(self):
@@ -112,13 +113,13 @@ class TaskScheduler:
         try:
             logger.info("Выполняем начальные задачи...")
             
-            # Обновляем просроченные работы
+            # Обновляем просроченные работы (это быстро)
             updated_count = self.update_overdue_works()
             logger.info(f"Обновлено просроченных работ при запуске: {updated_count}")
             
-            # Генерируем отчеты за все пропущенные дни (включая сегодня)
-            generated_count = self.generate_missing_reports()
-            logger.info(f"Сгенерировано пропущенных отчетов при запуске: {generated_count}")
+            # Легкая проверка пропущенных отчетов: только за последние 1-2 дня
+            generated_count = self.generate_missing_reports(light_mode=True)
+            logger.info(f"Сгенерировано пропущенных отчетов при запуске (light): {generated_count}")
             
         except Exception as e:
             logger.error(f"Ошибка при выполнении начальных задач: {e}")
@@ -263,8 +264,11 @@ class TaskScheduler:
                 logger.error(f"Ошибка при генерации отчетов за сегодня: {e}")
                 return 0
     
-    def generate_missing_reports(self):
-        """Генерация отчетов за все пропущенные дни (включая сегодня)"""
+    def generate_missing_reports(self, light_mode: bool = False):
+        """Генерация отчетов за пропущенные дни.
+        light_mode=True: ограничиться небольшим диапазоном (например, последние 2 дня).
+        В полноценном режиме использовать сохраненную последнюю обработанную дату.
+        """
         with self.app.app_context():
             try:
                 logger.info("Начинаем генерацию пропущенных отчетов...")
@@ -277,14 +281,26 @@ class TaskScheduler:
                 
                 # Определяем диапазон дат для проверки
                 today = get_moscow_now().date()
-                
-                # Находим самую раннюю дату отчета в системе
-                earliest_report = DailyReport.query.order_by(DailyReport.report_date.asc()).first()
-                if earliest_report:
-                    start_date = earliest_report.report_date
+
+                if light_mode:
+                    # Проверяем только вчера и сегодня
+                    start_date = today - timedelta(days=2)
                 else:
-                    # Если отчетов нет, начинаем с недели назад
-                    start_date = today - timedelta(days=7)
+                    # Читаем последнюю полностью обработанную дату
+                    last_processed = SystemSetting.get('daily_reports_last_processed_date')
+                    if last_processed:
+                        try:
+                            last_dt = datetime.strptime(last_processed, '%Y-%m-%d').date()
+                            start_date = last_dt + timedelta(days=1)
+                        except Exception:
+                            start_date = today - timedelta(days=7)
+                    else:
+                        # Если нет записи — начинаем с ближайшей даты в таблице, но не раньше чем 14 дней назад
+                        earliest_report = DailyReport.query.order_by(DailyReport.report_date.asc()).first()
+                        if earliest_report:
+                            start_date = max(earliest_report.report_date, today - timedelta(days=14))
+                        else:
+                            start_date = today - timedelta(days=7)
                 
                 # Проверяем каждый день от start_date до сегодня включительно
                 current_date = start_date
@@ -315,6 +331,10 @@ class TaskScheduler:
                             continue
                     
                     current_date += timedelta(days=1)
+                
+                # В полном режиме фиксируем последнюю обработанную дату
+                if not light_mode:
+                    SystemSetting.set('daily_reports_last_processed_date', today.strftime('%Y-%m-%d'))
                 
                 logger.info(f"Всего сгенерировано пропущенных отчетов: {total_generated}")
                 return total_generated
