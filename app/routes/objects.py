@@ -1033,6 +1033,11 @@ def checklist_view(object_id):
         method=request.method
     )
     
+    # Уважаем форсирование мобильной версии через параметр ?mobile=1,
+    # чтобы не попадать на десктопный шаблон при переходе из мобильного UI
+    force_mobile = request.args.get('mobile') == '1'
+    if force_mobile:
+        return render_template('objects/checklist_view.html', object=obj, checklist=obj.checklist)
     return render_template('objects/checklist_view.html', object=obj, checklist=obj.checklist)
 
 @objects_bp.route('/<uuid:object_id>/checklist/add-item', methods=['GET', 'POST'])
