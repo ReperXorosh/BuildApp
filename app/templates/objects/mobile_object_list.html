@@ -18,16 +18,15 @@
 {% if objects %}
 <div class="list-group">
     {% for obj in objects %}
-    <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-       href="{{ url_for('objects.object_detail', object_id=obj.id) }}">
-        <div class="me-2">
-            <div class="fw-semibold">{{ obj.name }}</div>
-            {% if obj.location %}
-            <small class="text-muted">{{ obj.location }}</small>
+    <a class="list-group-item list-group-item-action" href="{{ url_for('objects.object_detail', object_id=obj.id) }}">
+        <div class="d-flex justify-content-between">
+            <span class="fw-semibold">{{ obj.name }}</span>
+            {% if obj.status %}
+            <small class="text-muted">{{ obj.status }}</small>
             {% endif %}
         </div>
-        {% if obj.status %}
-        <span class="badge {{ 'bg-success' if obj.status == 'Активный' else 'bg-secondary' }}">{{ obj.status }}</span>
+        {% if obj.location %}
+        <small class="text-muted">{{ obj.location }}</small>
         {% endif %}
     </a>
     {% endfor %}
