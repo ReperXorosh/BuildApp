@@ -5,7 +5,7 @@
 {% block mobile_title %}Добавить позицию{% endblock %}
 
 {% block content %}
-<div class="mobile-card">
+<div class="mobile-card add-object-card">
     <div class="mobile-card-title d-flex align-items-center">
         <svg width="18" height="18" class="me-2" fill="currentColor" viewBox="0 0 16 16">
             <path d="M10.854 6.146a.5.5 0 0 0-.708 0L7 9.293 5.854 8.146a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0l3.5-3.5a.5.5 0 0 0 0-.708z"/>
@@ -16,26 +16,25 @@
         Объект: <a href="{{ url_for('objects.object_detail', object_id=object.id) }}">{{ object.name }}</a>
     </div>
     <form method="POST" id="add-item-form" novalidate>
-        <div class="mobile-form-group">
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label">Текст позиции *</label>
-            <input type="text" name="item_text" id="item_text" class="mobile-form-control" maxlength="120" placeholder="Например, Монтаж опоры" required>
+            <input type="text" name="item_text" id="item_text" class="mobile-form-control mobile-form-control-lg" maxlength="120" placeholder="Например, Монтаж опоры" required>
             <div class="invalid-feedback" style="display:none" id="text-error">Введите текст позиции.</div>
         </div>
-        <div class="mobile-form-group">
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label">Плановое количество</label>
             <input type="number" step="0.01" min="0" name="quantity" id="quantity" class="mobile-form-control" value="1.0">
         </div>
-        <div class="mobile-form-group">
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label">Текущее количество</label>
             <input type="number" step="0.01" min="0" name="current_quantity" id="current_quantity" class="mobile-form-control" value="0.0">
         </div>
-        <div class="mobile-form-group">
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label">Примечания</label>
             <textarea name="notes" id="notes" class="mobile-form-control" rows="3" maxlength="300" placeholder="Дополнительная информация"></textarea>
             <div class="small text-muted" id="notes-counter">0 / 300</div>
         </div>
         <button type="submit" class="mobile-btn mobile-btn-primary" id="submit-btn">Сохранить позицию</button>
-        <a href="{{ url_for('objects.checklist_view', object_id=object.id) }}" class="mobile-btn mobile-btn-outline">Назад</a>
     </form>
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -86,6 +85,20 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+<style>
+/* Локальные правки для светлой темы — уравниваем стиль со страницей добавления объекта */
+[data-bs-theme="light"] .add-object-card { background: #ffffff; color: #0f172a; }
+[data-bs-theme="light"] .mobile-form-label { color: #111827; }
+[data-bs-theme="light"] .mobile-form-control,
+[data-bs-theme="light"] .mobile-form-control-lg {
+    background: #ffffff;
+    border-color: #d1d5db;
+    color: #111827;
+}
+[data-bs-theme="light"] .mobile-form-control::placeholder,
+[data-bs-theme="light"] .mobile-form-control-lg::placeholder { color: #6b7280; }
+[data-bs-theme="light"] .mobile-card-title { color: #0f172a; }
+</style>
 {% endblock %}
 
 
