@@ -9,10 +9,6 @@
   <div class="mobile-card-title text-center">Добавить отчёт</div>
 
   <form method="POST" id="add-report-form" novalidate>
-    <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
-      <label class="mobile-form-label" for="report_number">Номер отчёта *</label>
-      <input type="text" class="mobile-form-control mobile-form-control-lg" id="report_number" name="report_number" placeholder="Например, DR-001" maxlength="40" required>
-    </div>
 
     <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
       <label class="mobile-form-label" for="title">Заголовок *</label>
@@ -26,7 +22,7 @@
 
     <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
       <label class="mobile-form-label" for="content">Содержимое</label>
-      <textarea class="mobile-form-control" id="content" name="content" rows="4" placeholder="Текст отчёта"></textarea>
+      <textarea class="mobile-form-control" id="content" name="content" rows="3" placeholder="Текст отчёта"></textarea>
     </div>
 
     <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
@@ -34,6 +30,7 @@
       <textarea class="mobile-form-control" id="notes" name="notes" rows="2" maxlength="300" placeholder="Дополнительно"></textarea>
     </div>
 
+    <input type="hidden" id="report_number" name="report_number" value="">
     <div class="mobile-mt-4">
       <button type="submit" class="mobile-btn mobile-btn-primary w-100" id="submit-btn">Сохранить отчёт</button>
     </div>
