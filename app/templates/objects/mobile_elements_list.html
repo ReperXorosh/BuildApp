@@ -3,6 +3,11 @@
 
 {% block title %}Элементы: {{ object.name }}{% endblock %}
 {% block mobile_title %}Элементы{% endblock %}
+{% block mobile_header_actions %}
+<a href="{{ url_for('objects.add_element', object_id=object.id) }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg"></i>
+</a>
+{% endblock %}
 
 {% block content %}
 <div class="mobile-card">
