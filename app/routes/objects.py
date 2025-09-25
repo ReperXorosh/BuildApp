@@ -950,6 +950,8 @@ def reports_list(object_id):
 def add_report(object_id):
     """Добавление отчёта"""
     obj = Object.query.get_or_404(object_id)
+    from ..utils.mobile_detection import is_mobile_device
+    is_mobile = is_mobile_device()
     
     if request.method == 'POST':
         report_number = request.form.get('report_number', '').strip()
@@ -961,7 +963,7 @@ def add_report(object_id):
         
         if not report_number or not title:
             flash('Номер отчёта и заголовок обязательны для заполнения', 'error')
-            return render_template('objects/add_report.html', object=obj, today_date=datetime.now().strftime('%Y-%m-%d'))
+            return render_template('objects/mobile_add_report.html' if is_mobile else 'objects/add_report.html', object=obj, today_date=datetime.now().strftime('%Y-%m-%d'))
         
         # Преобразуем дату
         if report_date:
@@ -998,7 +1000,7 @@ def add_report(object_id):
         flash('Отчёт успешно добавлен', 'success')
         return redirect(url_for('objects.reports_list', object_id=object_id))
     
-    return render_template('objects/add_report.html', object=obj, today_date=datetime.now().strftime('%Y-%m-%d'))
+    return render_template('objects/mobile_add_report.html' if is_mobile else 'objects/add_report.html', object=obj, today_date=datetime.now().strftime('%Y-%m-%d'))
 
 
 

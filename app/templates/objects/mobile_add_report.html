@@ -1,0 +1,122 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'objects' %}
+
+{% block title %}Добавить отчёт{% endblock %}
+{% block mobile_title %}Новый отчёт{% endblock %}
+
+{% block content %}
+<div class="mobile-card add-object-card">
+  <div class="mobile-card-title text-center">Добавить отчёт</div>
+
+  <form method="POST" id="add-report-form" novalidate>
+    <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+      <label class="mobile-form-label" for="report_number">Номер отчёта *</label>
+      <input type="text" class="mobile-form-control mobile-form-control-lg" id="report_number" name="report_number" placeholder="Например, DR-001" maxlength="40" required>
+    </div>
+
+    <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+      <label class="mobile-form-label" for="title">Заголовок *</label>
+      <input type="text" class="mobile-form-control" id="title" name="title" placeholder="Краткое описание отчёта" maxlength="120" required>
+    </div>
+
+    <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+      <label class="mobile-form-label" for="report_date">Дата отчёта</label>
+      <input type="date" class="mobile-form-control" id="report_date" name="report_date" value="{{ today_date }}">
+    </div>
+
+    <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+      <label class="mobile-form-label" for="content">Содержимое</label>
+      <textarea class="mobile-form-control" id="content" name="content" rows="5" placeholder="Текст отчёта"></textarea>
+    </div>
+
+    <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+      <label class="mobile-form-label" for="notes">Примечания</label>
+      <textarea class="mobile-form-control" id="notes" name="notes" rows="3" maxlength="300" placeholder="Дополнительно"></textarea>
+    </div>
+
+    <div class="mobile-mt-4">
+      <button type="submit" class="mobile-btn mobile-btn-primary w-100" id="submit-btn">Сохранить отчёт</button>
+    </div>
+  </form>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="mobile-mt-2">
+    {% for category, message in messages %}
+    <div class="alert alert-{{ 'danger' if category == 'error' else category }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const form = document.getElementById('add-report-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const numberEl = document.getElementById('report_number');
+  const titleEl = document.getElementById('title');
+  const backBtn = document.getElementById('mobileBackBtn');
+  let isDirty = false;
+
+  try {
+    const mobileContent = document.querySelector('.mobile-content');
+    if (mobileContent) { mobileContent.style.paddingBottom = '16px'; mobileContent.style.overflow = 'hidden'; mobileContent.style.height = 'auto'; }
+    document.documentElement.style.overscrollBehaviorY = 'contain';
+    document.body.style.overflow = 'hidden';
+    window.scrollTo(0,0);
+  } catch(e) {}
+
+  const trimField = (el)=>{ if(!el) return; el.value = el.value.trim().replace(/\s{2,}/g,' '); };
+  [numberEl, titleEl, document.getElementById('content'), document.getElementById('notes')].forEach(el=>{
+    if(!el) return; el.addEventListener('input', ()=>{ isDirty = true; }); el.addEventListener('blur', ()=>trimField(el));
+  });
+
+  function confirmLeaveIfDirty(action){ if(!isDirty){ action(); return; } if(confirm('Данные не будут сохранены. Вернуться на предыдущую страницу?')) action(); }
+  if (backBtn) { backBtn.onclick = function(e){ e.preventDefault(); confirmLeaveIfDirty(()=>window.history.back()); }; }
+
+  form.addEventListener('submit', function(e){
+    trimField(numberEl); trimField(titleEl);
+    if(!numberEl.value.trim() || !titleEl.value.trim()){ e.preventDefault(); alert('Заполните обязательные поля'); return false; }
+    submitBtn.disabled = true; const original = submitBtn.innerHTML; submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Сохранение...';
+    isDirty = false;
+    setTimeout(()=>{ submitBtn.disabled = false; submitBtn.innerHTML = original; }, 3000);
+  });
+});
+</script>
+
+<style>
+/* Повторяем стиль страниц добавления объекта/позиции */
+.mobile-app { background: var(--bs-body-bg); }
+[data-bs-theme="light"] .add-object-card { background:#fff; color:#0f172a; }
+[data-bs-theme="light"] .mobile-form-label { color:#111827; }
+[data-bs-theme="light"] .mobile-form-control, [data-bs-theme="light"] .mobile-form-control-lg { background:#fff; border-color:#d1d5db; color:#111827; }
+[data-bs-theme="light"] .mobile-form-control::placeholder, [data-bs-theme="light"] .mobile-form-control-lg::placeholder { color:#6b7280; }
+[data-bs-theme="light"] .mobile-btn-outline { border-color:#cbd5e1; color:#334155; }
+[data-bs-theme="light"] .mobile-card-title { color:#0f172a; }
+
+.add-object-card{ background:#fff; border:1px solid #e5e7eb; box-shadow:0 6px 18px rgba(0,0,0,.06); padding:12px; }
+.add-object-card .mobile-form-group{ background:#f9fafb; border:1px solid #eef2f7; border-radius:12px; padding:12px; }
+.add-object-card .mobile-form-group + .mobile-form-group{ margin-top:8px; }
+.mobile-card-title{ font-size:1.5rem; font-weight:700; margin-bottom:1rem; color:#111827; letter-spacing:-.025em; }
+.mobile-form-label{ display:block; font-size:.9rem; font-weight:600; color:#374151; margin-bottom:6px; letter-spacing:.025em; }
+.mobile-form-control-lg{ font-size:1.05rem; padding:12px 16px; border-radius:12px; border:2px solid #e1e5e9; background:#fff; color:#111827; transition:all .3s cubic-bezier(.4,0,.2,1); box-shadow:0 2px 4px rgba(0,0,0,.04); font-weight:500; }
+.mobile-form-control{ font-size:.95rem; padding:10px 14px; border-radius:12px; border:2px solid #e1e5e9; background:#fff; color:#111827; transition:all .3s cubic-bezier(.4,0,.2,1); box-shadow:0 2px 4px rgba(0,0,0,.04); font-weight:500; }
+.mobile-form-control:focus, .mobile-form-control-lg:focus{ border-color:#0d6efd; box-shadow:0 0 0 4px rgba(13,110,253,.1), 0 4px 12px rgba(0,0,0,.1); outline:none; transform:translateY(-1px); }
+.mobile-mt-4{ margin-top:12px; }
+.mobile-btn{ border-radius:12px; font-weight:600; padding:12px 20px; font-size:.95rem; transition:all .3s cubic-bezier(.4,0,.2,1); letter-spacing:.025em; border:none; position:relative; overflow:hidden; }
+.mobile-btn::before{ content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent); transition:left .5s; }
+.mobile-btn:hover::before{ left:100%; }
+.mobile-btn-primary{ background:linear-gradient(135deg,#0d6efd 0%,#0056b3 100%); color:#fff; box-shadow:0 4px 14px rgba(13,110,253,.3); }
+.mobile-btn-primary:hover{ background:linear-gradient(135deg,#0056b3 0%,#004085 100%); transform:translateY(-2px); box-shadow:0 8px 25px rgba(13,110,253,.4); }
+.mobile-btn-primary:active{ transform:translateY(0); box-shadow:0 4px 14px rgba(13,110,253,.3); }
+
+@media (prefers-color-scheme: dark){
+  .mobile-form-control-lg{ background:#1f2937; border-color:#374151; color:#f9fafb; box-shadow:0 2px 4px rgba(0,0,0,.2); }
+  .mobile-form-control{ background:#1f2937; border-color:#374151; color:#f9fafb; box-shadow:0 2px 4px rgba(0,0,0,.2); }
+  .mobile-form-control:focus, .mobile-form-control-lg:focus{ border-color:#3b82f6; box-shadow:0 0 0 4px rgba(59,130,246,.2), 0 4px 12px rgba(0,0,0,.3); }
+}
+</style>
+{% endblock %}
+
+
