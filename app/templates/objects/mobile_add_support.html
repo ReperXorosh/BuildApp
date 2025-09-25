@@ -36,21 +36,21 @@
         <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <div class="mobile-card-title" style="font-size: 15px; margin-bottom: 8px;">Выберите элементы для установки</div>
             <div class="accordion" id="supportElementsAccordion">
-                {% if luminaires_list %}
+                {% if zdf_list %}
                 <div class="accordion-item">
-                    <h2 class="accordion-header" id="headingLum">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLum" aria-expanded="false" aria-controls="collapseLum">
-                            Светильники
+                    <h2 class="accordion-header" id="headingZdf">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseZdf" aria-expanded="false" aria-controls="collapseZdf">
+                            ЗДФ
                         </button>
                     </h2>
-                    <div id="collapseLum" class="accordion-collapse collapse" aria-labelledby="headingLum" data-bs-parent="#supportElementsAccordion">
+                    <div id="collapseZdf" class="accordion-collapse collapse" aria-labelledby="headingZdf" data-bs-parent="#supportElementsAccordion">
                         <div class="accordion-body">
-                            {% for luminaire in luminaires_list %}
-                            <label class="d-flex align-items-start mobile-mb-1" for="luminaire-{{ luminaire.id }}">
-                                <input type="checkbox" class="form-check-input me-2" name="selected_luminaires" value="{{ luminaire.id }}" id="luminaire-{{ luminaire.id }}">
+                            {% for zdf in zdf_list %}
+                            <label class="d-flex align-items-start mobile-mb-1" for="zdf-{{ zdf.id }}">
+                                <input type="checkbox" class="form-check-input me-2" name="selected_zdf" value="{{ zdf.id }}" id="zdf-{{ zdf.id }}">
                                 <div>
-                                    <div><strong>{{ luminaire.luminaire_number }}</strong>{% if luminaire.luminaire_name %} — {{ luminaire.luminaire_name }}{% endif %}</div>
-                                    {% if luminaire.notes %}<div class="text-muted small">{{ luminaire.notes }}</div>{% endif %}
+                                    <div><strong>{{ zdf.zdf_number }}</strong>{% if zdf.zdf_name %} — {{ zdf.zdf_name }}{% endif %}</div>
+                                    {% if zdf.notes %}<div class="text-muted small">{{ zdf.notes }}</div>{% endif %}
                                 </div>
                             </label>
                             {% endfor %}
@@ -63,7 +63,7 @@
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="headingBr">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBr" aria-expanded="false" aria-controls="collapseBr">
-                            Кронштейны
+                            Кронштейн
                         </button>
                     </h2>
                     <div id="collapseBr" class="accordion-collapse collapse" aria-labelledby="headingBr" data-bs-parent="#supportElementsAccordion">
@@ -82,21 +82,21 @@
                 </div>
                 {% endif %}
 
-                {% if zdf_list %}
+                {% if luminaires_list %}
                 <div class="accordion-item">
-                    <h2 class="accordion-header" id="headingZdf">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseZdf" aria-expanded="false" aria-controls="collapseZdf">
-                            ЗДФ
+                    <h2 class="accordion-header" id="headingLum">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLum" aria-expanded="false" aria-controls="collapseLum">
+                            Светильник
                         </button>
                     </h2>
-                    <div id="collapseZdf" class="accordion-collapse collapse" aria-labelledby="headingZdf" data-bs-parent="#supportElementsAccordion">
+                    <div id="collapseLum" class="accordion-collapse collapse" aria-labelledby="headingLum" data-bs-parent="#supportElementsAccordion">
                         <div class="accordion-body">
-                            {% for zdf in zdf_list %}
-                            <label class="d-flex align-items-start mobile-mb-1" for="zdf-{{ zdf.id }}">
-                                <input type="checkbox" class="form-check-input me-2" name="selected_zdf" value="{{ zdf.id }}" id="zdf-{{ zdf.id }}">
+                            {% for luminaire in luminaires_list %}
+                            <label class="d-flex align-items-start mobile-mb-1" for="luminaire-{{ luminaire.id }}">
+                                <input type="checkbox" class="form-check-input me-2" name="selected_luminaires" value="{{ luminaire.id }}" id="luminaire-{{ luminaire.id }}">
                                 <div>
-                                    <div><strong>{{ zdf.zdf_number }}</strong>{% if zdf.zdf_name %} — {{ zdf.zdf_name }}{% endif %}</div>
-                                    {% if zdf.notes %}<div class="text-muted small">{{ zdf.notes }}</div>{% endif %}
+                                    <div><strong>{{ luminaire.luminaire_number }}</strong>{% if luminaire.luminaire_name %} — {{ luminaire.luminaire_name }}{% endif %}</div>
+                                    {% if luminaire.notes %}<div class="text-muted small">{{ luminaire.notes }}</div>{% endif %}
                                 </div>
                             </label>
                             {% endfor %}
