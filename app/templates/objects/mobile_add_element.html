@@ -5,18 +5,11 @@
 {% block mobile_title %}Добавить элемент{% endblock %}
 
 {% block content %}
-<div class="mobile-card">
-    <div class="mobile-card-title d-flex align-items-center">
-        <svg width="18" height="18" class="me-2" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M8 0a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v2h12V6a2 2 0 0 0-2-2H10V2a2 2 0 0 0-2-2z"/>
-        </svg>
-        Добавить элемент
-    </div>
-    <div class="mobile-card-text mobile-mb-2">
-        Объект: <a href="{{ url_for('objects.object_detail', object_id=object.id) }}">{{ object.name }}</a>
-    </div>
+<div class="add-object-card">
+    <div class="mobile-card-title text-center">Добавить элемент</div>
+    
     <form method="POST" id="add-element-form" novalidate>
-        <div class="mobile-form-group">
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label">Тип элемента *</label>
             <select name="element_type" id="element_type" class="mobile-form-control" required>
                 <option value="">Выберите тип</option>
@@ -26,25 +19,31 @@
             </select>
             <div class="invalid-feedback" style="display:none" id="type-error">Выберите тип элемента.</div>
         </div>
-        <div class="mobile-form-group">
+        
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label">Номер *</label>
-            <input type="text" name="element_number" id="element_number" class="mobile-form-control" placeholder="Например, 12-А" maxlength="40" required>
+            <input type="text" name="element_number" id="element_number" class="mobile-form-control-lg" placeholder="Например, 12-А" maxlength="40" required>
             <div class="invalid-feedback" style="display:none" id="number-error">Укажите номер элемента.</div>
         </div>
-        <div class="mobile-form-group">
+        
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label">Название (необязательно)</label>
             <input type="text" name="element_name" id="element_name" class="mobile-form-control" placeholder="Произвольное имя" maxlength="80">
         </div>
-        <div class="mobile-form-group">
+        
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label">Примечания</label>
-            <textarea name="notes" id="notes" class="mobile-form-control" rows="3" maxlength="300" placeholder="Дополнительная информация"></textarea>
+            <textarea name="notes" id="notes" class="mobile-form-control" rows="2" maxlength="300" placeholder="Дополнительная информация"></textarea>
             <div class="small text-muted" id="notes-counter">0 / 300</div>
         </div>
-        <button type="submit" class="mobile-btn mobile-btn-primary" id="submit-btn">
-            <span class="me-2">💾</span>Сохранить элемент
-        </button>
-        <a href="{{ url_for('objects.supports_list', object_id=object.id) }}" class="mobile-btn mobile-btn-outline">Назад</a>
+        
+        <div class="mobile-mt-4">
+            <button type="submit" class="mobile-btn mobile-btn-primary w-100" id="submit-btn">
+                <span class="me-2">💾</span>Сохранить элемент
+            </button>
+        </div>
     </form>
+    
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     <div class="mobile-mt-2">
@@ -67,6 +66,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const notesCounter = document.getElementById('notes-counter');
     const typeError = document.getElementById('type-error');
     const numberError = document.getElementById('number-error');
+    
+    let isDirty = false;
 
     // Счетчик для примечаний
     if (notesEl && notesCounter) {
@@ -77,7 +78,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Тримминг
     const trimField = (el) => { if (el) el.value = el.value.trim().replace(/\s{2,}/g, ' '); };
-    [numberEl, nameEl, notesEl].forEach(el => el && el.addEventListener('blur', () => trimField(el)));
+    [typeEl, numberEl, nameEl, notesEl].forEach(el => el && el.addEventListener('blur', () => trimField(el)));
+
+    // Помечаем форму как изменённую при вводе в любые поля
+    [typeEl, numberEl, nameEl, notesEl].forEach(el => {
+        if (!el) return;
+        el.addEventListener('input', () => { isDirty = true; });
+    });
 
     // Валидация
     const isValid = () => {
@@ -90,16 +97,90 @@ document.addEventListener('DOMContentLoaded', function() {
     typeEl.addEventListener('change', isValid);
     numberEl.addEventListener('input', isValid);
 
+    // Обработчик «Назад» с предупреждением
+    function confirmLeaveIfDirty(action){
+        if (!isDirty) { action(); return; }
+        if (confirm('Данные не будут сохранены. Вернуться на предыдущую страницу?')) {
+            action();
+        }
+    }
+
+    const backBtn = document.getElementById('mobileBackBtn');
+    if (backBtn) {
+        backBtn.onclick = function(e){
+            e.preventDefault();
+            confirmLeaveIfDirty(() => { window.history.back(); });
+        };
+    }
+
+    // Предупреждение при закрытии страницы
+    window.addEventListener('beforeunload', function(e) {
+        if (isDirty) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
     form.addEventListener('submit', function(e) {
-        trimField(numberEl); trimField(nameEl); trimField(notesEl);
+        trimField(typeEl); trimField(numberEl); trimField(nameEl); trimField(notesEl);
         if (!isValid()) { e.preventDefault(); return false; }
         submitBtn.disabled = true;
         const original = submitBtn.innerHTML;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Сохранение...';
         setTimeout(() => { submitBtn.disabled = false; submitBtn.innerHTML = original; }, 4000);
     });
+    
+    // Убираем прокрутку как на других страницах добавления
+    try {
+        const mobileContent = document.querySelector('.mobile-content');
+        if (mobileContent) {
+            mobileContent.style.paddingBottom = '16px';
+            mobileContent.style.overflow = 'hidden';
+            mobileContent.style.height = 'auto';
+        }
+        document.documentElement.style.overscrollBehaviorY = 'contain';
+        document.body.style.overflow = 'hidden';
+        window.scrollTo(0, 0);
+    } catch(e) {}
 });
 </script>
+
+<style>
+/* Локальные правки для лучшей читаемости в светлой теме только на этой странице */
+.mobile-app { background: var(--bs-body-bg); }
+[data-bs-theme="light"] .add-object-card { background: #ffffff; color: #0f172a; }
+[data-bs-theme="light"] .mobile-form-label { color: #111827; }
+[data-bs-theme="light"] .mobile-form-control,
+[data-bs-theme="light"] .mobile-form-control-lg {
+    background: #ffffff;
+    border-color: #d1d5db;
+    color: #111827;
+}
+[data-bs-theme="light"] .mobile-form-control::placeholder,
+[data-bs-theme="light"] .mobile-form-control-lg::placeholder { color: #6b7280; }
+[data-bs-theme="light"] .mobile-btn-outline { border-color: #cbd5e1; color: #334155; }
+[data-bs-theme="light"] .mobile-card-title { color: #0f172a; }
+
+/* Точная поддержка темной темы как на страницах добавления объекта/позиции */
+[data-bs-theme="dark"] .add-object-card{ background: var(--bs-body-bg); border-color:#2d3748; box-shadow:0 6px 18px rgba(0,0,0,.2); }
+[data-bs-theme="dark"] .add-object-card .mobile-form-group{ background:#1f2937; border-color:#374151; }
+[data-bs-theme="dark"] .mobile-form-label{ color:#e5e7eb; }
+[data-bs-theme="dark"] .mobile-card-title{ color:#f9fafb; }
+[data-bs-theme="dark"] .mobile-form-control-lg{ background:#1f2937; border-color:#374151; color:#f9fafb; box-shadow:0 2px 4px rgba(0,0,0,.2); }
+[data-bs-theme="dark"] .mobile-form-control{ background:#1f2937; border-color:#374151; color:#f9fafb; box-shadow:0 2px 4px rgba(0,0,0,.2); }
+[data-bs-theme="dark"] .mobile-form-control:focus, [data-bs-theme="dark"] .mobile-form-control-lg:focus{ border-color:#3b82f6; box-shadow:0 0 0 4px rgba(59,130,246,.2), 0 4px 12px rgba(0,0,0,.3); }
+
+/* Стили для единообразия с другими страницами добавления */
+.add-object-card{ background:#fff; border:1px solid #e5e7eb; box-shadow:0 6px 18px rgba(0,0,0,.06); padding:12px; }
+.add-object-card .mobile-form-group{ background:#f9fafb; border:1px solid #eef2f7; border-radius:12px; padding:12px; }
+.add-object-card .mobile-form-group + .mobile-form-group{ margin-top:8px; }
+.mobile-card-title{ font-size:1.5rem; font-weight:700; margin-bottom:1rem; color:#111827; letter-spacing:-.025em; }
+.mobile-form-label{ display:block; font-size:.9rem; font-weight:600; color:#374151; margin-bottom:6px; letter-spacing:.025em; }
+.mobile-form-control-lg{ font-size:1.05rem; padding:12px 16px; border-radius:12px; border:2px solid #e1e5e9; background:#fff; color:#111827; transition:all .3s cubic-bezier(.4,0,.2,1); box-shadow:0 2px 4px rgba(0,0,0,.04); font-weight:500; }
+.mobile-form-control{ font-size:.95rem; padding:10px 14px; border-radius:12px; border:2px solid #e1e5e9; background:#fff; color:#111827; transition:all .3s cubic-bezier(.4,0,.2,1); box-shadow:0 2px 4px rgba(0,0,0,.04); font-weight:500; }
+.mobile-mt-4{ margin-top:12px; }
+.mobile-btn{ border-radius:12px; font-weight:600; padding:12px 20px; font-size:.95rem; transition:all .3s cubic-bezier(.4,0,.2,1); letter-spacing:.025em; border:none; position:relative; overflow:hidden; }
+</style>
 {% endblock %}
 
 
