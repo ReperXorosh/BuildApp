@@ -1,0 +1,169 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'objects' %}
+
+{% block title %}Элементы: {{ object.name }}{% endblock %}
+{% block mobile_title %}Элементы{% endblock %}
+
+{% block content %}
+<div class="mobile-card">
+    <div class="mobile-card-title">{{ object.name }}</div>
+    <div class="mobile-card-text"><strong>Адрес:</strong> {{ object.location or 'Не указан' }}</div>
+</div>
+
+<div class="mobile-card">
+    <div class="mobile-card-title">Элементы объекта</div>
+    <div class="accordion" id="mobileElementsAccordion">
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingZDF">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseZDF" aria-expanded="false" aria-controls="collapseZDF">
+                    ЗДФ ({{ object.zdfs|length if object.zdfs else 0 }})
+                </button>
+            </h2>
+            <div id="collapseZDF" class="accordion-collapse collapse" aria-labelledby="headingZDF" data-bs-parent="#mobileElementsAccordion">
+                <div class="accordion-body">
+                    {% if object.zdfs and object.zdfs|length %}
+                    <ul class="list-group list-group-flush">
+                        {% for zdf in object.zdfs %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <div><strong>{{ zdf.zdf_number }}</strong>{% if zdf.zdf_name %} — {{ zdf.zdf_name }}{% endif %}</div>
+                                {% if zdf.notes %}<div class="text-muted small">{{ zdf.notes }}</div>{% endif %}
+                            </div>
+                            {% if zdf.status %}<span class="badge bg-secondary">{{ zdf.status }}</span>{% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="text-muted">Нет ЗДФ</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingBrackets">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBrackets" aria-expanded="false" aria-controls="collapseBrackets">
+                    Кронштейны ({{ object.brackets|length if object.brackets else 0 }})
+                </button>
+            </h2>
+            <div id="collapseBrackets" class="accordion-collapse collapse" aria-labelledby="headingBrackets" data-bs-parent="#mobileElementsAccordion">
+                <div class="accordion-body">
+                    {% if object.brackets and object.brackets|length %}
+                    <ul class="list-group list-group-flush">
+                        {% for bracket in object.brackets %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <div><strong>{{ bracket.bracket_number }}</strong>{% if bracket.bracket_name %} — {{ bracket.bracket_name }}{% endif %}</div>
+                                {% if bracket.notes %}<div class="text-muted small">{{ bracket.notes }}</div>{% endif %}
+                            </div>
+                            {% if bracket.status %}<span class="badge bg-secondary">{{ bracket.status }}</span>{% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="text-muted">Нет кронштейнов</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingLuminaires">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLuminaires" aria-expanded="false" aria-controls="collapseLuminaires">
+                    Светильники ({{ object.luminaires|length if object.luminaires else 0 }})
+                </button>
+            </h2>
+            <div id="collapseLuminaires" class="accordion-collapse collapse" aria-labelledby="headingLuminaires" data-bs-parent="#mobileElementsAccordion">
+                <div class="accordion-body">
+                    {% if object.luminaires and object.luminaires|length %}
+                    <ul class="list-group list-group-flush">
+                        {% for luminaire in object.luminaires %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <div><strong>{{ luminaire.luminaire_number }}</strong>{% if luminaire.luminaire_name %} — {{ luminaire.luminaire_name }}{% endif %}</div>
+                                {% if luminaire.notes %}<div class="text-muted small">{{ luminaire.notes }}</div>{% endif %}
+                            </div>
+                            {% if luminaire.status %}<span class="badge bg-secondary">{{ luminaire.status }}</span>{% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="text-muted">Нет светильников</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Дополнительный отступ, чтобы контент не перекрывался нижней панелью навигации -->
+<div style="height: 140px"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        const content = document.querySelector('.mobile-content');
+        if (content) {
+            content.style.webkitOverflowScrolling = 'touch';
+            content.style.scrollBehavior = 'smooth';
+            const currentPaddingBottom = parseInt(window.getComputedStyle(content).paddingBottom || '0', 10);
+            if (currentPaddingBottom < 140) {
+                content.style.paddingBottom = '140px';
+            }
+        }
+    } catch (e) { /* noop */ }
+});
+</script>
+
+<style>
+/* Стили для аккордеона элементов */
+.accordion-button {
+    font-weight: 600;
+    border-radius: 12px !important;
+}
+
+.accordion-item {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 12px !important;
+    margin-bottom: 8px;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: var(--bs-primary);
+    color: white;
+}
+
+.accordion-button:focus {
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+.list-group-item {
+    border: none;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+[data-bs-theme="dark"] .accordion-item {
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+}
+
+[data-bs-theme="dark"] .accordion-button {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+}
+
+[data-bs-theme="dark"] .accordion-button:not(.collapsed) {
+    background-color: var(--bs-primary);
+    color: white;
+}
+</style>
+{% endblock %}

@@ -431,6 +431,29 @@ def object_detail(object_id):
     else:
         return render_template('objects/object_detail.html', object=obj)
 
+@objects_bp.route('/<uuid:object_id>/elements')
+@login_required
+def elements_list(object_id):
+    """Список элементов объекта (ЗДФ, кронштейны, светильники)"""
+    obj = Object.query.get_or_404(object_id)
+    
+    # Логирование активности
+    from ..utils.activity_logger import log_activity
+    log_activity(
+        user_login=current_user.login,
+        action="Просмотр элементов объекта",
+        description=f"Пользователь {current_user.login} просмотрел элементы объекта '{obj.name}'",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return render_template('objects/mobile_elements_list.html', object=obj)
+    else:
+        return render_template('objects/elements_list.html', object=obj)
+
 # Маршруты для опор
 @objects_bp.route('/<uuid:object_id>/supports')
 @login_required

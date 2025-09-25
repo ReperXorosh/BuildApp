@@ -27,57 +27,8 @@
             <a href="{{ url_for('objects.reports_list', object_id=object.id) }}" class="btn btn-outline-primary w-100 mobile-action-btn">Отчёты</a>
             <a href="{{ url_for('objects.checklist_view', object_id=object.id) }}?mobile=1" class="btn btn-outline-primary w-100 mobile-action-btn">Чек‑лист</a>
         </div>
-        <div class="col-12">
-            <div class="accordion" id="mobileObjectElements">
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="mobHeadZdf">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#mobColZdf" aria-expanded="false" aria-controls="mobColZdf">ЗДФ</button>
-                    </h2>
-                    <div id="mobColZdf" class="accordion-collapse collapse" aria-labelledby="mobHeadZdf" data-bs-parent="#mobileObjectElements">
-                        <div class="accordion-body">
-                            {% if object.zdfs and object.zdfs|length %}
-                            <ul class="list-group list-group-flush">
-                                {% for z in object.zdfs %}
-                                <li class="list-group-item">{{ z.zdf_number }}{% if z.zdf_name %} — {{ z.zdf_name }}{% endif %}</li>
-                                {% endfor %}
-                            </ul>
-                            {% else %}<div class="text-muted">Нет ЗДФ</div>{% endif %}
-                        </div>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="mobHeadBr">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#mobColBr" aria-expanded="false" aria-controls="mobColBr">Кронштейны</button>
-                    </h2>
-                    <div id="mobColBr" class="accordion-collapse collapse" aria-labelledby="mobHeadBr" data-bs-parent="#mobileObjectElements">
-                        <div class="accordion-body">
-                            {% if object.brackets and object.brackets|length %}
-                            <ul class="list-group list-group-flush">
-                                {% for b in object.brackets %}
-                                <li class="list-group-item">{{ b.bracket_number }}{% if b.bracket_name %} — {{ b.bracket_name }}{% endif %}</li>
-                                {% endfor %}
-                            </ul>
-                            {% else %}<div class="text-muted">Нет кронштейнов</div>{% endif %}
-                        </div>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="mobHeadLum">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#mobColLum" aria-expanded="false" aria-controls="mobColLum">Светильники</button>
-                    </h2>
-                    <div id="mobColLum" class="accordion-collapse collapse" aria-labelledby="mobHeadLum" data-bs-parent="#mobileObjectElements">
-                        <div class="accordion-body">
-                            {% if object.luminaires and object.luminaires|length %}
-                            <ul class="list-group list-group-flush">
-                                {% for l in object.luminaires %}
-                                <li class="list-group-item">{{ l.luminaire_number }}{% if l.luminaire_name %} — {{ l.luminaire_name }}{% endif %}</li>
-                                {% endfor %}
-                            </ul>
-                            {% else %}<div class="text-muted">Нет светильников</div>{% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="col-6 d-flex flex-column gap-2">
+            <a href="{{ url_for('objects.elements_list', object_id=object.id) }}" class="btn btn-outline-primary w-100 mobile-action-btn">Элементы</a>
         </div>
         <div class="col-12 pt-1">
             <a href="{{ url_for('objects.planned_works_overview', _external=False) }}" class="btn btn-outline-primary w-100 mobile-action-btn">Работы</a>
