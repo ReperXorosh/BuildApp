@@ -116,6 +116,15 @@ document.addEventListener('DOMContentLoaded', function(){
   .mobile-form-control{ background:#1f2937; border-color:#374151; color:#f9fafb; box-shadow:0 2px 4px rgba(0,0,0,.2); }
   .mobile-form-control:focus, .mobile-form-control-lg:focus{ border-color:#3b82f6; box-shadow:0 0 0 4px rgba(59,130,246,.2), 0 4px 12px rgba(0,0,0,.3); }
 }
+
+/* Точная поддержка темной темы как на страницах добавления объекта/позиции */
+[data-bs-theme="dark"] .add-object-card{ background: var(--bs-body-bg); border-color:#2d3748; box-shadow:0 6px 18px rgba(0,0,0,.2); }
+[data-bs-theme="dark"] .add-object-card .mobile-form-group{ background:#1f2937; border-color:#374151; }
+[data-bs-theme="dark"] .mobile-form-label{ color:#e5e7eb; }
+[data-bs-theme="dark"] .mobile-card-title{ color:#f9fafb; }
+[data-bs-theme="dark"] .mobile-form-control-lg{ background:#1f2937; border-color:#374151; color:#f9fafb; box-shadow:0 2px 4px rgba(0,0,0,.2); }
+[data-bs-theme="dark"] .mobile-form-control{ background:#1f2937; border-color:#374151; color:#f9fafb; box-shadow:0 2px 4px rgba(0,0,0,.2); }
+[data-bs-theme="dark"] .mobile-form-control:focus, [data-bs-theme="dark"] .mobile-form-control-lg:focus{ border-color:#3b82f6; box-shadow:0 0 0 4px rgba(59,130,246,.2), 0 4px 12px rgba(0,0,0,.3); }
 </style>
 {% endblock %}
 
