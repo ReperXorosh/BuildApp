@@ -5,20 +5,14 @@
 {% block mobile_title %}Новая опора{% endblock %}
 
 {% block content %}
-<div class="mobile-card">
-    <div class="mobile-card-title d-flex align-items-center">
-        <svg width="18" height="18" class="me-2" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M8 1a1 1 0 0 1 1 1v5h5a1 1 0 0 1 0 2H9v5a1 1 0 0 1-2 0V9H2a1 1 0 0 1 0-2h5V2a1 1 0 0 1 1-1z"/>
-        </svg>
-        Добавить опору по проекту
-    </div>
-    <p class="mobile-card-text mobile-mb-2">Объект: <a href="{{ url_for('objects.object_detail', object_id=object.id) }}">{{ object.name }}</a></p>
+<div class="mobile-card add-object-card">
+    <div class="mobile-card-title text-center">Добавить опору</div>
 
     <form method="POST" id="add-support-form" novalidate>
-        <div class="mobile-form-group">
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label" for="support_number">Номер опоры *</label>
             <input type="text"
-                   class="mobile-form-control"
+                   class="mobile-form-control mobile-form-control-lg"
                    id="support_number"
                    name="support_number"
                    placeholder="Например: ОП-001"
@@ -28,7 +22,7 @@
             <div class="invalid-feedback" style="display:none" id="support-number-error">Укажите номер опоры (минимум 1 символ).</div>
         </div>
 
-        <div class="mobile-form-group">
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label" for="support_type">Название опоры</label>
             <input type="text"
                    class="mobile-form-control"
@@ -38,11 +32,11 @@
                    maxlength="80">
         </div>
 
-        <div class="alert alert-info">
+        <div class="alert alert-info" style="margin-top:8px; margin-bottom:8px;">
             Опора будет создана со статусом «Запланировано». Дата установки будет заполнена при подтверждении установки исполнителем.
         </div>
 
-        <div class="mobile-form-group">
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <div class="mobile-card-title" style="font-size: 15px; margin-bottom: 8px;">Выберите элементы для установки</div>
 
             {% if zdf_list %}
@@ -91,24 +85,19 @@
             {% endif %}
         </div>
 
-        <div class="mobile-form-group">
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label" for="notes">Примечания</label>
-            <textarea class="mobile-form-control" id="notes" name="notes" rows="3" maxlength="500" placeholder="Дополнительная информация об опоре"></textarea>
+            <textarea class="mobile-form-control" id="notes" name="notes" rows="2" maxlength="500" placeholder="Дополнительная информация об опоре"></textarea>
             <div class="small text-muted" id="notes-counter">0 / 500</div>
         </div>
 
-        <button type="submit" class="mobile-btn mobile-btn-primary" id="submit-btn">
-            <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M6 2a.5.5 0 0 1 .5.5V6h3.5a.5.5 0 0 1 0 1H6.5v3.5a.5.5 0 0 1-1 0V7H2a.5.5 0 0 1 0-1h3.5V2.5A.5.5 0 0 1 6 2z"/>
-            </svg>
-            Создать опору
-        </button>
-        <a class="mobile-btn mobile-btn-outline" href="{{ url_for('objects.supports_list', object_id=object.id) }}">Назад к списку</a>
+        <div class="mobile-mt-4">
+            <button type="submit" class="mobile-btn mobile-btn-primary w-100" id="submit-btn">Создать опору</button>
+        </div>
     </form>
 </div>
 
-<!-- Дополнительная "подпорка" от нижней панели -->
-<div style="height: 140px"></div>
+<!-- Убираем лишнюю прокрутку/отступ -->
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -121,16 +110,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Тема уже инициализирована в layout
 
-    // Мягкий скролл и нижний padding у контейнера
-    const content = document.querySelector('.mobile-content');
-    if (content) {
-        content.style.webkitOverflowScrolling = 'touch';
-        content.style.scrollBehavior = 'smooth';
-        const currentPaddingBottom = parseInt(window.getComputedStyle(content).paddingBottom || '0', 10);
-        if (currentPaddingBottom < 140) {
-            content.style.paddingBottom = '140px';
+    // Как на других страницах добавления: минимальный отступ снизу и без прокрутки
+    try {
+        const content = document.querySelector('.mobile-content');
+        if (content) {
+            content.style.paddingBottom = '16px';
+            content.style.overflow = 'hidden';
+            content.style.height = 'auto';
         }
-    }
+        document.documentElement.style.overscrollBehaviorY = 'contain';
+        document.body.style.overflow = 'hidden';
+        window.scrollTo(0,0);
+    } catch(e) {}
 
     // Фокус на номер опоры
     if (numberInput) numberInput.focus();
@@ -181,6 +172,34 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<style>
+/* Синхронизация дизайна со страницами добавления */
+[data-bs-theme="light"] .add-object-card { background:#fff; color:#0f172a; }
+[data-bs-theme="light"] .mobile-form-label { color:#111827; }
+[data-bs-theme="light"] .mobile-form-control, [data-bs-theme="light"] .mobile-form-control-lg { background:#fff; border-color:#d1d5db; color:#111827; }
+[data-bs-theme="light"] .mobile-card-title { color:#0f172a; }
+
+.add-object-card{ background:#fff; border:1px solid #e5e7eb; box-shadow:0 6px 18px rgba(0,0,0,.06); padding:12px; }
+.add-object-card .mobile-form-group{ background:#f9fafb; border:1px solid #eef2f7; border-radius:12px; padding:10px; }
+.add-object-card .mobile-form-group + .mobile-form-group{ margin-top:8px; }
+.mobile-card-title{ font-size:1.5rem; font-weight:700; margin-bottom:.75rem; color:#111827; letter-spacing:-.025em; }
+.mobile-form-label{ display:block; font-size:.9rem; font-weight:600; color:#374151; margin-bottom:6px; letter-spacing:.025em; }
+.mobile-form-control-lg{ font-size:1.02rem; padding:10px 14px; border-radius:12px; border:2px solid #e1e5e9; background:#fff; color:#111827; transition:all .3s cubic-bezier(.4,0,.2,1); box-shadow:0 2px 4px rgba(0,0,0,.04); font-weight:500; }
+.mobile-form-control{ font-size:.93rem; padding:8px 12px; border-radius:12px; border:2px solid #e1e5e9; background:#fff; color:#111827; transition:all .3s cubic-bezier(.4,0,.2,1); box-shadow:0 2px 4px rgba(0,0,0,.04); font-weight:500; }
+.mobile-form-control:focus, .mobile-form-control-lg:focus{ border-color:#0d6efd; box-shadow:0 0 0 4px rgba(13,110,253,.1), 0 4px 12px rgba(0,0,0,.1); outline:none; transform:translateY(-1px); }
+.mobile-btn{ border-radius:12px; font-weight:600; padding:10px 18px; font-size:.93rem; transition:all .3s cubic-bezier(.4,0,.2,1); letter-spacing:.025em; border:none; position:relative; overflow:hidden; }
+.mobile-btn-primary{ background:linear-gradient(135deg,#0d6efd 0%,#0056b3 100%); color:#fff; box-shadow:0 4px 14px rgba(13,110,253,.3); }
+
+@media (prefers-color-scheme: dark){
+  .add-object-card{ background: var(--bs-body-bg); border-color:#2d3748; box-shadow:0 6px 18px rgba(0,0,0,.2); }
+  .add-object-card .mobile-form-group{ background:#1f2937; border-color:#374151; }
+  .mobile-form-label{ color:#e5e7eb; }
+  .mobile-card-title{ color:#f9fafb; }
+  .mobile-form-control-lg, .mobile-form-control{ background:#1f2937; border-color:#374151; color:#f9fafb; box-shadow:0 2px 4px rgba(0,0,0,.2); }
+  .mobile-form-control:focus, .mobile-form-control-lg:focus{ border-color:#3b82f6; box-shadow:0 0 0 4px rgba(59,130,246,.2), 0 4px 12px rgba(0,0,0,.3); }
+}
+</style>
 {% endblock %}
 
 
