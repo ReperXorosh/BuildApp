@@ -634,7 +634,7 @@ def add_element(object_id):
             user_id=current_user.userid,
             user_login=current_user.login,
             action="Добавление элемента",
-            description=f"Пользователь {current_user.login} добавил {element_type_name} '{element_number}' к объекту '{obj.name}'",
+            description=f"Пользователь {current_user.login} добавил {element_type_name} к объекту '{obj.name}'",
             ip_address=request.remote_addr,
             page_url=request.url,
             method=request.method
