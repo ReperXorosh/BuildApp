@@ -438,8 +438,9 @@ def elements_list(object_id):
     obj = Object.query.get_or_404(object_id)
     
     # Логирование активности
-    from ..utils.activity_logger import log_activity
-    log_activity(
+    from ..models.activity_log import ActivityLog
+    ActivityLog.log_action(
+        user_id=current_user.userid,
         user_login=current_user.login,
         action="Просмотр элементов объекта",
         description=f"Пользователь {current_user.login} просмотрел элементы объекта '{obj.name}'",
