@@ -20,11 +20,6 @@
             <div class="invalid-feedback" style="display:none" id="type-error">Выберите тип элемента.</div>
         </div>
         
-        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
-            <label class="mobile-form-label">Номер *</label>
-            <input type="text" name="element_number" id="element_number" class="mobile-form-control-lg" placeholder="Например, 12-А" maxlength="40" required>
-            <div class="invalid-feedback" style="display:none" id="number-error">Укажите номер элемента.</div>
-        </div>
         
         <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label">Название (необязательно)</label>
@@ -39,7 +34,7 @@
         
         <div class="mobile-mt-4">
             <button type="submit" class="mobile-btn mobile-btn-primary w-100" id="submit-btn">
-                <span class="me-2">💾</span>Сохранить элемент
+                Сохранить элемент
             </button>
         </div>
     </form>
@@ -60,12 +55,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('add-element-form');
     const submitBtn = document.getElementById('submit-btn');
     const typeEl = document.getElementById('element_type');
-    const numberEl = document.getElementById('element_number');
     const nameEl = document.getElementById('element_name');
     const notesEl = document.getElementById('notes');
     const notesCounter = document.getElementById('notes-counter');
     const typeError = document.getElementById('type-error');
-    const numberError = document.getElementById('number-error');
     
     let isDirty = false;
 
@@ -78,10 +71,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Тримминг
     const trimField = (el) => { if (el) el.value = el.value.trim().replace(/\s{2,}/g, ' '); };
-    [typeEl, numberEl, nameEl, notesEl].forEach(el => el && el.addEventListener('blur', () => trimField(el)));
+    [typeEl, nameEl, notesEl].forEach(el => el && el.addEventListener('blur', () => trimField(el)));
 
     // Помечаем форму как изменённую при вводе в любые поля
-    [typeEl, numberEl, nameEl, notesEl].forEach(el => {
+    [typeEl, nameEl, notesEl].forEach(el => {
         if (!el) return;
         el.addEventListener('input', () => { isDirty = true; });
     });
@@ -90,12 +83,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const isValid = () => {
         let ok = true;
         if (!typeEl.value) { typeError.style.display = 'block'; ok = false; } else { typeError.style.display = 'none'; }
-        if (!numberEl.value.trim()) { numberError.style.display = 'block'; ok = false; } else { numberError.style.display = 'none'; }
         return ok;
     };
 
     typeEl.addEventListener('change', isValid);
-    numberEl.addEventListener('input', isValid);
 
     // Обработчик «Назад» с предупреждением
     function confirmLeaveIfDirty(action){
@@ -122,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     form.addEventListener('submit', function(e) {
-        trimField(typeEl); trimField(numberEl); trimField(nameEl); trimField(notesEl);
+        trimField(typeEl); trimField(nameEl); trimField(notesEl);
         if (!isValid()) { e.preventDefault(); return false; }
         submitBtn.disabled = true;
         const original = submitBtn.innerHTML;
@@ -171,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
 [data-bs-theme="dark"] .mobile-form-control:focus, [data-bs-theme="dark"] .mobile-form-control-lg:focus{ border-color:#3b82f6; box-shadow:0 0 0 4px rgba(59,130,246,.2), 0 4px 12px rgba(0,0,0,.3); }
 
 /* Стили для единообразия с другими страницами добавления */
-.add-object-card{ background:#fff; border:1px solid #e5e7eb; box-shadow:0 6px 18px rgba(0,0,0,.06); padding:12px; }
+.add-object-card{ background:#fff; border:1px solid #e5e7eb; box-shadow:0 6px 18px rgba(0,0,0,.06); padding:12px; border-radius:12px; }
 .add-object-card .mobile-form-group{ background:#f9fafb; border:1px solid #eef2f7; border-radius:12px; padding:12px; }
 .add-object-card .mobile-form-group + .mobile-form-group{ margin-top:8px; }
 .mobile-card-title{ font-size:1.5rem; font-weight:700; margin-bottom:1rem; color:#111827; letter-spacing:-.025em; }
