@@ -496,9 +496,9 @@ def add_support(object_id):
     is_mobile = is_mobile_device() or (request.args.get('mobile') == '1')
     
     # Получаем данные о ЗДФ, Кронштейнах и Светильниках для данного объекта
-    zdf_list = ZDF.query.filter_by(object_id=object_id, status='planned').order_by(ZDF.zdf_number.asc()).all()
-    brackets_list = Bracket.query.filter_by(object_id=object_id, status='planned').order_by(Bracket.bracket_number.asc()).all()
-    luminaires_list = Luminaire.query.filter_by(object_id=object_id, status='planned').order_by(Luminaire.luminaire_number.asc()).all()
+    zdf_list = ZDF.query.filter_by(object_id=object_id).order_by(ZDF.zdf_number.asc()).all()
+    brackets_list = Bracket.query.filter_by(object_id=object_id).order_by(Bracket.bracket_number.asc()).all()
+    luminaires_list = Luminaire.query.filter_by(object_id=object_id).order_by(Luminaire.luminaire_number.asc()).all()
     
     # Проверяем права доступа - только инженер ПТО может добавлять опоры
     if current_user.role != 'Инженер ПТО':
@@ -582,12 +582,11 @@ def add_element(object_id):
     
     if request.method == 'POST':
         element_type = request.form.get('element_type', '').strip()
-        element_number = request.form.get('element_number', '').strip()
         element_name = request.form.get('element_name', '').strip()
         notes = request.form.get('notes', '').strip()
         
-        if not element_type or not element_number:
-            flash('Тип элемента и номер обязательны для заполнения', 'error')
+        if not element_type:
+            flash('Тип элемента обязателен для заполнения', 'error')
             return render_template('objects/mobile_add_element.html' if is_mobile else 'objects/add_element.html', object=obj)
         
         # Создаем элемент в зависимости от типа
@@ -595,7 +594,7 @@ def add_element(object_id):
             new_element = ZDF(
                 id=str(uuid.uuid4()),
                 object_id=object_id,
-                zdf_number=element_number,
+                zdf_number='',
                 zdf_name=element_name,
                 status='planned',
                 notes=notes,
@@ -606,7 +605,7 @@ def add_element(object_id):
             new_element = Bracket(
                 id=str(uuid.uuid4()),
                 object_id=object_id,
-                bracket_number=element_number,
+                bracket_number='',
                 bracket_name=element_name,
                 status='planned',
                 notes=notes,
@@ -617,7 +616,7 @@ def add_element(object_id):
             new_element = Luminaire(
                 id=str(uuid.uuid4()),
                 object_id=object_id,
-                luminaire_number=element_number,
+                luminaire_number='',
                 luminaire_name=element_name,
                 status='planned',
                 notes=notes,

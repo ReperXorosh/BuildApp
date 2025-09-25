@@ -49,7 +49,7 @@
                             <label class="d-flex align-items-start mobile-mb-1" for="zdf-{{ zdf.id }}">
                                 <input type="checkbox" class="form-check-input me-2" name="selected_zdf" value="{{ zdf.id }}" id="zdf-{{ zdf.id }}">
                                 <div>
-                                    <div><strong>{{ zdf.zdf_number }}</strong>{% if zdf.zdf_name %} — {{ zdf.zdf_name }}{% endif %}</div>
+                                    <div>{% if zdf.zdf_name %}<strong>{{ zdf.zdf_name }}</strong>{% else %}<strong>ЗДФ</strong>{% endif %}</div>
                                     {% if zdf.notes %}<div class="text-muted small">{{ zdf.notes }}</div>{% endif %}
                                 </div>
                             </label>
@@ -72,7 +72,7 @@
                             <label class="d-flex align-items-start mobile-mb-1" for="bracket-{{ bracket.id }}">
                                 <input type="checkbox" class="form-check-input me-2" name="selected_brackets" value="{{ bracket.id }}" id="bracket-{{ bracket.id }}">
                                 <div>
-                                    <div><strong>{{ bracket.bracket_number }}</strong>{% if bracket.bracket_name %} — {{ bracket.bracket_name }}{% endif %}</div>
+                                    <div>{% if bracket.bracket_name %}<strong>{{ bracket.bracket_name }}</strong>{% else %}<strong>Кронштейн</strong>{% endif %}</div>
                                     {% if bracket.notes %}<div class="text-muted small">{{ bracket.notes }}</div>{% endif %}
                                 </div>
                             </label>
@@ -95,7 +95,7 @@
                             <label class="d-flex align-items-start mobile-mb-1" for="luminaire-{{ luminaire.id }}">
                                 <input type="checkbox" class="form-check-input me-2" name="selected_luminaires" value="{{ luminaire.id }}" id="luminaire-{{ luminaire.id }}">
                                 <div>
-                                    <div><strong>{{ luminaire.luminaire_number }}</strong>{% if luminaire.luminaire_name %} — {{ luminaire.luminaire_name }}{% endif %}</div>
+                                    <div>{% if luminaire.luminaire_name %}<strong>{{ luminaire.luminaire_name }}</strong>{% else %}<strong>Светильник</strong>{% endif %}</div>
                                     {% if luminaire.notes %}<div class="text-muted small">{{ luminaire.notes }}</div>{% endif %}
                                 </div>
                             </label>

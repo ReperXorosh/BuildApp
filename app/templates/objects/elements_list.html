@@ -71,8 +71,8 @@
                                                     <tbody>
                                                         {% for zdf in object.zdfs %}
                                                         <tr>
-                                                            <td><strong>{{ zdf.zdf_number }}</strong></td>
-                                                            <td>{{ zdf.zdf_name or '-' }}</td>
+                                                            <td>{% if zdf.zdf_name %}<strong>{{ zdf.zdf_name }}</strong>{% else %}<strong>ЗДФ</strong>{% endif %}</td>
+                                                            <td>-</td>
                                                             <td>
                                                                 {% if zdf.status %}
                                                                 <span class="badge bg-secondary">{{ zdf.status }}</span>
@@ -119,8 +119,8 @@
                                                     <tbody>
                                                         {% for bracket in object.brackets %}
                                                         <tr>
-                                                            <td><strong>{{ bracket.bracket_number }}</strong></td>
-                                                            <td>{{ bracket.bracket_name or '-' }}</td>
+                                                            <td>{% if bracket.bracket_name %}<strong>{{ bracket.bracket_name }}</strong>{% else %}<strong>Кронштейн</strong>{% endif %}</td>
+                                                            <td>-</td>
                                                             <td>
                                                                 {% if bracket.status %}
                                                                 <span class="badge bg-secondary">{{ bracket.status }}</span>
@@ -167,8 +167,8 @@
                                                     <tbody>
                                                         {% for luminaire in object.luminaires %}
                                                         <tr>
-                                                            <td><strong>{{ luminaire.luminaire_number }}</strong></td>
-                                                            <td>{{ luminaire.luminaire_name or '-' }}</td>
+                                                            <td>{% if luminaire.luminaire_name %}<strong>{{ luminaire.luminaire_name }}</strong>{% else %}<strong>Светильник</strong>{% endif %}</td>
+                                                            <td>-</td>
                                                             <td>
                                                                 {% if luminaire.status %}
                                                                 <span class="badge bg-secondary">{{ luminaire.status }}</span>
