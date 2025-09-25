@@ -133,6 +133,7 @@ document.addEventListener('DOMContentLoaded', function() {
     background: #ffffff;
     border: 1px solid #e5e7eb;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    padding: 12px;
 }
 
 .add-object-card .mobile-form-group {
@@ -142,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
     padding: 12px;
 }
 
-.add-object-card .mobile-form-group + .mobile-form-group { margin-top: 12px; }
+.add-object-card .mobile-form-group + .mobile-form-group { margin-top: 8px; }
 
 .add-object-card .mobile-card-title { color: #0f172a; }
 
@@ -166,8 +167,8 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 /* Современные стили для полей ввода */
 .mobile-form-control-lg {
-    font-size: 1.1rem;
-    padding: 16px 20px;
+    font-size: 1.05rem;
+    padding: 12px 16px;
     border-radius: 12px;
     border: 2px solid #e1e5e9;
     background: #ffffff;
@@ -190,8 +191,8 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .mobile-form-control {
-    font-size: 1rem;
-    padding: 14px 18px;
+    font-size: 0.95rem;
+    padding: 10px 14px;
     border-radius: 12px;
     border: 2px solid #e1e5e9;
     background: #ffffff;
@@ -216,31 +217,31 @@ document.addEventListener('DOMContentLoaded', function() {
 /* Стили для лейблов */
 .mobile-form-label {
     display: block;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: #374151;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     letter-spacing: 0.025em;
 }
 
 /* Заголовок */
 .mobile-card-title {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
     font-weight: 700;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     color: #111827;
     letter-spacing: -0.025em;
 }
 
 /* Группы полей */
-.mobile-form-group { margin-bottom: 1.5rem; }
+.mobile-form-group { margin-bottom: 0.75rem; }
 
 /* Современные кнопки */
 .mobile-btn {
     border-radius: 12px;
     font-weight: 600;
-    padding: 14px 28px;
-    font-size: 1rem;
+    padding: 12px 20px;
+    font-size: 0.95rem;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     letter-spacing: 0.025em;
     border: none;
@@ -259,6 +260,8 @@ document.addEventListener('DOMContentLoaded', function() {
 /* Анимация для фокуса */
 @keyframes focusPulse { 0%{ box-shadow: 0 0 0 4px rgba(13,110,253,.1), 0 4px 12px rgba(0,0,0,.1);} 50%{ box-shadow: 0 0 0 6px rgba(13,110,253,.15), 0 6px 16px rgba(0,0,0,.15);} 100%{ box-shadow: 0 0 0 4px rgba(13,110,253,.1), 0 4px 12px rgba(0,0,0,.1);} }
 .mobile-form-control:focus, .mobile-form-control-lg:focus { animation: focusPulse 2s infinite; }
+/* Снижаем вспомогательные отступы */
+.mobile-mt-4 { margin-top: 12px; }
 
 /* Темная тема */
 @media (prefers-color-scheme: dark) {
