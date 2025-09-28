@@ -2255,7 +2255,10 @@ def delete_object(object_id):
             method=request.method
         )
         
-        # Удаляем объект (каскадное удаление должно быть настроено в модели)
+        # Сначала удаляем все связанные DailyReport записи
+        DailyReport.query.filter_by(object_id=object_id).delete()
+        
+        # Затем удаляем сам объект
         db.session.delete(obj)
         db.session.commit()
         
