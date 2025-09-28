@@ -15,6 +15,7 @@ class Object(db.Model):
     description = db.Column(db.Text)
     location = db.Column(db.String(255))
     status = db.Column(db.String(50), default='active')  # active, inactive, completed
+    is_hidden = db.Column(db.Boolean, default=False)  # скрыт ли объект от обычных пользователей
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))

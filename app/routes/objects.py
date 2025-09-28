@@ -132,9 +132,19 @@ def object_list():
     per_page = request.args.get('per_page', 50, type=int)
     per_page = max(10, min(per_page, 100))
 
+    # Проверяем права пользователя для показа скрытых объектов
+    user_role = current_user.role.upper() if current_user.role else ''
+    is_admin = 'ПТО' in user_role or 'ЗАМ' in user_role or 'ДИРЕКТОР' in user_role or 'ГЕН' in user_role
+    
     query = Object.query.options(
-        load_only(Object.id, Object.name, Object.location, Object.status, Object.created_at)
-    ).order_by(Object.created_at.desc())
+        load_only(Object.id, Object.name, Object.location, Object.status, Object.is_hidden, Object.created_at)
+    )
+    
+    # Если пользователь не админ, скрываем скрытые объекты
+    if not is_admin:
+        query = query.filter(Object.is_hidden == False)
+    
+    query = query.order_by(Object.created_at.desc())
 
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     objects = pagination.items
@@ -2266,4 +2276,72 @@ def delete_object(object_id):
         return redirect(url_for('objects.object_detail', object_id=object_id))
 
 # Отладочная информация будет добавлена позже в приложении
+
+@objects_bp.route('/<uuid:object_id>/hide', methods=['POST'])
+@login_required
+def hide_object(object_id):
+    """Скрытие объекта (только для администраторов)"""
+    try:
+        # Получаем объект
+        obj = Object.query.get_or_404(object_id)
+        
+        # Проверяем права пользователя - только администраторы могут скрывать объекты
+        user_role = current_user.role.upper() if current_user.role else ''
+        if 'ПТО' not in user_role and 'ЗАМ' not in user_role and 'ДИРЕКТОР' not in user_role and 'ГЕН' not in user_role:
+            return jsonify({'success': False, 'error': 'У вас нет прав для скрытия объектов'})
+        
+        # Скрываем объект
+        obj.is_hidden = True
+        db.session.commit()
+        
+        # Логируем действие
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Скрытие объекта",
+            description=f"Пользователь {current_user.login} скрыл объект '{obj.name}'",
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+        
+        return jsonify({'success': True, 'message': 'Объект скрыт'})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': f'Ошибка при скрытии объекта: {str(e)}'})
+
+@objects_bp.route('/<uuid:object_id>/restore', methods=['POST'])
+@login_required
+def restore_object(object_id):
+    """Восстановление скрытого объекта (только для администраторов)"""
+    try:
+        # Получаем объект
+        obj = Object.query.get_or_404(object_id)
+        
+        # Проверяем права пользователя - только администраторы могут восстанавливать объекты
+        user_role = current_user.role.upper() if current_user.role else ''
+        if 'ПТО' not in user_role and 'ЗАМ' not in user_role and 'ДИРЕКТОР' not in user_role and 'ГЕН' not in user_role:
+            return jsonify({'success': False, 'error': 'У вас нет прав для восстановления объектов'})
+        
+        # Восстанавливаем объект
+        obj.is_hidden = False
+        db.session.commit()
+        
+        # Логируем действие
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Восстановление объекта",
+            description=f"Пользователь {current_user.login} восстановил объект '{obj.name}'",
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+        
+        return jsonify({'success': True, 'message': 'Объект восстановлен'})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': f'Ошибка при восстановлении объекта: {str(e)}'})
 

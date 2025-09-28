@@ -626,6 +626,96 @@
         .list-group-item { border-width: 1px; }
         .list-group .list-group-item:not(:first-child) { border-top-width: 1px !important; }
         .list-group-item + .list-group-item { border-top-width: 1px !important; }
+        
+        /* Стили для свайп-действий */
+        .swipeable-item {
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .swipeable-content {
+            position: relative;
+            z-index: 2;
+            background: var(--bs-body-bg);
+            transition: transform 0.3s ease;
+        }
+        
+        .swipe-actions {
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            z-index: 1;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .swipe-actions.show {
+            transform: translateX(0);
+        }
+        
+        .swipe-action-btn {
+            height: 100%;
+            border: none;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 80px;
+            transition: all 0.2s ease;
+        }
+        
+        .swipe-action-btn:hover {
+            filter: brightness(0.9);
+        }
+        
+        .swipe-action-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .swipe-action-delete {
+            background: #dc3545;
+        }
+        
+        .swipe-action-hide {
+            background: #6c757d;
+        }
+        
+        .swipe-action-restore {
+            background: #28a745;
+        }
+        
+        /* Стили для скрытых объектов */
+        .object-hidden {
+            opacity: 0.6;
+            background: var(--bs-secondary-bg) !important;
+            border-color: var(--bs-border-color) !important;
+        }
+        
+        .object-hidden .mobile-card-title,
+        .object-hidden .mobile-card-text {
+            color: var(--bs-secondary-color) !important;
+        }
+        
+        .object-hidden::after {
+            content: "Скрыт";
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--bs-warning);
+            color: var(--bs-dark);
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+            z-index: 3;
+        }
     </style>
 </head>
 <body>

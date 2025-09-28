@@ -62,14 +62,46 @@
 {% if objects and objects|length > 0 %}
 <div class="list-group">
     {% for obj in objects %}
-    <a class="list-group-item list-group-item-action py-3" href="{{ url_for('objects.object_detail', object_id=obj.id) }}">
-        <div class="d-flex w-100 justify-content-between">
-            <h5 class="mb-1">{{ obj.name }}</h5>
+    <div class="list-group-item swipeable-item py-3 {{ 'object-hidden' if obj.is_hidden else '' }}" data-object-id="{{ obj.id }}">
+        <div class="swipeable-content">
+            <a href="{{ url_for('objects.object_detail', object_id=obj.id) }}" class="text-decoration-none text-reset">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">{{ obj.name }}</h5>
+                </div>
+                {% if obj.location %}
+                <small class="text-secondary">{{ obj.location }}</small>
+                {% endif %}
+            </a>
         </div>
-        {% if obj.location %}
-        <small class="text-secondary">{{ obj.location }}</small>
+        {% if current_user.role in ['Инженер ПТО', 'Зам. директор', 'Ген. директор'] %}
+        <div class="swipe-actions">
+            {% if obj.is_hidden %}
+            <button class="swipe-action-btn swipe-action-restore" onclick="restoreObject('{{ obj.id }}')">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 4px;">
+                    <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                    <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                </svg>
+                Показать
+            </button>
+            {% else %}
+            <button class="swipe-action-btn swipe-action-hide" onclick="hideObject('{{ obj.id }}')">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 4px;">
+                    <path d="M8.5 2.5a.5.5 0 0 0-1 0V3H6a.5.5 0 0 0 0 1h1.5v1.5a.5.5 0 0 0 1 0V4H10a.5.5 0 0 0 0-1H8.5V2.5z"/>
+                    <path d="M2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H2zm12 1a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h12z"/>
+                </svg>
+                Скрыть
+            </button>
+            {% endif %}
+            <button class="swipe-action-btn swipe-action-delete" onclick="deleteObject('{{ obj.id }}', '{{ obj.name }}')">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 4px;">
+                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                    <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                </svg>
+                Удалить
+            </button>
+        </div>
         {% endif %}
-    </a>
+    </div>
     {% endfor %}
 </div>
 {% else %}
@@ -190,7 +222,233 @@ document.addEventListener('DOMContentLoaded', function() {
             clearSearchResults();
         }
     });
+    
+    // Свайп-функциональность для админов
+    const swipeableItems = document.querySelectorAll('.swipeable-item');
+    let startX = 0;
+    let currentX = 0;
+    let isDragging = false;
+    let currentItem = null;
+    
+    swipeableItems.forEach(item => {
+        const content = item.querySelector('.swipeable-content');
+        const actions = item.querySelector('.swipe-actions');
+        
+        if (!content || !actions) return;
+        
+        // Touch события
+        item.addEventListener('touchstart', handleTouchStart, { passive: false });
+        item.addEventListener('touchmove', handleTouchMove, { passive: false });
+        item.addEventListener('touchend', handleTouchEnd, { passive: false });
+        
+        // Mouse события для тестирования на десктопе
+        item.addEventListener('mousedown', handleMouseDown);
+        item.addEventListener('mousemove', handleMouseMove);
+        item.addEventListener('mouseup', handleMouseEnd);
+        item.addEventListener('mouseleave', handleMouseEnd);
+    });
+    
+    function handleTouchStart(e) {
+        if (!e.target.closest('.swipeable-item')) return;
+        startX = e.touches[0].clientX;
+        currentItem = e.target.closest('.swipeable-item');
+        isDragging = true;
+        e.preventDefault();
+    }
+    
+    function handleTouchMove(e) {
+        if (!isDragging || !currentItem) return;
+        currentX = e.touches[0].clientX;
+        const deltaX = currentX - startX;
+        
+        if (deltaX < 0) { // Свайп влево
+            const translateX = Math.max(deltaX, -160); // Ограничиваем максимальный сдвиг
+            currentItem.querySelector('.swipeable-content').style.transform = `translateX(${translateX}px)`;
+            currentItem.querySelector('.swipe-actions').style.transform = `translateX(${translateX + 160}px)`;
+        }
+        e.preventDefault();
+    }
+    
+    function handleTouchEnd(e) {
+        if (!isDragging || !currentItem) return;
+        const deltaX = currentX - startX;
+        
+        if (deltaX < -80) { // Показать действия
+            showSwipeActions(currentItem);
+        } else { // Скрыть действия
+            hideSwipeActions(currentItem);
+        }
+        
+        isDragging = false;
+        currentItem = null;
+        e.preventDefault();
+    }
+    
+    function handleMouseDown(e) {
+        if (!e.target.closest('.swipeable-item')) return;
+        startX = e.clientX;
+        currentItem = e.target.closest('.swipeable-item');
+        isDragging = true;
+        e.preventDefault();
+    }
+    
+    function handleMouseMove(e) {
+        if (!isDragging || !currentItem) return;
+        currentX = e.clientX;
+        const deltaX = currentX - startX;
+        
+        if (deltaX < 0) {
+            const translateX = Math.max(deltaX, -160);
+            currentItem.querySelector('.swipeable-content').style.transform = `translateX(${translateX}px)`;
+            currentItem.querySelector('.swipe-actions').style.transform = `translateX(${translateX + 160}px)`;
+        }
+    }
+    
+    function handleMouseEnd(e) {
+        if (!isDragging || !currentItem) return;
+        const deltaX = currentX - startX;
+        
+        if (deltaX < -80) {
+            showSwipeActions(currentItem);
+        } else {
+            hideSwipeActions(currentItem);
+        }
+        
+        isDragging = false;
+        currentItem = null;
+    }
+    
+    function showSwipeActions(item) {
+        item.querySelector('.swipeable-content').style.transform = 'translateX(-160px)';
+        item.querySelector('.swipe-actions').classList.add('show');
+    }
+    
+    function hideSwipeActions(item) {
+        item.querySelector('.swipeable-content').style.transform = 'translateX(0)';
+        item.querySelector('.swipe-actions').classList.remove('show');
+    }
+    
+    // Закрытие всех свайп-действий при клике вне элементов
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.swipeable-item')) {
+            swipeableItems.forEach(item => {
+                hideSwipeActions(item);
+            });
+        }
+    });
 });
+
+// Функции для действий с объектами
+function deleteObject(objectId, objectName) {
+    if (confirm(`Вы уверены, что хотите удалить объект "${objectName}"?\n\nЭто действие нельзя отменить. Все связанные данные будут удалены навсегда.`)) {
+        fetch(`/objects/${objectId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Удаляем элемент из DOM
+                const item = document.querySelector(`[data-object-id="${objectId}"]`);
+                if (item) {
+                    item.style.transition = 'all 0.3s ease';
+                    item.style.transform = 'translateX(-100%)';
+                    item.style.opacity = '0';
+                    setTimeout(() => {
+                        item.remove();
+                    }, 300);
+                }
+            } else {
+                alert('Ошибка при удалении объекта: ' + (data.error || 'Неизвестная ошибка'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Произошла ошибка при удалении объекта');
+        });
+    }
+}
+
+function hideObject(objectId) {
+    fetch(`/objects/${objectId}/hide`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Добавляем класс скрытого объекта
+            const item = document.querySelector(`[data-object-id="${objectId}"]`);
+            if (item) {
+                item.classList.add('object-hidden');
+                // Обновляем кнопку на "Показать"
+                const hideBtn = item.querySelector('.swipe-action-hide');
+                if (hideBtn) {
+                    hideBtn.className = 'swipe-action-btn swipe-action-restore';
+                    hideBtn.innerHTML = `
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 4px;">
+                            <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                        </svg>
+                        Показать
+                    `;
+                    hideBtn.onclick = () => restoreObject(objectId);
+                }
+            }
+        } else {
+            alert('Ошибка при скрытии объекта: ' + (data.error || 'Неизвестная ошибка'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка при скрытии объекта');
+    });
+}
+
+function restoreObject(objectId) {
+    fetch(`/objects/${objectId}/restore`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Убираем класс скрытого объекта
+            const item = document.querySelector(`[data-object-id="${objectId}"]`);
+            if (item) {
+                item.classList.remove('object-hidden');
+                // Обновляем кнопку на "Скрыть"
+                const restoreBtn = item.querySelector('.swipe-action-restore');
+                if (restoreBtn) {
+                    restoreBtn.className = 'swipe-action-btn swipe-action-hide';
+                    restoreBtn.innerHTML = `
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 4px;">
+                            <path d="M8.5 2.5a.5.5 0 0 0-1 0V3H6a.5.5 0 0 0 0 1h1.5v1.5a.5.5 0 0 0 1 0V4H10a.5.5 0 0 0 0-1H8.5V2.5z"/>
+                            <path d="M2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H2zm12 1a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h12z"/>
+                        </svg>
+                        Скрыть
+                    `;
+                    restoreBtn.onclick = () => hideObject(objectId);
+                }
+            }
+        } else {
+            alert('Ошибка при восстановлении объекта: ' + (data.error || 'Неизвестная ошибка'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка при восстановлении объекта');
+    });
+}
 </script>
 
 {% endblock %}
