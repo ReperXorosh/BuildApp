@@ -443,13 +443,19 @@ function changeWorkDate() {
     const workId = document.getElementById('workId').value;
     const newDate = document.getElementById('newDate').value;
     
+    console.log('DEBUG: workId =', workId, 'тип:', typeof workId);
+    console.log('DEBUG: newDate =', newDate);
+    
     if (!newDate) {
         alert('Пожалуйста, выберите новую дату');
         return;
     }
     
     // Отправляем запрос на изменение даты
-    fetch(`{{ url_for('objects.change_planned_work_date', object_id=object.id, work_id='WORK_ID_PLACEHOLDER') }}`.replace('WORK_ID_PLACEHOLDER', workId), {
+    const url = `{{ url_for('objects.change_planned_work_date', object_id=object.id, work_id='WORK_ID_PLACEHOLDER') }}`.replace('WORK_ID_PLACEHOLDER', workId);
+    console.log('DEBUG: URL =', url);
+    
+    fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',

@@ -1725,11 +1725,11 @@ def execute_planned_work(object_id, work_id):
 def change_planned_work_date(object_id, work_id):
     """Изменение даты запланированной работы"""
     try:
-        print(f"DEBUG: Получен запрос на изменение даты для работы {work_id} объекта {object_id}")
+        print(f"DEBUG: Получен запрос на изменение даты для работы {work_id} (тип: {type(work_id)}) объекта {object_id}")
         
         # Получаем работу
         work = PlannedWork.query.get_or_404(work_id)
-        print(f"DEBUG: Найдена работа: {work.work_title}")
+        print(f"DEBUG: Найдена работа: {work.work_title} (ID: {work.id})")
         
         # Проверяем, что работа принадлежит указанному объекту
         if work.object_id != str(object_id):
