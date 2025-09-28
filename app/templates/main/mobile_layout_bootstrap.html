@@ -414,13 +414,33 @@
         }
         
         .mobile-menu-close {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.15);
             border: none;
-            border-radius: 6px;
-            padding: 6px;
+            border-radius: 8px;
+            padding: 8px;
             color: white;
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .mobile-menu-close:hover {
+            background: rgba(255,255,255,0.25);
+            transform: scale(1.05);
+        }
+        
+        .mobile-menu-close:active {
+            transform: scale(0.95);
+        }
+        
+        .mobile-menu-close svg {
+            width: 18px;
+            height: 18px;
+            stroke-width: 2;
         }
         
         .mobile-menu-nav {
@@ -673,8 +693,8 @@
         <div class="mobile-menu-header">
             <h2 class="mobile-menu-title">{{ gettext('Меню') }}</h2>
             <button class="mobile-menu-close" id="mobileMenuClose">
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </button>
         </div>
