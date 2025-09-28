@@ -327,8 +327,7 @@ function deleteObject(objectId, objectName) {
         fetch(`/objects/${objectId}/delete`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token() }}'
+                'Content-Type': 'application/json'
             }
         })
         .then(response => response.json())
