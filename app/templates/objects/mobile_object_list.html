@@ -258,11 +258,21 @@ document.addEventListener('DOMContentLoaded', function() {
         
         currentX = e.touches[0].clientX;
         const deltaX = currentX - startX;
+        const isOpen = currentItem.querySelector('.swipe-actions.show');
         
-        if (deltaX < 0) {
-            const translateX = Math.max(deltaX, -maxSwipe);
-            console.log('Touch move, deltaX:', deltaX, 'translateX:', translateX);
+        // Если свайп открыт, разрешаем движение в обе стороны
+        if (isOpen) {
+            // Если свайп открыт, начинаем с -maxSwipe и двигаемся вправо
+            const translateX = Math.max(-maxSwipe + deltaX, -maxSwipe);
+            console.log('Touch move (open), deltaX:', deltaX, 'translateX:', translateX);
             updateTransform(currentItem, translateX);
+        } else {
+            // Если свайп закрыт, разрешаем только движение влево
+            if (deltaX < 0) {
+                const translateX = Math.max(deltaX, -maxSwipe);
+                console.log('Touch move (closed), deltaX:', deltaX, 'translateX:', translateX);
+                updateTransform(currentItem, translateX);
+            }
         }
         
         e.preventDefault();
@@ -272,9 +282,19 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!isDragging || !currentItem) return;
         
         const deltaX = currentX - startX;
-        const shouldShow = deltaX < -threshold;
+        const isOpen = currentItem.querySelector('.swipe-actions.show');
         
-        console.log('Touch end, deltaX:', deltaX, 'shouldShow:', shouldShow);
+        let shouldShow;
+        
+        if (isOpen) {
+            // Если свайп открыт, закрываем если свайп вправо больше threshold
+            shouldShow = deltaX < threshold;
+        } else {
+            // Если свайп закрыт, открываем если свайп влево больше threshold
+            shouldShow = deltaX < -threshold;
+        }
+        
+        console.log('Touch end, deltaX:', deltaX, 'isOpen:', !!isOpen, 'shouldShow:', shouldShow);
         
         currentItem.classList.remove('swiping');
         currentItem.classList.add('animating');
@@ -312,10 +332,19 @@ document.addEventListener('DOMContentLoaded', function() {
         
         currentX = e.clientX;
         const deltaX = currentX - startX;
+        const isOpen = currentItem.querySelector('.swipe-actions.show');
         
-        if (deltaX < 0) {
-            const translateX = Math.max(deltaX, -maxSwipe);
+        // Если свайп открыт, разрешаем движение в обе стороны
+        if (isOpen) {
+            // Если свайп открыт, начинаем с -maxSwipe и двигаемся вправо
+            const translateX = Math.max(-maxSwipe + deltaX, -maxSwipe);
             updateTransform(currentItem, translateX);
+        } else {
+            // Если свайп закрыт, разрешаем только движение влево
+            if (deltaX < 0) {
+                const translateX = Math.max(deltaX, -maxSwipe);
+                updateTransform(currentItem, translateX);
+            }
         }
     }
     
@@ -323,7 +352,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!isDragging || !currentItem) return;
         
         const deltaX = currentX - startX;
-        const shouldShow = deltaX < -threshold;
+        const isOpen = currentItem.querySelector('.swipe-actions.show');
+        
+        let shouldShow;
+        
+        if (isOpen) {
+            // Если свайп открыт, закрываем если свайп вправо больше threshold
+            shouldShow = deltaX < threshold;
+        } else {
+            // Если свайп закрыт, открываем если свайп влево больше threshold
+            shouldShow = deltaX < -threshold;
+        }
         
         currentItem.classList.remove('swiping');
         currentItem.classList.add('animating');
@@ -348,8 +387,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const actions = item.querySelector('.swipe-actions');
         
         if (content && actions) {
-            content.style.transform = `translateX(${translateX}px)`;
-            actions.style.transform = `translateX(${translateX + maxSwipe}px)`;
+            // Ограничиваем translateX в пределах от -maxSwipe до 0
+            const clampedTranslateX = Math.max(-maxSwipe, Math.min(0, translateX));
+            
+            content.style.transform = `translateX(${clampedTranslateX}px)`;
+            actions.style.transform = `translateX(${clampedTranslateX + maxSwipe}px)`;
         }
     }
     
@@ -378,8 +420,22 @@ document.addEventListener('DOMContentLoaded', function() {
         currentItem = null;
     }
     
-    // Закрытие всех свайп-действий при клике вне элементов
+    // Обработка кликов
     document.addEventListener('click', function(e) {
+        // Если клик по кнопке удаления
+        if (e.target.closest('.swipe-action-btn')) {
+            e.stopPropagation();
+            return; // Не закрываем свайп-действия
+        }
+        
+        // Если клик по ссылке внутри открытого свайпа
+        if (e.target.closest('a') && currentItem && currentItem.querySelector('.swipe-actions.show')) {
+            e.preventDefault();
+            hideSwipeActions(currentItem);
+            return;
+        }
+        
+        // Если клик вне свайпаемых элементов
         if (!e.target.closest('.swipeable-item')) {
             swipeableItems.forEach(item => {
                 hideSwipeActions(item);
@@ -390,6 +446,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Функции для действий с объектами
 function deleteObject(objectId, objectName) {
+    console.log('deleteObject called with:', objectId, objectName);
+    
     if (confirm(`Вы уверены, что хотите удалить объект "${objectName}"?\n\nЭто действие нельзя отменить. Все связанные данные будут удалены навсегда.`)) {
         fetch(`/objects/${objectId}/delete`, {
             method: 'POST',
