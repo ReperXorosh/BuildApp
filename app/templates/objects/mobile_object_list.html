@@ -206,221 +206,186 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Улучшенная свайп-функциональность для админов
-    class SwipeManager {
-        constructor() {
-            this.swipeableItems = document.querySelectorAll('.swipeable-item');
-            this.startX = 0;
-            this.currentX = 0;
-            this.isDragging = false;
-            this.currentItem = null;
-            this.velocity = 0;
-            this.lastMoveTime = 0;
-            this.lastMoveX = 0;
-            this.threshold = 80; // Минимальное расстояние для активации
-            this.maxSwipe = 160; // Максимальное расстояние свайпа
-            
-            this.init();
+    // Простая и надёжная свайп-функциональность для админов
+    const swipeableItems = document.querySelectorAll('.swipeable-item');
+    let startX = 0;
+    let currentX = 0;
+    let isDragging = false;
+    let currentItem = null;
+    const threshold = 80;
+    const maxSwipe = 160;
+    
+    console.log('Found swipeable items:', swipeableItems.length);
+    
+    swipeableItems.forEach((item, index) => {
+        const content = item.querySelector('.swipeable-content');
+        const actions = item.querySelector('.swipe-actions');
+        
+        console.log(`Item ${index}:`, { content: !!content, actions: !!actions });
+        
+        if (!content || !actions) return;
+        
+        // Touch события
+        item.addEventListener('touchstart', handleTouchStart, { passive: false });
+        item.addEventListener('touchmove', handleTouchMove, { passive: false });
+        item.addEventListener('touchend', handleTouchEnd, { passive: false });
+        
+        // Mouse события для тестирования на десктопе
+        item.addEventListener('mousedown', handleMouseDown);
+        item.addEventListener('mousemove', handleMouseMove);
+        item.addEventListener('mouseup', handleMouseEnd);
+        item.addEventListener('mouseleave', handleMouseEnd);
+        
+        console.log(`Event listeners added to item ${index}`);
+    });
+    
+    function handleTouchStart(e) {
+        const item = e.target.closest('.swipeable-item');
+        if (!item) return;
+        
+        console.log('Touch start on item:', item);
+        
+        startX = e.touches[0].clientX;
+        currentItem = item;
+        isDragging = true;
+        
+        item.classList.add('swiping');
+        e.preventDefault();
+    }
+    
+    function handleTouchMove(e) {
+        if (!isDragging || !currentItem) return;
+        
+        currentX = e.touches[0].clientX;
+        const deltaX = currentX - startX;
+        
+        if (deltaX < 0) {
+            const translateX = Math.max(deltaX, -maxSwipe);
+            console.log('Touch move, deltaX:', deltaX, 'translateX:', translateX);
+            updateTransform(currentItem, translateX);
         }
         
-        init() {
-            this.swipeableItems.forEach(item => {
-                const content = item.querySelector('.swipeable-content');
-                const actions = item.querySelector('.swipe-actions');
-                
-                if (!content || !actions) return;
-                
-                // Touch события
-                item.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
-                item.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
-                item.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
-                
-                // Mouse события для тестирования на десктопе
-                item.addEventListener('mousedown', this.handleMouseDown.bind(this));
-                item.addEventListener('mousemove', this.handleMouseMove.bind(this));
-                item.addEventListener('mouseup', this.handleMouseEnd.bind(this));
-                item.addEventListener('mouseleave', this.handleMouseEnd.bind(this));
-            });
-            
-            // Закрытие всех свайп-действий при клике вне элементов
-            document.addEventListener('click', this.handleDocumentClick.bind(this));
+        e.preventDefault();
+    }
+    
+    function handleTouchEnd(e) {
+        if (!isDragging || !currentItem) return;
+        
+        const deltaX = currentX - startX;
+        const shouldShow = deltaX < -threshold;
+        
+        console.log('Touch end, deltaX:', deltaX, 'shouldShow:', shouldShow);
+        
+        currentItem.classList.remove('swiping');
+        currentItem.classList.add('animating');
+        
+        if (shouldShow) {
+            showSwipeActions(currentItem);
+        } else {
+            hideSwipeActions(currentItem);
         }
         
-        handleTouchStart(e) {
-            if (!e.target.closest('.swipeable-item')) return;
-            
-            const item = e.target.closest('.swipeable-item');
-            if (item.querySelector('a')) return; // Не блокируем клики по ссылкам
-            
-            this.startX = e.touches[0].clientX;
-            this.currentItem = item;
-            this.isDragging = true;
-            this.velocity = 0;
-            this.lastMoveTime = Date.now();
-            this.lastMoveX = this.startX;
-            
-            // Добавляем класс для отключения transitions
-            item.classList.add('swiping');
-            
-            e.preventDefault();
-        }
-        
-        handleTouchMove(e) {
-            if (!this.isDragging || !this.currentItem) return;
-            
-            this.currentX = e.touches[0].clientX;
-            const deltaX = this.currentX - this.startX;
-            const currentTime = Date.now();
-            
-            // Вычисляем скорость
-            if (currentTime - this.lastMoveTime > 0) {
-                this.velocity = (this.currentX - this.lastMoveX) / (currentTime - this.lastMoveTime);
-                this.lastMoveTime = currentTime;
-                this.lastMoveX = this.currentX;
+        setTimeout(() => {
+            if (currentItem) {
+                currentItem.classList.remove('animating');
             }
-            
-            if (deltaX < 0) { // Свайп влево
-                const translateX = Math.max(deltaX, -this.maxSwipe);
-                this.updateTransform(this.currentItem, translateX);
-            }
-            
-            e.preventDefault();
-        }
+        }, 250);
         
-        handleTouchEnd(e) {
-            if (!this.isDragging || !this.currentItem) return;
-            
-            const deltaX = this.currentX - this.startX;
-            const shouldShow = deltaX < -this.threshold || (Math.abs(this.velocity) > 0.5 && deltaX < -30);
-            
-            // Убираем класс swiping и добавляем animating
-            this.currentItem.classList.remove('swiping');
-            this.currentItem.classList.add('animating');
-            
-            if (shouldShow) {
-                this.showSwipeActions(this.currentItem);
-            } else {
-                this.hideSwipeActions(this.currentItem);
-            }
-            
-            // Убираем класс animating после завершения анимации
-            setTimeout(() => {
-                if (this.currentItem) {
-                    this.currentItem.classList.remove('animating');
-                }
-            }, 250);
-            
-            this.reset();
-            e.preventDefault();
-        }
+        reset();
+        e.preventDefault();
+    }
+    
+    function handleMouseDown(e) {
+        const item = e.target.closest('.swipeable-item');
+        if (!item) return;
         
-        handleMouseDown(e) {
-            if (!e.target.closest('.swipeable-item')) return;
-            
-            const item = e.target.closest('.swipeable-item');
-            if (item.querySelector('a')) return;
-            
-            this.startX = e.clientX;
-            this.currentItem = item;
-            this.isDragging = true;
-            this.velocity = 0;
-            this.lastMoveTime = Date.now();
-            this.lastMoveX = this.startX;
-            
-            item.classList.add('swiping');
-            e.preventDefault();
-        }
+        startX = e.clientX;
+        currentItem = item;
+        isDragging = true;
         
-        handleMouseMove(e) {
-            if (!this.isDragging || !this.currentItem) return;
-            
-            this.currentX = e.clientX;
-            const deltaX = this.currentX - this.startX;
-            const currentTime = Date.now();
-            
-            if (currentTime - this.lastMoveTime > 0) {
-                this.velocity = (this.currentX - this.lastMoveX) / (currentTime - this.lastMoveTime);
-                this.lastMoveTime = currentTime;
-                this.lastMoveX = this.currentX;
-            }
-            
-            if (deltaX < 0) {
-                const translateX = Math.max(deltaX, -this.maxSwipe);
-                this.updateTransform(this.currentItem, translateX);
-            }
-        }
+        item.classList.add('swiping');
+        e.preventDefault();
+    }
+    
+    function handleMouseMove(e) {
+        if (!isDragging || !currentItem) return;
         
-        handleMouseEnd(e) {
-            if (!this.isDragging || !this.currentItem) return;
-            
-            const deltaX = this.currentX - this.startX;
-            const shouldShow = deltaX < -this.threshold || (Math.abs(this.velocity) > 0.5 && deltaX < -30);
-            
-            this.currentItem.classList.remove('swiping');
-            this.currentItem.classList.add('animating');
-            
-            if (shouldShow) {
-                this.showSwipeActions(this.currentItem);
-            } else {
-                this.hideSwipeActions(this.currentItem);
-            }
-            
-            setTimeout(() => {
-                if (this.currentItem) {
-                    this.currentItem.classList.remove('animating');
-                }
-            }, 250);
-            
-            this.reset();
-        }
+        currentX = e.clientX;
+        const deltaX = currentX - startX;
         
-        handleDocumentClick(e) {
-            if (!e.target.closest('.swipeable-item')) {
-                this.swipeableItems.forEach(item => {
-                    this.hideSwipeActions(item);
-                });
-            }
-        }
-        
-        updateTransform(item, translateX) {
-            const content = item.querySelector('.swipeable-content');
-            const actions = item.querySelector('.swipe-actions');
-            
-            if (content && actions) {
-                content.style.transform = `translateX(${translateX}px)`;
-                actions.style.transform = `translateX(${translateX + this.maxSwipe}px)`;
-            }
-        }
-        
-        showSwipeActions(item) {
-            const content = item.querySelector('.swipeable-content');
-            const actions = item.querySelector('.swipe-actions');
-            
-            if (content && actions) {
-                content.style.transform = `translateX(-${this.maxSwipe}px)`;
-                actions.classList.add('show');
-            }
-        }
-        
-        hideSwipeActions(item) {
-            const content = item.querySelector('.swipeable-content');
-            const actions = item.querySelector('.swipe-actions');
-            
-            if (content && actions) {
-                content.style.transform = 'translateX(0)';
-                actions.classList.remove('show');
-            }
-        }
-        
-        reset() {
-            this.isDragging = false;
-            this.currentItem = null;
-            this.velocity = 0;
+        if (deltaX < 0) {
+            const translateX = Math.max(deltaX, -maxSwipe);
+            updateTransform(currentItem, translateX);
         }
     }
     
-    // Инициализируем свайп-менеджер
-    const swipeManager = new SwipeManager();
+    function handleMouseEnd(e) {
+        if (!isDragging || !currentItem) return;
+        
+        const deltaX = currentX - startX;
+        const shouldShow = deltaX < -threshold;
+        
+        currentItem.classList.remove('swiping');
+        currentItem.classList.add('animating');
+        
+        if (shouldShow) {
+            showSwipeActions(currentItem);
+        } else {
+            hideSwipeActions(currentItem);
+        }
+        
+        setTimeout(() => {
+            if (currentItem) {
+                currentItem.classList.remove('animating');
+            }
+        }, 250);
+        
+        reset();
+    }
+    
+    function updateTransform(item, translateX) {
+        const content = item.querySelector('.swipeable-content');
+        const actions = item.querySelector('.swipe-actions');
+        
+        if (content && actions) {
+            content.style.transform = `translateX(${translateX}px)`;
+            actions.style.transform = `translateX(${translateX + maxSwipe}px)`;
+        }
+    }
+    
+    function showSwipeActions(item) {
+        const content = item.querySelector('.swipeable-content');
+        const actions = item.querySelector('.swipe-actions');
+        
+        if (content && actions) {
+            content.style.transform = `translateX(-${maxSwipe}px)`;
+            actions.classList.add('show');
+        }
+    }
+    
+    function hideSwipeActions(item) {
+        const content = item.querySelector('.swipeable-content');
+        const actions = item.querySelector('.swipe-actions');
+        
+        if (content && actions) {
+            content.style.transform = 'translateX(0)';
+            actions.classList.remove('show');
+        }
+    }
+    
+    function reset() {
+        isDragging = false;
+        currentItem = null;
+    }
+    
+    // Закрытие всех свайп-действий при клике вне элементов
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.swipeable-item')) {
+            swipeableItems.forEach(item => {
+                hideSwipeActions(item);
+            });
+        }
+    });
 });
 
 // Функции для действий с объектами
