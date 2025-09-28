@@ -93,6 +93,31 @@ document.addEventListener('DOMContentLoaded', function() {
     // Фокус на названии
     if (nameInput) nameInput.focus();
 
+    // Автоматически скрываем flash-сообщения при начале ввода
+    const flashMessages = document.querySelectorAll('.alert');
+    if (flashMessages.length > 0) {
+        // Скрываем сообщения через 3 секунды
+        setTimeout(() => {
+            flashMessages.forEach(msg => {
+                msg.style.transition = 'opacity 0.5s ease-out';
+                msg.style.opacity = '0';
+                setTimeout(() => msg.remove(), 500);
+            });
+        }, 3000);
+        
+        // Или скрываем сразу при начале ввода в любое поле
+        [nameInput, document.getElementById('location'), desc].forEach(el => {
+            if (!el) return;
+            el.addEventListener('input', () => {
+                flashMessages.forEach(msg => {
+                    msg.style.transition = 'opacity 0.3s ease-out';
+                    msg.style.opacity = '0';
+                    setTimeout(() => msg.remove(), 300);
+                });
+            }, { once: true }); // Выполняется только один раз
+        });
+    }
+
     // Тримминг пробелов
     const trimField = (el) => {
         if (!el) return;
