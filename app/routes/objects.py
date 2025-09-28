@@ -1732,7 +1732,7 @@ def change_planned_work_date(object_id, work_id):
         print(f"DEBUG: Найдена работа: {work.work_title} (ID: {work.id})")
         
         # Проверяем, что работа принадлежит указанному объекту
-        if work.object_id != str(object_id):
+        if str(work.object_id) != str(object_id):
             print(f"DEBUG: Работа не принадлежит объекту. work.object_id={work.object_id}, object_id={object_id}")
             abort(404)
         
