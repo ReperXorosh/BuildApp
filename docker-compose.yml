@@ -6,8 +6,10 @@ services:
     container_name: postgres
     volumes:
       - ~/pg/pg_data:/var/lib/postgresql/data
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-sankficeba}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-12345678}
+      - POSTGRES_DB=${POSTGRES_DB:-mydb}
     ports:
       - "54321:5432"
   flask:
@@ -21,11 +23,12 @@ services:
     env_file:
       - .env
     environment:
-      - POSTGRES_HOST=${POSTGRES_HOST}
-      - POSTGRES_PORT=${POSTGRES_PORT}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-sankficeba}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-12345678}
+      - POSTGRES_DB=${POSTGRES_DB:-mydb}
+      - USE_POSTGRES=true
     depends_on:
       - postgres
   nginx:
