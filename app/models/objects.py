@@ -28,7 +28,6 @@ class Object(db.Model):
     zdf = db.relationship('ZDF', backref='object', lazy=True, cascade='all, delete-orphan')
     brackets = db.relationship('Bracket', backref='object', lazy=True, cascade='all, delete-orphan')
     luminaires = db.relationship('Luminaire', backref='object', lazy=True, cascade='all, delete-orphan')
-    daily_reports = db.relationship('DailyReport', backref='object', lazy=True)
 
     # Добавить связь с пользователем
     creator = db.relationship('Users', foreign_keys=[created_by], backref='created_objects')
