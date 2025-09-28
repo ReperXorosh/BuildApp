@@ -458,8 +458,13 @@ function changeWorkDate() {
         },
         body: `new_date=${encodeURIComponent(newDate)}`
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        return response.json();
+    })
     .then(data => {
+        console.log('Response data:', data);
         if (data.success) {
             // Показываем сообщение об успехе
             alert(data.message);
@@ -496,7 +501,9 @@ function changeWorkDate() {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Произошла ошибка при изменении даты');
+        console.error('Response status:', error.status);
+        console.error('Response text:', error.message);
+        alert('Произошла ошибка при изменении даты: ' + error.message);
     });
 }
 
