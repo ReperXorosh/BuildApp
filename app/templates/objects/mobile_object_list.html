@@ -212,6 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentX = 0;
     let isDragging = false;
     let currentItem = null;
+    let isSwipeGesture = false;
     const threshold = 80;
     const maxSwipe = 160;
     
@@ -292,6 +293,11 @@ document.addEventListener('DOMContentLoaded', function() {
         currentX = e.touches[0].clientX;
         const deltaX = currentX - startX;
         
+        // Если движение больше 10px, считаем это свайпом
+        if (Math.abs(deltaX) > 10) {
+            isSwipeGesture = true;
+        }
+        
         // Простая логика: только свайп влево для открытия
         if (deltaX < 0) {
             const translateX = Math.max(deltaX, -maxSwipe);
@@ -309,7 +315,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Простая логика: если свайп влево больше threshold, показываем кнопку полностью
         const shouldShow = deltaX < -threshold;
         
-        
         currentItem.classList.remove('swiping');
         currentItem.classList.add('animating');
         
@@ -325,8 +330,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 250);
         
+        // Блокируем клик только если это был свайп
+        if (isSwipeGesture) {
+            e.preventDefault();
+        }
+        
         reset();
-        e.preventDefault();
     }
     
     function handleMouseDown(e) {
@@ -359,6 +368,11 @@ document.addEventListener('DOMContentLoaded', function() {
         currentX = e.clientX;
         const deltaX = currentX - startX;
         
+        // Если движение больше 10px, считаем это свайпом
+        if (Math.abs(deltaX) > 10) {
+            isSwipeGesture = true;
+        }
+        
         // Простая логика: только свайп влево для открытия
         if (deltaX < 0) {
             const translateX = Math.max(deltaX, -maxSwipe);
@@ -388,6 +402,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentItem.classList.remove('animating');
             }
         }, 250);
+        
+        // Блокируем клик только если это был свайп
+        if (isSwipeGesture) {
+            e.preventDefault();
+        }
         
         reset();
     }
@@ -441,6 +460,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function reset() {
         isDragging = false;
         currentItem = null;
+        isSwipeGesture = false;
     }
     
     // Обработка кликов
@@ -461,11 +481,22 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Если клик по ссылке внутри открытого свайпа
+        // Если клик по ссылке внутри открытого свайпа - закрываем свайп и разрешаем переход
         if (e.target.closest('a') && currentItem && currentItem.querySelector('.swipe-actions.show')) {
-            e.preventDefault();
             hideSwipeActions(currentItem);
+            // Не вызываем preventDefault() - разрешаем переход по ссылке
             return;
+        }
+        
+        // Если клик по ссылке объекта (обычный клик без свайпа)
+        const objectLink = e.target.closest('a[href*="/objects/"]');
+        if (objectLink) {
+            // Если свайп не открыт, разрешаем переход
+            const swipeItem = objectLink.closest('.swipeable-item');
+            if (!swipeItem || !swipeItem.querySelector('.swipe-actions.show')) {
+                // Обычный клик - разрешаем переход
+                return;
+            }
         }
         
         // Если клик вне свайпаемых элементов
