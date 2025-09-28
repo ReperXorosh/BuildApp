@@ -151,13 +151,22 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .list-group-item {
-    border: none;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--bs-border-color);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    background: var(--bs-body-bg);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .list-group-item:last-child {
-    border-bottom: none;
+    margin-bottom: 0;
+}
+
+[data-bs-theme="dark"] .list-group-item {
+    background: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 .badge {
@@ -177,6 +186,15 @@ document.addEventListener('DOMContentLoaded', function() {
 [data-bs-theme="dark"] .accordion-button:not(.collapsed) {
     background-color: var(--bs-primary);
     color: white;
+}
+
+.accordion-body {
+    padding: 12px 16px;
+}
+
+.accordion-body .list-group {
+    margin: 0;
+    padding: 0;
 }
 </style>
 {% endblock %}
