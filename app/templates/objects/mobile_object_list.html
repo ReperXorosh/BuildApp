@@ -236,7 +236,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Обработчик клика для кнопки удаления
         if (deleteBtn) {
             deleteBtn.addEventListener('click', function(e) {
-                console.log('Direct click on delete button');
                 e.stopPropagation();
                 e.preventDefault();
                 
@@ -250,7 +249,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Touch события для кнопки
             deleteBtn.addEventListener('touchend', function(e) {
-                console.log('Touch end on delete button');
                 e.stopPropagation();
                 e.preventDefault();
                 
@@ -447,20 +445,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Обработка кликов
     document.addEventListener('click', function(e) {
-        console.log('Click detected on:', e.target);
-        
         // Если клик по кнопке удаления
         const deleteBtn = e.target.closest('.swipe-action-btn');
         if (deleteBtn) {
-            console.log('Click on delete button detected');
             e.stopPropagation();
             e.preventDefault();
             
             // Получаем данные из data-атрибутов
             const objectId = deleteBtn.getAttribute('data-object-id');
             const objectName = deleteBtn.getAttribute('data-object-name');
-            
-            console.log('Delete button data:', objectId, objectName);
             
             if (objectId && objectName) {
                 deleteObject(objectId, objectName);
@@ -486,10 +479,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Функции для действий с объектами
 function deleteObject(objectId, objectName) {
-    console.log('deleteObject function called with:', objectId, objectName);
-    
     if (confirm(`Вы уверены, что хотите удалить объект "${objectName}"?\n\nЭто действие нельзя отменить. Все связанные данные будут удалены навсегда.`)) {
-        console.log('User confirmed deletion');
         fetch(`/objects/${objectId}/delete`, {
             method: 'POST',
             headers: {

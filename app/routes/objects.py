@@ -2241,8 +2241,7 @@ def delete_object(object_id):
         # Проверяем права пользователя - только администраторы могут удалять объекты
         user_role = current_user.role.upper() if current_user.role else ''
         if 'АДМИН' not in user_role and 'ДИРЕКТОР' not in user_role and 'ГЕН' not in user_role:
-            flash('У вас нет прав для удаления объектов', 'error')
-            return redirect(url_for('objects.object_detail', object_id=object_id))
+            return jsonify({'success': False, 'error': 'У вас нет прав для удаления объектов'})
         
         # Логируем действие перед удалением
         ActivityLog.log_action(
@@ -2259,13 +2258,11 @@ def delete_object(object_id):
         db.session.delete(obj)
         db.session.commit()
         
-        flash(f'Объект "{obj.name}" успешно удалён', 'success')
-        return redirect(url_for('objects.object_list'))
+        return jsonify({'success': True, 'message': f'Объект "{obj.name}" успешно удалён'})
         
     except Exception as e:
         db.session.rollback()
-        flash(f'Ошибка при удалении объекта: {str(e)}', 'error')
-        return redirect(url_for('objects.object_detail', object_id=object_id))
+        return jsonify({'success': False, 'error': f'Ошибка при удалении объекта: {str(e)}'})
 
 # Отладочная информация будет добавлена позже в приложении
 
