@@ -2233,15 +2233,16 @@ def reject_daily_report(object_id, date):
 @objects_bp.route('/<uuid:object_id>/delete', methods=['POST'])
 @login_required
 def delete_object(object_id):
-    """Удаление объекта (только для администраторов)"""
+    """Удаление объекта (только для инженера ПТО)"""
     try:
         # Получаем объект
         obj = Object.query.get_or_404(object_id)
         
-        # Проверяем права пользователя - только администраторы могут удалять объекты
-        user_role = current_user.role.upper() if current_user.role else ''
-        if 'АДМИН' not in user_role and 'ДИРЕКТОР' not in user_role and 'ГЕН' not in user_role:
-            return jsonify({'success': False, 'error': 'У вас нет прав для удаления объектов'})
+        # Проверяем права пользователя - только инженер ПТО может удалять объекты
+        user_role = current_user.role if current_user.role else ''
+        print(f"DEBUG: User role: '{user_role}'")  # Отладочная информация
+        if user_role != 'Инженер ПТО':
+            return jsonify({'success': False, 'error': f'У вас нет прав для удаления объектов. Ваша роль: {user_role}'})
         
         # Логируем действие перед удалением
         ActivityLog.log_action(

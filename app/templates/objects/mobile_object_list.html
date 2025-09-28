@@ -73,7 +73,7 @@
                 {% endif %}
             </a>
         </div>
-        {% if current_user.role in ['Инженер ПТО', 'Зам. директор', 'Ген. директор'] %}
+        {% if current_user.role == 'Инженер ПТО' %}
         <div class="swipe-actions">
             <button class="swipe-action-btn swipe-action-delete" data-object-id="{{ obj.id }}" data-object-name="{{ obj.name }}">
                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 4px;">
