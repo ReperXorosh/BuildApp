@@ -657,10 +657,13 @@
             will-change: transform;
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.2s ease;
         }
         
         .swipe-actions.show {
             transform: translateX(0);
+            opacity: 1;
         }
         
         .swipe-action-btn {

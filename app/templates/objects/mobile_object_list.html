@@ -64,26 +64,28 @@
     {% for obj in objects %}
     <div class="list-group-item swipeable-item py-3" data-object-id="{{ obj.id }}">
         <div class="swipeable-content">
-            <a href="{{ url_for('objects.object_detail', object_id=obj.id) }}" class="text-decoration-none text-reset">
-                <div class="d-flex w-100 justify-content-between">
-                    <h5 class="mb-1">{{ obj.name }}</h5>
+            <div class="d-flex w-100 justify-content-between align-items-center">
+                <div class="flex-grow-1">
+                    <a href="{{ url_for('objects.object_detail', object_id=obj.id) }}" class="text-decoration-none text-reset">
+                        <h5 class="mb-1">{{ obj.name }}</h5>
+                        {% if obj.location %}
+                        <small class="text-secondary">{{ obj.location }}</small>
+                        {% endif %}
+                    </a>
                 </div>
-                {% if obj.location %}
-                <small class="text-secondary">{{ obj.location }}</small>
+                {% if current_user.role in ['Инженер ПТО', 'Зам. директор', 'Ген. директор'] %}
+                <div class="swipe-actions">
+                    <button class="swipe-action-btn swipe-action-delete" data-object-id="{{ obj.id }}" data-object-name="{{ obj.name }}">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 4px;">
+                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                            <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                        </svg>
+                        Удалить
+                    </button>
+                </div>
                 {% endif %}
-            </a>
+            </div>
         </div>
-        {% if current_user.role in ['Инженер ПТО', 'Зам. директор', 'Ген. директор'] %}
-        <div class="swipe-actions">
-            <button class="swipe-action-btn swipe-action-delete" onclick="deleteObject('{{ obj.id }}', '{{ obj.name }}')">
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 4px;">
-                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                    <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-                </svg>
-                Удалить
-            </button>
-        </div>
-        {% endif %}
     </div>
     {% endfor %}
 </div>
@@ -215,17 +217,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const threshold = 80;
     const maxSwipe = 160;
     
-    console.log('Found swipeable items:', swipeableItems.length);
-    
     swipeableItems.forEach((item, index) => {
         const content = item.querySelector('.swipeable-content');
         const actions = item.querySelector('.swipe-actions');
-        
-        console.log(`Item ${index}:`, { content: !!content, actions: !!actions });
+        const deleteBtn = item.querySelector('.swipe-action-btn');
         
         if (!content || !actions) return;
         
-        // Touch события
+        // Touch события для свайпа
         item.addEventListener('touchstart', handleTouchStart, { passive: false });
         item.addEventListener('touchmove', handleTouchMove, { passive: false });
         item.addEventListener('touchend', handleTouchEnd, { passive: false });
@@ -236,14 +235,52 @@ document.addEventListener('DOMContentLoaded', function() {
         item.addEventListener('mouseup', handleMouseEnd);
         item.addEventListener('mouseleave', handleMouseEnd);
         
-        console.log(`Event listeners added to item ${index}`);
+        // Обработчик клика для кнопки удаления
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function(e) {
+                console.log('Direct click on delete button');
+                e.stopPropagation();
+                e.preventDefault();
+                
+                const objectId = this.getAttribute('data-object-id');
+                const objectName = this.getAttribute('data-object-name');
+                
+                if (objectId && objectName) {
+                    deleteObject(objectId, objectName);
+                }
+            });
+            
+            // Touch события для кнопки
+            deleteBtn.addEventListener('touchend', function(e) {
+                console.log('Touch end on delete button');
+                e.stopPropagation();
+                e.preventDefault();
+                
+                const objectId = this.getAttribute('data-object-id');
+                const objectName = this.getAttribute('data-object-name');
+                
+                if (objectId && objectName) {
+                    deleteObject(objectId, objectName);
+                }
+            });
+        }
     });
     
     function handleTouchStart(e) {
         const item = e.target.closest('.swipeable-item');
         if (!item) return;
         
-        console.log('Touch start on item:', item);
+        // Не обрабатываем touch события если клик по кнопке удаления
+        if (e.target.closest('.swipe-action-btn')) {
+            return;
+        }
+        
+        // Сбрасываем все открытые свайпы кроме текущего
+        swipeableItems.forEach(otherItem => {
+            if (otherItem !== item) {
+                hideSwipeActions(otherItem);
+            }
+        });
         
         startX = e.touches[0].clientX;
         currentItem = item;
@@ -258,21 +295,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         currentX = e.touches[0].clientX;
         const deltaX = currentX - startX;
-        const isOpen = currentItem.querySelector('.swipe-actions.show');
         
-        // Если свайп открыт, разрешаем движение в обе стороны
-        if (isOpen) {
-            // Если свайп открыт, начинаем с -maxSwipe и двигаемся вправо
-            const translateX = Math.max(-maxSwipe + deltaX, -maxSwipe);
-            console.log('Touch move (open), deltaX:', deltaX, 'translateX:', translateX);
+        // Простая логика: только свайп влево для открытия
+        if (deltaX < 0) {
+            const translateX = Math.max(deltaX, -maxSwipe);
             updateTransform(currentItem, translateX);
-        } else {
-            // Если свайп закрыт, разрешаем только движение влево
-            if (deltaX < 0) {
-                const translateX = Math.max(deltaX, -maxSwipe);
-                console.log('Touch move (closed), deltaX:', deltaX, 'translateX:', translateX);
-                updateTransform(currentItem, translateX);
-            }
         }
         
         e.preventDefault();
@@ -282,19 +309,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!isDragging || !currentItem) return;
         
         const deltaX = currentX - startX;
-        const isOpen = currentItem.querySelector('.swipe-actions.show');
         
-        let shouldShow;
+        // Простая логика: если свайп влево больше threshold, показываем кнопку полностью
+        const shouldShow = deltaX < -threshold;
         
-        if (isOpen) {
-            // Если свайп открыт, закрываем если свайп вправо больше threshold
-            shouldShow = deltaX < threshold;
-        } else {
-            // Если свайп закрыт, открываем если свайп влево больше threshold
-            shouldShow = deltaX < -threshold;
-        }
-        
-        console.log('Touch end, deltaX:', deltaX, 'isOpen:', !!isOpen, 'shouldShow:', shouldShow);
         
         currentItem.classList.remove('swiping');
         currentItem.classList.add('animating');
@@ -319,6 +337,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const item = e.target.closest('.swipeable-item');
         if (!item) return;
         
+        // Не обрабатываем mouse события если клик по кнопке удаления
+        if (e.target.closest('.swipe-action-btn')) {
+            return;
+        }
+        
+        // Сбрасываем все открытые свайпы кроме текущего
+        swipeableItems.forEach(otherItem => {
+            if (otherItem !== item) {
+                hideSwipeActions(otherItem);
+            }
+        });
+        
         startX = e.clientX;
         currentItem = item;
         isDragging = true;
@@ -332,19 +362,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         currentX = e.clientX;
         const deltaX = currentX - startX;
-        const isOpen = currentItem.querySelector('.swipe-actions.show');
         
-        // Если свайп открыт, разрешаем движение в обе стороны
-        if (isOpen) {
-            // Если свайп открыт, начинаем с -maxSwipe и двигаемся вправо
-            const translateX = Math.max(-maxSwipe + deltaX, -maxSwipe);
+        // Простая логика: только свайп влево для открытия
+        if (deltaX < 0) {
+            const translateX = Math.max(deltaX, -maxSwipe);
             updateTransform(currentItem, translateX);
-        } else {
-            // Если свайп закрыт, разрешаем только движение влево
-            if (deltaX < 0) {
-                const translateX = Math.max(deltaX, -maxSwipe);
-                updateTransform(currentItem, translateX);
-            }
         }
     }
     
@@ -352,17 +374,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!isDragging || !currentItem) return;
         
         const deltaX = currentX - startX;
-        const isOpen = currentItem.querySelector('.swipe-actions.show');
         
-        let shouldShow;
-        
-        if (isOpen) {
-            // Если свайп открыт, закрываем если свайп вправо больше threshold
-            shouldShow = deltaX < threshold;
-        } else {
-            // Если свайп закрыт, открываем если свайп влево больше threshold
-            shouldShow = deltaX < -threshold;
-        }
+        // Простая логика: если свайп влево больше threshold, показываем кнопку полностью
+        const shouldShow = deltaX < -threshold;
         
         currentItem.classList.remove('swiping');
         currentItem.classList.add('animating');
@@ -390,8 +404,17 @@ document.addEventListener('DOMContentLoaded', function() {
             // Ограничиваем translateX в пределах от -maxSwipe до 0
             const clampedTranslateX = Math.max(-maxSwipe, Math.min(0, translateX));
             
+            // Сдвигаем только контент, кнопка остается на месте
             content.style.transform = `translateX(${clampedTranslateX}px)`;
-            actions.style.transform = `translateX(${clampedTranslateX + maxSwipe}px)`;
+            
+            // Показываем кнопку когда свайп достаточно большой
+            if (clampedTranslateX < -threshold) {
+                actions.style.opacity = '1';
+                actions.style.transform = 'translateX(0)';
+            } else {
+                actions.style.opacity = '0';
+                actions.style.transform = 'translateX(100%)';
+            }
         }
     }
     
@@ -401,6 +424,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (content && actions) {
             content.style.transform = `translateX(-${maxSwipe}px)`;
+            actions.style.opacity = '1';
+            actions.style.transform = 'translateX(0)';
             actions.classList.add('show');
         }
     }
@@ -411,6 +436,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (content && actions) {
             content.style.transform = 'translateX(0)';
+            actions.style.opacity = '0';
+            actions.style.transform = 'translateX(100%)';
             actions.classList.remove('show');
         }
     }
@@ -422,10 +449,25 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Обработка кликов
     document.addEventListener('click', function(e) {
+        console.log('Click detected on:', e.target);
+        
         // Если клик по кнопке удаления
-        if (e.target.closest('.swipe-action-btn')) {
+        const deleteBtn = e.target.closest('.swipe-action-btn');
+        if (deleteBtn) {
+            console.log('Click on delete button detected');
             e.stopPropagation();
-            return; // Не закрываем свайп-действия
+            e.preventDefault();
+            
+            // Получаем данные из data-атрибутов
+            const objectId = deleteBtn.getAttribute('data-object-id');
+            const objectName = deleteBtn.getAttribute('data-object-name');
+            
+            console.log('Delete button data:', objectId, objectName);
+            
+            if (objectId && objectName) {
+                deleteObject(objectId, objectName);
+            }
+            return;
         }
         
         // Если клик по ссылке внутри открытого свайпа
@@ -446,9 +488,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Функции для действий с объектами
 function deleteObject(objectId, objectName) {
-    console.log('deleteObject called with:', objectId, objectName);
+    console.log('deleteObject function called with:', objectId, objectName);
     
     if (confirm(`Вы уверены, что хотите удалить объект "${objectName}"?\n\nЭто действие нельзя отменить. Все связанные данные будут удалены навсегда.`)) {
+        console.log('User confirmed deletion');
         fetch(`/objects/${objectId}/delete`, {
             method: 'POST',
             headers: {
