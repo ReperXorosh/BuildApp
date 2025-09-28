@@ -15,6 +15,19 @@
 
 {% block content %}
 
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="mb-3">
+    {% for category, message in messages %}
+    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
 <style>
     .list-group-item {
         border-width: 1px !important;
@@ -72,5 +85,20 @@
     </ul>
 </nav>
 {% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Автоматически скрываем flash-сообщения через 4 секунды
+    const flashMessages = document.querySelectorAll('.alert');
+    if (flashMessages.length > 0) {
+        setTimeout(() => {
+            flashMessages.forEach(msg => {
+                const alert = new bootstrap.Alert(msg);
+                alert.close();
+            });
+        }, 4000);
+    }
+});
+</script>
 
 {% endblock %}
