@@ -282,9 +282,10 @@ document.addEventListener('DOMContentLoaded', function() {
         startX = e.touches[0].clientX;
         currentItem = item;
         isDragging = true;
+        isSwipeGesture = false; // Сбрасываем флаг свайпа
         
         item.classList.add('swiping');
-        e.preventDefault();
+        // НЕ вызываем preventDefault() здесь - позволяем обычным кликам работать
     }
     
     function handleTouchMove(e) {
@@ -302,9 +303,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (deltaX < 0) {
             const translateX = Math.max(deltaX, -maxSwipe);
             updateTransform(currentItem, translateX);
+            e.preventDefault(); // Блокируем только при реальном свайпе
         }
-        
-        e.preventDefault();
     }
     
     function handleTouchEnd(e) {
@@ -357,9 +357,10 @@ document.addEventListener('DOMContentLoaded', function() {
         startX = e.clientX;
         currentItem = item;
         isDragging = true;
+        isSwipeGesture = false; // Сбрасываем флаг свайпа
         
         item.classList.add('swiping');
-        e.preventDefault();
+        // НЕ вызываем preventDefault() здесь - позволяем обычным кликам работать
     }
     
     function handleMouseMove(e) {
@@ -377,6 +378,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (deltaX < 0) {
             const translateX = Math.max(deltaX, -maxSwipe);
             updateTransform(currentItem, translateX);
+            e.preventDefault(); // Блокируем только при реальном свайпе
         }
     }
     
@@ -481,25 +483,19 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Если клик по ссылке внутри открытого свайпа - закрываем свайп и разрешаем переход
-        if (e.target.closest('a') && currentItem && currentItem.querySelector('.swipe-actions.show')) {
-            hideSwipeActions(currentItem);
-            // Не вызываем preventDefault() - разрешаем переход по ссылке
+        // Если клик по ссылке объекта
+        const objectLink = e.target.closest('a[href*="/objects/"]');
+        if (objectLink) {
+            // Если свайп открыт, закрываем его
+            const swipeItem = objectLink.closest('.swipeable-item');
+            if (swipeItem && swipeItem.querySelector('.swipe-actions.show')) {
+                hideSwipeActions(swipeItem);
+            }
+            // Разрешаем переход по ссылке (не вызываем preventDefault)
             return;
         }
         
-        // Если клик по ссылке объекта (обычный клик без свайпа)
-        const objectLink = e.target.closest('a[href*="/objects/"]');
-        if (objectLink) {
-            // Если свайп не открыт, разрешаем переход
-            const swipeItem = objectLink.closest('.swipeable-item');
-            if (!swipeItem || !swipeItem.querySelector('.swipe-actions.show')) {
-                // Обычный клик - разрешаем переход
-                return;
-            }
-        }
-        
-        // Если клик вне свайпаемых элементов
+        // Если клик вне свайпаемых элементов - закрываем все свайпы
         if (!e.target.closest('.swipeable-item')) {
             swipeableItems.forEach(item => {
                 hideSwipeActions(item);
