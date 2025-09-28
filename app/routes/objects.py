@@ -1725,20 +1725,15 @@ def execute_planned_work(object_id, work_id):
 def change_planned_work_date(object_id, work_id):
     """Изменение даты запланированной работы"""
     try:
-        print(f"DEBUG: Получен запрос на изменение даты для работы {work_id} (тип: {type(work_id)}) объекта {object_id}")
-        
         # Получаем работу
         work = PlannedWork.query.get_or_404(work_id)
-        print(f"DEBUG: Найдена работа: {work.work_title} (ID: {work.id})")
         
         # Проверяем, что работа принадлежит указанному объекту
         if str(work.object_id) != str(object_id):
-            print(f"DEBUG: Работа не принадлежит объекту. work.object_id={work.object_id}, object_id={object_id}")
             abort(404)
         
         # Получаем новую дату из формы
         new_date_str = request.form.get('new_date')
-        print(f"DEBUG: Новая дата из формы: {new_date_str}")
         
         if not new_date_str:
             return jsonify({'success': False, 'error': 'Дата не указана'})
@@ -1761,21 +1756,21 @@ def change_planned_work_date(object_id, work_id):
         work.updated_at = datetime.utcnow()
         
         db.session.commit()
-        print(f"DEBUG: Дата успешно изменена с {old_date} на {new_date}")
         
         # Логируем изменение
         try:
+            old_date_str = old_date.strftime('%d.%m.%Y') if old_date else 'не установлена'
             ActivityLog.log_action(
                 user_id=current_user.userid,
                 user_login=current_user.login,
                 action="Изменение даты запланированной работы",
-                description=f"Пользователь {current_user.login} перенёс работу '{work.work_title}' с {old_date.strftime('%d.%m.%Y')} на {new_date.strftime('%d.%m.%Y')}",
+                description=f"Пользователь {current_user.login} перенёс работу '{work.work_title}' с {old_date_str} на {new_date.strftime('%d.%m.%Y')}",
                 ip_address=request.remote_addr,
                 page_url=request.url,
                 method=request.method
             )
         except Exception as log_error:
-            print(f"DEBUG: Ошибка при логировании: {log_error}")
+            print(f"Ошибка при логировании: {log_error}")
         
         return jsonify({
             'success': True, 
