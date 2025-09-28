@@ -458,13 +458,8 @@ function changeWorkDate() {
         },
         body: `new_date=${encodeURIComponent(newDate)}`
     })
-    .then(response => {
-        console.log('Response status:', response.status);
-        console.log('Response ok:', response.ok);
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-        console.log('Response data:', data);
         if (data.success) {
             // Показываем сообщение об успехе
             alert(data.message);
@@ -488,7 +483,15 @@ function changeWorkDate() {
             // Обновляем дату в модальном окне деталей
             const workModal = document.querySelector(`#workModal${workId}`);
             if (workModal) {
-                const dateElement = workModal.querySelector('li:contains("Планируемая дата:")');
+                // Ищем элемент li, который содержит текст "Планируемая дата:"
+                const listItems = workModal.querySelectorAll('li');
+                let dateElement = null;
+                for (let li of listItems) {
+                    if (li.textContent.includes('Планируемая дата:')) {
+                        dateElement = li;
+                        break;
+                    }
+                }
                 if (dateElement) {
                     const dateParts = newDate.split('-');
                     const formattedDate = `${dateParts[2]}.${dateParts[1]}.${dateParts[0]}`;
@@ -501,9 +504,7 @@ function changeWorkDate() {
     })
     .catch(error => {
         console.error('Error:', error);
-        console.error('Response status:', error.status);
-        console.error('Response text:', error.message);
-        alert('Произошла ошибка при изменении даты: ' + error.message);
+        alert('Произошла ошибка при изменении даты');
     });
 }
 
