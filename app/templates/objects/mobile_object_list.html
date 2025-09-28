@@ -4,6 +4,11 @@
 {% block mobile_title %}Объекты{% endblock %}
 
 {% block mobile_header_actions %}
+<a class="mobile-header-btn" href="#" id="searchToggle" title="Поиск объектов" role="button" aria-label="Поиск объектов">
+    <svg fill="currentColor" viewBox="0 0 16 16">
+        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+    </svg>
+</a>
 {% if current_user.role in ['Инженер ПТО', 'Зам. директор', 'Ген. директор'] %}
 <a class="mobile-header-btn" href="{{ url_for('objects.add_object') }}" title="Добавить объект" role="button" aria-label="Добавить объект">
     <svg fill="currentColor" viewBox="0 0 16 16">
@@ -14,6 +19,18 @@
 {% endblock %}
 
 {% block content %}
+
+<!-- Поле поиска (скрыто по умолчанию) -->
+<div id="searchContainer" class="mb-3" style="display: none;">
+    <div class="input-group">
+        <input type="text" id="objectSearch" class="form-control" placeholder="Поиск по названию объекта..." autocomplete="off">
+        <button class="btn btn-outline-secondary" type="button" id="clearSearch" title="Очистить поиск">
+            <svg fill="currentColor" viewBox="0 0 16 16" width="16" height="16">
+                <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+            </svg>
+        </button>
+    </div>
+</div>
 
 <style>
     .list-group-item {
@@ -72,5 +89,108 @@
     </ul>
 </nav>
 {% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchToggle = document.getElementById('searchToggle');
+    const searchContainer = document.getElementById('searchContainer');
+    const objectSearch = document.getElementById('objectSearch');
+    const clearSearch = document.getElementById('clearSearch');
+    const objectItems = document.querySelectorAll('.list-group-item');
+    
+    // Переключение видимости поля поиска
+    searchToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        if (searchContainer.style.display === 'none') {
+            // Показываем поле поиска
+            searchContainer.style.display = 'block';
+            objectSearch.focus();
+        } else {
+            // Скрываем поле поиска и очищаем поиск
+            searchContainer.style.display = 'none';
+            objectSearch.value = '';
+            clearSearchResults();
+        }
+    });
+    
+    // Очистка поиска
+    clearSearch.addEventListener('click', function() {
+        objectSearch.value = '';
+        clearSearchResults();
+        objectSearch.focus();
+    });
+    
+    // Поиск по вводу
+    objectSearch.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        
+        if (searchTerm === '') {
+            clearSearchResults();
+            return;
+        }
+        
+        objectItems.forEach(item => {
+            const objectName = item.querySelector('h5').textContent.toLowerCase();
+            const objectLocation = item.querySelector('small');
+            const locationText = objectLocation ? objectLocation.textContent.toLowerCase() : '';
+            
+            if (objectName.includes(searchTerm) || locationText.includes(searchTerm)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        // Показываем сообщение если ничего не найдено
+        showNoResultsMessage(searchTerm);
+    });
+    
+    // Функция очистки результатов поиска
+    function clearSearchResults() {
+        objectItems.forEach(item => {
+            item.style.display = '';
+        });
+        hideNoResultsMessage();
+    }
+    
+    // Функция показа сообщения "ничего не найдено"
+    function showNoResultsMessage(searchTerm) {
+        const visibleItems = Array.from(objectItems).filter(item => item.style.display !== 'none');
+        
+        if (visibleItems.length === 0 && searchTerm !== '') {
+            hideNoResultsMessage();
+            const noResultsDiv = document.createElement('div');
+            noResultsDiv.id = 'noResultsMessage';
+            noResultsDiv.className = 'text-center py-4 text-body-secondary';
+            noResultsDiv.innerHTML = `По запросу "<strong>${searchTerm}</strong>" ничего не найдено`;
+            
+            const listGroup = document.querySelector('.list-group');
+            if (listGroup) {
+                listGroup.appendChild(noResultsDiv);
+            }
+        } else {
+            hideNoResultsMessage();
+        }
+    }
+    
+    // Функция скрытия сообщения "ничего не найдено"
+    function hideNoResultsMessage() {
+        const noResultsMessage = document.getElementById('noResultsMessage');
+        if (noResultsMessage) {
+            noResultsMessage.remove();
+        }
+    }
+    
+    // Закрытие поиска при нажатии Escape
+    objectSearch.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            searchContainer.style.display = 'none';
+            objectSearch.value = '';
+            clearSearchResults();
+        }
+    });
+});
+</script>
 
 {% endblock %}
