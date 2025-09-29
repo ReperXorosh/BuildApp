@@ -5,7 +5,7 @@ services:
     image: postgres:17
     container_name: postgres
     volumes:
-      - ~/pg/pg_data:/var/lib/postgresql/18/docker
+      - ~/pg/pg_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-sankficeba}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-12345678}
