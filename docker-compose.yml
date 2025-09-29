@@ -5,7 +5,7 @@ services:
     image: postgres
     container_name: postgres
     volumes:
-      - ~/pg/pg_data:/var/lib/postgresql/data
+      - /root/pg/pg_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-sankficeba}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-12345678}
@@ -18,8 +18,8 @@ services:
       context: .
     container_name: flask
     volumes:
-      - ~/migrations:/app/migrations
-      - ~/uploads:/app/app/static/uploads
+      - /root/migrations:/app/migrations
+      - /toot/uploads:/app/app/static/uploads
     env_file:
       - .env
   nginx:
