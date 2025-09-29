@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   postgres:
-    image: postgres
+    image: postgres:17
     container_name: postgres
     volumes:
       - ~/pg/pg_data:/var/lib/postgresql/18/docker
