@@ -18,7 +18,7 @@
                     </p>
                 </div>
                 <div class="d-flex gap-2">
-                    <a href="{{ url_for('objects.supports_list', object_id=object.id) }}" class="btn btn-outline-secondary">
+                    <a href="{{ url_for('objects.elements_list', object_id=object.id) }}" class="btn btn-outline-secondary">
                         <i class="bi bi-arrow-left me-1"></i>
                         Назад к списку
                     </a>
@@ -35,7 +35,7 @@
                             </h5>
                         </div>
                         <div class="card-body">
-                            <form method="POST">
+                            <form method="POST" enctype="multipart/form-data">
                                 <div class="mb-3">
                                     <label for="element_type" class="form-label">
                                         <i class="bi bi-tag me-1"></i>
@@ -82,8 +82,18 @@
                                               placeholder="Дополнительная информация об элементе"></textarea>
                                 </div>
 
+                                <div class="mb-3">
+                                    <label for="attachment" class="form-label">
+                                        <i class="bi bi-paperclip me-1"></i>
+                                        Фото/файл (необязательно)
+                                    </label>
+                                    <input class="form-control" type="file" id="attachment" name="attachment" 
+                                           accept="image/*,.pdf,.doc,.docx,.xls,.xlsx">
+                                    <div class="form-text">Поддерживаются изображения, PDF, DOC(X), XLS(X). До 5 МБ.</div>
+                                </div>
+
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                    <a href="{{ url_for('objects.supports_list', object_id=object.id) }}" class="btn btn-outline-secondary me-md-2">
+                                    <a href="{{ url_for('objects.elements_list', object_id=object.id) }}" class="btn btn-outline-secondary me-md-2">
                                         <i class="bi bi-x-lg me-1"></i>
                                         Отмена
                                     </a>

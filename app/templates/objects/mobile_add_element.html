@@ -8,7 +8,7 @@
 <div class="add-object-card">
     <div class="mobile-card-title text-center">Добавить элемент</div>
     
-    <form method="POST" id="add-element-form" novalidate>
+    <form method="POST" id="add-element-form" novalidate enctype="multipart/form-data">
         <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label">Тип элемента *</label>
             <select name="element_type" id="element_type" class="mobile-form-control" required>
@@ -30,6 +30,12 @@
             <label class="mobile-form-label">Примечания</label>
             <textarea name="notes" id="notes" class="mobile-form-control" rows="2" maxlength="300" placeholder="Дополнительная информация"></textarea>
             <div class="small text-muted" id="notes-counter">0 / 300</div>
+        </div>
+
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+            <label class="mobile-form-label">Фото/файл (необязательно)</label>
+            <input type="file" name="attachment" id="attachment" class="mobile-form-control" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx">
+            <div class="small text-muted">До 5 МБ. Изображения, PDF, DOC(X), XLS(X).</div>
         </div>
         
         <div class="mobile-mt-4">

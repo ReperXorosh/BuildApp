@@ -591,12 +591,32 @@ def add_element(object_id):
     # Проверяем права доступа - только инженер ПТО может добавлять элементы
     if current_user.role != 'Инженер ПТО':
         flash('У вас нет прав для добавления элементов. Только инженер ПТО может добавлять элементы по проекту.', 'error')
-        return redirect(url_for('objects.supports_list', object_id=object_id))
+        return redirect(url_for('objects.elements_list', object_id=object_id))
     
     if request.method == 'POST':
         element_type = request.form.get('element_type', '').strip()
         element_name = request.form.get('element_name', '').strip()
         notes = request.form.get('notes', '').strip()
+        file_url = None
+        # Обработка вложения
+        if 'attachment' in request.files:
+            from werkzeug.utils import secure_filename
+            file = request.files.get('attachment')
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                # Каталог для элементов
+                import os
+                upload_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'static', 'uploads', 'elements')
+                upload_dir = os.path.normpath(upload_dir)
+                os.makedirs(upload_dir, exist_ok=True)
+                # Уникализируем имя
+                import uuid as _uuid
+                name, ext = os.path.splitext(filename)
+                safe_name = f"{_uuid.uuid4().hex}{ext.lower()}"
+                save_path = os.path.join(upload_dir, safe_name)
+                file.save(save_path)
+                # URL для доступа из браузера
+                file_url = f"/static/uploads/elements/{safe_name}"
         
         if not element_type:
             flash('Тип элемента обязателен для заполнения', 'error')
@@ -640,6 +660,11 @@ def add_element(object_id):
             flash('Неверный тип элемента', 'error')
             return render_template('objects/mobile_add_element.html' if is_mobile else 'objects/add_element.html', object=obj)
         
+        # Если есть файл, добавим ссылку в примечания (не теряем введённые заметки)
+        if file_url:
+            attach_note = f"\nФайл: {file_url}"
+            notes = (notes or '') + attach_note
+        new_element.notes = notes
         db.session.add(new_element)
         db.session.commit()
         
@@ -654,7 +679,7 @@ def add_element(object_id):
         )
         
         flash(f'{element_type_name} успешно добавлен', 'success')
-        return redirect(url_for('objects.supports_list', object_id=object_id))
+        return redirect(url_for('objects.elements_list', object_id=object_id))
     
     return render_template('objects/mobile_add_element.html' if is_mobile else 'objects/add_element.html', object=obj)
 
@@ -693,6 +718,47 @@ def support_detail(object_id, support_id):
     else:
         print("DEBUG support_detail: Rendering desktop template")
         return render_template('objects/support_detail.html', object=obj, support=support)
+# Детальная страница элемента (ЗДФ, Кронштейн, Светильник)
+@objects_bp.route('/<uuid:object_id>/elements/<string:element_type>/<uuid:element_id>')
+@login_required
+def element_detail(object_id, element_type, element_id):
+    obj = Object.query.get_or_404(object_id)
+    element_type = (element_type or '').lower()
+
+    element = None
+    title = 'Элемент'
+    if element_type == 'zdf':
+        element = ZDF.query.get_or_404(element_id)
+        if element.object_id != object_id:
+            abort(404)
+        title = 'ЗДФ'
+    elif element_type == 'bracket':
+        element = Bracket.query.get_or_404(element_id)
+        if element.object_id != object_id:
+            abort(404)
+        title = 'Кронштейн'
+    elif element_type == 'luminaire':
+        element = Luminaire.query.get_or_404(element_id)
+        if element.object_id != object_id:
+            abort(404)
+        title = 'Светильник'
+    else:
+        abort(404)
+
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action=f"Просмотр элемента: {title}",
+        description=f"Пользователь {current_user.login} просмотрел элемент '{title}' объекта '{obj.name}'",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+
+    from ..utils.mobile_detection import is_mobile_device
+    is_mobile = is_mobile_device() or (request.args.get('mobile') == '1')
+    template = 'objects/mobile_element_detail.html' if is_mobile else 'objects/element_detail.html'
+    return render_template(template, object=obj, element=element, element_type=title)
 
 @objects_bp.route('/<uuid:object_id>/supports/<uuid:support_id>/confirm-installation', methods=['GET', 'POST'])
 @login_required

@@ -20,132 +20,103 @@
 
 {% block content %}
 <div class="mobile-content">
-    <!-- Форма поиска -->
-    <div class="card mb-3">
-        <div class="card-body">
-            <form method="GET" action="{{ url_for('main.users') }}">
-                <div class="mb-3">
-                    <label for="search" class="form-label">
-                        <i class="bi bi-search me-1"></i>
-                        Поиск пользователей
-                    </label>
-                    <input type="text" 
-                           class="form-control" 
-                           id="search" 
-                           name="search" 
-                           value="{{ search_query or '' }}"
-                           placeholder="Введите логин, имя, фамилию...">
-                    <div class="form-text">Поиск по логину, имени, фамилии или отчеству</div>
+    <!-- Поисковая панель -->
+    <div class="mobile-card" style="padding:12px 12px 8px 12px;">
+        <form method="GET" action="{{ url_for('main.users') }}">
+            <div class="d-flex align-items-center" style="gap:8px;">
+                <div class="flex-grow-1">
+                    <input type="text" class="form-control" id="search" name="search" value="{{ search_query or '' }}" placeholder="Поиск: логин, имя, фамилия" style="border-radius:10px;">
                 </div>
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-search me-2"></i>
-                        Найти
-                    </button>
-                    {% if search_query %}
-                    <a href="{{ url_for('main.users') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-x-circle me-2"></i>
-                        Сбросить
-                    </a>
-                    {% endif %}
-                </div>
-            </form>
-        </div>
+                <button type="submit" class="btn btn-primary" style="min-height:40px; border-radius:10px;">
+                    Найти
+                </button>
+                {% if search_query %}
+                <a href="{{ url_for('main.users') }}" class="btn btn-outline-secondary" style="min-height:40px; border-radius:10px;">Сброс</a>
+                {% endif %}
+            </div>
+            <div class="mt-2 d-flex" style="gap:8px;">
+                <select id="roleFilter" class="form-select" style="border-radius:10px;">
+                    <option value="">Все роли</option>
+                    <option>Ген. директор</option>
+                    <option>Зам. директор</option>
+                    <option>Инженер ПТО</option>
+                    <option>Снабженец</option>
+                    <option>Сотрудник</option>
+                </select>
+            </div>
+        </form>
     </div>
 
-    <!-- Результаты поиска -->
     {% if search_query %}
-    <div class="alert alert-info mb-3">
-        <i class="bi bi-info-circle me-2"></i>
-        <strong>Результаты поиска:</strong> Найдено {{ users|length }} пользователей по запросу "{{ search_query }}"
+    <div class="alert alert-info mb-2" style="border-radius:12px;">
+        Найдено {{ users|length }} пользователей по запросу "{{ search_query }}"
     </div>
     {% endif %}
 
-    <!-- Список пользователей -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="card-title mb-0">
-                <i class="bi bi-people me-2"></i>
-                Список пользователей ({{ users|length }})
-            </h5>
-        </div>
-        <div class="card-body p-0">
-            {% if users %}
-            <div class="list-group list-group-flush">
-                {% for user in users %}
-                <div class="list-group-item">
-                    <div class="d-flex align-items-center">
-                        <!-- Аватар -->
-                        <div class="me-3">
-                            {% if user.avatar %}
-                                <img src="{{ url_for('static', filename='uploads/avatars/' ~ user.avatar) }}" alt="Аватар" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
-                            {% else %}
-                                <img src="{{ url_for('static', filename='img/default-avatar.png') }}" alt="Аватар" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
+    <!-- Список пользователей как компактные карточки -->
+    <div class="mobile-card" style="padding:8px;">
+        {% if users %}
+        <div id="usersList" class="list-group" style="border:none;">
+            {% for user in users %}
+            <a href="{{ url_for('main.view_user_profile', user_id=user.userid) }}" class="list-group-item" data-role="{{ user.role }}" style="border:1px solid var(--bs-border-color); border-radius:12px; margin-bottom:8px; padding:12px; text-decoration:none;">
+                <div class="d-flex align-items-center" style="gap:12px;">
+                    <div style="position:relative;">
+                        {% if user.avatar %}
+                            <img src="{{ url_for('static', filename='uploads/avatars/' ~ user.avatar) }}" alt="Аватар" class="rounded-circle" style="width:48px; height:48px; object-fit:cover;">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='img/default-avatar.png') }}" alt="Аватар" class="rounded-circle" style="width:48px; height:48px; object-fit:cover;">
+                        {% endif %}
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center" style="gap:6px;">
+                            <div class="fw-semibold" style="color:var(--bs-body-color);">{{ user.login }}</div>
+                            {% if user.userid == current_user.userid %}
+                                <span class="badge bg-primary">Вы</span>
                             {% endif %}
                         </div>
-                        
-                        <!-- Информация о пользователе -->
-                        <div class="flex-grow-1">
-                            <div class="d-flex align-items-center mb-1">
-                                {% if current_user.role == 'Инженер ПТО' %}
-                                    <a href="{{ url_for('main.view_user_profile', user_id=user.userid) }}" 
-                                       class="text-decoration-none fw-bold text-primary me-2">
-                                        {{ user.login }}
-                                    </a>
-                                {% else %}
-                                    <strong class="me-2">{{ user.login }}</strong>
-                                {% endif %}
-                                
-                                {% if user.userid == current_user.userid %}
-                                    <span class="badge bg-primary">Вы</span>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="mb-1">
-                                {% if user.secondname or user.firstname %}
-                                    <span class="text-muted small">{{ (user.secondname or '') + ' ' + (user.firstname or '') + ' ' + (user.thirdname or '') }}</span>
-                                {% else %}
-                                    <span class="text-muted small">ФИО не указано</span>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="d-flex align-items-center justify-content-between">
-                                <span class="badge bg-{{ 'success' if user.role == 'Ген. директор' else 'warning' if user.role == 'Зам. директор' else 'info' if user.role == 'Инженер ПТО' else 'secondary' }}">
-                                    {{ user.role }}
-                                </span>
-                                
-                                <small class="text-muted">
-                                    <i class="bi bi-calendar me-1"></i>
-                                    {{ user.registration_date | moscow_date }}
-                                </small>
-                            </div>
+                        <div class="text-muted" style="font-size:12px;">
+                            {% if user.secondname or user.firstname %}
+                                {{ (user.secondname or '') + ' ' + (user.firstname or '') + ' ' + (user.thirdname or '') }}
+                            {% else %}
+                                ФИО не указано
+                            {% endif %}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <span class="badge bg-{{ 'success' if user.role == 'Ген. директор' else 'warning' if user.role == 'Зам. директор' else 'info' if user.role == 'Инженер ПТО' else 'secondary' }}">{{ user.role }}</span>
+                            <small class="text-muted">{{ user.registration_date | moscow_date }}</small>
                         </div>
                     </div>
                 </div>
-                {% endfor %}
-            </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+            <h5 class="text-muted mt-3">Пользователи не найдены</h5>
+            {% if search_query %}
+                <p class="text-muted">Попробуйте изменить поисковый запрос</p>
             {% else %}
-            <div class="text-center py-4">
-                <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
-                <h5 class="text-muted mt-3">Пользователи не найдены</h5>
-                {% if search_query %}
-                    <p class="text-muted">Попробуйте изменить поисковый запрос</p>
-                {% else %}
-                    <p class="text-muted">В системе пока нет пользователей</p>
-                {% endif %}
-            </div>
+                <p class="text-muted">В системе пока нет пользователей</p>
             {% endif %}
         </div>
+        {% endif %}
     </div>
 </div>
 
 <script>
-function confirmDelete(userId, login) {
-    if (confirm(`Вы уверены, что хотите удалить пользователя "${login}"?`)) {
-        // Здесь можно добавить AJAX запрос для удаления пользователя
-        // или перенаправить на страницу удаления
-        window.location.href = `/delete_user/${userId}`;
+document.addEventListener('DOMContentLoaded', function() {
+    const roleFilter = document.getElementById('roleFilter');
+    const usersList = document.getElementById('usersList');
+    if (roleFilter && usersList) {
+        roleFilter.addEventListener('change', function() {
+            const val = this.value.trim();
+            usersList.querySelectorAll('.list-group-item').forEach(item => {
+                const role = (item.getAttribute('data-role') || '').trim();
+                item.style.display = (!val || role === val) ? '' : 'none';
+            });
+        });
     }
-}
+});
 </script>
 {% endblock %}

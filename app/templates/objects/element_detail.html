@@ -1,0 +1,20 @@
+{% extends "main/layout.html" %}
+{% block title %}Элемент: {{ element_type }}{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <h2 class="mb-3">{{ element_type }}</h2>
+  <div class="card">
+    <div class="card-body">
+      <dl class="row mb-0">
+        <dt class="col-sm-3">Название</dt>
+        <dd class="col-sm-9">{{ element.zdf_name or element.bracket_name or element.luminaire_name or '—' }}</dd>
+        <dt class="col-sm-3">Статус</dt>
+        <dd class="col-sm-9">{{ element.status or '—' }}</dd>
+        <dt class="col-sm-3">Заметки</dt>
+        <dd class="col-sm-9">{{ element.notes or '—' }}</dd>
+      </dl>
+    </div>
+  </div>
+  <a href="{{ url_for('objects.elements_list', object_id=object.id) }}" class="btn btn-secondary mt-3">Назад к элементам</a>
+</div>
+{% endblock %}
