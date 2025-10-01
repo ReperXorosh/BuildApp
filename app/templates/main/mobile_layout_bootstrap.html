@@ -1049,6 +1049,28 @@
             } catch(_) {}
         }, { passive: true });
 
+        // Дополнительный префетч: когда ссылки попадают во вьюпорт
+        const io = ('IntersectionObserver' in window) ? new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const a = entry.target;
+                    try {
+                        const link = document.createElement('link');
+                        link.rel = 'prefetch';
+                        link.href = a.href;
+                        document.head.appendChild(link);
+                        io.unobserve(a);
+                    } catch(_) {}
+                }
+            })
+        }) : null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (io) {
+                document.querySelectorAll('a[href^="/"]').forEach(a => io.observe(a));
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', function() {
             // Загрузочный экран удалён
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');
@@ -1211,6 +1233,57 @@
 
             // Отменена особая логика фиксации нижней панели — поведение по умолчанию
         });
+
+        // Лёгкая PJAX-навигация: подменяем контент <main> без перезагрузки
+        (function() {
+            const mainEl = document.querySelector('main.mobile-content');
+            if (!mainEl || !window.history || !window.fetch) return;
+
+            async function navigate(url, push = true) {
+                try {
+                    const res = await fetch(url, { headers: { 'X-PJAX': 'true' } });
+                    if (!res.ok) { window.location.href = url; return; }
+                    const html = await res.text();
+                    // Парсим только <main> содержимое
+                    const tmp = document.createElement('div');
+                    tmp.innerHTML = html;
+                    const newMain = tmp.querySelector('main.mobile-content');
+                    const newTitle = tmp.querySelector('title');
+                    if (newMain) {
+                        mainEl.innerHTML = newMain.innerHTML;
+                        if (push) history.pushState({ url }, '', url);
+                        if (newTitle) document.title = newTitle.textContent || document.title;
+                        // Сбрасываем скролл и перезапускаем скрипты страницы, если есть inline в блоках
+                        window.scrollTo(0, 0);
+                    } else {
+                        window.location.href = url; // fallback
+                    }
+                } catch (_) {
+                    window.location.href = url;
+                }
+            }
+
+            function shouldHandleLink(a) {
+                if (!a) return false;
+                const href = a.getAttribute('href') || '';
+                if (a.target && a.target !== '_self') return false;
+                if (href.startsWith('#') || href.startsWith('javascript:')) return false;
+                // Внутренние ссылки
+                return href.startsWith('/') && !a.hasAttribute('data-no-pjax');
+            }
+
+            document.addEventListener('click', (e) => {
+                const a = e.target.closest('a[href]');
+                if (!shouldHandleLink(a)) return;
+                e.preventDefault();
+                navigate(a.href, true);
+            });
+
+            window.addEventListener('popstate', (e) => {
+                const url = (e.state && e.state.url) ? e.state.url : window.location.href;
+                navigate(url, false);
+            });
+        })();
     </script>
 </body>
 </html>
