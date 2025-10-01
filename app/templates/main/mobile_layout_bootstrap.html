@@ -1261,9 +1261,15 @@
                     const tmp = document.createElement('div');
                     tmp.innerHTML = html;
                     const newMain = tmp.querySelector('main.mobile-content');
+                    const newTitleEl = tmp.querySelector('h1.mobile-title');
                     const newTitle = tmp.querySelector('title');
                     if (newMain) {
                         mainEl.innerHTML = newMain.innerHTML;
+                        // Обновляем заголовок в шапке, если он есть в целевой странице
+                        const currentTitleEl = document.querySelector('h1.mobile-title');
+                        if (newTitleEl && currentTitleEl) {
+                            currentTitleEl.innerHTML = newTitleEl.innerHTML;
+                        }
                         if (push) history.pushState({ url }, '', url);
                         if (newTitle) document.title = newTitle.textContent || document.title;
                         // Сбрасываем скролл и перезапускаем скрипты страницы, если есть inline в блоках
