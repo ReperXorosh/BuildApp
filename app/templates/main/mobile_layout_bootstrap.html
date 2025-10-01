@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>{% block title %}СтройКомплекс{% endblock %}</title>
     
+    <!-- МГНОВЕННОЕ применение темы до загрузки CSS, чтобы не было вспышки светлой темы -->
+    <script>
+        (function() {
+            try {
+                var savedTheme = localStorage.getItem('theme') || 'light';
+                if (savedTheme !== 'dark' && savedTheme !== 'light') { savedTheme = 'light'; }
+                document.documentElement.setAttribute('data-bs-theme', savedTheme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-bs-theme', 'light');
+            }
+        })();
+    </script>
+    
     <!-- Bootstrap CSS (используем локальный, убираем дубликат CDN) -->
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
     
