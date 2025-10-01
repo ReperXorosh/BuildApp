@@ -1084,8 +1084,7 @@
             }
         });
 
-        document.addEventListener('DOMContentLoaded', function() {
-            // Загрузочный экран удалён
+        function initMobileHeader() {
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');
             const mobileBackBtn = document.getElementById('mobileBackBtn');
             const mobileMenu = document.getElementById('mobileMenu');
@@ -1093,21 +1092,24 @@
             const mobileMenuClose = document.getElementById('mobileMenuClose');
             const mobileThemeToggle = document.getElementById('mobileThemeToggle');
             const mobileThemeIcon = document.getElementById('mobileThemeIcon');
-            const inputs = document.querySelectorAll('input, textarea');
-            
+
             function openMobileMenu() {
-                mobileMenu.classList.add('open');
-                mobileMenuOverlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
+                if (mobileMenu && mobileMenuOverlay) {
+                    mobileMenu.classList.add('open');
+                    mobileMenuOverlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
             }
-            
+
             function closeMobileMenu() {
-                mobileMenu.classList.remove('open');
-                mobileMenuOverlay.classList.remove('active');
-                document.body.style.overflow = '';
+                if (mobileMenu && mobileMenuOverlay) {
+                    mobileMenu.classList.remove('open');
+                    mobileMenuOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
             }
-            
-            // Показ/скрытие кнопки Назад: на главных разделах показываем гамбургер, на вложенных — стрелку
+
+            // Показ/скрытие кнопки Назад
             try {
                 const path = window.location.pathname || '';
                 const isRootObjects = /\/objects\/?$/.test(path);
@@ -1118,29 +1120,31 @@
                     } else {
                         mobileBackBtn.style.display = '';
                         mobileMenuBtn.style.display = 'none';
-                        mobileBackBtn.addEventListener('click', () => window.history.back());
+                        mobileBackBtn.onclick = () => window.history.back();
                     }
                 }
             } catch(e) {}
 
-            // Открытие меню
-            mobileMenuBtn.addEventListener('click', openMobileMenu);
-            
-            // Закрытие меню
-            mobileMenuClose.addEventListener('click', closeMobileMenu);
-            mobileMenuOverlay.addEventListener('click', closeMobileMenu);
-            
-            // Закрытие при клике на ссылку (кроме переключателя темы и заголовка настроек)
-            const menuItems = mobileMenu.querySelectorAll('.mobile-menu-item:not(.mobile-menu-theme-toggle):not(.mobile-menu-settings-title)');
-            menuItems.forEach(item => {
-                item.addEventListener('click', closeMobileMenu);
-            });
-            
+            // Привязка обработчиков меню (сначала очистим старые)
+            if (mobileMenuBtn) {
+                mobileMenuBtn.onclick = openMobileMenu;
+            }
+            if (mobileMenuClose) {
+                mobileMenuClose.onclick = closeMobileMenu;
+            }
+            if (mobileMenuOverlay) {
+                mobileMenuOverlay.onclick = closeMobileMenu;
+            }
+            if (mobileMenu) {
+                const menuItems = mobileMenu.querySelectorAll('.mobile-menu-item:not(.mobile-menu-theme-toggle):not(.mobile-menu-settings-title)');
+                menuItems.forEach(item => { item.onclick = closeMobileMenu; });
+            }
+
             // Переключение темы с агрессивной защитой
             let isThemeChanging = false;
             let themeChangeTimeout = null;
             let lastClickTime = 0;
-            
+
             function toggleTheme() {
                 const now = Date.now();
                 
@@ -1234,16 +1238,17 @@
             
             // Обработчик переключения темы с максимальной защитой
             if (mobileThemeToggle) {
-                // Удаляем все предыдущие обработчики
-                mobileThemeToggle.removeEventListener('click', toggleTheme);
-                // Добавляем новый обработчик
-                mobileThemeToggle.addEventListener('click', function(e) {
+                mobileThemeToggle.onclick = function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     toggleTheme();
-                });
+                };
             }
+        }
 
+        document.addEventListener('DOMContentLoaded', function() {
+            // Инициализация шапки после загрузки
+            initMobileHeader();
             // Отменена особая логика фиксации нижней панели — поведение по умолчанию
         });
 
@@ -1262,18 +1267,24 @@
                     tmp.innerHTML = html;
                     const newMain = tmp.querySelector('main.mobile-content');
                     const newTitleEl = tmp.querySelector('h1.mobile-title');
+                    const newHeaderContent = tmp.querySelector('.mobile-header .mobile-header-content');
                     const newTitle = tmp.querySelector('title');
                     if (newMain) {
                         mainEl.innerHTML = newMain.innerHTML;
-                        // Обновляем заголовок в шапке, если он есть в целевой странице
-                        const currentTitleEl = document.querySelector('h1.mobile-title');
-                        if (newTitleEl && currentTitleEl) {
-                            currentTitleEl.innerHTML = newTitleEl.innerHTML;
+                        // Полностью обновляем содержимое шапки (заголовок и кнопки)
+                        const currentHeaderContent = document.querySelector('.mobile-header .mobile-header-content');
+                        if (newHeaderContent && currentHeaderContent) {
+                            currentHeaderContent.innerHTML = newHeaderContent.innerHTML;
+                        } else if (newTitleEl) {
+                            const currentTitleEl = document.querySelector('h1.mobile-title');
+                            if (currentTitleEl) currentTitleEl.innerHTML = newTitleEl.innerHTML;
                         }
                         if (push) history.pushState({ url }, '', url);
                         if (newTitle) document.title = newTitle.textContent || document.title;
                         // Сбрасываем скролл и перезапускаем скрипты страницы, если есть inline в блоках
                         window.scrollTo(0, 0);
+                        // Переинициализируем шапку после подмены
+                        initMobileHeader();
                     } else {
                         window.location.href = url; // fallback
                     }
