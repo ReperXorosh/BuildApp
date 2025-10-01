@@ -21,7 +21,7 @@
 {% block content %}
 <div class="mobile-content">
     <!-- Поисковая панель -->
-    <div class="mobile-card users-card p-2" style="margin-bottom:8px;">
+    <div class="users-toolbar p-2" style="margin-bottom:8px;">
         <form method="GET" action="{{ url_for('main.users') }}" class="m-0">
             <div class="input-group">
                 <input type="text" class="form-control" id="search" name="search" value="{{ search_query or '' }}" placeholder="Поиск: логин, имя, фамилия">
@@ -50,33 +50,33 @@
     {% endif %}
 
     <!-- Список пользователей как компактные карточки -->
-    <div class="mobile-card users-card p-2" style="margin-bottom:8px;">
+    <div class="users-list" style="margin-bottom:8px;">
         {% if users %}
-        <div id="usersList" style="border:none; margin:0; padding:0;">
+        <div id="usersList">
             {% for user in users %}
-            <a href="{{ url_for('main.view_user_profile', user_id=user.userid) }}" class="users-item d-flex align-items-center" data-role="{{ user.role }}">
-                <div class="users-avatar">
+            <a href="{{ url_for('main.view_user_profile', user_id=user.userid) }}" class="user-row" data-role="{{ user.role }}">
+                <div class="user-avatar">
                     {% if user.avatar %}
                         <img src="{{ url_for('static', filename='uploads/avatars/' ~ user.avatar) }}" alt="Аватар">
                     {% else %}
                         <img src="{{ url_for('static', filename='img/default-avatar.png') }}" alt="Аватар">
                     {% endif %}
                 </div>
-                <div class="flex-grow-1">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="fw-semibold text-truncate">{{ user.login }}</div>
+                <div class="user-main">
+                    <div class="user-top">
+                        <div class="user-login text-truncate">{{ user.login }}</div>
                         {% if user.userid == current_user.userid %}
                             <span class="badge bg-primary">Вы</span>
                         {% endif %}
                     </div>
-                    <div class="text-muted small text-truncate">
+                    <div class="user-name text-truncate">
                         {% if user.secondname or user.firstname %}
                             {{ (user.secondname or '') + ' ' + (user.firstname or '') + ' ' + (user.thirdname or '') }}
                         {% else %}
                             ФИО не указано
                         {% endif %}
                     </div>
-                    <div class="d-flex justify-content-between align-items-center mt-1">
+                    <div class="user-bottom">
                         <span class="badge bg-{{ 'success' if user.role == 'Ген. директор' else 'warning' if user.role == 'Зам. директор' else 'info' if user.role == 'Инженер ПТО' else 'secondary' }}">{{ user.role }}</span>
                         <small class="text-muted">{{ user.registration_date | moscow_date }}</small>
                     </div>
@@ -114,11 +114,22 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <style>
-.users-card{ border:1px solid var(--bs-border-color); border-radius:12px; }
-.users-item{ border:1px solid var(--bs-border-color); border-radius:12px; margin-bottom:6px; padding:10px; text-decoration:none; overflow:hidden; gap:10px; }
-.users-avatar{ width:36px; height:36px; border-radius:50%; overflow:hidden; flex:0 0 36px; margin-right:8px; }
-.users-avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
-.input-group>.form-control{ border-top-left-radius:10px; border-bottom-left-radius:10px; }
+/* Тулбар без теней/рамок */
+.users-toolbar{ border:1px solid var(--bs-border-color); border-radius:10px; background: var(--bs-body-bg); }
+
+/* Плотный список */
+.users-list{ border:1px solid var(--bs-border-color); border-radius:10px; overflow:hidden; background: var(--bs-body-bg); }
+.user-row{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid var(--bs-border-color); text-decoration:none; color:inherit; }
+.user-row:last-child{ border-bottom:none; }
+.user-avatar{ width:40px; height:40px; border-radius:50%; overflow:hidden; flex:0 0 40px; }
+.user-avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+.user-main{ display:flex; flex-direction:column; gap:2px; width:100%; }
+.user-top{ display:flex; align-items:center; gap:6px; }
+.user-login{ font-weight:600; }
+.user-name{ font-size:12px; color: var(--bs-secondary-color); }
+.user-bottom{ display:flex; align-items:center; justify-content:space-between; margin-top:2px; }
+
+/* Инпуты */
 .input-group .btn{ min-height:40px; }
 .form-select{ min-height:40px; }
 </style>
