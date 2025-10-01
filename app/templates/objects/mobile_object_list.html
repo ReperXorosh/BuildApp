@@ -57,6 +57,10 @@
     [data-bs-theme="dark"] .list-group-item {
         border-color: rgba(255, 255, 255, .35) !important; /* баланс в тёмной теме */
     }
+    /* Повышаем приоритет вертикального скролла внутри свайп-элементов */
+    .swipeable-item, .swipeable-content {
+        touch-action: pan-y;
+    }
 </style>
 
 {% if objects and objects|length > 0 %}
@@ -209,11 +213,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Простая и надёжная свайп-функциональность для админов
     const swipeableItems = document.querySelectorAll('.swipeable-item');
     let startX = 0;
+    let startY = 0;
     let currentX = 0;
+    let currentY = 0;
     let isDragging = false;
     let currentItem = null;
     let isSwipeGesture = false;
-    const threshold = 80;
+    const threshold = 80; // финальный порог открытия кнопки
+    const gestureThreshold = 16; // чувствительность распознавания свайпа
+    const directionBias = 1.2; // горизонталь должна превосходить вертикаль
     const maxSwipe = 160;
     
     swipeableItems.forEach((item, index) => {
@@ -280,6 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
         currentItem = item;
         isDragging = true;
         isSwipeGesture = false; // Сбрасываем флаг свайпа
@@ -292,18 +301,25 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!isDragging || !currentItem) return;
         
         currentX = e.touches[0].clientX;
+        currentY = e.touches[0].clientY;
         const deltaX = currentX - startX;
-        
-        // Если движение больше 10px, считаем это свайпом
-        if (Math.abs(deltaX) > 10) {
+        const deltaY = currentY - startY;
+
+        // Распознаём жест как свайп только если горизонталь заметно превосходит вертикаль
+        if (!isSwipeGesture && Math.abs(deltaX) > gestureThreshold && Math.abs(Math.abs(deltaX) / Math.max(1, Math.abs(deltaY))) > directionBias) {
             isSwipeGesture = true;
         }
-        
-        // Простая логика: только свайп влево для открытия
-        if (deltaX < 0) {
+
+        // Если вертикальное движение доминирует — даём нативному скроллу работать
+        if (!isSwipeGesture && Math.abs(deltaY) > Math.abs(deltaX)) {
+            return; // не блокируем скролл
+        }
+
+        // Лишь при реальном свайпе влево движем контент и блокируем нативные действия
+        if (isSwipeGesture && deltaX < 0) {
             const translateX = Math.max(deltaX, -maxSwipe);
             updateTransform(currentItem, translateX);
-            e.preventDefault(); // Блокируем только при реальном свайпе
+            e.preventDefault();
         }
     }
     
@@ -330,7 +346,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 250);
         
-        // Блокируем клик только если это был свайп
+        // Блокируем клик только если это был свайп (а не вертикальный скролл)
         if (isSwipeGesture) {
             e.preventDefault();
         }
@@ -355,6 +371,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         startX = e.clientX;
+        startY = e.clientY;
         currentItem = item;
         isDragging = true;
         isSwipeGesture = false; // Сбрасываем флаг свайпа
@@ -367,18 +384,22 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!isDragging || !currentItem) return;
         
         currentX = e.clientX;
+        currentY = e.clientY;
         const deltaX = currentX - startX;
-        
-        // Если движение больше 10px, считаем это свайпом
-        if (Math.abs(deltaX) > 10) {
+        const deltaY = currentY - startY;
+
+        if (!isSwipeGesture && Math.abs(deltaX) > gestureThreshold && Math.abs(Math.abs(deltaX) / Math.max(1, Math.abs(deltaY))) > directionBias) {
             isSwipeGesture = true;
         }
-        
-        // Простая логика: только свайп влево для открытия
-        if (deltaX < 0) {
+
+        if (!isSwipeGesture && Math.abs(deltaY) > Math.abs(deltaX)) {
+            return;
+        }
+
+        if (isSwipeGesture && deltaX < 0) {
             const translateX = Math.max(deltaX, -maxSwipe);
             updateTransform(currentItem, translateX);
-            e.preventDefault(); // Блокируем только при реальном свайпе
+            e.preventDefault();
         }
     }
     
