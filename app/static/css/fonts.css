@@ -3,6 +3,7 @@
     font-style: normal;
     font-weight: 400;
     src: url("../fonts/Montserrat/Montserrat-Regular.ttf");
+    font-display: swap;
 }
 
 @font-face {
@@ -10,4 +11,5 @@
     font-style: normal;
     font-weight: 700;
     src: url("../fonts/Montserrat/Montserrat-Bold.ttf");
+    font-display: swap;
 }

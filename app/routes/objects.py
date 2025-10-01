@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort
 from flask_login import login_required, current_user
-from app.extensions import db
+from app.extensions import db, cache
 from app.models.objects import Object, Support, Trench, Report, Checklist, ChecklistItem, PlannedWork, WorkExecution, WorkComparison, ZDF, Bracket, Luminaire, DailyReport
 from app.models.activity_log import ActivityLog
 from datetime import datetime
@@ -124,6 +124,7 @@ def inject_gettext():
 
 @objects_bp.route('/')
 @login_required
+@cache.cached(timeout=30, query_string=True)
 def object_list():
     """Список всех объектов"""
     # Пагинация и выбор только нужных полей для ускорения ответа
@@ -161,6 +162,7 @@ def object_list():
 
 @objects_bp.route('/planned-works-overview')
 @login_required
+@cache.cached(timeout=60, query_string=True)
 def planned_works_overview():
     """Обзор всех запланированных работ по объектам"""
     # Обновляем статус просроченных работ
@@ -435,6 +437,7 @@ def object_detail(object_id):
 
 @objects_bp.route('/<uuid:object_id>/elements')
 @login_required
+@cache.cached(timeout=60, query_string=True)
 def elements_list(object_id):
     """Список элементов объекта (ЗДФ, кронштейны, светильники)"""
     obj = Object.query.get_or_404(object_id)
@@ -1028,6 +1031,7 @@ def add_trench(object_id):
 # Маршруты для отчётов
 @objects_bp.route('/<uuid:object_id>/reports')
 @login_required
+@cache.cached(timeout=60, query_string=True)
 def reports_list(object_id):
     """Список отчётов объекта"""
     obj = Object.query.get_or_404(object_id)
@@ -1458,6 +1462,7 @@ def delete_checklist_item(object_id, item_id):
 # Маршруты для запланированных работ
 @objects_bp.route('/<uuid:object_id>/planned-works')
 @login_required
+@cache.cached(timeout=60, query_string=True)
 def planned_works_list(object_id):
     """Список запланированных работ объекта"""
     # Обновляем статус просроченных работ
@@ -1467,7 +1472,21 @@ def planned_works_list(object_id):
     Trench.update_overdue_trenches()
     
     obj = Object.query.get_or_404(object_id)
-    planned_works = PlannedWork.query.filter_by(object_id=object_id).order_by(PlannedWork.planned_date.asc()).all()
+    
+    # Пагинация и узкая выборка полей для ускорения
+    from sqlalchemy.orm import load_only
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    per_page = max(10, min(per_page, 50))
+    
+    query = PlannedWork.query.options(
+        load_only(PlannedWork.id, PlannedWork.work_type, PlannedWork.work_title, 
+                 PlannedWork.planned_date, PlannedWork.priority, PlannedWork.status, 
+                 PlannedWork.object_id, PlannedWork.created_at)
+    ).filter_by(object_id=object_id).order_by(PlannedWork.planned_date.asc())
+    
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    planned_works = pagination.items
     
     ActivityLog.log_action(
         user_id=current_user.userid,
@@ -1482,7 +1501,7 @@ def planned_works_list(object_id):
     # Проверяем, является ли пользователь инженером ПТО
     is_pto = is_pto_engineer(current_user)
     
-    return render_template('objects/planned_works_list.html', object=obj, planned_works=planned_works, is_pto=is_pto)
+    return render_template('objects/planned_works_list.html', object=obj, planned_works=planned_works, pagination=pagination, is_pto=is_pto)
 
 @objects_bp.route('/<uuid:object_id>/planned-works/add', methods=['GET', 'POST'])
 @login_required

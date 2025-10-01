@@ -1,0 +1,163 @@
+/* Критический CSS для мобильных страниц - загружается inline */
+/* Мобильный хедер */
+.mobile-header {
+    background: #007bff;
+    color: white;
+    padding: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100vw;
+    left: 0;
+    right: 0;
+}
+
+.mobile-header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    width: 100%;
+    padding-right: 56px;
+}
+
+.mobile-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+    flex: 1;
+    margin-left: 16px;
+}
+
+/* Мобильные карточки */
+.mobile-card {
+    background: var(--bs-body-bg);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 1px solid var(--bs-border-color);
+    transition: all 0.2s ease;
+}
+
+.mobile-card:active {
+    transform: scale(0.98);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.mobile-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: var(--bs-body-color);
+}
+
+.mobile-card-text {
+    font-size: 14px;
+    color: var(--bs-secondary-color);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Мобильная навигация */
+.mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bs-body-bg);
+    border-top: 1px solid var(--bs-border-color);
+    padding: 12px 0 8px 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-around;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    min-height: 80px;
+}
+
+.mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: var(--bs-secondary-color);
+    transition: color 0.2s ease;
+    min-width: 60px;
+}
+
+.mobile-nav-item.active {
+    color: var(--bs-primary);
+}
+
+.mobile-nav-icon {
+    width: 24px;
+    height: 24px;
+    margin-bottom: 4px;
+}
+
+.mobile-nav-text {
+    font-size: 10px;
+    font-weight: 500;
+}
+
+/* Мобильный контент */
+.mobile-content {
+    flex: 1;
+    padding: 16px;
+    padding-bottom: 140px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    height: calc(100vh - 60px);
+}
+
+/* Кнопки */
+.mobile-btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: 12px;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
+    min-height: 48px;
+}
+
+.mobile-btn-primary {
+    background: var(--bs-primary);
+    color: var(--bs-primary-text);
+}
+
+.mobile-btn-primary:active {
+    background: var(--bs-primary-bg-subtle);
+    transform: scale(0.98);
+}
+
+/* Формы */
+.form-control, .form-select {
+    font-size: 16px;
+    min-height: 44px;
+}
+
+.btn {
+    min-height: 44px;
+    touch-action: manipulation;
+}
+
+/* Списки */
+.list-group-item {
+    border-width: 1px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    padding: 12px 16px;
+}
+
+.list-group .list-group-item:not(:first-child) {
+    border-top-width: 1px !important;
+}
+
+.list-group-item + .list-group-item {
+    border-top-width: 1px !important;
+}
