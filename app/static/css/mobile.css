@@ -337,3 +337,74 @@
         box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
     }
 }
+
+/* ===== Профессиональные анимации и утилиты для мобильных ===== */
+/* Дополнительные переменные (можно объявлять :root повторно) */
+:root {
+    --mobile-anim-duration: 300ms;
+    --mobile-anim-fast: 180ms;
+    --mobile-anim-slow: 450ms;
+    --mobile-anim-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --mobile-anim-stagger: 60ms;
+    --mobile-elevated-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+@media (max-width: 768px) {
+    /* Ключевые кадры */
+    @keyframes mobileFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes mobileSlideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes mobileScaleIn { from { transform: scale(0.98); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    /* Утилиты анимаций */
+    .anim-fade-in { animation: mobileFadeIn var(--mobile-anim-duration) var(--mobile-anim-ease) both; }
+    .anim-slide-up { animation: mobileSlideUp var(--mobile-anim-duration) var(--mobile-anim-ease) both; }
+    .anim-scale-in { animation: mobileScaleIn var(--mobile-anim-duration) var(--mobile-anim-ease) both; }
+    .anim-delay-1 { animation-delay: calc(var(--mobile-anim-stagger) * 1); }
+    .anim-delay-2 { animation-delay: calc(var(--mobile-anim-stagger) * 2); }
+    .anim-delay-3 { animation-delay: calc(var(--mobile-anim-stagger) * 3); }
+    .anim-delay-4 { animation-delay: calc(var(--mobile-anim-stagger) * 4); }
+    .anim-stagger > * { animation: mobileSlideUp var(--mobile-anim-duration) var(--mobile-anim-ease) both; }
+    .anim-stagger > *:nth-child(1) { animation-delay: calc(var(--mobile-anim-stagger) * 0); }
+    .anim-stagger > *:nth-child(2) { animation-delay: calc(var(--mobile-anim-stagger) * 1); }
+    .anim-stagger > *:nth-child(3) { animation-delay: calc(var(--mobile-anim-stagger) * 2); }
+    .anim-stagger > *:nth-child(4) { animation-delay: calc(var(--mobile-anim-stagger) * 3); }
+    .anim-stagger > *:nth-child(5) { animation-delay: calc(var(--mobile-anim-stagger) * 4); }
+    .anim-stagger > *:nth-child(6) { animation-delay: calc(var(--mobile-anim-stagger) * 5); }
+
+    /* Плавные переходы по умолчанию */
+    .btn,
+    .card,
+    .list-group-item,
+    .nav-link,
+    .alert,
+    .modal-content,
+    .mobile-nav,
+    .mobile-menu,
+    .mobile-overlay,
+    .form-control {
+        transition: background-color var(--mobile-anim-fast) ease, color var(--mobile-anim-fast) ease,
+                    box-shadow var(--mobile-anim-duration) var(--mobile-anim-ease),
+                    transform var(--mobile-anim-fast) var(--mobile-anim-ease),
+                    opacity var(--mobile-anim-duration) var(--mobile-anim-ease);
+    }
+
+    /* Улучшенные активные состояния */
+    .card:active { transform: scale(0.99); box-shadow: var(--mobile-elevated-shadow); }
+    .btn:active { transform: scale(0.98); }
+    .list-group-item:active { transform: scale(0.995); }
+
+    /* Плавные появления при загрузке */
+    .mobile-animate .mobile-header { animation: mobileFadeIn var(--mobile-anim-duration) var(--mobile-anim-ease) both; }
+    .mobile-animate .mobile-content { animation: mobileFadeIn var(--mobile-anim-duration) var(--mobile-anim-ease) both; }
+    .mobile-animate .mobile-content > .card,
+    .mobile-animate .mobile-content > .mobile-card,
+    .mobile-animate .mobile-content > .list-group,
+    .mobile-animate .mobile-content > .table-responsive {
+        animation: mobileSlideUp var(--mobile-anim-duration) var(--mobile-anim-ease) both;
+    }
+    .mobile-animate .mobile-content.anim-stagger > * { animation: mobileSlideUp var(--mobile-anim-duration) var(--mobile-anim-ease) both; }
+
+    /* Меню и оверлей — более плавные */
+    .mobile-menu { transition: left var(--mobile-anim-duration) var(--mobile-anim-ease); }
+    .mobile-overlay { transition: opacity var(--mobile-anim-duration) var(--mobile-anim-ease), visibility var(--mobile-anim-duration) var(--mobile-anim-ease); }
+}

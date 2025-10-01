@@ -888,6 +888,13 @@
     <!-- Мобильное меню JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Включаем плавные анимации при загрузке
+            try {
+                const app = document.querySelector('.mobile-app');
+                const content = document.querySelector('.mobile-content');
+                if (app) app.classList.add('mobile-animate');
+                if (content) content.classList.add('anim-stagger');
+            } catch(e) {}
             // Загрузочный экран удалён
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');
             const mobileBackBtn = document.getElementById('mobileBackBtn');
