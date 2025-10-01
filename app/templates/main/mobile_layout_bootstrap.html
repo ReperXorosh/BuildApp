@@ -883,10 +883,22 @@
     <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
     
     <!-- Bootstrap JS -->
-    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/bootstrap.bundle.min.js" defer></script>
     
-    <!-- Мобильное меню JavaScript -->
-    <script>
+    <!-- Prefetch ссылок и Мобильное меню JavaScript -->
+    <script defer>
+        // Префетч по первому касанию: ускоряет переходы на мобильных
+        document.addEventListener('touchstart', function(e) {
+            try {
+                const a = e.target.closest('a[href]');
+                if (!a) return;
+                const link = document.createElement('link');
+                link.rel = 'prefetch';
+                link.href = a.href;
+                document.head.appendChild(link);
+            } catch(_) {}
+        }, { passive: true });
+
         document.addEventListener('DOMContentLoaded', function() {
             // Загрузочный экран удалён
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');

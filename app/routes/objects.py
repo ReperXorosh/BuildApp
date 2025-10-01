@@ -439,11 +439,31 @@ def elements_list(object_id):
     """Список элементов объекта (ЗДФ, кронштейны, светильники)"""
     obj = Object.query.get_or_404(object_id)
     
-    # Загружаем элементы объекта
+    # Загружаем элементы объекта узкой выборкой полей для ускорения
     from ..models.objects import ZDF, Bracket, Luminaire
-    zdf_list = ZDF.query.filter_by(object_id=object_id).order_by(ZDF.zdf_name.asc()).all()
-    brackets_list = Bracket.query.filter_by(object_id=object_id).order_by(Bracket.bracket_name.asc()).all()
-    luminaires_list = Luminaire.query.filter_by(object_id=object_id).order_by(Luminaire.luminaire_name.asc()).all()
+    from sqlalchemy.orm import load_only
+    
+    zdf_list = (
+        ZDF.query
+        .options(load_only(ZDF.id, ZDF.zdf_name, ZDF.status, ZDF.object_id))
+        .filter_by(object_id=object_id)
+        .order_by(ZDF.zdf_name.asc())
+        .all()
+    )
+    brackets_list = (
+        Bracket.query
+        .options(load_only(Bracket.id, Bracket.bracket_name, Bracket.status, Bracket.object_id))
+        .filter_by(object_id=object_id)
+        .order_by(Bracket.bracket_name.asc())
+        .all()
+    )
+    luminaires_list = (
+        Luminaire.query
+        .options(load_only(Luminaire.id, Luminaire.luminaire_name, Luminaire.status, Luminaire.object_id))
+        .filter_by(object_id=object_id)
+        .order_by(Luminaire.luminaire_name.asc())
+        .all()
+    )
     
     # Добавляем списки к объекту для удобства в шаблонах
     obj.zdfs = zdf_list
