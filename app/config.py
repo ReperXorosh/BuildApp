@@ -39,8 +39,8 @@ class Config(object):
     # Upload folder for avatars
     UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads', 'avatars')
     
-    # Максимальный размер загружаемого файла (5 МБ)
-    MAX_CONTENT_LENGTH = 5 * 1024 * 1024
+    # Максимальный размер загружаемого файла (15 МБ)
+    MAX_CONTENT_LENGTH = 15 * 1024 * 1024
     
     # Оптимизации для разработки
     TEMPLATES_AUTO_RELOAD = True

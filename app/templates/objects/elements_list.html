@@ -70,8 +70,8 @@
                                                     </thead>
                                                     <tbody>
                                                         {% for zdf in object.zdfs %}
-                                                        <tr>
-                                                            <td>{% if zdf.zdf_name %}<strong>{{ zdf.zdf_name }}</strong>{% else %}<strong>ЗДФ</strong>{% endif %}</td>
+                                                        <tr class="cursor-pointer" onclick="window.location='{{ url_for('objects.element_detail', object_id=object.id, element_type='zdf', element_id=zdf.id) }}'">
+                                                            <td class="fw-semibold text-primary text-decoration-underline">{% if zdf.zdf_name %}{{ zdf.zdf_name }}{% else %}ЗДФ{% endif %}</td>
                                                             <td>-</td>
                                                             <td>
                                                                 {% if zdf.status %}
@@ -118,8 +118,8 @@
                                                     </thead>
                                                     <tbody>
                                                         {% for bracket in object.brackets %}
-                                                        <tr>
-                                                            <td>{% if bracket.bracket_name %}<strong>{{ bracket.bracket_name }}</strong>{% else %}<strong>Кронштейн</strong>{% endif %}</td>
+                                                        <tr class="cursor-pointer" onclick="window.location='{{ url_for('objects.element_detail', object_id=object.id, element_type='bracket', element_id=bracket.id) }}'">
+                                                            <td class="fw-semibold text-primary text-decoration-underline">{% if bracket.bracket_name %}{{ bracket.bracket_name }}{% else %}Кронштейн{% endif %}</td>
                                                             <td>-</td>
                                                             <td>
                                                                 {% if bracket.status %}
@@ -166,8 +166,8 @@
                                                     </thead>
                                                     <tbody>
                                                         {% for luminaire in object.luminaires %}
-                                                        <tr>
-                                                            <td>{% if luminaire.luminaire_name %}<strong>{{ luminaire.luminaire_name }}</strong>{% else %}<strong>Светильник</strong>{% endif %}</td>
+                                                        <tr class="cursor-pointer" onclick="window.location='{{ url_for('objects.element_detail', object_id=object.id, element_type='luminaire', element_id=luminaire.id) }}'">
+                                                            <td class="fw-semibold text-primary text-decoration-underline">{% if luminaire.luminaire_name %}{{ luminaire.luminaire_name }}{% else %}Светильник{% endif %}</td>
                                                             <td>-</td>
                                                             <td>
                                                                 {% if luminaire.status %}
