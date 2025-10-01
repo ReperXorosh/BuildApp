@@ -1092,6 +1092,7 @@
             const mobileMenuClose = document.getElementById('mobileMenuClose');
             const mobileThemeToggle = document.getElementById('mobileThemeToggle');
             const mobileThemeIcon = document.getElementById('mobileThemeIcon');
+            const searchToggle = document.getElementById('searchToggle');
 
             function openMobileMenu() {
                 if (mobileMenu && mobileMenuOverlay) {
@@ -1138,6 +1139,29 @@
             if (mobileMenu) {
                 const menuItems = mobileMenu.querySelectorAll('.mobile-menu-item:not(.mobile-menu-theme-toggle):not(.mobile-menu-settings-title)');
                 menuItems.forEach(item => { item.onclick = closeMobileMenu; });
+            }
+
+            // Поиск по объектам (кнопка лупы в шапке)
+            if (searchToggle) {
+                searchToggle.onclick = function(e) {
+                    e.preventDefault();
+                    const searchContainer = document.getElementById('searchContainer');
+                    const objectSearch = document.getElementById('objectSearch');
+                    if (!searchContainer) return;
+                    const isHidden = (searchContainer.style.display === 'none' || !searchContainer.style.display);
+                    searchContainer.style.display = isHidden ? 'block' : 'none';
+                    if (isHidden && objectSearch) {
+                        setTimeout(() => objectSearch.focus(), 0);
+                    }
+                    if (!isHidden && objectSearch) {
+                        objectSearch.value = '';
+                        // Триггерим очистку, если определена функция на странице
+                        try {
+                            const clearBtn = document.getElementById('clearSearch');
+                            if (clearBtn) clearBtn.click();
+                        } catch(_) {}
+                    }
+                };
             }
 
             // Переключение темы с агрессивной защитой
