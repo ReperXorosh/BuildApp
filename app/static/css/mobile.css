@@ -371,17 +371,17 @@
     .anim-stagger > *:nth-child(5) { animation-delay: calc(var(--mobile-anim-stagger) * 4); }
     .anim-stagger > *:nth-child(6) { animation-delay: calc(var(--mobile-anim-stagger) * 5); }
 
-    /* Плавные переходы по умолчанию */
-    .btn,
-    .card,
-    .list-group-item,
-    .nav-link,
-    .alert,
-    .modal-content,
-    .mobile-nav,
-    .mobile-menu,
-    .mobile-overlay,
-    .form-control {
+    /* Плавные переходы только при явном включении mobile-animate */
+    .mobile-animate .btn,
+    .mobile-animate .card,
+    .mobile-animate .list-group-item,
+    .mobile-animate .nav-link,
+    .mobile-animate .alert,
+    .mobile-animate .modal-content,
+    .mobile-animate .mobile-nav,
+    .mobile-animate .mobile-menu,
+    .mobile-animate .mobile-overlay,
+    .mobile-animate .form-control {
         transition: background-color var(--mobile-anim-fast) ease, color var(--mobile-anim-fast) ease,
                     box-shadow var(--mobile-anim-duration) var(--mobile-anim-ease),
                     transform var(--mobile-anim-fast) var(--mobile-anim-ease),
@@ -389,9 +389,9 @@
     }
 
     /* Улучшенные активные состояния */
-    .card:active { transform: scale(0.99); box-shadow: var(--mobile-elevated-shadow); }
-    .btn:active { transform: scale(0.98); }
-    .list-group-item:active { transform: scale(0.995); }
+    .mobile-animate .card:active { transform: scale(0.99); box-shadow: var(--mobile-elevated-shadow); }
+    .mobile-animate .btn:active { transform: scale(0.98); }
+    .mobile-animate .list-group-item:active { transform: scale(0.995); }
 
     /* Плавные появления при загрузке */
     .mobile-animate .mobile-header { animation: mobileFadeIn var(--mobile-anim-duration) var(--mobile-anim-ease) both; }
@@ -405,6 +405,6 @@
     .mobile-animate .mobile-content.anim-stagger > * { animation: mobileSlideUp var(--mobile-anim-duration) var(--mobile-anim-ease) both; }
 
     /* Меню и оверлей — более плавные */
-    .mobile-menu { transition: left var(--mobile-anim-duration) var(--mobile-anim-ease); }
-    .mobile-overlay { transition: opacity var(--mobile-anim-duration) var(--mobile-anim-ease), visibility var(--mobile-anim-duration) var(--mobile-anim-ease); }
+    .mobile-animate .mobile-menu { transition: left var(--mobile-anim-duration) var(--mobile-anim-ease); }
+    .mobile-animate .mobile-overlay { transition: opacity var(--mobile-anim-duration) var(--mobile-anim-ease), visibility var(--mobile-anim-duration) var(--mobile-anim-ease); }
 }
