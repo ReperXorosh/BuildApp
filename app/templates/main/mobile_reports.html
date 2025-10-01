@@ -4,6 +4,14 @@
 {% block mobile_title %}Отчёты{% endblock %}
 
 {% block content %}
+<style>
+/* Локальная правка для страницы отчётов: сдвигаем правую кнопку ближе к краю */
+.mobile-header .mobile-header-btn {
+    right: calc(8px + env(safe-area-inset-right, 0px));
+    right: calc(8px + constant(safe-area-inset-right, 0px));
+}
+.mobile-header-content { padding-right: 44px; }
+</style>
 <div class="mobile-mb-3">
     <h2 class="mobile-card-title mobile-text-center">Отчёты по объектам</h2>
     <p class="mobile-text-muted mobile-text-center">Выберите объект для просмотра отчётов</p>
