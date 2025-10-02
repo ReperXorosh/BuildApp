@@ -1360,37 +1360,38 @@
 
         // Обновление активной вкладки нижней навигации по текущему пути
         function updateActiveNav() {
-            const path = window.location.pathname || '';
+            const currentPath = window.location.pathname || '/';
             const nav = document.querySelector('.mobile-nav');
             if (!nav) return;
-            const items = nav.querySelectorAll('.mobile-nav-item');
-            items.forEach(i => i.classList.remove('active'));
-            // Сопоставление путей
-            const objectsLink = nav.querySelector('a[href*="/objects"]');
-            const reportsLink = nav.querySelector('a[href*="/reports"]');
-            const worksLink = nav.querySelector('a[href*="/planned-works"]');
-            const profileLink = nav.querySelector('a[href*="/profile"]');
-
-            // Отчёты: /reports или /objects/<id>/reports
-            if (/\/reports(\/|$)/.test(path) || /\/objects\/.+\/reports(\/|$)/.test(path)) {
-                if (reportsLink) reportsLink.classList.add('active');
-                return;
+            const links = Array.from(nav.querySelectorAll('a.mobile-nav-item'));
+            if (!links.length) return;
+            // Сбрасываем активные
+            links.forEach(a => a.classList.remove('active'));
+            // Ищем лучшее совпадение по префиксу пути
+            let best = null;
+            let bestLen = -1;
+            links.forEach(a => {
+                try {
+                    const hrefPath = new URL(a.getAttribute('href'), window.location.origin).pathname || '/';
+                    if (currentPath === hrefPath || currentPath.startsWith(hrefPath + (hrefPath.endsWith('/') ? '' : '/')) || (hrefPath !== '/' && currentPath.startsWith(hrefPath))) {
+                        const len = hrefPath.length;
+                        if (len > bestLen) { best = a; bestLen = len; }
+                    }
+                } catch(_) {}
+            });
+            // Если ничего не выбрали, пробуем подобрать по ключевым словам
+            if (!best) {
+                const fallbackMap = [
+                    { test: /reports/, sel: 'a[href*="/reports"]' },
+                    { test: /planned-works/, sel: 'a[href*="/planned-works"]' },
+                    { test: /profile/, sel: 'a[href*="/profile"]' },
+                    { test: /objects/, sel: 'a[href*="/objects"]' }
+                ];
+                for (const m of fallbackMap) {
+                    if (m.test.test(currentPath)) { best = nav.querySelector(m.sel); break; }
+                }
             }
-            // Работы: /planned-works
-            if (/planned-works/.test(path)) {
-                if (worksLink) worksLink.classList.add('active');
-                return;
-            }
-            // Профиль: /profile
-            if (/\/profile(\/|$)/.test(path)) {
-                if (profileLink) profileLink.classList.add('active');
-                return;
-            }
-            // По умолчанию: объекты (любой /objects)
-            if (/\/objects(\/|$)/.test(path)) {
-                if (objectsLink) objectsLink.classList.add('active');
-                return;
-            }
+            if (best) best.classList.add('active');
         }
     </script>
 </body>
