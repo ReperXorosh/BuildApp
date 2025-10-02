@@ -1274,6 +1274,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Инициализация шапки после загрузки
             initMobileHeader();
+            // Выставляем активную кнопку нижней навигации по текущему адресу
+            try { updateActiveNav(); } catch(_) {}
             // Строго фиксируем нижнюю панель: выставляем отступ контента по фактической высоте панели
             try {
                 const mobileNav = document.querySelector('.mobile-nav');
@@ -1324,6 +1326,8 @@
                         window.scrollTo(0, 0);
                         // Переинициализируем шапку после подмены
                         initMobileHeader();
+                        // Обновляем активную кнопку нижней навигации
+                        try { updateActiveNav(); } catch(_) {}
                     } else {
                         window.location.href = url; // fallback
                     }
@@ -1353,6 +1357,41 @@
                 navigate(url, false);
             });
         })();
+
+        // Обновление активной вкладки нижней навигации по текущему пути
+        function updateActiveNav() {
+            const path = window.location.pathname || '';
+            const nav = document.querySelector('.mobile-nav');
+            if (!nav) return;
+            const items = nav.querySelectorAll('.mobile-nav-item');
+            items.forEach(i => i.classList.remove('active'));
+            // Сопоставление путей
+            const objectsLink = nav.querySelector('a[href*="/objects"]');
+            const reportsLink = nav.querySelector('a[href*="/reports"]');
+            const worksLink = nav.querySelector('a[href*="/planned-works"]');
+            const profileLink = nav.querySelector('a[href*="/profile"]');
+
+            // Отчёты: /reports или /objects/<id>/reports
+            if (/\/reports(\/|$)/.test(path) || /\/objects\/.+\/reports(\/|$)/.test(path)) {
+                if (reportsLink) reportsLink.classList.add('active');
+                return;
+            }
+            // Работы: /planned-works
+            if (/planned-works/.test(path)) {
+                if (worksLink) worksLink.classList.add('active');
+                return;
+            }
+            // Профиль: /profile
+            if (/\/profile(\/|$)/.test(path)) {
+                if (profileLink) profileLink.classList.add('active');
+                return;
+            }
+            // По умолчанию: объекты (любой /objects)
+            if (/\/objects(\/|$)/.test(path)) {
+                if (objectsLink) objectsLink.classList.add('active');
+                return;
+            }
+        }
     </script>
 </body>
 </html>
