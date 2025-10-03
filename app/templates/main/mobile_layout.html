@@ -530,7 +530,6 @@
                 </svg>
                 <span class="mobile-nav-text">Отчёты</span>
             </a>
-            {% if current_user.role in ['Инженер ПТО', 'Зам. директор', 'Ген. директор'] %}
             <a href="{{ url_for('objects.planned_works_overview') }}" class="mobile-nav-item {{ 'active' if active_page == 'planned_works' else '' }}">
                 <svg class="mobile-nav-icon" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
@@ -538,7 +537,6 @@
                 </svg>
                 <span class="mobile-nav-text">Работы</span>
             </a>
-            {% endif %}
             <a href="{{ url_for('main.profile') }}" class="mobile-nav-item {{ 'active' if active_page == 'profile' else '' }}">
                 <svg class="mobile-nav-icon" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
@@ -566,21 +564,17 @@
             <a href="{{ url_for('main.reports') }}" class="mobile-menu-item {{ 'active' if active_page == 'reports' else '' }}">
                 {{ gettext('Отчёты') }}
             </a>
-            {% if current_user.role in ['Инженер ПТО', 'Зам. директор', 'Ген. директор'] %}
             <a href="{{ url_for('objects.planned_works_overview') }}" class="mobile-menu-item {{ 'active' if active_page == 'planned_works' else '' }}">
                 {{ gettext('Запланированные работы') }}
             </a>
-            {% endif %}
             {% if current_user.role in ['Инженер ПТО', 'Зам. директор', 'Ген. директор'] %}
             <a href="{{ url_for('activity_log.view_activity_log') }}" class="mobile-menu-item {{ 'active' if active_page == 'activity_log' else '' }}">
                 {{ gettext('Журнал действий') }}
             </a>
             {% endif %}
-            {% if current_user.role in ['Снабженец', 'Инженер ПТО'] %}
             <a href="{{ url_for('supply.supply_dashboard') }}" class="mobile-menu-item {{ 'active' if active_page == 'supply' else '' }}">
                 {{ gettext('Снабжение') }}
             </a>
-            {% endif %}
             <a href="{{ url_for('main.profile') }}" class="mobile-menu-item {{ 'active' if active_page == 'profile' else '' }}">
                 {{ gettext('Профиль') }}
             </a>
