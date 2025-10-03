@@ -673,7 +673,7 @@
             links.forEach(a => a.classList.remove('active'));
             // Правила сопоставления путей
             const matchers = [
-                { test: (p) => /^\/objects\/?$/.test(p), sel: 'a[href^="/objects"][href$="/objects"], a[href="/objects"]' },
+                { test: (p) => /^\/objects\/?$/.test(p), sel: 'a[href="/objects"], a[href="/objects/"]' },
                 { test: (p) => p.startsWith('/reports'), sel: 'a[href^="/reports"]' },
                 { test: (p) => /^\/objects\/planned-works-overview\/?$/.test(p), sel: 'a[href*="/planned-works-overview"]' },
                 { test: (p) => /^\/objects\/all-planned-works\/?$/.test(p), sel: 'a[href*="/all-planned-works"]' },
