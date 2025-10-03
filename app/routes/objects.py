@@ -1501,6 +1501,10 @@ def planned_works_list(object_id):
     # Проверяем, является ли пользователь инженером ПТО
     is_pto = is_pto_engineer(current_user)
     
+    # Рендерим мобильный или десктопный шаблон
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device() or (request.args.get('mobile') == '1'):
+        return render_template('objects/mobile_planned_works_list.html', object=obj, planned_works=planned_works, pagination=pagination, is_pto=is_pto, active_page='planned_works')
     return render_template('objects/planned_works_list.html', object=obj, planned_works=planned_works, pagination=pagination, is_pto=is_pto)
 
 @objects_bp.route('/<uuid:object_id>/planned-works/add', methods=['GET', 'POST'])

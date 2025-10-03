@@ -1,0 +1,73 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'planned_works' %}
+
+{% block title %}Запланированные работы - {{ object.name }}{% endblock %}
+{% block mobile_title %}Работы{% endblock %}
+
+{% block content %}
+<div class="mobile-mb-3">
+    <h2 class="mobile-card-title">{{ object.name }}</h2>
+    <p class="mobile-text-muted">Запланированные работы</p>
+    {% if pagination %}
+        <div class="mobile-text-muted">Стр. {{ pagination.page }} из {{ pagination.pages }}</div>
+    {% endif %}
+    {% if is_pto %}
+    <div class="d-grid gap-2 mt-2">
+        <a class="btn btn-primary" href="{{ url_for('objects.add_planned_work', object_id=object.id) }}">Добавить работу</a>
+    </div>
+    {% endif %}
+    <div class="d-grid gap-2 mt-2">
+        <a class="btn btn-outline-secondary" href="{{ url_for('objects.object_detail', object_id=object.id) }}">К объекту</a>
+    </div>
+</div>
+
+{% if planned_works %}
+    {% for work in planned_works %}
+    <div class="mobile-card">
+        <div class="mobile-card-title">{{ work.work_title }}</div>
+        <div class="mobile-card-text">
+            <div><strong>Тип:</strong> {{ translate_work_type(work.work_type) }}</div>
+            <div><strong>Статус:</strong> {{ work.status }}</div>
+            <div><strong>Дата:</strong> {% if work.planned_date %}{{ work.planned_date.strftime('%d.%m.%Y') }}{% else %}Не установлена{% endif %}</div>
+            <div><strong>Приоритет:</strong> {{ translate_priority(work.priority) }}</div>
+        </div>
+        <div class="d-flex gap-2 mt-2">
+            {% if work.status == 'planned' %}
+            <a class="btn btn-outline-success w-100" href="{{ url_for('objects.execute_planned_work', object_id=object.id, work_id=work.id) }}">Выполнить</a>
+            {% elif work.status == 'completed' %}
+            <a class="btn btn-outline-info w-100" href="{{ url_for('objects.work_comparison', object_id=object.id, work_id=work.id) }}">Сравнить</a>
+            {% endif %}
+            {% if is_pto %}
+            <a class="btn btn-outline-secondary w-100" href="{{ url_for('objects.edit_planned_work', object_id=object.id, work_id=work.id) }}">Изменить</a>
+            <form method="post" action="{{ url_for('objects.delete_planned_work', object_id=object.id, work_id=work.id) }}" class="w-100" onsubmit="return confirm('Удалить работу?');">
+                <button class="btn btn-outline-danger w-100" type="submit">Удалить</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="mobile-card mobile-text-center">
+        <div class="mobile-card-title">Запланированные работы отсутствуют</div>
+        {% if is_pto %}
+        <a class="btn btn-primary mt-2" href="{{ url_for('objects.add_planned_work', object_id=object.id) }}">Добавить работу</a>
+        {% endif %}
+    </div>
+{% endif %}
+
+{% if pagination and (pagination.pages or 0) > 1 %}
+<nav aria-label="Навигация работ" class="mt-2">
+    <ul class="pagination justify-content-center mb-0">
+        <li class="page-item {{ 'disabled' if not pagination.has_prev else '' }}">
+            <a class="page-link" href="{{ url_for('objects.planned_works_list', object_id=object.id, page=pagination.prev_num, per_page=request.args.get('per_page', 20)) }}">Предыдущая</a>
+        </li>
+        <li class="page-item disabled"><span class="page-link">Стр. {{ pagination.page }} из {{ pagination.pages }}</span></li>
+        <li class="page-item {{ 'disabled' if not pagination.has_next else '' }}">
+            <a class="page-link" href="{{ url_for('objects.planned_works_list', object_id=object.id, page=pagination.next_num, per_page=request.args.get('per_page', 20)) }}">Следующая</a>
+        </li>
+    </ul>
+    </nav>
+{% endif %}
+{% endblock %}
+
+
