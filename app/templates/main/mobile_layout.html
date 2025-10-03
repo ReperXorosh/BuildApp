@@ -629,6 +629,8 @@
             menuItems.forEach(item => {
                 item.addEventListener('click', closeMobileMenu);
             });
+            // Устанавливаем активный пункт меню
+            try { updateActiveMenu(); } catch(_) {}
             
             // Показ гамбургера на основных вкладках и кнопки «Назад» на вложенных страницах
             try {
@@ -658,6 +660,36 @@
                 }
             } catch(e) {}
         });
+    </script>
+    <script>
+        // Обновление активного пункта гамбургер-меню по текущему пути
+        function updateActiveMenu() {
+            const currentPath = window.location.pathname || '/';
+            const menu = document.getElementById('mobileMenu');
+            if (!menu) return;
+            const links = Array.from(menu.querySelectorAll('a.mobile-menu-item'));
+            if (!links.length) return;
+            // Сброс активных
+            links.forEach(a => a.classList.remove('active'));
+            // Правила сопоставления путей
+            const matchers = [
+                { test: (p) => /^\/objects\/?$/.test(p), sel: 'a[href^="/objects"][href$="/objects"], a[href="/objects"]' },
+                { test: (p) => p.startsWith('/reports'), sel: 'a[href^="/reports"]' },
+                { test: (p) => /^\/objects\/planned-works-overview\/?$/.test(p), sel: 'a[href*="/planned-works-overview"]' },
+                { test: (p) => /^\/objects\/all-planned-works\/?$/.test(p), sel: 'a[href*="/all-planned-works"]' },
+                { test: (p) => p.startsWith('/admin/activity-log') || p.startsWith('/activity-log'), sel: 'a[href*="/activity-log"]' },
+                { test: (p) => p.startsWith('/users'), sel: 'a[href^="/users"]' },
+                { test: (p) => p.startsWith('/supply'), sel: 'a[href^="/supply"]' },
+                { test: (p) => p.startsWith('/profile'), sel: 'a[href^="/profile"]' }
+            ];
+            for (const m of matchers) {
+                if (m.test(currentPath)) {
+                    const a = menu.querySelector(m.sel);
+                    if (a) a.classList.add('active');
+                    break;
+                }
+            }
+        }
     </script>
 </body>
 </html>

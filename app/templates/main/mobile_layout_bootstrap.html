@@ -1288,6 +1288,8 @@
             initMobileHeader();
             // Выставляем активную кнопку нижней навигации по текущему адресу
             try { updateActiveNav(); } catch(_) {}
+            // Выставляем активный пункт в гамбургер-меню по текущему адресу
+            try { updateActiveMenu(); } catch(_) {}
             // Строго фиксируем нижнюю панель: выставляем отступ контента по фактической высоте панели
             try {
                 const mobileNav = document.querySelector('.mobile-nav');
@@ -1338,8 +1340,9 @@
                         window.scrollTo(0, 0);
                         // Переинициализируем шапку после подмены
                         initMobileHeader();
-                        // Обновляем активную кнопку нижней навигации
+                        // Обновляем активную кнопку нижней навигации и гамбургер-меню
                         try { updateActiveNav(); } catch(_) {}
+                        try { updateActiveMenu(); } catch(_) {}
                     } else {
                         window.location.href = url; // fallback
                     }
@@ -1404,6 +1407,35 @@
                 }
             }
             if (best) best.classList.add('active');
+        }
+
+        // Обновление активного пункта гамбургер-меню по текущему пути
+        function updateActiveMenu() {
+            const currentPath = window.location.pathname || '/';
+            const menu = document.getElementById('mobileMenu');
+            if (!menu) return;
+            const links = Array.from(menu.querySelectorAll('a.mobile-menu-item'));
+            if (!links.length) return;
+            // Сброс активных
+            links.forEach(a => a.classList.remove('active'));
+            // Правила сопоставления путей
+            const matchers = [
+                { test: (p) => /^\/objects\/?$/.test(p), sel: 'a[href^="/objects"][href$="/objects"], a[href="/objects"]' },
+                { test: (p) => p.startsWith('/reports'), sel: 'a[href^="/reports"]' },
+                { test: (p) => /^\/objects\/planned-works-overview\/?$/.test(p), sel: 'a[href*="/planned-works-overview"]' },
+                { test: (p) => /^\/objects\/all-planned-works\/?$/.test(p), sel: 'a[href*="/all-planned-works"]' },
+                { test: (p) => p.startsWith('/admin/activity-log') || p.startsWith('/activity-log'), sel: 'a[href*="/activity-log"]' },
+                { test: (p) => p.startsWith('/users'), sel: 'a[href^="/users"]' },
+                { test: (p) => p.startsWith('/supply'), sel: 'a[href^="/supply"]' },
+                { test: (p) => p.startsWith('/profile'), sel: 'a[href^="/profile"]' }
+            ];
+            for (const m of matchers) {
+                if (m.test(currentPath)) {
+                    const a = menu.querySelector(m.sel);
+                    if (a) a.classList.add('active');
+                    break;
+                }
+            }
         }
     </script>
 </body>
