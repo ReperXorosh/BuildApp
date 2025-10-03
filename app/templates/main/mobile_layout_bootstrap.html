@@ -1119,7 +1119,7 @@
                 const isReports = path.startsWith('/reports');
                 const isUsers = path.startsWith('/users');
                 const isSupply = path.startsWith('/supply');
-                const isActivity = path.startsWith('/activity-log');
+                const isActivity = path.startsWith('/activity-log') || path.startsWith('/admin/activity-log');
                 const isProfile = path.startsWith('/profile');
                 const isPlannedWorksOverview = /^\/objects\/planned-works-overview\/?$/.test(path);
                 const isAllPlannedWorks = /^\/objects\/all-planned-works\/?$/.test(path);
