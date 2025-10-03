@@ -16,8 +16,9 @@ def inject_gettext():
     return dict(gettext=gettext)
 
 def is_supplier_or_admin():
-    """Проверяет, имеет ли пользователь права снабженца или администратора"""
-    return current_user.is_authenticated and current_user.role in ['Снабженец', 'Инженер ПТО']
+    """Проверяет, имеет ли пользователь права доступа к разделу снабжения"""
+    allowed_roles = ['Снабженец', 'Инженер ПТО', 'Ген. директор', 'Зам. директор']
+    return current_user.is_authenticated and (current_user.role in allowed_roles)
 
 @supply.route('/supply')
 @login_required
