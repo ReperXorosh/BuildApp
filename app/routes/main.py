@@ -54,6 +54,21 @@ def inject_gettext():
     """Делает функцию gettext доступной в шаблонах"""
     return dict(gettext=gettext)
 
+@main.app_template_filter('month_name')
+def month_name(month_value):
+    """Возвращает русское название месяца по номеру (1-12)."""
+    try:
+        month_int = int(month_value)
+    except (TypeError, ValueError):
+        return ''
+    names = [
+        'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+        'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+    ]
+    if 1 <= month_int <= 12:
+        return names[month_int - 1]
+    return ''
+
 @main.context_processor
 def inject_device_info():
     """Добавляет информацию об устройстве в контекст шаблонов"""
