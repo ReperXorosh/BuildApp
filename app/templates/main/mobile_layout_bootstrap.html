@@ -1148,7 +1148,27 @@
                 menuItems.forEach(item => { item.onclick = closeMobileMenu; });
             }
 
-            // Поиск по объектам обрабатывается на странице списка объектов (mobile_object_list.html)
+            // Поиск по объектам (кнопка лупы в шапке) — инициализируем глобально, чтобы работало после PJAX
+            if (searchToggle) {
+                searchToggle.onclick = function(e) {
+                    e.preventDefault();
+                    const searchContainer = document.getElementById('searchContainer');
+                    const objectSearch = document.getElementById('objectSearch');
+                    if (!searchContainer) return; // страница без поиска
+                    const isHidden = (searchContainer.style.display === 'none' || !searchContainer.style.display);
+                    searchContainer.style.display = isHidden ? 'block' : 'none';
+                    if (isHidden && objectSearch) {
+                        setTimeout(() => objectSearch.focus(), 0);
+                    }
+                    if (!isHidden && objectSearch) {
+                        objectSearch.value = '';
+                        try {
+                            const clearBtn = document.getElementById('clearSearch');
+                            if (clearBtn) clearBtn.click();
+                        } catch(_) {}
+                    }
+                };
+            }
 
             // Переключение темы с агрессивной защитой
             let isThemeChanging = false;
