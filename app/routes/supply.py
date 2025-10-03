@@ -16,9 +16,13 @@ def inject_gettext():
     return dict(gettext=gettext)
 
 def is_supplier_or_admin():
-    """Проверяет, имеет ли пользователь права доступа к разделу снабжения"""
-    allowed_roles = ['Снабженец', 'Инженер ПТО', 'Ген. директор', 'Зам. директор']
-    return current_user.is_authenticated and (current_user.role in allowed_roles)
+    """Проверяет, имеет ли пользователь права доступа к разделу снабжения (робастно по роли)"""
+    if not current_user.is_authenticated:
+        return False
+    role = (current_user.role or '').strip().lower()
+    # Разрешаем снабженца, ПТО, ген/зам директора (учитываем вариации написания)
+    allowed_keywords = ['снабжен', 'пто', 'ген', 'зам']
+    return any(k in role for k in allowed_keywords)
 
 @supply.route('/supply')
 @login_required
