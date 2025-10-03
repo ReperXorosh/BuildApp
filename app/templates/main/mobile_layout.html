@@ -629,6 +629,34 @@
             menuItems.forEach(item => {
                 item.addEventListener('click', closeMobileMenu);
             });
+            
+            // Показ гамбургера на основных вкладках и кнопки «Назад» на вложенных страницах
+            try {
+                const path = window.location.pathname || '';
+                const mobileBackBtn = document.getElementById('mobileBackBtn');
+                const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+                const mainPaths = [
+                    '/objects',
+                    '/reports',
+                    '/planned-works',
+                    '/activity-log',
+                    '/users',
+                    '/supply',
+                    '/profile'
+                ];
+                const isMainPage = mainPaths.some(p => path === p || path === p + '/');
+                if (mobileBackBtn && mobileMenuBtn) {
+                    if (isMainPage) {
+                        mobileBackBtn.style.display = 'none';
+                        mobileMenuBtn.style.display = '';
+                        mobileBackBtn.onclick = null;
+                    } else {
+                        mobileBackBtn.style.display = '';
+                        mobileMenuBtn.style.display = 'none';
+                        mobileBackBtn.onclick = () => window.history.back();
+                    }
+                }
+            } catch(e) {}
         });
     </script>
 </body>

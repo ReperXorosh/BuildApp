@@ -1111,15 +1111,28 @@
                 }
             }
 
-            // Показ/скрытие кнопки Назад
+            // Показ гамбургера на основных вкладках и кнопки «Назад» на вложенных страницах
             try {
                 const path = window.location.pathname || '';
-                const isRootObjects = /\/objects\/?$/.test(path);
+                // Список основных разделов, где должен быть гамбургер
+                const mainPaths = [
+                    '/objects',
+                    '/reports',
+                    '/planned-works',
+                    '/activity-log',
+                    '/users',
+                    '/supply',
+                    '/profile'
+                ];
+                const isMainPage = mainPaths.some(p => path === p || path === p + '/' );
                 if (mobileBackBtn && mobileMenuBtn) {
-                    if (isRootObjects) {
+                    if (isMainPage) {
+                        // Главные вкладки: показываем гамбургер, скрываем «Назад»
                         mobileBackBtn.style.display = 'none';
                         mobileMenuBtn.style.display = '';
+                        mobileBackBtn.onclick = null;
                     } else {
+                        // Вложенные страницы: показываем «Назад», скрываем гамбургер
                         mobileBackBtn.style.display = '';
                         mobileMenuBtn.style.display = 'none';
                         mobileBackBtn.onclick = () => window.history.back();
