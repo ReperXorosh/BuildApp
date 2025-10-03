@@ -1,0 +1,34 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'planned_works' %}
+
+{% block title %}Сравнение работ - {{ object.name }}{% endblock %}
+{% block mobile_title %}Сравнение{% endblock %}
+
+{% block content %}
+<div class="mobile-card">
+  <div class="mobile-card-title">{{ planned_work.work_title }}</div>
+  <div class="mobile-card-text">
+    <div><strong>Тип:</strong> {{ planned_work.work_type }}</div>
+    <div><strong>Статус:</strong> {{ planned_work.status }}</div>
+    <div><strong>Плановая дата:</strong> {% if planned_work.planned_date %}{{ planned_work.planned_date.strftime('%d.%m.%Y') }}{% else %}Не указана{% endif %}</div>
+    <div><strong>Фактическая дата:</strong> {% if work_execution and work_execution.execution_date %}{{ work_execution.execution_date.strftime('%d.%m.%Y') }}{% else %}—{% endif %}</div>
+  </div>
+</div>
+
+<div class="mobile-card">
+  <div class="mobile-card-title">Сравнение плана и факта</div>
+  <div class="mobile-card-text">
+    <div><strong>Отклонение по дате (дн.):</strong> {{ comparison.date_deviation_days }}</div>
+    <div><strong>Отклонение по часам:</strong> {{ comparison.hours_deviation }}</div>
+    <div><strong>Процент выполнения:</strong> {{ comparison.completion_rate }}%</div>
+    <div><strong>Оценка качества:</strong> {{ comparison.quality_score }}</div>
+  </div>
+</div>
+
+<div class="d-grid gap-2">
+  <a class="btn btn-outline-secondary" href="{{ url_for('objects.planned_works_list', object_id=object.id) }}">Назад к работам</a>
+  <a class="btn btn-primary" href="{{ url_for('objects.object_detail', object_id=object.id) }}">К объекту</a>
+ </div>
+{% endblock %}
+
+

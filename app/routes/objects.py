@@ -1930,6 +1930,14 @@ def work_comparison(object_id, work_id):
             method=request.method
         )
         
+    # Мобильный или десктопный шаблон сравнения
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device() or (request.args.get('mobile') == '1'):
+        return render_template('objects/mobile_work_comparison.html', 
+                             object=obj, 
+                             planned_work=planned_work, 
+                             work_execution=work_execution, 
+                             comparison=comparison)
     return render_template('objects/work_comparison.html', 
                          object=obj, 
                          planned_work=planned_work, 
