@@ -635,17 +635,16 @@
                 const path = window.location.pathname || '';
                 const mobileBackBtn = document.getElementById('mobileBackBtn');
                 const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-                const mainPaths = [
-                    '/objects',
-                    '/reports',
-                    '/objects/planned-works-overview',
-                    '/objects/all-planned-works',
-                    '/activity-log',
-                    '/users',
-                    '/supply',
-                    '/profile'
-                ];
-                const isMainPage = mainPaths.some(p => path === p || path === p + '/');
+                // Правила показа гамбургера: корни разделов и ключевые страницы
+                const isObjectsRoot = /^\/objects\/?$/.test(path);
+                const isReports = path.startsWith('/reports');
+                const isUsers = path.startsWith('/users');
+                const isSupply = path.startsWith('/supply');
+                const isActivity = path.startsWith('/activity-log');
+                const isProfile = path.startsWith('/profile');
+                const isPlannedWorksOverview = /^\/objects\/planned-works-overview\/?$/.test(path);
+                const isAllPlannedWorks = /^\/objects\/all-planned-works\/?$/.test(path);
+                const isMainPage = isObjectsRoot || isReports || isUsers || isSupply || isActivity || isProfile || isPlannedWorksOverview || isAllPlannedWorks;
                 if (mobileBackBtn && mobileMenuBtn) {
                     if (isMainPage) {
                         mobileBackBtn.style.display = 'none';
