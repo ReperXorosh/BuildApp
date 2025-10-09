@@ -807,11 +807,26 @@ document.addEventListener('click', function(e){
   }
 });
 
-// Добавляем курсор pointer для кликабельных карточек
+// Добавляем курсор pointer и лёгкую анимацию для кликабельных карточек
 document.addEventListener('DOMContentLoaded', function() {
   const clickableCards = document.querySelectorAll('.clickable-card');
   clickableCards.forEach(card => {
     card.style.cursor = 'pointer';
+    card.style.transition = 'transform 0.2s ease, box-shadow 0.2s ease';
+    
+    // Сохраняем исходные стили
+    const originalTransform = card.style.transform;
+    const originalBoxShadow = card.style.boxShadow;
+    
+    card.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-2px)';
+      this.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+      this.style.transform = originalTransform;
+      this.style.boxShadow = originalBoxShadow;
+    });
   });
 });
 </script>
