@@ -206,47 +206,63 @@ document.getElementById('form-movement').addEventListener('submit', async (e) =>
 async function loadUsersToSelect() {
   const select = document.getElementById('to_user_id');
   
-  try {
-    console.log('Загружаем пользователей...');
-    const response = await fetch('{{ url_for('supply.api_get_all_users') }}');
-    console.log('Статус ответа:', response.status);
-    
-    if (response.status === 403) {
-      console.log('Ошибка 403: Недостаточно прав');
-      select.innerHTML = '<option value="">Недостаточно прав для просмотра пользователей</option>';
-      return;
+  // Список API для попытки загрузки
+  const apiUrls = [
+    '{{ url_for('supply.api_get_all_users') }}',
+    '{{ url_for('supply.api_get_users_simple') }}'
+  ];
+  
+  for (let i = 0; i < apiUrls.length; i++) {
+    try {
+      console.log(`Попытка ${i + 1}: Загружаем пользователей из ${apiUrls[i]}...`);
+      const response = await fetch(apiUrls[i]);
+      console.log('Статус ответа:', response.status);
+      
+      if (response.status === 403) {
+        console.log('Ошибка 403: Недостаточно прав');
+        select.innerHTML = '<option value="">Недостаточно прав для просмотра пользователей</option>';
+        return;
+      }
+      
+      if (!response.ok) {
+        console.log(`Ошибка HTTP ${response.status} для API ${i + 1}`);
+        if (i === apiUrls.length - 1) {
+          select.innerHTML = '<option value="">Ошибка загрузки пользователей (HTTP ' + response.status + ')</option>';
+          return;
+        }
+        continue; // Пробуем следующий API
+      }
+      
+      const users = await response.json();
+      console.log('Получены пользователи:', users);
+      
+      if (users.length === 0) {
+        console.log('Пользователи не найдены');
+        select.innerHTML = '<option value="">Пользователи не найдены в системе</option>';
+        return;
+      }
+      
+      // Очищаем select и добавляем пользователей
+      select.innerHTML = '<option value="">Выберите пользователя...</option>';
+      
+      users.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.id;
+        option.textContent = `${user.name} (${user.login}) - ${user.role}`;
+        select.appendChild(option);
+      });
+      
+      console.log('Пользователи загружены успешно');
+      return; // Успешно загружено
+      
+    } catch (error) {
+      console.error(`Ошибка загрузки пользователей (API ${i + 1}):`, error);
+      if (i === apiUrls.length - 1) {
+        select.innerHTML = '<option value="">Ошибка загрузки пользователей: ' + error.message + '</option>';
+        return;
+      }
+      // Пробуем следующий API
     }
-    
-    if (!response.ok) {
-      console.log('Ошибка HTTP:', response.status);
-      select.innerHTML = '<option value="">Ошибка загрузки пользователей (HTTP ' + response.status + ')</option>';
-      return;
-    }
-    
-    const users = await response.json();
-    console.log('Получены пользователи:', users);
-    
-    if (users.length === 0) {
-      console.log('Пользователи не найдены');
-      select.innerHTML = '<option value="">Пользователи не найдены в системе</option>';
-      return;
-    }
-    
-    // Очищаем select и добавляем пользователей
-    select.innerHTML = '<option value="">Выберите пользователя...</option>';
-    
-    users.forEach(user => {
-      const option = document.createElement('option');
-      option.value = user.id;
-      option.textContent = `${user.name} (${user.login}) - ${user.role}`;
-      select.appendChild(option);
-    });
-    
-    console.log('Пользователи загружены успешно');
-    
-  } catch (error) {
-    console.error('Ошибка загрузки пользователей:', error);
-    select.innerHTML = '<option value="">Ошибка загрузки пользователей: ' + error.message + '</option>';
   }
 }
 

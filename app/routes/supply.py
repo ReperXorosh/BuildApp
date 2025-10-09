@@ -387,17 +387,28 @@ def api_search_users():
 def api_get_all_users():
     """Получение всех пользователей для аккордеона"""
     try:
+        # Проверяем, что модель Users доступна
+        if not Users:
+            return jsonify({'error': 'Модель Users не найдена'}), 500
+            
         # Получаем всех пользователей, отсортированных по фамилии
         users = Users.query.order_by(Users.last_name, Users.first_name).all()
         
         result = []
         for user in users:
+            # Безопасное получение данных пользователя
+            first_name = getattr(user, 'first_name', '') or ''
+            last_name = getattr(user, 'last_name', '') or ''
+            login = getattr(user, 'login', '') or ''
+            role = getattr(user, 'role', '') or 'Не указана'
+            userid = getattr(user, 'userid', '') or ''
+            
             user_data = {
-                'id': str(user.userid),
-                'name': f"{user.first_name or ''} {user.last_name or ''}".strip(),
-                'login': user.login or '',
-                'display': f"{user.first_name or ''} {user.last_name or ''} ({user.login or ''})".strip(),
-                'role': user.role or 'Не указана'
+                'id': str(userid),
+                'name': f"{first_name} {last_name}".strip(),
+                'login': login,
+                'display': f"{first_name} {last_name} ({login})".strip(),
+                'role': role
             }
             result.append(user_data)
         
@@ -405,7 +416,33 @@ def api_get_all_users():
         
     except Exception as e:
         print(f"API: Ошибка при получении пользователей: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': f'Ошибка сервера: {str(e)}'}), 500
+
+@supply.route('/api/supply/users/simple', methods=['GET'])
+@login_required
+def api_get_users_simple():
+    """Простое получение пользователей без сложной логики"""
+    try:
+        # Простой запрос без сортировки
+        users = Users.query.all()
+        
+        result = []
+        for user in users:
+            result.append({
+                'id': str(user.userid),
+                'name': f"{user.first_name or ''} {user.last_name or ''}".strip(),
+                'login': user.login or '',
+                'display': f"{user.first_name or ''} {user.last_name or ''} ({user.login or ''})".strip(),
+                'role': user.role or 'Не указана'
+            })
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        print(f"API Simple: Ошибка при получении пользователей: {e}")
+        return jsonify({'error': f'Ошибка: {str(e)}'}), 500
 
 @supply.route('/api/supply/movements/<uuid:movement_id>/attachments/<uuid:attachment_id>/download', methods=['GET'])
 @login_required
