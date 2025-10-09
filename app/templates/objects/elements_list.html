@@ -62,7 +62,6 @@
                                                 <table class="table table-hover">
                                                     <thead>
                                                         <tr>
-                                                            <th>Номер</th>
                                                             <th>Название</th>
                                                             <th>Статус</th>
                                                             <th>Примечания</th>
@@ -70,9 +69,8 @@
                                                     </thead>
                                                     <tbody>
                                                         {% for zdf in object.zdfs %}
-                                                        <tr class="cursor-pointer" onclick="window.location='{{ url_for('objects.element_detail', object_id=object.id, element_type='zdf', element_id=zdf.id) }}'">
-                                                            <td class="fw-semibold text-primary text-decoration-underline">{% if zdf.zdf_name %}{{ zdf.zdf_name }}{% else %}ЗДФ{% endif %}</td>
-                                                            <td>-</td>
+                                                        <tr class="clickable-element" data-url="{{ url_for('objects.element_detail', object_id=object.id, element_type='zdf', element_id=zdf.id) }}">
+                                                            <td class="fw-semibold">{% if zdf.zdf_name %}{{ zdf.zdf_name }}{% else %}ЗДФ{% endif %}</td>
                                                             <td>
                                                                 {% if zdf.status %}
                                                                 <span class="badge bg-secondary">{{ zdf.status }}</span>
@@ -110,7 +108,6 @@
                                                 <table class="table table-hover">
                                                     <thead>
                                                         <tr>
-                                                            <th>Номер</th>
                                                             <th>Название</th>
                                                             <th>Статус</th>
                                                             <th>Примечания</th>
@@ -118,9 +115,8 @@
                                                     </thead>
                                                     <tbody>
                                                         {% for bracket in object.brackets %}
-                                                        <tr class="cursor-pointer" onclick="window.location='{{ url_for('objects.element_detail', object_id=object.id, element_type='bracket', element_id=bracket.id) }}'">
-                                                            <td class="fw-semibold text-primary text-decoration-underline">{% if bracket.bracket_name %}{{ bracket.bracket_name }}{% else %}Кронштейн{% endif %}</td>
-                                                            <td>-</td>
+                                                        <tr class="clickable-element" data-url="{{ url_for('objects.element_detail', object_id=object.id, element_type='bracket', element_id=bracket.id) }}">
+                                                            <td class="fw-semibold">{% if bracket.bracket_name %}{{ bracket.bracket_name }}{% else %}Кронштейн{% endif %}</td>
                                                             <td>
                                                                 {% if bracket.status %}
                                                                 <span class="badge bg-secondary">{{ bracket.status }}</span>
@@ -158,7 +154,6 @@
                                                 <table class="table table-hover">
                                                     <thead>
                                                         <tr>
-                                                            <th>Номер</th>
                                                             <th>Название</th>
                                                             <th>Статус</th>
                                                             <th>Примечания</th>
@@ -166,9 +161,8 @@
                                                     </thead>
                                                     <tbody>
                                                         {% for luminaire in object.luminaires %}
-                                                        <tr class="cursor-pointer" onclick="window.location='{{ url_for('objects.element_detail', object_id=object.id, element_type='luminaire', element_id=luminaire.id) }}'">
-                                                            <td class="fw-semibold text-primary text-decoration-underline">{% if luminaire.luminaire_name %}{{ luminaire.luminaire_name }}{% else %}Светильник{% endif %}</td>
-                                                            <td>-</td>
+                                                        <tr class="clickable-element" data-url="{{ url_for('objects.element_detail', object_id=object.id, element_type='luminaire', element_id=luminaire.id) }}">
+                                                            <td class="fw-semibold">{% if luminaire.luminaire_name %}{{ luminaire.luminaire_name }}{% else %}Светильник{% endif %}</td>
                                                             <td>
                                                                 {% if luminaire.status %}
                                                                 <span class="badge bg-secondary">{{ luminaire.status }}</span>
@@ -199,4 +193,39 @@
         </div>
     </div>
 </div>
+
+<script>
+// Добавляем курсор pointer и лёгкую анимацию для кликабельных элементов
+document.addEventListener('DOMContentLoaded', function() {
+  const clickableElements = document.querySelectorAll('.clickable-element');
+  clickableElements.forEach(element => {
+    element.style.cursor = 'pointer';
+    element.style.transition = 'transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease';
+    
+    // Сохраняем исходные стили
+    const originalTransform = element.style.transform;
+    const originalBoxShadow = element.style.boxShadow;
+    const originalBackgroundColor = element.style.backgroundColor;
+    
+    element.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-1px)';
+      this.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+      this.style.backgroundColor = 'rgba(0, 123, 255, 0.05)';
+    });
+    
+    element.addEventListener('mouseleave', function() {
+      this.style.transform = originalTransform;
+      this.style.boxShadow = originalBoxShadow;
+      this.style.backgroundColor = originalBackgroundColor;
+    });
+    
+    element.addEventListener('click', function() {
+      const url = this.dataset.url;
+      if (url) {
+        window.location.href = url;
+      }
+    });
+  });
+});
+</script>
 {% endblock %}
