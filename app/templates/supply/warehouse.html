@@ -151,7 +151,14 @@
                         </div>
                         <div class="col-6">
                             <label class="form-label">Количество <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" name="quantity" step="0.01" min="0" required>
+                            <div class="input-group">
+                                <input type="number" class="form-control" name="quantity" id="movement_quantity" step="0.01" min="0" required>
+                                <span class="input-group-text" id="movement_unit">шт</span>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted">Доступно: <span id="available_quantity" class="text-primary fw-bold">0</span></small>
+                                <small class="text-warning" id="quantity_warning" style="display: none;">Количество ограничено доступным</small>
+                            </div>
                         </div>
                         <div class="col-6" id="user-selection-container" style="display: none;">
                             <label class="form-label" id="user-label">Пользователь</label>
@@ -293,6 +300,20 @@ async function onMovementTypeChange() {
   materialSelect.innerHTML = '<option value="">Загрузка материалов...</option>';
   userSelect.innerHTML = '<option value="">Выберите пользователя...</option>';
   
+  // Сбрасываем поля количества
+  const quantityInput = document.getElementById('movement_quantity');
+  const unitSpan = document.getElementById('movement_unit');
+  const availableQuantitySpan = document.getElementById('available_quantity');
+  const warningSpan = document.getElementById('quantity_warning');
+  
+  if (quantityInput) {
+    quantityInput.value = '';
+    quantityInput.max = '';
+  }
+  if (unitSpan) unitSpan.textContent = 'шт';
+  if (availableQuantitySpan) availableQuantitySpan.textContent = '0';
+  if (warningSpan) warningSpan.style.display = 'none';
+  
   if (!movementType) {
     materialSelect.innerHTML = '<option value="">Сначала выберите тип операции</option>';
     userContainer.style.display = 'none';
@@ -353,10 +374,57 @@ async function onMaterialChange() {
   const materialId = document.getElementById('material_id').value;
   const movementType = document.getElementById('movement_type').value;
   const userSelect = document.getElementById('to_user_id');
+  const quantityInput = document.getElementById('movement_quantity');
+  const unitSpan = document.getElementById('movement_unit');
+  const availableQuantitySpan = document.getElementById('available_quantity');
+  const warningSpan = document.getElementById('quantity_warning');
+  
+  // Сбрасываем поля
+  quantityInput.value = '';
+  quantityInput.max = '';
+  warningSpan.style.display = 'none';
   
   if (!materialId || !movementType) {
     userSelect.innerHTML = '<option value="">Сначала выберите материал</option>';
+    availableQuantitySpan.textContent = '0';
+    unitSpan.textContent = 'шт';
     return;
+  }
+  
+  // Получаем информацию о материале
+  try {
+    const response = await fetch('{{ url_for("supply.api_materials") }}');
+    const materials = await response.json();
+    const material = materials.find(m => m.id === materialId);
+    
+    if (material) {
+      unitSpan.textContent = material.unit;
+      
+      // Определяем доступное количество в зависимости от типа операции
+      let availableQuantity = 0;
+      if (movementType === 'move' || movementType === 'writeoff') {
+        // Для выдачи и списания - количество на складе
+        availableQuantity = material.current_quantity || 0;
+      } else if (movementType === 'return') {
+        // Для возврата - количество у выбранного пользователя
+        const userId = userSelect.value;
+        if (userId) {
+          // Будет обновлено при выборе пользователя
+          availableQuantity = 0;
+        } else {
+          availableQuantity = 0;
+        }
+      }
+      
+      availableQuantitySpan.textContent = availableQuantity;
+      
+      // Устанавливаем максимальное значение для поля ввода
+      if (movementType === 'move' || movementType === 'writeoff') {
+        quantityInput.max = availableQuantity;
+      }
+    }
+  } catch (error) {
+    console.error('Ошибка загрузки информации о материале:', error);
   }
   
   // Загружаем пользователей в зависимости от типа операции и материала
@@ -402,6 +470,7 @@ async function loadUsersForMovement(movementType, materialId) {
       if (movementType === 'return' && user.quantity !== undefined) {
         // Для возврата показываем количество у пользователя
         option.textContent = `${user.name || user.login} (${user.quantity} ${user.material_unit || ''})`;
+        option.dataset.quantity = user.quantity; // Сохраняем количество для использования
       } else {
         // Для выдачи показываем только имя
         option.textContent = user.name || user.login;
@@ -409,6 +478,24 @@ async function loadUsersForMovement(movementType, materialId) {
       
       userSelect.appendChild(option);
     });
+    
+    // Добавляем обработчик изменения пользователя для возврата
+    if (movementType === 'return') {
+      userSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const quantityInput = document.getElementById('movement_quantity');
+        const availableQuantitySpan = document.getElementById('available_quantity');
+        
+        if (selectedOption && selectedOption.dataset.quantity) {
+          const userQuantity = parseFloat(selectedOption.dataset.quantity);
+          availableQuantitySpan.textContent = userQuantity;
+          quantityInput.max = userQuantity;
+        } else {
+          availableQuantitySpan.textContent = '0';
+          quantityInput.max = '0';
+        }
+      });
+    }
     
   } catch (error) {
     console.error('Ошибка загрузки пользователей:', error);
@@ -602,9 +689,43 @@ async function deleteMaterial(materialId) {
   }
 }
 
+// Обработчик изменения количества
+function setupQuantityValidation() {
+  const quantityInput = document.getElementById('movement_quantity');
+  const warningSpan = document.getElementById('quantity_warning');
+  
+  if (quantityInput) {
+    quantityInput.addEventListener('input', function() {
+      const value = parseFloat(this.value) || 0;
+      const max = parseFloat(this.max) || 0;
+      
+      if (max > 0 && value > max) {
+        // Ограничиваем ввод максимальным значением
+        this.value = max;
+        warningSpan.style.display = 'block';
+        warningSpan.textContent = `Количество ограничено доступным (${max})`;
+      } else {
+        warningSpan.style.display = 'none';
+      }
+    });
+    
+    quantityInput.addEventListener('blur', function() {
+      const value = parseFloat(this.value) || 0;
+      const max = parseFloat(this.max) || 0;
+      
+      if (max > 0 && value > max) {
+        this.value = max;
+        warningSpan.style.display = 'block';
+        warningSpan.textContent = `Количество ограничено доступным (${max})`;
+      }
+    });
+  }
+}
+
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
   loadMaterials();
+  setupQuantityValidation();
   
   // Поиск
   document.getElementById('searchInput').addEventListener('input', filterMaterials);
