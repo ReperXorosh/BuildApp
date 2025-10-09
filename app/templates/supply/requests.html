@@ -1,0 +1,123 @@
+{% extends "main/layout.html" %}
+
+{% block title %}Заявки{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3" style="margin-top: 80px;">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <svg class="bi me-2" width="24" height="24" fill="currentColor">
+                        <use xlink:href="#envelope"></use>
+                    </svg>
+                    Заявки
+                </h1>
+                <button class="btn btn-primary" disabled>Создать заявку (скоро)</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">Список заявок</h6>
+            <button class="btn btn-primary" id="btn-create">Создать заявку</button>
+        </div>
+        <div class="card-body">
+            {% if requests %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Номер</th>
+                            <th>Статус</th>
+                            <th>Автор</th>
+                            <th>Дата</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in requests %}
+                        <tr>
+                            <td>{{ r.request_number }}</td>
+                            <td><span class="badge bg-secondary">{{ r.status }}</span></td>
+                            <td>{{ r.requester.login if r.requester else '-' }}</td>
+                            <td>{{ r.created_at }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-success" onclick="updateStatus('{{ r.id }}','approved')">Одобрить</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="updateStatus('{{ r.id }}','rejected')">Отклонить</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">Заявок пока нет</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="modal" tabindex="-1" id="createModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Создание заявки</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="form-create-request">
+                <div id="items">
+                    <div class="row g-2 mb-2 item-row">
+                        <div class="col-6"><input class="form-control" name="material_id" placeholder="UUID материала"></div>
+                        <div class="col-3"><input type="number" step="0.001" class="form-control" name="quantity" placeholder="Кол-во"></div>
+                        <div class="col-3"><input class="form-control" name="unit" placeholder="Ед."></div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="addItem">Добавить позицию</button>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+            <button type="button" class="btn btn-primary" id="saveRequest">Создать</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    const modalEl = document.getElementById('createModal');
+    const bsModal = new bootstrap.Modal(modalEl);
+    document.getElementById('btn-create').addEventListener('click', ()=> bsModal.show());
+    document.getElementById('addItem').addEventListener('click', ()=>{
+        const row = document.querySelector('.item-row').cloneNode(true);
+        row.querySelectorAll('input').forEach(i=> i.value='');
+        document.getElementById('items').appendChild(row);
+    });
+    document.getElementById('saveRequest').addEventListener('click', async ()=>{
+        const rows = [...document.querySelectorAll('#items .item-row')];
+        const items = rows.map(r=>({
+            material_id: r.querySelector('[name="material_id"]').value,
+            quantity: r.querySelector('[name="quantity"]').value,
+            unit: r.querySelector('[name="unit"]').value,
+        })).filter(x=>x.material_id && x.quantity && x.unit);
+        const resp = await fetch('{{ url_for('supply.api_requests_create') }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items })
+        });
+        if (resp.ok) location.reload(); else alert('Ошибка создания заявки');
+    });
+    async function updateStatus(id, status){
+        const resp = await fetch(`{{ url_for('supply.api_requests_update_status', req_id='00000000-0000-0000-0000-000000000000') }}`.replace('00000000-0000-0000-0000-000000000000', id), {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+        if (resp.ok) location.reload(); else alert('Ошибка обновления статуса');
+    }
+    </script>
+</div>
+{% endblock %}
+
+

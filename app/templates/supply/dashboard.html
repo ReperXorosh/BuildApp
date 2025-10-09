@@ -14,23 +14,23 @@
                     Система снабжения
                 </h1>
                 <div class="btn-group me-4" role="group">
-                    <a href="{{ url_for('supply.materials_list') }}" class="btn btn-outline-primary">
+                    <a href="{{ url_for('supply.warehouse_view') }}" class="btn btn-outline-primary">
                         <svg class="bi me-1" width="16" height="16" fill="currentColor">
-                            <use xlink:href="#list"></use>
+                            <use xlink:href="#box-seam"></use>
                         </svg>
-                        Материалы
-                    </a>
-                    <a href="{{ url_for('supply.equipment_list') }}" class="btn btn-outline-primary">
-                        <svg class="bi me-1" width="16" height="16" fill="currentColor">
-                            <use xlink:href="#tools"></use>
-                        </svg>
-                        Техника
+                        Склад
                     </a>
                     <a href="{{ url_for('supply.orders_list') }}" class="btn btn-outline-primary">
                         <svg class="bi me-1" width="16" height="16" fill="currentColor">
                             <use xlink:href="#clipboard-data"></use>
                         </svg>
                         Заказы
+                    </a>
+                    <a href="{{ url_for('supply.requests_list') }}" class="btn btn-outline-primary">
+                        <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                            <use xlink:href="#envelope"></use>
+                        </svg>
+                        Заявки
                     </a>
                 </div>
             </div>
@@ -187,6 +187,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
     <symbol id="list" viewBox="0 0 16 16">
         <path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+    </symbol>
+    <symbol id="box-seam" viewBox="0 0 16 16">
+        <path d="M8.186 1.113a1 1 0 0 0-.372 0L1.846 2.5 8 4l6.154-1.5-5.968-1.387z"/>
+        <path d="M14 4.5 8 6 2 4.5v7L8 13l6-1.5v-7z"/>
+    </symbol>
+    <symbol id="envelope" viewBox="0 0 16 16">
+        <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v.217l-8 4.8-8-4.8V4z"/>
+        <path d="M0 4.697v7.104l5.803-3.482L0 4.697zM6.761 8.83 0 12.803A2 2 0 0 0 2 14h12a2 2 0 0 0 2-1.197L9.239 8.83 8 9.583 6.761 8.83zM16 4.697l-5.803 3.622L16 11.801V4.697z"/>
     </symbol>
     <symbol id="tools" viewBox="0 0 16 16">
         <path d="M4.5 5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1zM6 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>

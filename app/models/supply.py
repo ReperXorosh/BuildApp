@@ -33,6 +33,94 @@ class Material(db.Model):
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
+class WarehouseMovement(db.Model):
+    """Движение по складу: поступления, выдачи, перемещения, возвраты, списания"""
+    __tablename__ = 'warehouse_movements'
+
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    material_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('materials.id'), nullable=False)
+    # from_user/to_user: NULL означает склад
+    from_user_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'), nullable=True)
+    to_user_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'), nullable=True)
+    quantity = db.Column(db.Float, nullable=False)
+    movement_type = db.Column(db.String(32), nullable=False)  # add, move, return, writeoff
+    note = db.Column(db.Text, nullable=True)
+    created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'), nullable=False)
+    created_at = db.Column(db.DateTime, default=get_moscow_now, nullable=False)
+
+    # связи
+    material = db.relationship('Material')
+    from_user = db.relationship('Users', foreign_keys=[from_user_id])
+    to_user = db.relationship('Users', foreign_keys=[to_user_id])
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'material_id': self.material_id,
+            'from_user_id': self.from_user_id,
+            'to_user_id': self.to_user_id,
+            'quantity': self.quantity,
+            'movement_type': self.movement_type,
+            'note': self.note,
+            'created_by': self.created_by,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+class WarehouseAttachment(db.Model):
+    """Файл-вложение, прикрепленный к движению по складу. Хранится в БД."""
+    __tablename__ = 'warehouse_attachments'
+
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    movement_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('warehouse_movements.id'), nullable=False)
+    filename = db.Column(db.String(255), nullable=False)
+    content_type = db.Column(db.String(127), nullable=True)
+    data = db.Column(db.LargeBinary, nullable=False)
+    size_bytes = db.Column(db.Integer, nullable=False)
+    uploaded_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'), nullable=False)
+    uploaded_at = db.Column(db.DateTime, default=get_moscow_now, nullable=False)
+
+    movement = db.relationship('WarehouseMovement', backref='attachments')
+
+    def to_dict(self, include_data: bool = False):
+        payload = {
+            'id': self.id,
+            'movement_id': self.movement_id,
+            'filename': self.filename,
+            'content_type': self.content_type,
+            'size_bytes': self.size_bytes,
+            'uploaded_by': self.uploaded_by,
+            'uploaded_at': self.uploaded_at.isoformat() if self.uploaded_at else None,
+        }
+        if include_data:
+            payload['data'] = self.data
+        return payload
+
+class UserMaterialAllocation(db.Model):
+    """Текущее распределение материалов по пользователям (денормализация для быстрых отчетов)."""
+    __tablename__ = 'user_material_allocations'
+
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'), nullable=False)
+    material_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('materials.id'), nullable=False)
+    quantity = db.Column(db.Float, default=0.0, nullable=False)
+    updated_at = db.Column(db.DateTime, default=get_moscow_now, onupdate=get_moscow_now)
+
+    user = db.relationship('Users')
+    material = db.relationship('Material')
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'material_id', name='uq_user_material'),
+    )
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'material_id': self.material_id,
+            'quantity': self.quantity,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
 class Equipment(db.Model):
     """Модель для техники"""
     __tablename__ = 'equipment'
@@ -129,4 +217,55 @@ class SupplyOrderItem(db.Model):
             'price_per_unit': self.price_per_unit,
             'total_price': self.total_price,
             'notes': self.notes
+        }
+
+class SupplyRequest(db.Model):
+    """Заявка на выдачу/закупку материалов"""
+    __tablename__ = 'supply_requests'
+
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    request_number = db.Column(db.String(50), nullable=False, unique=True)
+    status = db.Column(db.String(32), default='new')  # new, approved, rejected, fulfilled, cancelled
+    requested_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'), nullable=False)
+    approver_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=get_moscow_now, nullable=False)
+    updated_at = db.Column(db.DateTime, default=get_moscow_now, onupdate=get_moscow_now)
+
+    requester = db.relationship('Users', foreign_keys=[requested_by])
+    approver = db.relationship('Users', foreign_keys=[approver_id])
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'request_number': self.request_number,
+            'status': self.status,
+            'requested_by': self.requested_by,
+            'approver_id': self.approver_id,
+            'notes': self.notes,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+class SupplyRequestItem(db.Model):
+    __tablename__ = 'supply_request_items'
+
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    request_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('supply_requests.id'), nullable=False)
+    material_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('materials.id'), nullable=False)
+    quantity = db.Column(db.Float, nullable=False)
+    unit = db.Column(db.String(50), nullable=False)
+    note = db.Column(db.Text)
+
+    request = db.relationship('SupplyRequest', backref='items')
+    material = db.relationship('Material')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'request_id': self.request_id,
+            'material_id': self.material_id,
+            'quantity': self.quantity,
+            'unit': self.unit,
+            'note': self.note,
         }
