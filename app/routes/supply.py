@@ -361,8 +361,24 @@ def api_create_movement():
     except Exception:
         return jsonify({'error': 'quantity должен быть числом'}), 400
 
-    # Проверяем достаточность количества для выдачи и списания
-    if movement_type in ['move', 'writeoff']:
+    # Проверяем достаточность количества
+    if movement_type == 'move':
+        # Для выдачи проверяем наличие на складе
+        if material.current_quantity < quantity:
+            return jsonify({
+                'error': f'Недостаточно материала на складе. Доступно: {material.current_quantity} {material.unit}, требуется: {quantity} {material.unit}'
+            }), 400
+    elif movement_type == 'return':
+        # Для возврата проверяем наличие у пользователя
+        if from_user_id:
+            user_alloc = UserMaterialAllocation.query.filter_by(user_id=from_user_id, material_id=material.id).first()
+            user_quantity = user_alloc.quantity if user_alloc else 0.0
+            if user_quantity < quantity:
+                return jsonify({
+                    'error': f'У пользователя недостаточно материала. Доступно: {user_quantity} {material.unit}, требуется: {quantity} {material.unit}'
+                }), 400
+    elif movement_type == 'writeoff':
+        # Для списания проверяем наличие на складе
         if material.current_quantity < quantity:
             return jsonify({
                 'error': f'Недостаточно материала на складе. Доступно: {material.current_quantity} {material.unit}, требуется: {quantity} {material.unit}'
@@ -379,23 +395,30 @@ def api_create_movement():
     )
     db.session.add(movement)
 
-    # Обновление остатков материала (простая логика)
+    # Обновление остатков материала
     if movement_type == 'add':
+        # Поступление на склад - увеличиваем количество
         material.current_quantity = (material.current_quantity or 0.0) + quantity
-    elif movement_type in ('move', 'return'):
-        # при перемещении со склада к пользователю уменьшаем склад
+    elif movement_type == 'move':
+        # Выдача со склада пользователю - уменьшаем склад, увеличиваем у пользователя
         material.current_quantity = (material.current_quantity or 0.0) - quantity
+    elif movement_type == 'return':
+        # Возврат от пользователя на склад - увеличиваем склад, уменьшаем у пользователя
+        material.current_quantity = (material.current_quantity or 0.0) + quantity
     elif movement_type == 'writeoff':
+        # Списание - только уменьшаем склад
         material.current_quantity = (material.current_quantity or 0.0) - quantity
 
     # Обновляем распределение по пользователям
-    if to_user_id:
+    if movement_type == 'move' and to_user_id:
+        # Выдача: увеличиваем количество у получателя
         alloc = UserMaterialAllocation.query.filter_by(user_id=to_user_id, material_id=material.id).first()
         if not alloc:
             alloc = UserMaterialAllocation(user_id=to_user_id, material_id=material.id, quantity=0.0)
             db.session.add(alloc)
         alloc.quantity = (alloc.quantity or 0.0) + quantity
-    if from_user_id:
+    elif movement_type == 'return' and from_user_id:
+        # Возврат: уменьшаем количество у возвращающего
         alloc_from = UserMaterialAllocation.query.filter_by(user_id=from_user_id, material_id=material.id).first()
         if alloc_from:
             alloc_from.quantity = max(0.0, (alloc_from.quantity or 0.0) - quantity)

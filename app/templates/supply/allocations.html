@@ -46,9 +46,40 @@
         </div>
     </div>
 
-    <!-- Карточки пользователей -->
-    <div class="row" id="users-container">
-        <!-- Данные будут загружены через JavaScript -->
+    <!-- Таблица пользователей -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="card-title mb-0">Пользователи с позициями</h5>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <span class="badge bg-info" id="visibleCount">Показано пользователей: 0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Пользователь</th>
+                                    <th>Роль</th>
+                                    <th>Позиций</th>
+                                    <th>Общее количество</th>
+                                    <th>Последнее обновление</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table">
+                                <!-- Данные будут загружены через JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -67,71 +98,56 @@ async function loadUsers() {
 
 // Отображение пользователей
 function displayUsers(users) {
-  const container = document.getElementById('users-container');
-  container.innerHTML = '';
+  const tbody = document.getElementById('users-table');
+  tbody.innerHTML = '';
   
   users.forEach(user => {
-    const col = document.createElement('div');
-    col.className = 'col-md-6 col-lg-4 mb-3';
+    const row = document.createElement('tr');
+    row.className = 'clickable-row';
+    row.setAttribute('data-url', `{{ url_for('supply.warehouse_user_detail', user_id='') }}${user.id}`);
     
     // Форматируем дату (используем текущую дату как пример)
     const formattedDate = new Date().toLocaleDateString('ru-RU');
     
-    col.innerHTML = `
-      <div class="card clickable-card h-100" data-url="{{ url_for('supply.warehouse_user_detail', user_id='') }}${user.id}">
-        <div class="card-body">
-          <div class="d-flex align-items-center mb-3">
-            <div class="avatar-lg bg-primary rounded-circle d-flex align-items-center justify-content-center me-3">
-              <i class="bi bi-person text-white" style="font-size: 1.5rem;"></i>
-            </div>
-            <div class="flex-grow-1">
-              <h6 class="card-title mb-1">${user.name || 'Не указано'}</h6>
-              <small class="text-muted">${user.login}</small>
-            </div>
+    row.innerHTML = `
+      <td>
+        <div class="d-flex align-items-center">
+          <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
+            <i class="bi bi-person text-white"></i>
           </div>
-          
-          <div class="row text-center">
-            <div class="col-4">
-              <div class="border-end">
-                <div class="fw-bold text-primary">${user.allocations_count}</div>
-                <small class="text-muted">Позиций</small>
-              </div>
-            </div>
-            <div class="col-4">
-              <div class="border-end">
-                <div class="fw-bold text-success">${user.total_quantity}</div>
-                <small class="text-muted">Количество</small>
-              </div>
-            </div>
-            <div class="col-4">
-              <div class="fw-bold text-info">${user.role || 'Не указана'}</div>
-              <small class="text-muted">Роль</small>
-            </div>
-          </div>
-          
-          <div class="mt-3">
-            <small class="text-muted">
-              <i class="bi bi-clock me-1"></i>
-              Обновлено: ${formattedDate}
-            </small>
+          <div>
+            <div class="fw-semibold">${user.name || 'Не указано'}</div>
+            <small class="text-muted">${user.login}</small>
           </div>
         </div>
-      </div>
+      </td>
+      <td>
+        <span class="badge bg-secondary">${user.role || 'Не указана'}</span>
+      </td>
+      <td>
+        <span class="badge bg-info">${user.allocations_count}</span>
+      </td>
+      <td>
+        <span class="fw-semibold">${user.total_quantity}</span>
+      </td>
+      <td>${formattedDate}</td>
     `;
     
-    container.appendChild(col);
+    tbody.appendChild(row);
   });
+  
+  document.getElementById('visibleCount').textContent = `Показано пользователей: ${users.length}`;
 }
 
 // Применение фильтров
 function applyFilters() {
   const searchUser = document.getElementById('searchUser').value.toLowerCase();
   
-  const cards = document.querySelectorAll('#users-container .col-md-6');
+  const rows = document.querySelectorAll('#users-table tr');
   let visibleCount = 0;
   
-  cards.forEach(card => {
-    const userInfo = card.textContent.toLowerCase();
+  rows.forEach(row => {
+    const userInfo = row.textContent.toLowerCase();
     
     let show = true;
     
@@ -140,23 +156,38 @@ function applyFilters() {
     }
     
     if (show) {
-      card.style.display = '';
+      row.style.display = '';
       visibleCount++;
     } else {
-      card.style.display = 'none';
+      row.style.display = 'none';
     }
   });
+  
+  document.getElementById('visibleCount').textContent = `Показано пользователей: ${visibleCount}`;
 }
 
 // Очистка фильтров
 function clearFilters() {
   document.getElementById('searchUser').value = '';
   
-  const cards = document.querySelectorAll('#users-container .col-md-6');
-  cards.forEach(card => {
-    card.style.display = '';
+  const rows = document.querySelectorAll('#users-table tr');
+  rows.forEach(row => {
+    row.style.display = '';
   });
+  
+  document.getElementById('visibleCount').textContent = `Показано пользователей: ${rows.length}`;
 }
+
+// Обработка кликов по строкам таблицы
+document.addEventListener('click', function(e) {
+  const clickableRow = e.target.closest('.clickable-row');
+  if (clickableRow) {
+    const url = clickableRow.getAttribute('data-url');
+    if (url) {
+      window.location.href = url;
+    }
+  }
+});
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
@@ -165,20 +196,20 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
-.avatar-lg {
-  width: 60px;
-  height: 60px;
-  font-size: 1.5rem;
+.avatar-sm {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
 }
 
-.clickable-card {
+.clickable-row {
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
-.clickable-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+.clickable-row:hover {
+  background-color: rgba(0, 123, 255, 0.1) !important;
+  transform: scale(1.01);
 }
 </style>
 {% endblock %}
