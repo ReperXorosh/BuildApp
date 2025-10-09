@@ -33,3 +33,23 @@ img {
   max-width: 100%;
   height: auto;
 }
+
+/* Interactive cards */
+.clickable-card {
+  cursor: pointer;
+  transition: box-shadow 160ms ease, transform 160ms ease;
+}
+
+.clickable-card:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clickable-card {
+    transition: none;
+  }
+  .clickable-card:hover {
+    transform: none;
+  }
+}
