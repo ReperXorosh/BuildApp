@@ -181,21 +181,18 @@
                 </div>
                 <!-- Опора -->
                 <div class="col-md-6 mb-4">
-                    <div class="card h-100">
+                    <div class="card h-100 clickable-card" data-url="{{ url_for('objects.supports_list', object_id=object.id) }}">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0">
                                 <i class="bi bi-pin-angle me-2"></i>
                                 Опора
                             </h5>
-                            <a href="{{ url_for('objects.supports_list', object_id=object.id) }}" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-eye me-1"></i>
-                                Просмотр ({{ object.supports|length }})
-                            </a>
+                            <span class="text-muted small">Всего: {{ object.supports|length }}</span>
                         </div>
                         <div class="card-body">
                             <p class="text-muted">Управление опорами объекта</p>
                             <div class="d-grid">
-                                <a href="{{ url_for('objects.add_support', object_id=object.id) }}" class="btn btn-primary">
+                                <a href="{{ url_for('objects.add_support', object_id=object.id) }}" class="btn btn-primary" data-ignore-card-click="true">
                                     <i class="bi bi-plus-lg me-1"></i>
                                     Добавить опору
                                 </a>
@@ -206,21 +203,18 @@
 
                 <!-- Траншея -->
                 <div class="col-md-6 mb-4">
-                    <div class="card h-100">
+                    <div class="card h-100 clickable-card" data-url="{{ url_for('objects.trenches_list', object_id=object.id) }}">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0">
                                 <i class="bi bi-tools me-2"></i>
                                 Траншея
                             </h5>
-                            <a href="{{ url_for('objects.trenches_list', object_id=object.id) }}" class="btn btn-sm btn-outline-success">
-                                <i class="bi bi-eye me-1"></i>
-                                Просмотр ({{ object.trenches|length }})
-                            </a>
+                            <span class="text-muted small">Всего: {{ object.trenches|length }}</span>
                         </div>
                         <div class="card-body">
                             <p class="text-muted">Управление траншеями объекта</p>
                             <div class="d-grid">
-                                <a href="{{ url_for('objects.add_trench', object_id=object.id) }}" class="btn btn-success">
+                                <a href="{{ url_for('objects.add_trench', object_id=object.id) }}" class="btn btn-success" data-ignore-card-click="true">
                                     <i class="bi bi-plus-lg me-1"></i>
                                     Добавить траншею
                                 </a>
@@ -231,21 +225,18 @@
 
                 <!-- Отчёт -->
                 <div class="col-md-6 mb-4">
-                    <div class="card h-100">
+                    <div class="card h-100 clickable-card" data-url="{{ url_for('objects.reports_list', object_id=object.id) }}">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0">
                                 <i class="bi bi-file-earmark-text me-2"></i>
                                 Отчёт
                             </h5>
-                            <a href="{{ url_for('objects.reports_list', object_id=object.id) }}" class="btn btn-sm btn-outline-info">
-                                <i class="bi bi-eye me-1"></i>
-                                Просмотр ({{ object.reports|length }})
-                            </a>
+                            <span class="text-muted small">Всего: {{ object.reports|length }}</span>
                         </div>
                         <div class="card-body">
                             <p class="text-muted">Управление отчётами объекта</p>
                             <div class="d-grid">
-                                <a href="{{ url_for('objects.add_report', object_id=object.id) }}" class="btn btn-info">
+                                <a href="{{ url_for('objects.add_report', object_id=object.id) }}" class="btn btn-info" data-ignore-card-click="true">
                                     <i class="bi bi-plus-lg me-1"></i>
                                     Добавить отчёт
                                 </a>
@@ -256,30 +247,24 @@
 
                 <!-- Чек-лист -->
                 <div class="col-md-6 mb-4">
-                    <div class="card h-100">
+                    <div class="card h-100 clickable-card" data-url="{{ url_for('objects.checklist_view', object_id=object.id) }}">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0">
                                 <i class="bi bi-check2-square me-2"></i>
                                 Чек-лист
                             </h5>
-                            <a href="{{ url_for('objects.checklist_view', object_id=object.id) }}" class="btn btn-sm btn-outline-warning">
-                                <i class="bi bi-eye me-1"></i>
-                                Просмотр ({{ object.checklist.items|length if object.checklist else 0 }})
-                            </a>
+                            <span class="text-muted small">Всего: {{ object.checklist.items|length if object.checklist else 0 }}</span>
                         </div>
                         <div class="card-body">
                             <p class="text-muted">Управление позициями чек-листа объекта</p>
                             <div class="d-grid">
                                 {% if current_user.role == 'Инженер ПТО' %}
-                                <a href="{{ url_for('objects.add_checklist_item', object_id=object.id) }}" class="btn btn-warning">
+                                <a href="{{ url_for('objects.add_checklist_item', object_id=object.id) }}" class="btn btn-warning" data-ignore-card-click="true">
                                     <i class="bi bi-plus-lg me-1"></i>
                                     Добавить позицию
                                 </a>
                                 {% else %}
-                                <a href="{{ url_for('objects.checklist_view', object_id=object.id) }}" class="btn btn-outline-warning">
-                                    <i class="bi bi-eye me-1"></i>
-                                    Просмотр чек-листа
-                                </a>
+                                <span class="text-muted">Открыть для просмотра</span>
                                 {% endif %}
                             </div>
                         </div>
@@ -288,21 +273,18 @@
 
                 <!-- Запланированные работы -->
                 <div class="col-md-6 mb-4">
-                    <div class="card h-100">
+                    <div class="card h-100 clickable-card" data-url="{{ url_for('objects.planned_works_list', object_id=object.id) }}">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0">
                                 <i class="bi bi-calendar-check me-2"></i>
                                 Запланированные работы
                             </h5>
-                            <a href="{{ url_for('objects.planned_works_list', object_id=object.id) }}" class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-eye me-1"></i>
-                                Просмотр ({{ object.planned_works|length }})
-                            </a>
+                            <span class="text-muted small">Всего: {{ object.planned_works|length }}</span>
                         </div>
                         <div class="card-body">
                             <p class="text-muted">Планирование и контроль выполнения работ</p>
                             <div class="d-grid">
-                                <a href="{{ url_for('objects.add_planned_work', object_id=object.id) }}" class="btn btn-danger">
+                                <a href="{{ url_for('objects.add_planned_work', object_id=object.id) }}" class="btn btn-danger" data-ignore-card-click="true">
                                     <i class="bi bi-plus-lg me-1"></i>
                                     Добавить работу
                                 </a>

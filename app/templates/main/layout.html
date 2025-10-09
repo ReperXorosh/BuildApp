@@ -797,3 +797,14 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endif %}
 </body>
 </html>
+<script>
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('[data-ignore-card-click="true"]');
+  if (btn) return; // позволяем переход по кнопке "Добавить"
+  const card = e.target.closest('.clickable-card');
+  if (card && card.dataset.url) {
+    window.location.href = card.dataset.url;
+  }
+});
+</script>
+</html>
