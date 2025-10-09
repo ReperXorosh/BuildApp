@@ -1,167 +1,67 @@
 {% extends "main/layout.html" %}
+{% set active_page = 'supply' %}
 
 {% block title %}Склад{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3" style="margin-top: 80px;">
+<div class="container-fluid">
+    <!-- Заголовок с кнопками -->
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="h3 mb-0">
-                    <svg class="bi me-2" width="24" height="24" fill="currentColor">
-                        <use xlink:href="#box-seam"></use>
-                    </svg>
-                    Склад
-                </h1>
+                <h2><i class="bi bi-boxes me-2"></i>Склад</h2>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#movementModal">
+                        <i class="bi bi-arrow-left-right me-1"></i>Перемещение
+                    </button>
+                    <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#receiptModal">
+                        <i class="bi bi-plus-circle me-1"></i>Поступление
+                    </button>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMaterialModal">
+                        <i class="bi bi-plus me-1"></i>Добавить позицию
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="row g-3">
-        <div class="col-xl-5">
+    <!-- Поиск и таблица позиций -->
+    <div class="row">
+        <div class="col-12">
             <div class="card">
-                <div class="card-header"><h6 class="mb-0">Добавить/обновить материал</h6></div>
-                <div class="card-body">
-                    <form id="form-create-material">
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <label class="form-label">Название</label>
-                                <input class="form-control" name="name" required>
-                            </div>
-                            <div class="col-3">
-                                <label class="form-label">Ед.</label>
-                                <input class="form-control" name="unit" required>
-                            </div>
-                            <div class="col-3">
-                                <label class="form-label">Количество</label>
-                                <input type="number" step="0.001" class="form-control" name="current_quantity" value="0" required>
-                            </div>
-                            <div class="col-3">
-                                <label class="form-label">Мин. запас</label>
-                                <input type="number" step="0.001" class="form-control" name="min_quantity" value="0">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label">Описание</label>
-                                <textarea class="form-control" name="description"></textarea>
-                            </div>
-                            <div class="col-12 text-end">
-                                <button class="btn btn-primary" type="submit">Сохранить</button>
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="card-title mb-0">Позиции на складе</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text" class="form-control" id="searchInput" placeholder="Поиск по названию позиции...">
+                                <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
                             </div>
                         </div>
-                    </form>
+                    </div>
                 </div>
-            </div>
-
-            <div class="card mt-3">
-                <div class="card-header"><h6 class="mb-0">Движение по складу</h6></div>
-                <div class="card-body">
-                    <form id="form-movement" enctype="multipart/form-data">
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <label class="form-label">Материал</label>
-                                <select class="form-select" name="material_id">
-                                    {% for m in materials %}
-                                    <option value="{{ m.id }}">{{ m.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-3">
-                                <label class="form-label">Количество</label>
-                                <input type="number" step="0.001" class="form-control" name="quantity" required>
-                            </div>
-                            <div class="col-3">
-                                <label class="form-label">Тип</label>
-                                <select class="form-select" name="movement_type">
-                                    <option value="add">Поступление</option>
-                                    <option value="move">Выдача</option>
-                                    <option value="return">Возврат</option>
-                                    <option value="writeoff">Списание</option>
-                                </select>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label">Кому выдать</label>
-                                <select class="form-select" name="to_user_id" id="to_user_id" required>
-                                    <option value="">Выберите пользователя...</option>
-                                </select>
-                            </div>
-                              <div class="col-12">
-                                <label class="form-label">Примечание</label>
-                                <input class="form-control" name="note">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label">Вложение (файл)</label>
-                                <input type="file" class="form-control" name="file">
-                            </div>
-                            <div class="col-12 text-end">
-                                <button class="btn btn-success" type="submit">Провести</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-7">
-            <div class="card">
-                <div class="card-header"><h6 class="mb-0">Материалы на складе</h6></div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
-                            <thead>
+                            <thead class="table-light">
                                 <tr>
                                     <th>Название</th>
-                                    <th>Ед.</th>
-                                    <th class="text-end">Кол-во</th>
-                                    <th class="text-end">Мин.</th>
+                                    <th>Ед. изм.</th>
+                                    <th>Количество</th>
+                                    <th>Мин. запас</th>
+                                    <th>Статус</th>
+                                    <th>Действия</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {% for m in materials %}
-                                <tr>
-                                    <td>{{ m.name }}</td>
-                                    <td>{{ m.unit }}</td>
-                                    <td class="text-end">
-                                        <span class="badge bg-{{ 'danger' if m.current_quantity <= m.min_quantity else 'success' }}">{{ m.current_quantity }}</span>
-                                    </td>
-                                    <td class="text-end">{{ m.min_quantity }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mt-3">
-                <div class="card-header"><h6 class="mb-0">Последние движения</h6></div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-striped mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Дата</th>
-                                    <th>Материал</th>
-                                    <th>Тип</th>
-                                    <th class="text-end">Кол-во</th>
-                                    <th>Файл</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for mv in recent_movements %}
-                                <tr>
-                                    <td>{{ mv.created_at }}</td>
-                                    <td>{{ mv.material.name }}</td>
-                                    <td>{{ mv.movement_type }}</td>
-                                    <td class="text-end">{{ mv.quantity }}</td>
-                                    <td>
-                                        {% if mv.attachments and mv.attachments|length > 0 %}
-                                            <a href="{{ url_for('supply.api_download_attachment', movement_id=mv.id, attachment_id=mv.attachments[0].id) }}" class="btn btn-sm btn-outline-secondary">Скачать</a>
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
+                            <tbody id="materials-table">
+                                <!-- Данные будут загружены через JavaScript -->
                             </tbody>
                         </table>
                     </div>
@@ -171,106 +71,358 @@
     </div>
 </div>
 
+<!-- Модальное окно для добавления позиции -->
+<div class="modal fade" id="addMaterialModal" tabindex="-1" aria-labelledby="addMaterialModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addMaterialModalLabel">Добавить позицию</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-create-material">
+                    <div class="row">
+                        <div class="col-12">
+                            <label class="form-label">Название</label>
+                            <input class="form-control" name="name" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Ед. изм.</label>
+                            <input class="form-control" name="unit" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Количество</label>
+                            <input type="number" class="form-control" name="current_quantity" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Мин. запас</label>
+                            <input type="number" class="form-control" name="min_quantity" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Описание</label>
+                            <textarea class="form-control" name="description" rows="3"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" onclick="submitAddMaterial()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для перемещения -->
+<div class="modal fade" id="movementModal" tabindex="-1" aria-labelledby="movementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="movementModalLabel">Движение по складу</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-movement">
+                    <div class="row">
+                        <div class="col-6">
+                            <label class="form-label">Материал</label>
+                            <select class="form-select" name="material_id" required>
+                                <option value="">Выберите материал</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Количество</label>
+                            <input type="number" class="form-control" name="quantity" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Тип</label>
+                            <select class="form-select" name="movement_type" required>
+                                <option value="move">Выдача</option>
+                                <option value="return">Возврат</option>
+                                <option value="writeoff">Списание</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Кому выдать</label>
+                            <select class="form-select" name="to_user_id" id="to_user_id" required>
+                                <option value="">Выберите пользователя...</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Примечание</label>
+                            <input class="form-control" name="note">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Вложение (файл) <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
+                            <small class="form-text text-muted">Прикрепите документ к движению (обязательно)</small>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-success" onclick="submitMovement()">Провести</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для поступления -->
+<div class="modal fade" id="receiptModal" tabindex="-1" aria-labelledby="receiptModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="receiptModalLabel">Поступление на склад</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-receipt">
+                    <div class="row">
+                        <div class="col-12">
+                            <label class="form-label">Наименование</label>
+                            <input class="form-control" name="name" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Ед. изм.</label>
+                            <input class="form-control" name="unit" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Количество</label>
+                            <input type="number" class="form-control" name="quantity" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Накладная (файл) <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
+                            <small class="form-text text-muted">Прикрепите накладную к поступлению (обязательно)</small>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-success" onclick="submitReceipt()">Провести поступление</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
-document.getElementById('form-create-material').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const form = e.target;
-  const payload = {
-    name: form.name.value,
-    unit: form.unit.value,
-    description: form.description.value,
-    current_quantity: form.current_quantity.value,
-    min_quantity: form.min_quantity.value
-  };
-  const resp = await fetch('{{ url_for('supply.api_materials_create') }}', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-  if (resp.ok) location.reload(); else alert('Ошибка сохранения материала');
-});
+// Загрузка материалов в таблицу
+async function loadMaterials() {
+  try {
+    const response = await fetch('{{ url_for("supply.api_materials") }}');
+    const materials = await response.json();
+    
+    const tbody = document.getElementById('materials-table');
+    tbody.innerHTML = '';
+    
+    materials.forEach(material => {
+      const row = document.createElement('tr');
+      
+      // Определяем статус
+      let statusBadge = '';
+      if (material.current_quantity <= 0) {
+        statusBadge = '<span class="badge bg-danger">Нет в наличии</span>';
+      } else if (material.current_quantity <= material.min_quantity) {
+        statusBadge = '<span class="badge bg-warning">Низкий запас</span>';
+      } else {
+        statusBadge = '<span class="badge bg-success">В наличии</span>';
+      }
+      
+      row.innerHTML = `
+        <td>${material.name}</td>
+        <td>${material.unit}</td>
+        <td>${material.current_quantity || 0}</td>
+        <td>${material.min_quantity || 0}</td>
+        <td>${statusBadge}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary" onclick="editMaterial('${material.id}')">
+            <i class="bi bi-pencil"></i>
+          </button>
+        </td>
+      `;
+      
+      tbody.appendChild(row);
+    });
+  } catch (error) {
+    console.error('Ошибка загрузки материалов:', error);
+  }
+}
 
-document.getElementById('form-movement').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const form = e.target;
-  const fd = new FormData(form);
-  const resp = await fetch('{{ url_for('supply.api_create_movement') }}', {
-    method: 'POST',
-    body: fd
+// Загрузка материалов в select для перемещения
+async function loadMaterialsForMovement() {
+  try {
+    const response = await fetch('{{ url_for("supply.api_materials") }}');
+    const materials = await response.json();
+    
+    const select = document.querySelector('#movementModal select[name="material_id"]');
+    select.innerHTML = '<option value="">Выберите материал</option>';
+    
+    materials.forEach(material => {
+      const option = document.createElement('option');
+      option.value = material.id;
+      option.textContent = `${material.name} (${material.current_quantity || 0} ${material.unit})`;
+      select.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Ошибка загрузки материалов для перемещения:', error);
+  }
+}
+
+// Поиск по материалам
+function filterMaterials() {
+  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+  const rows = document.querySelectorAll('#materials-table tr');
+  
+  rows.forEach(row => {
+    const name = row.cells[0]?.textContent.toLowerCase() || '';
+    if (name.includes(searchTerm)) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
   });
-  if (resp.ok) location.reload(); else alert('Ошибка проведения движения');
-});
+}
+
+// Очистка поиска
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  filterMaterials();
+}
+
+// Отправка формы добавления материала
+async function submitAddMaterial() {
+  const form = document.getElementById('form-create-material');
+  const formData = new FormData(form);
+  
+  const payload = {
+    name: formData.get('name'),
+    unit: formData.get('unit'),
+    description: formData.get('description'),
+    current_quantity: formData.get('current_quantity'),
+    min_quantity: formData.get('min_quantity')
+  };
+  
+  try {
+    const response = await fetch('{{ url_for("supply.api_materials_create") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    if (response.ok) {
+      bootstrap.Modal.getInstance(document.getElementById('addMaterialModal')).hide();
+      form.reset();
+      loadMaterials();
+      loadMaterialsForMovement();
+    } else {
+      alert('Ошибка сохранения материала');
+    }
+  } catch (error) {
+    console.error('Ошибка:', error);
+    alert('Ошибка сохранения материала');
+  }
+}
+
+// Отправка формы перемещения
+async function submitMovement() {
+  const form = document.getElementById('form-movement');
+  const formData = new FormData(form);
+  
+  try {
+    const response = await fetch('{{ url_for("supply.api_create_movement") }}', {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (response.ok) {
+      bootstrap.Modal.getInstance(document.getElementById('movementModal')).hide();
+      form.reset();
+      loadMaterials();
+    } else {
+      alert('Ошибка проведения движения');
+    }
+  } catch (error) {
+    console.error('Ошибка:', error);
+    alert('Ошибка проведения движения');
+  }
+}
+
+// Отправка формы поступления
+async function submitReceipt() {
+  const form = document.getElementById('form-receipt');
+  const formData = new FormData(form);
+  
+  try {
+    const response = await fetch('{{ url_for("supply.api_create_receipt") }}', {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (response.ok) {
+      bootstrap.Modal.getInstance(document.getElementById('receiptModal')).hide();
+      form.reset();
+      loadMaterials();
+      loadMaterialsForMovement();
+      alert('Поступление успешно проведено');
+    } else {
+      const error = await response.json();
+      alert('Ошибка проведения поступления: ' + (error.error || 'Неизвестная ошибка'));
+    }
+  } catch (error) {
+    console.error('Ошибка:', error);
+    alert('Ошибка проведения поступления');
+  }
+}
 
 // Простая загрузка пользователей в select
 async function loadUsersToSelect() {
   const select = document.getElementById('to_user_id');
   
-  // Список API для попытки загрузки
-  const apiUrls = [
-    '{{ url_for('supply.api_get_all_users') }}',
-    '{{ url_for('supply.api_get_users_simple') }}'
-  ];
-  
-  for (let i = 0; i < apiUrls.length; i++) {
-    try {
-      console.log(`Попытка ${i + 1}: Загружаем пользователей из ${apiUrls[i]}...`);
-      const response = await fetch(apiUrls[i]);
-      console.log('Статус ответа:', response.status);
-      
-      if (response.status === 403) {
-        console.log('Ошибка 403: Недостаточно прав');
-        select.innerHTML = '<option value="">Недостаточно прав для просмотра пользователей</option>';
-        return;
-      }
-      
-      if (!response.ok) {
-        console.log(`Ошибка HTTP ${response.status} для API ${i + 1}`);
-        if (i === apiUrls.length - 1) {
-          select.innerHTML = '<option value="">Ошибка загрузки пользователей (HTTP ' + response.status + ')</option>';
-          return;
-        }
-        continue; // Пробуем следующий API
-      }
-      
-      const users = await response.json();
-      console.log('Получены пользователи:', users);
-      
-      if (users.length === 0) {
-        console.log('Пользователи не найдены');
-        select.innerHTML = '<option value="">Пользователи не найдены в системе</option>';
-        return;
-      }
-      
-      // Очищаем select и добавляем пользователей
-      select.innerHTML = '<option value="">Выберите пользователя...</option>';
-      
-      users.forEach(user => {
-        const option = document.createElement('option');
-        option.value = user.id;
-        option.textContent = `${user.name} (${user.login}) - ${user.role}`;
-        select.appendChild(option);
-      });
-      
-      console.log('Пользователи загружены успешно');
-      return; // Успешно загружено
-      
-    } catch (error) {
-      console.error(`Ошибка загрузки пользователей (API ${i + 1}):`, error);
-      if (i === apiUrls.length - 1) {
-        select.innerHTML = '<option value="">Ошибка загрузки пользователей: ' + error.message + '</option>';
-        return;
-      }
-      // Пробуем следующий API
+  try {
+    const response = await fetch('{{ url_for("supply.api_get_all_users") }}');
+    
+    if (response.status === 403) {
+      select.innerHTML = '<option value="">Недостаточно прав для просмотра пользователей</option>';
+      return;
     }
+    
+    if (!response.ok) {
+      select.innerHTML = '<option value="">Ошибка загрузки пользователей (HTTP ' + response.status + ')</option>';
+      return;
+    }
+    
+    const users = await response.json();
+    
+    if (users.length === 0) {
+      select.innerHTML = '<option value="">Пользователи не найдены в системе</option>';
+      return;
+    }
+    
+    select.innerHTML = '<option value="">Выберите пользователя...</option>';
+    
+    users.forEach(user => {
+      const option = document.createElement('option');
+      option.value = user.id;
+      option.textContent = `${user.name} (${user.login}) - ${user.role}`;
+      select.appendChild(option);
+    });
+    
+  } catch (error) {
+    console.error('Ошибка загрузки пользователей:', error);
+    select.innerHTML = '<option value="">Ошибка загрузки пользователей: ' + error.message + '</option>';
   }
 }
 
-// Загружаем пользователей при загрузке страницы
+// Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
+  loadMaterials();
+  loadMaterialsForMovement();
   loadUsersToSelect();
+  
+  // Поиск
+  document.getElementById('searchInput').addEventListener('input', filterMaterials);
 });
 </script>
 {% endblock %}
-
-

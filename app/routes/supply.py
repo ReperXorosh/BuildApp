@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for, send_file
+from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for, send_file, current_app
 from flask_login import login_required, current_user
 from app.models.supply import (
     Material,
@@ -17,6 +17,8 @@ from app.extensions import db
 from app.utils.mobile_detection import is_mobile_device
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
+import os
+from werkzeug.utils import secure_filename
 
 supply = Blueprint('supply', __name__)
 
@@ -472,6 +474,103 @@ def api_get_users_simple():
     except Exception as e:
         print(f"API Simple: Ошибка при получении пользователей: {e}")
         return jsonify({'error': f'Ошибка: {str(e)}'}), 500
+
+@supply.route('/api/supply/receipt', methods=['POST'])
+@login_required
+def api_create_receipt():
+    """Создание поступления на склад с накладной"""
+    if not is_supplier_or_admin():
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    
+    try:
+        # Получаем данные из формы
+        name = request.form.get('name', '').strip()
+        unit = request.form.get('unit', '').strip()
+        quantity = float(request.form.get('quantity', 0))
+        file = request.files.get('file')
+        
+        if not name or not unit or quantity <= 0:
+            return jsonify({'error': 'Заполните все обязательные поля'}), 400
+        
+        if not file or file.filename == '':
+            return jsonify({'error': 'Прикрепите накладную'}), 400
+        
+        # Проверяем, существует ли уже такой материал
+        existing_material = Material.query.filter_by(name=name, unit=unit).first()
+        
+        if existing_material:
+            # Обновляем количество существующего материала
+            existing_material.current_quantity += quantity
+            material = existing_material
+        else:
+            # Создаем новый материал
+            material = Material(
+                name=name,
+                unit=unit,
+                current_quantity=quantity,
+                min_quantity=0,
+                description='Поступление на склад'
+            )
+            db.session.add(material)
+            db.session.flush()  # Получаем ID
+        
+        # Сохраняем файл накладной
+        if file:
+            filename = secure_filename(file.filename)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            unique_filename = f"{timestamp}_{filename}"
+            file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'warehouse', unique_filename)
+            
+            # Создаем директорию если не существует
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            file.save(file_path)
+        
+        # Создаем движение поступления
+        movement = WarehouseMovement(
+            material_id=material.id,
+            movement_type='add',
+            quantity=quantity,
+            to_user_id=current_user.userid,
+            notes=f'Поступление на склад. Накладная: {filename}',
+            created_by=current_user.userid
+        )
+        db.session.add(movement)
+        db.session.flush()
+        
+        # Создаем вложение с накладной
+        if file:
+            attachment = WarehouseAttachment(
+                movement_id=movement.id,
+                filename=unique_filename,
+                original_filename=filename,
+                file_path=file_path,
+                file_size=os.path.getsize(file_path),
+                mime_type=file.content_type,
+                created_by=current_user.userid
+            )
+            db.session.add(attachment)
+        
+        db.session.commit()
+        
+        # Логируем действие
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Поступление на склад",
+            description=f"Поступление материала {name} в количестве {quantity} {unit}",
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+        
+        return jsonify({'success': True, 'message': 'Поступление успешно проведено'})
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Ошибка создания поступления: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'Ошибка сервера: {str(e)}'}), 500
 
 @supply.route('/api/supply/movements/<uuid:movement_id>/attachments/<uuid:attachment_id>/download', methods=['GET'])
 @login_required
