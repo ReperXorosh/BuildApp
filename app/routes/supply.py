@@ -484,26 +484,35 @@ def api_list_movements():
     if not is_supplier_or_admin():
         return jsonify({'error': 'Недостаточно прав'}), 403
     
-    # Получаем движения с информацией о материалах и пользователях
+    # Получаем движения с информацией о материалах
     movements = db.session.query(
         WarehouseMovement,
-        Material.name.label('material_name'),
-        Users.secondname.label('user_last_name'),
-        Users.firstname.label('user_first_name'),
-        Users.login.label('user_login')
+        Material.name.label('material_name')
     ).join(
         Material, WarehouseMovement.material_id == Material.id
-    ).outerjoin(
-        Users, WarehouseMovement.to_user_id == Users.userid
     ).order_by(
         WarehouseMovement.created_at.desc()
     ).limit(200).all()
     
     result = []
-    for movement, material_name, user_last_name, user_first_name, user_login in movements:
+    for movement, material_name in movements:
         movement_dict = movement.to_dict()
         movement_dict['material_name'] = material_name
-        movement_dict['to_user_name'] = f"{user_last_name or ''} {user_first_name or ''}".strip() or user_login
+        
+        # Определяем пользователя в зависимости от типа движения
+        user_name = "Не указан"
+        if movement.movement_type == 'return' and movement.from_user_id:
+            # Для возврата ищем пользователя по from_user_id
+            user = Users.query.get(movement.from_user_id)
+            if user:
+                user_name = f"{user.secondname or ''} {user.firstname or ''}".strip() or user.login
+        elif movement.movement_type in ['move', 'add'] and movement.to_user_id:
+            # Для выдачи и поступления ищем пользователя по to_user_id
+            user = Users.query.get(movement.to_user_id)
+            if user:
+                user_name = f"{user.secondname or ''} {user.firstname or ''}".strip() or user.login
+        
+        movement_dict['to_user_name'] = user_name
         
         # Получаем вложения для этого движения
         attachments = WarehouseAttachment.query.filter_by(movement_id=movement.id).all()
