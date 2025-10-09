@@ -47,58 +47,6 @@
                                                    placeholder="0.00" step="0.01" min="0.01" required>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="current_length" class="form-label">
-                                                <i class="bi bi-arrows-horizontal me-1"></i>
-                                                Текущая длина (м)
-                                            </label>
-                                            <input type="number" class="form-control" id="current_length" name="current_length" 
-                                                   placeholder="0.00" step="0.01" min="0">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="width" class="form-label">
-                                                <i class="bi bi-arrows-horizontal me-1"></i>
-                                                Ширина (м)
-                                            </label>
-                                            <input type="number" class="form-control" id="width" name="width" 
-                                                   placeholder="0.00" step="0.01" min="0">
-                                            <div class="form-text">Можно оставить пустым</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="depth" class="form-label">
-                                                <i class="bi bi-arrows-vertical me-1"></i>
-                                                Глубина (м)
-                                            </label>
-                                            <input type="number" class="form-control" id="depth" name="depth" 
-                                                   placeholder="0.00" step="0.01" min="0">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="soil_type" class="form-label">
-                                                <i class="bi bi-layers me-1"></i>
-                                                Тип грунта
-                                            </label>
-                                            <select class="form-select" id="soil_type" name="soil_type">
-                                                <option value="">Выберите тип грунта</option>
-                                                <option value="Глина">Глина</option>
-                                                <option value="Песок">Песок</option>
-                                                <option value="Суглинок">Суглинок</option>
-                                                <option value="Скала">Скала</option>
-                                                <option value="Торф">Торф</option>
-                                                <option value="Другое">Другое</option>
-                                            </select>
-                                            <div class="form-text">Можно оставить пустым</div>
-                                        </div>
-                                    </div>
                                 </div>
 
                                 <div class="mb-3">
@@ -153,7 +101,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('addTrenchForm');
     const plannedLengthInput = document.getElementById('planned_length');
-    const currentLengthInput = document.getElementById('current_length');
     
     // Устанавливаем значения по умолчанию
     if (!plannedLengthInput.value) {
@@ -163,51 +110,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Валидация при отправке формы
     form.addEventListener('submit', function(e) {
         const plannedLength = parseFloat(plannedLengthInput.value);
-        const currentLength = parseFloat(currentLengthInput.value) || 0;
         
         if (plannedLength <= 0) {
             e.preventDefault();
             alert('Запланированная длина должна быть больше 0');
             plannedLengthInput.focus();
             return;
-        }
-        
-        if (currentLength > plannedLength) {
-            e.preventDefault();
-            alert('Текущая длина не может быть больше запланированной');
-            currentLengthInput.focus();
-            return;
-        }
-        
-        if (currentLength < 0) {
-            e.preventDefault();
-            alert('Текущая длина не может быть отрицательной');
-            currentLengthInput.focus();
-            return;
-        }
-    });
-    
-    // Автоматическое обновление текущей длины при изменении запланированной
-    plannedLengthInput.addEventListener('input', function() {
-        const plannedLength = parseFloat(this.value);
-        const currentLength = parseFloat(currentLengthInput.value) || 0;
-        
-        if (plannedLength > 0 && currentLength > plannedLength) {
-            currentLengthInput.value = plannedLength;
-        }
-    });
-    
-    // Валидация текущей длины при вводе
-    currentLengthInput.addEventListener('input', function() {
-        const plannedLength = parseFloat(plannedLengthInput.value);
-        const currentLength = parseFloat(this.value) || 0;
-        
-        if (currentLength > plannedLength) {
-            this.value = plannedLength;
-        }
-        
-        if (currentLength < 0) {
-            this.value = 0;
         }
     });
 });

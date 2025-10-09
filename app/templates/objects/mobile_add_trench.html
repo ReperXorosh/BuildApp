@@ -24,38 +24,6 @@
             <div class="invalid-feedback" style="display:none" id="planned-error">Укажите запланированную длину больше 0.</div>
         </div>
 
-        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
-            <label class="mobile-form-label" for="current_length">Текущая длина (м)</label>
-            <input type="number" 
-                   step="0.01" 
-                   min="0" 
-                   name="current_length" 
-                   id="current_length" 
-                   class="mobile-form-control" 
-                   placeholder="Введите текущую длину">
-        </div>
-
-        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
-            <label class="mobile-form-label" for="width">Ширина (м)</label>
-            <input type="number" 
-                   step="0.01" 
-                   min="0" 
-                   name="width" 
-                   id="width" 
-                   class="mobile-form-control" 
-                   placeholder="Введите ширину">
-        </div>
-
-        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
-            <label class="mobile-form-label" for="depth">Глубина (м)</label>
-            <input type="number" 
-                   step="0.01" 
-                   min="0" 
-                   name="depth" 
-                   id="depth" 
-                   class="mobile-form-control" 
-                   placeholder="Введите глубину">
-        </div>
 
         <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label" for="excavation_date">Дата рытья</label>
@@ -88,15 +56,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitBtn = document.getElementById('submit-btn');
     const planned = document.getElementById('planned_length');
     const plannedError = document.getElementById('planned-error');
-    const current = document.getElementById('current_length');
-    const width = document.getElementById('width');
-    const depth = document.getElementById('depth');
     const notes = document.getElementById('notes');
     
     let isDirty = false;
     
     // Помечаем форму как изменённую при вводе в любые поля
-    [planned, current, width, depth, notes].forEach(el => {
+    [planned, notes].forEach(el => {
         if (!el) return;
         el.addEventListener('input', () => { isDirty = true; });
     });
