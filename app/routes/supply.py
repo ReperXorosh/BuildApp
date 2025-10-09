@@ -11,6 +11,7 @@ from app.models.supply import (
     SupplyRequest,
     SupplyRequestItem,
 )
+from app.models.users import Users
 from app.models.activity_log import ActivityLog
 from app.extensions import db
 from app.utils.mobile_detection import is_mobile_device
@@ -364,8 +365,6 @@ def api_search_users():
     if len(query) < 2:
         return jsonify([])
     
-    from app.models.users import Users
-    
     # Поиск по имени, фамилии, логину
     users = Users.query.filter(
         db.or_(
@@ -389,8 +388,6 @@ def api_get_all_users():
     """Получение всех пользователей для аккордеона"""
     if not is_supplier_or_admin():
         return jsonify({'error': 'Недостаточно прав'}), 403
-    
-    from app.models.users import Users
     
     # Получаем всех пользователей, отсортированных по фамилии
     users = Users.query.order_by(Users.last_name, Users.first_name).all()
