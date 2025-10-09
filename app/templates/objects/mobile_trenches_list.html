@@ -1,38 +1,237 @@
 {% extends "main/mobile_layout_bootstrap.html" %}
 {% set active_page = 'objects' %}
 
-{% block title %}Траншеи - {{ object.name }}{% endblock %}
+{% block title %}Траншеи: {{ object.name }}{% endblock %}
 {% block mobile_title %}Траншеи{% endblock %}
+{% block mobile_header_actions %}
+<a class="mobile-header-btn" href="{{ url_for('objects.add_trench', object_id=object.id) }}" title="Добавить траншею" role="button" aria-label="Добавить траншею">
+    <svg fill="currentColor" viewBox="0 0 16 16">
+        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+    </svg>
+</a>
+{% endblock %}
 
 {% block content %}
-<div class="mobile-card">
-    <div class="mobile-card-title">{{ object.name }}</div>
-    <div class="mobile-card-text">Всего траншей: {{ trenches|length }}</div>
-</div>
-
-<div class="mobile-card">
-    <div class="mobile-card-title d-flex justify-content-between align-items-center">
-        Список траншей
-        <a href="{{ url_for('objects.add_trench', object_id=object.id) }}" class="btn btn-sm btn-primary">Добавить</a>
+<div class="mobile-content">
+    <div class="mobile-header-info">
+        <h2 class="mobile-page-title">{{ object.name }}</h2>
+        <p class="mobile-page-subtitle">Траншеи объекта</p>
     </div>
+
     {% if trenches %}
-    <div class="list-group">
-        {% for t in trenches %}
-        <div class="list-group-item">
-            <div class="d-flex justify-content-between">
-                <span>Длина план/текущая: {{ t.planned_length }} / {{ t.current_length or 0 }} м</span>
-                <span class="badge bg-{{ 'success' if t.is_completed else 'warning' }}">{{ 'Завершена' if t.is_completed else 'В работе' }}</span>
+    <div class="mobile-cards-container">
+        {% for trench in trenches %}
+        <div class="mobile-card">
+            <div class="mobile-card-header">
+                <div class="mobile-card-title">
+                    <i class="bi bi-tools me-2"></i>
+                    Траншея #{{ loop.index }}
+                </div>
+                <span class="badge bg-{{ 'success' if trench.status == 'completed' else 'warning' if trench.status == 'in_progress' else 'secondary' }}">
+                    {{ 'Завершено' if trench.status == 'completed' else 'В работе' if trench.status == 'in_progress' else 'Запланировано' }}
+                </span>
             </div>
-            {% if t.excavation_date %}
-            <small class="text-muted">Дата рытья: {{ t.excavation_date.strftime('%d.%m.%Y') }}</small>
-            {% endif %}
+            
+            <div class="mobile-card-body">
+                <div class="mobile-info-row">
+                    <span class="mobile-info-label">Общий метраж:</span>
+                    <span class="mobile-info-value">
+                        {% if trench.total_length %}
+                        <span class="badge bg-primary">{{ trench.total_length }}м</span>
+                        {% else %}
+                        <span class="text-muted">Не указан</span>
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="mobile-info-row">
+                    <span class="mobile-info-label">Выкопано:</span>
+                    <span class="mobile-info-value">
+                        <span class="badge bg-info">{{ trench.total_excavated }}м</span>
+                        {% if trench.total_length %}
+                        <small class="text-muted">
+                            ({{ (trench.total_excavated / trench.total_length * 100)|round(1) }}%)
+                        </small>
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="mobile-info-row">
+                    <span class="mobile-info-label">Файлы:</span>
+                    <span class="mobile-info-value">
+                        <span class="badge bg-{{ 'success' if trench.files_count >= trench.required_files else 'warning' }}">
+                            {{ trench.files_count }}/{{ trench.required_files }}
+                        </span>
+                        {% if trench.files_count < trench.required_files %}
+                        <small class="text-warning d-block">Недостаточно файлов</small>
+                        {% endif %}
+                    </span>
+                </div>
+                
+                {% if trench.notes %}
+                <div class="mobile-info-row">
+                    <span class="mobile-info-label">Примечания:</span>
+                    <span class="mobile-info-value">
+                        <small class="text-muted">{{ trench.notes[:50] }}{% if trench.notes|length > 50 %}...{% endif %}</small>
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="mobile-card-footer">
+                <a href="{{ url_for('objects.add_trench_excavation', object_id=object.id, trench_id=trench.id) }}" 
+                   class="mobile-btn mobile-btn-primary w-100">
+                    <i class="bi bi-plus-lg me-2"></i>
+                    Добавить запись о копке
+                </a>
+            </div>
         </div>
         {% endfor %}
     </div>
     {% else %}
-    <div class="mobile-card-text">Пока нет траншей</div>
+    <div class="mobile-empty-state">
+        <div class="mobile-empty-icon">
+            <i class="bi bi-tools"></i>
+        </div>
+        <h3 class="mobile-empty-title">Траншеи не найдены</h3>
+        <p class="mobile-empty-subtitle">Создайте первую траншею для объекта</p>
+        <a href="{{ url_for('objects.add_trench', object_id=object.id) }}" class="mobile-btn mobile-btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>
+            Добавить траншею
+        </a>
+    </div>
     {% endif %}
 </div>
+
+<style>
+.mobile-header-info {
+    padding: 16px;
+    background: var(--bs-body-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.mobile-page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    color: var(--bs-body-color);
+}
+
+.mobile-page-subtitle {
+    font-size: 0.9rem;
+    color: var(--bs-secondary-color);
+    margin: 0;
+}
+
+.mobile-cards-container {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.mobile-card {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-card-header {
+    padding: 16px;
+    background: var(--bs-light);
+    border-bottom: 1px solid var(--bs-border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mobile-card-title {
+    font-weight: 600;
+    color: var(--bs-body-color);
+    margin: 0;
+}
+
+.mobile-card-body {
+    padding: 16px;
+}
+
+.mobile-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.mobile-info-row:last-child {
+    margin-bottom: 0;
+}
+
+.mobile-info-label {
+    font-weight: 500;
+    color: var(--bs-body-color);
+    font-size: 0.9rem;
+}
+
+.mobile-info-value {
+    text-align: right;
+    font-size: 0.9rem;
+}
+
+.mobile-card-footer {
+    padding: 16px;
+    background: var(--bs-light);
+    border-top: 1px solid var(--bs-border-color);
+}
+
+.mobile-empty-state {
+    padding: 48px 16px;
+    text-align: center;
+}
+
+.mobile-empty-icon {
+    font-size: 4rem;
+    color: var(--bs-secondary-color);
+    margin-bottom: 16px;
+}
+
+.mobile-empty-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--bs-body-color);
+    margin-bottom: 8px;
+}
+
+.mobile-empty-subtitle {
+    color: var(--bs-secondary-color);
+    margin-bottom: 24px;
+}
+
+.mobile-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    text-decoration: none;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.mobile-btn-primary {
+    background: var(--bs-primary);
+    color: white;
+}
+
+.mobile-btn-primary:hover {
+    background: var(--bs-primary-dark);
+    color: white;
+}
+
+.w-100 {
+    width: 100% !important;
+}
+</style>
 {% endblock %}
-
-

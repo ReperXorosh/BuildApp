@@ -1,29 +1,51 @@
 {% extends "main/mobile_layout_bootstrap.html" %}
 {% set active_page = 'objects' %}
 
-{% block title %}Добавить траншею{% endblock %}
-{% block mobile_title %}Новая траншея{% endblock %}
+{% block title %}Добавить запись о копке{% endblock %}
+{% block mobile_title %}Новая запись о копке{% endblock %}
 
 {% block content %}
 <div class="mobile-card add-object-card">
     <div class="mobile-card-title text-center">
-        Добавить траншею
+        Добавить запись о копке
     </div>
 
-    <form method="POST" id="add-trench-form" novalidate>
+    <form method="POST" enctype="multipart/form-data" id="add-excavation-form" novalidate>
         <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
-            <label class="mobile-form-label" for="total_length">Общий метраж траншеи (м)</label>
+            <label class="mobile-form-label" for="length">Длина выкопанного участка (м) *</label>
             <input type="number" 
                    step="0.01" 
-                   min="0" 
-                   name="total_length" 
-                   id="total_length" 
+                   min="0.01" 
+                   name="length" 
+                   id="length" 
                    class="mobile-form-control mobile-form-control-lg" 
-                   placeholder="Введите общий метраж">
-            <div class="form-text">Можно оставить пустым, если метраж неизвестен</div>
+                   placeholder="Введите длину"
+                   required>
         </div>
 
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+            <label class="mobile-form-label" for="excavation_date">Дата копки *</label>
+            <input type="date" 
+                   name="excavation_date" 
+                   id="excavation_date" 
+                   class="mobile-form-control"
+                   required>
+        </div>
 
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+            <label class="mobile-form-label" for="files">Файлы (фото/документы) *</label>
+            <input type="file" 
+                   name="files" 
+                   id="files" 
+                   class="mobile-form-control" 
+                   multiple 
+                   accept="image/*,.pdf,.doc,.docx"
+                   required>
+            <div class="form-text">
+                <strong>Требование:</strong> минимум 1 файл на каждые 20 метров.
+                <div id="required-files-info"></div>
+            </div>
+        </div>
 
         <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label" for="notes">Заметки</label>
@@ -36,7 +58,7 @@
 
         <div class="mobile-mt-4">
             <button type="submit" class="mobile-btn mobile-btn-primary w-100" id="submit-btn">
-                Сохранить траншею
+                Добавить запись
             </button>
         </div>
     </form>
@@ -44,18 +66,30 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('add-trench-form');
+    const form = document.getElementById('add-excavation-form');
     const submitBtn = document.getElementById('submit-btn');
-    const totalLength = document.getElementById('total_length');
+    const length = document.getElementById('length');
+    const files = document.getElementById('files');
     const notes = document.getElementById('notes');
+    const requiredFilesInfo = document.getElementById('required-files-info');
     
     let isDirty = false;
     
     // Помечаем форму как изменённую при вводе в любые поля
-    [totalLength, notes].forEach(el => {
+    [length, files, notes].forEach(el => {
         if (!el) return;
         el.addEventListener('input', () => { isDirty = true; });
     });
+    
+    // Функция для обновления информации о требуемых файлах
+    function updateRequiredFilesInfo() {
+        const lengthValue = parseFloat(length.value) || 0;
+        const requiredFiles = Math.max(1, Math.ceil(lengthValue / 20));
+        requiredFilesInfo.textContent = `Для ${lengthValue}м требуется минимум ${requiredFiles} файл(ов)`;
+    }
+    
+    // Обновляем информацию при изменении длины
+    length.addEventListener('input', updateRequiredFilesInfo);
     
     // Обработчик «Назад» с предупреждением
     function confirmLeaveIfDirty(action){
@@ -85,19 +119,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const trimField = (el) => { if (el) el.value = el.value.trim().replace(/\s{2,}/g, ' '); };
     [notes].forEach(el => el && el.addEventListener('blur', () => trimField(el)));
     
-    // Валидация total_length
-    const validateTotalLength = () => {
-        const val = parseFloat(totalLength.value);
-        if (totalLength.value && (isNaN(val) || val <= 0)) { 
+    // Валидация
+    const validateForm = () => {
+        const lengthValue = parseFloat(length.value);
+        const filesCount = files.files.length;
+        const requiredFiles = Math.max(1, Math.ceil(lengthValue / 20));
+        
+        if (isNaN(lengthValue) || lengthValue <= 0) { 
             alert('Длина должна быть больше 0');
             return false; 
         }
+        
+        if (filesCount < requiredFiles) {
+            alert(`Необходимо прикрепить минимум ${requiredFiles} файл(ов) для ${lengthValue} метров`);
+            return false;
+        }
+        
         return true;
     };
     
     form.addEventListener('submit', function(e) {
         trimField(notes);
-        if (!validateTotalLength()) { 
+        if (!validateForm()) { 
             e.preventDefault(); 
             return false; 
         }
@@ -111,6 +154,10 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.innerHTML = original; 
         }, 4000);
     });
+    
+    // Устанавливаем сегодняшнюю дату по умолчанию
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('excavation_date').value = today;
     
     // Убираем прокрутку и настраиваем отступы
     try {

@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort
 from flask_login import login_required, current_user
 from app.extensions import db, cache
-from app.models.objects import Object, Support, Trench, Report, Checklist, ChecklistItem, PlannedWork, WorkExecution, WorkComparison, ZDF, Bracket, Luminaire, DailyReport
+from app.models.objects import Object, Support, Trench, TrenchExcavation, TrenchFile, Report, Checklist, ChecklistItem, PlannedWork, WorkExecution, WorkComparison, ZDF, Bracket, Luminaire, DailyReport
 from app.models.activity_log import ActivityLog
 from datetime import datetime
 import uuid
@@ -876,15 +876,15 @@ def confirm_support_installation(object_id, support_id):
 def trenches_list(object_id):
     """Список траншей объекта"""
     obj = Object.query.get_or_404(object_id)
-    from sqlalchemy.orm import load_only
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 50, type=int)
-    per_page = max(10, min(per_page, 100))
-    query = Trench.query.options(
-        load_only(Trench.id, Trench.planned_length, Trench.current_length, Trench.status, Trench.excavation_date, Trench.created_at, Trench.object_id)
-    ).filter_by(object_id=object_id).order_by(Trench.created_at.desc())
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-    trenches = pagination.items
+    
+    # Получаем траншеи объекта
+    trenches = Trench.query.filter_by(object_id=object_id).order_by(Trench.created_at.desc()).all()
+    
+    # Для каждой траншеи получаем общую длину и количество файлов
+    for trench in trenches:
+        trench.total_excavated = trench.get_total_excavated_length()
+        trench.files_count = trench.get_files_count()
+        trench.required_files = trench.get_required_files_count()
     
     ActivityLog.log_action(
         user_id=current_user.userid,
@@ -898,135 +898,180 @@ def trenches_list(object_id):
     
     from ..utils.mobile_detection import is_mobile_device
     if is_mobile_device():
-        return render_template('objects/mobile_trenches_list.html', object=obj, trenches=trenches, pagination=pagination)
+        return render_template('objects/mobile_trenches_list.html', object=obj, trenches=trenches)
     else:
-        return render_template('objects/trenches_list.html', object=obj, trenches=trenches, pagination=pagination)
+        return render_template('objects/trenches_list.html', object=obj, trenches=trenches)
 
 @objects_bp.route('/<uuid:object_id>/trenches/add', methods=['GET', 'POST'])
 @login_required
 def add_trench(object_id):
-    """Добавление траншеи"""
+    """Создание новой траншеи (указываем общий метраж или оставляем пустым)"""
     obj = Object.query.get_or_404(object_id)
     from ..utils.mobile_detection import is_mobile_device
     is_mobile = is_mobile_device()
     
     if request.method == 'POST':
-        planned_length = request.form.get('planned_length')
-        current_length = request.form.get('current_length')
-        width = request.form.get('width')
-        depth = request.form.get('depth')
-        soil_type = request.form.get('soil_type', '').strip()
-        excavation_date = request.form.get('excavation_date')
+        total_length = request.form.get('total_length')
         notes = request.form.get('notes', '').strip()
-        
-        if not planned_length:
-            flash('Запланированная длина обязательна для заполнения', 'error')
-            return render_template('objects/mobile_add_trench.html' if is_mobile else 'objects/add_trench.html', object=obj)
-        
-        # Преобразуем дату
-        if excavation_date:
-            try:
-                excavation_date = datetime.strptime(excavation_date, '%Y-%m-%d').date()
-            except ValueError:
-                excavation_date = None
         
         # Преобразуем числовые значения
         try:
-            planned_length = float(planned_length) if planned_length else 0.0
-            current_length = float(current_length) if current_length else 0.0
-            width = float(width) if width else None
-            depth = float(depth) if depth else None
+            total_length = float(total_length) if total_length else None
         except ValueError:
-            flash('Некорректные числовые значения', 'error')
+            flash('Некорректное значение длины', 'error')
             return render_template('objects/mobile_add_trench.html' if is_mobile else 'objects/add_trench.html', object=obj)
         
         # Проверяем валидность значений
-        if planned_length <= 0:
-            flash('Запланированная длина должна быть больше 0', 'error')
-            return render_template('objects/mobile_add_trench.html' if is_mobile else 'objects/add_trench.html', object=obj)
-        
-        if current_length > planned_length:
-            flash('Текущая длина не может быть больше запланированной', 'error')
+        if total_length is not None and total_length <= 0:
+            flash('Длина должна быть больше 0', 'error')
             return render_template('objects/mobile_add_trench.html' if is_mobile else 'objects/add_trench.html', object=obj)
         
         new_trench = Trench(
             id=str(uuid.uuid4()),
             object_id=object_id,
-            planned_length=planned_length,
-            current_length=current_length,
-            width=width,
-            depth=depth,
-            soil_type=soil_type,
-            excavation_date=excavation_date,
+            total_length=total_length,
             notes=notes,
             created_by=current_user.userid
         )
         
-        # Проверяем и устанавливаем статус завершения
-        new_trench.check_completion_status()
-        
         db.session.add(new_trench)
-        db.session.flush()  # Получаем ID траншеи
-        
-        # Создаём запланированную работу на рытьё траншеи
-        work_date = excavation_date if excavation_date else datetime.utcnow().date()
-        
-        planned_work = PlannedWork(
-            id=str(uuid.uuid4()),
-            object_id=object_id,
-            work_type='trench_excavation',
-            work_title=f'Рытьё траншеи длиной {planned_length}м',
-            description=f'Рытьё траншеи: длина {planned_length}м, ширина {width or "не указана"}м, глубина {depth or "не указана"}м. Тип грунта: {soil_type or "не указан"}. {notes or ""}',
-            planned_date=work_date,
-            priority='medium',
-            status='planned',
-            location_details=f'Объект: {obj.name}',
-            notes=f'Автоматически создано при добавлении траншеи. Траншея ID: {new_trench.id}',
-            created_by=current_user.userid
-        )
-        
-        try:
-            db.session.add(planned_work)
-            db.session.flush()  # Получаем ID запланированной работы
-            
-            # Связываем траншею с запланированной работой
-            new_trench.planned_work_id = planned_work.id
-            
-            # Логируем для отладки
-            print(f"DEBUG: Создана траншея ID: {new_trench.id}")
-            print(f"DEBUG: Создана запланированная работа ID: {planned_work.id}")
-            print(f"DEBUG: Траншея связана с работой: {new_trench.planned_work_id}")
-            
-            db.session.commit()
-            
-            # Проверяем после коммита
-            print(f"DEBUG: После коммита - траншея ID: {new_trench.id}, planned_work_id: {new_trench.planned_work_id}")
-            print(f"DEBUG: Запланированная работа существует: {PlannedWork.query.get(planned_work.id) is not None}")
-            
-        except Exception as e:
-            print(f"ERROR: Ошибка при создании запланированной работы: {e}")
-            db.session.rollback()
-            flash(f'Ошибка при создании запланированной работы: {e}', 'error')
-            return render_template('objects/add_trench.html', object=obj)
+        db.session.commit()
         
         ActivityLog.log_action(
             user_id=current_user.userid,
             user_login=current_user.login,
-            action="Добавление траншеи",
-            description=f"Пользователь {current_user.login} добавил траншею длиной {planned_length}м к объекту '{obj.name}'",
+            action="Создание траншеи",
+            description=f"Пользователь {current_user.login} создал траншею{' длиной ' + str(total_length) + 'м' if total_length else ''} для объекта '{obj.name}'",
             ip_address=request.remote_addr,
             page_url=request.url,
             method=request.method
         )
         
-        if excavation_date:
-            flash(f'Траншея успешно добавлена. Запланирована работа на рытьё траншеи на {work_date.strftime("%d.%m.%Y")}', 'success')
-        else:
-            flash(f'Траншея успешно добавлена. Запланирована работа на рытьё траншеи на {work_date.strftime("%d.%m.%Y")}', 'success')
-        
+        flash('Траншея успешно создана', 'success')
         return redirect(url_for('objects.trenches_list', object_id=object_id))
     
     return render_template('objects/mobile_add_trench.html' if is_mobile else 'objects/add_trench.html', object=obj)
+
+@objects_bp.route('/<uuid:object_id>/trenches/<uuid:trench_id>/excavate', methods=['GET', 'POST'])
+@login_required
+def add_trench_excavation(object_id, trench_id):
+    """Добавление записи о копке траншеи с файлами"""
+    obj = Object.query.get_or_404(object_id)
+    trench = Trench.query.filter_by(id=trench_id, object_id=object_id).first_or_404()
+    from ..utils.mobile_detection import is_mobile_device
+    is_mobile = is_mobile_device()
+    
+    if request.method == 'POST':
+        length = request.form.get('length')
+        excavation_date = request.form.get('excavation_date')
+        notes = request.form.get('notes', '').strip()
+        files = request.files.getlist('files')
+        
+        # Валидация
+        if not length:
+            flash('Длина обязательна для заполнения', 'error')
+            return render_template('objects/mobile_add_trench_excavation.html' if is_mobile else 'objects/add_trench_excavation.html', object=obj, trench=trench)
+        
+        if not excavation_date:
+            flash('Дата копки обязательна для заполнения', 'error')
+            return render_template('objects/mobile_add_trench_excavation.html' if is_mobile else 'objects/add_trench_excavation.html', object=obj, trench=trench)
+        
+        # Преобразуем значения
+        try:
+            length = float(length)
+            excavation_date = datetime.strptime(excavation_date, '%Y-%m-%d').date()
+        except ValueError:
+            flash('Некорректные значения', 'error')
+            return render_template('objects/mobile_add_trench_excavation.html' if is_mobile else 'objects/add_trench_excavation.html', object=obj, trench=trench)
+        
+        if length <= 0:
+            flash('Длина должна быть больше 0', 'error')
+            return render_template('objects/mobile_add_trench_excavation.html' if is_mobile else 'objects/add_trench_excavation.html', object=obj, trench=trench)
+        
+        # Проверяем количество файлов (минимум 1 файл на каждые 20 метров)
+        required_files = max(1, int(length / 20) + (1 if length % 20 > 0 else 0))
+        if len(files) < required_files:
+            flash(f'Необходимо прикрепить минимум {required_files} файл(ов) для {length} метров', 'error')
+            return render_template('objects/mobile_add_trench_excavation.html' if is_mobile else 'objects/add_trench_excavation.html', object=obj, trench=trench)
+        
+        # Создаем запись о копке
+        excavation = TrenchExcavation(
+            id=str(uuid.uuid4()),
+            trench_id=trench_id,
+            length=length,
+            excavation_date=excavation_date,
+            notes=notes,
+            created_by=current_user.userid
+        )
+        
+        db.session.add(excavation)
+        db.session.flush()  # Получаем ID
+        
+        # Сохраняем файлы
+        import os
+        from werkzeug.utils import secure_filename
+        
+        upload_folder = os.path.join('app', 'static', 'uploads', 'trenches', str(trench_id))
+        os.makedirs(upload_folder, exist_ok=True)
+        
+        for file in files:
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                unique_filename = f"{uuid.uuid4()}_{filename}"
+                file_path = os.path.join(upload_folder, unique_filename)
+                
+                file.save(file_path)
+                
+                trench_file = TrenchFile(
+                    id=str(uuid.uuid4()),
+                    trench_id=trench_id,
+                    excavation_id=excavation.id,
+                    filename=unique_filename,
+                    original_filename=filename,
+                    file_path=file_path,
+                    file_size=os.path.getsize(file_path),
+                    mime_type=file.content_type,
+                    created_by=current_user.userid
+                )
+                
+                db.session.add(trench_file)
+        
+        # Обновляем статус траншеи
+        trench.check_completion_status()
+        
+        db.session.commit()
+        
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Добавление записи о копке траншеи",
+            description=f"Пользователь {current_user.login} добавил запись о копке {length}м траншеи для объекта '{obj.name}'",
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+        
+        flash(f'Запись о копке {length}м успешно добавлена с {len(files)} файл(ами)', 'success')
+        return redirect(url_for('objects.trenches_list', object_id=object_id))
+    
+    return render_template('objects/mobile_add_trench_excavation.html' if is_mobile else 'objects/add_trench_excavation.html', object=obj, trench=trench)
+
+@objects_bp.route('/<uuid:object_id>/trenches/<uuid:trench_id>/files/<uuid:file_id>/download')
+@login_required
+def download_trench_file(object_id, trench_id, file_id):
+    """Скачивание файла траншеи"""
+    obj = Object.query.get_or_404(object_id)
+    trench = Trench.query.filter_by(id=trench_id, object_id=object_id).first_or_404()
+    trench_file = TrenchFile.query.filter_by(id=file_id, trench_id=trench_id).first_or_404()
+    
+    from flask import send_file
+    import os
+    
+    if os.path.exists(trench_file.file_path):
+        return send_file(trench_file.file_path, as_attachment=True, download_name=trench_file.original_filename)
+    else:
+        flash('Файл не найден', 'error')
+        return redirect(url_for('objects.trenches_list', object_id=object_id))
 
 # Маршруты для отчётов
 @objects_bp.route('/<uuid:object_id>/reports')

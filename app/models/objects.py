@@ -65,35 +65,44 @@ class Trench(db.Model):
         db.Index('ix_trenches_object_id', 'object_id'),
         db.Index('ix_trenches_created_at', 'created_at'),
         db.Index('ix_trenches_status', 'status'),
-        db.Index('ix_trenches_excavation_date', 'excavation_date'),
     )
     
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)
-    planned_length = db.Column(db.Float, nullable=False, default=0.0)  # запланированная длина в метрах
-    current_length = db.Column(db.Float, default=0.0)  # текущая длина в метрах
-    width = db.Column(db.Float)  # ширина в метрах (опционально)
-    depth = db.Column(db.Float)  # глубина в метрах
-    soil_type = db.Column(db.String(100))  # тип грунта (опционально)
-    excavation_date = db.Column(db.Date)
+    total_length = db.Column(db.Float, nullable=True)  # общий метраж траншеи (может быть NULL если неизвестен)
     status = db.Column(db.String(50), default='planned')  # planned, in_progress, completed
     notes = db.Column(db.Text)
-    planned_work_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('planned_works.id'))  # связь с запланированной работой
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))
     
-    # Связь с запланированной работой
-    planned_work = db.relationship('PlannedWork', backref='trenches', lazy=True)
+    # Связи
+    excavations = db.relationship('TrenchExcavation', backref='trench', lazy=True, cascade='all, delete-orphan')
+    files = db.relationship('TrenchFile', backref='trench', lazy=True, cascade='all, delete-orphan')
+    
+    def get_total_excavated_length(self):
+        """Возвращает общую длину выкопанной траншеи"""
+        return sum(exc.length for exc in self.excavations)
     
     def check_completion_status(self):
         """Проверяет и обновляет статус завершения траншеи"""
-        if self.current_length >= self.planned_length:
+        total_excavated = self.get_total_excavated_length()
+        
+        if self.total_length and total_excavated >= self.total_length:
             self.status = 'completed'
-        elif self.current_length > 0:
+        elif total_excavated > 0:
             self.status = 'in_progress'
         else:
             self.status = 'planned'
+    
+    def get_required_files_count(self):
+        """Возвращает минимальное количество файлов, которое должно быть прикреплено"""
+        total_excavated = self.get_total_excavated_length()
+        return max(1, int(total_excavated / 20) + (1 if total_excavated % 20 > 0 else 0))
+    
+    def get_files_count(self):
+        """Возвращает количество прикрепленных файлов"""
+        return len(self.files)
     
     @staticmethod
     def update_overdue_trenches():
@@ -143,6 +152,45 @@ class Trench(db.Model):
             print("DEBUG: Нет траншей для обновления")
         
         return updated_count
+
+class TrenchExcavation(db.Model):
+    """Модель записи о копке траншеи"""
+    __tablename__ = 'trench_excavations'
+    __table_args__ = (
+        db.Index('ix_trench_excavations_trench_id', 'trench_id'),
+        db.Index('ix_trench_excavations_created_at', 'created_at'),
+    )
+    
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    trench_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('trenches.id'), nullable=False)
+    length = db.Column(db.Float, nullable=False)  # длина выкопанного участка в метрах
+    excavation_date = db.Column(db.Date, nullable=False)
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))
+    
+    # Связи
+    files = db.relationship('TrenchFile', backref='excavation', lazy=True, cascade='all, delete-orphan')
+
+class TrenchFile(db.Model):
+    """Модель файла траншеи"""
+    __tablename__ = 'trench_files'
+    __table_args__ = (
+        db.Index('ix_trench_files_trench_id', 'trench_id'),
+        db.Index('ix_trench_files_excavation_id', 'excavation_id'),
+        db.Index('ix_trench_files_created_at', 'created_at'),
+    )
+    
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    trench_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('trenches.id'), nullable=False)
+    excavation_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('trench_excavations.id'), nullable=True)
+    filename = db.Column(db.String(255), nullable=False)
+    original_filename = db.Column(db.String(255), nullable=False)
+    file_path = db.Column(db.String(500), nullable=False)
+    file_size = db.Column(db.Integer, nullable=False)
+    mime_type = db.Column(db.String(100), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))
 
 class Report(db.Model):
     """Модель отчёта"""
