@@ -6,4 +6,4 @@ class Models(db.Model):
 
     modelid = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = db.Column(db.String(100), nullable=False)
-    typeid = db.Column(db.String(36), db.ForeignKey('types.typeid'), nullable=False)
+    typeid = db.Column(db.UUID(as_uuid=True), db.ForeignKey('types.typeid'), nullable=False)

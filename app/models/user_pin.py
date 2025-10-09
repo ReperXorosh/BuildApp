@@ -8,7 +8,7 @@ class UserPIN(db.Model):
     __tablename__ = 'user_pins'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.userid'), nullable=False, unique=True)
+    user_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'), nullable=False, unique=True)
     pin_hash = db.Column(db.String(255), nullable=False)
     is_biometric_enabled = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
