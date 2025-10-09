@@ -482,7 +482,7 @@ def api_list_allocations():
     ).join(
         Users, UserMaterialAllocation.user_id == Users.userid
     ).order_by(
-        UserMaterialAllocation.created_at.desc()
+        UserMaterialAllocation.updated_at.desc()
     ).all()
     
     result = []
@@ -553,7 +553,7 @@ def api_user_allocations(user_id):
     ).filter(
         UserMaterialAllocation.user_id == user_id
     ).order_by(
-        UserMaterialAllocation.created_at.desc()
+        UserMaterialAllocation.updated_at.desc()
     ).all()
     
     result = []

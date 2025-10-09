@@ -118,6 +118,7 @@ class UserMaterialAllocation(db.Model):
             'user_id': self.user_id,
             'material_id': self.material_id,
             'quantity': self.quantity,
+            'created_at': self.updated_at.isoformat() if self.updated_at else None,  # Используем updated_at как created_at
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }
 
