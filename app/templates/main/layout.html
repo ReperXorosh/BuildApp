@@ -806,5 +806,13 @@ document.addEventListener('click', function(e){
     window.location.href = card.dataset.url;
   }
 });
+
+// Добавляем курсор pointer для кликабельных карточек
+document.addEventListener('DOMContentLoaded', function() {
+  const clickableCards = document.querySelectorAll('.clickable-card');
+  clickableCards.forEach(card => {
+    card.style.cursor = 'pointer';
+  });
+});
 </script>
 </html>
