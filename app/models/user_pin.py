@@ -7,7 +7,7 @@ class UserPIN(db.Model):
     """Модель для хранения PIN-кодов пользователей"""
     __tablename__ = 'user_pins'
     
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'), nullable=False, unique=True)
     pin_hash = db.Column(db.String(255), nullable=False)
     is_biometric_enabled = db.Column(db.Boolean, default=False)

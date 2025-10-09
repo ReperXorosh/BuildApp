@@ -1,5 +1,6 @@
 from app.extensions import db
 from datetime import datetime
+import uuid
 
 class SystemSetting(db.Model):
     """Простое key-value хранилище системных настроек/состояний."""
@@ -8,7 +9,7 @@ class SystemSetting(db.Model):
         db.Index('ix_system_settings_key', 'key', unique=True),
     )
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     key = db.Column(db.String(128), nullable=False, unique=True)
     value = db.Column(db.Text, nullable=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
