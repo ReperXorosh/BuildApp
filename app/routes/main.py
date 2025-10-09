@@ -453,8 +453,8 @@ def others():
 @main.route('/users')
 @login_required
 def users():
-    # Проверяем права администратора (Инженер ПТО и Ген. директор)
-    if current_user.role not in ['Инженер ПТО', 'Ген. директор']:
+    # Проверяем права администратора (Инженер ПТО и Ген.Директор)
+    if current_user.role not in ['Инженер ПТО', 'Ген.Директор']:
         flash('У вас нет прав для просмотра пользователей', 'error')
         return redirect(url_for('objects.object_list'))
     
@@ -507,8 +507,8 @@ def timezone_settings():
 @main.route('/add_user', methods=['GET', 'POST'])
 @login_required
 def add_user():
-    # Проверяем права администратора (Инженер ПТО и Ген. директор)
-    if current_user.role not in ['Инженер ПТО', 'Ген. директор']:
+    # Проверяем права администратора (Инженер ПТО и Ген.Директор)
+    if current_user.role not in ['Инженер ПТО', 'Ген.Директор']:
         return redirect(url_for('main.users'))
     
     # Логируем открытие страницы добавления пользователя
@@ -663,8 +663,8 @@ def add_user():
 @main.route('/edit_user/<user_id>', methods=['GET', 'POST'])
 @login_required
 def edit_user(user_id):
-    # Проверяем права администратора (Инженер ПТО и Ген. директор)
-    if current_user.role not in ['Инженер ПТО', 'Ген. директор']:
+    # Проверяем права администратора (Инженер ПТО и Ген.Директор)
+    if current_user.role not in ['Инженер ПТО', 'Ген.Директор']:
         flash('У вас нет прав для редактирования пользователей', 'error')
         return redirect(url_for('main.users'))
     
@@ -791,8 +791,8 @@ def edit_user(user_id):
 @main.route('/delete_user/<user_id>', methods=['POST'])
 @login_required
 def delete_user(user_id):
-    # Проверяем права администратора (Инженер ПТО и Ген. директор)
-    if current_user.role not in ['Инженер ПТО', 'Ген. директор']:
+    # Проверяем права администратора (Инженер ПТО и Ген.Директор)
+    if current_user.role not in ['Инженер ПТО', 'Ген.Директор']:
         flash('У вас нет прав для удаления пользователей', 'error')
         return redirect(url_for('main.users'))
     
@@ -953,8 +953,8 @@ def view_user_profile(user_id):
     # Обновляем активность текущего пользователя
     current_user.update_activity()
     
-    # Проверяем права доступа (только Инженер ПТО и Ген. директор могут просматривать профили других пользователей)
-    if current_user.role not in ['Инженер ПТО', 'Ген. директор']:
+    # Проверяем права доступа (только Инженер ПТО и Ген.Директор могут просматривать профили других пользователей)
+    if current_user.role not in ['Инженер ПТО', 'Ген.Директор']:
         flash('У вас нет прав для просмотра профилей других пользователей', 'danger')
         return redirect(url_for('main.users'))
     

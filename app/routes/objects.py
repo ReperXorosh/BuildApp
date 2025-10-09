@@ -537,7 +537,7 @@ def add_support(object_id):
     luminaires_list = Luminaire.query.filter_by(object_id=object_id).order_by(Luminaire.luminaire_number.asc()).all()
     
     # Проверяем права доступа - только инженер ПТО и ген.директор могут добавлять опоры
-    if current_user.role not in ['Инженер ПТО', 'Ген. директор']:
+    if current_user.role not in ['Инженер ПТО', 'Ген.Директор']:
         flash('У вас нет прав для добавления опор. Только инженер ПТО может добавлять опоры по проекту.', 'error')
         return redirect(url_for('objects.supports_list', object_id=object_id))
     
@@ -612,7 +612,7 @@ def add_element(object_id):
     is_mobile = is_mobile_device()
     
     # Проверяем права доступа - только инженер ПТО и ген.директор могут добавлять элементы
-    if current_user.role not in ['Инженер ПТО', 'Ген. директор']:
+    if current_user.role not in ['Инженер ПТО', 'Ген.Директор']:
         flash('У вас нет прав для добавления элементов. Только инженер ПТО может добавлять элементы по проекту.', 'error')
         return redirect(url_for('objects.elements_list', object_id=object_id))
     
@@ -1173,7 +1173,7 @@ def checklist_view(object_id):
 @login_required
 def add_checklist_item(object_id):
     """Add a new checklist item (PTO Engineer only)"""
-    if current_user.role not in ['Инженер ПТО', 'Ген. директор']:
+    if current_user.role not in ['Инженер ПТО', 'Ген.Директор']:
         abort(403)
     
     obj = Object.query.get_or_404(object_id)
@@ -1267,7 +1267,7 @@ def add_checklist_item(object_id):
 @login_required
 def edit_checklist_item(object_id, item_id):
     """Edit a checklist item (PTO Engineer only)"""
-    if current_user.role not in ['Инженер ПТО', 'Ген. директор']:
+    if current_user.role not in ['Инженер ПТО', 'Ген.Директор']:
         abort(403)
     
     obj = Object.query.get_or_404(object_id)
@@ -1393,7 +1393,7 @@ def toggle_checklist_item(object_id, item_id):
                     })
                 else:
                     # Принудительное выполнение
-                    if current_user.role in ['Инженер ПТО', 'Ген. директор']:
+                    if current_user.role in ['Инженер ПТО', 'Ген.Директор']:
                         item.complete(user_id=current_user.userid, force=True)
                         message = f'Позиция принудительно отмечена как выполненная (количество: {current_qty}/{planned_qty} {item.unit or "шт"})'
                         is_completed = True
@@ -1439,7 +1439,7 @@ def toggle_checklist_item(object_id, item_id):
 @login_required
 def delete_checklist_item(object_id, item_id):
     """Delete a checklist item (PTO Engineer only)"""
-    if current_user.role not in ['Инженер ПТО', 'Ген. директор']:
+    if current_user.role not in ['Инженер ПТО', 'Ген.Директор']:
         abort(403)
     
     object = Object.query.get_or_404(object_id)
@@ -2358,7 +2358,7 @@ def delete_object(object_id):
         # Проверяем права пользователя - только инженер ПТО может удалять объекты
         user_role = current_user.role if current_user.role else ''
         print(f"DEBUG: User role: '{user_role}'")  # Отладочная информация
-        if user_role not in ['Инженер ПТО', 'Ген. директор']:
+        if user_role not in ['Инженер ПТО', 'Ген.Директор']:
             return jsonify({'success': False, 'error': f'У вас нет прав для удаления объектов. Ваша роль: {user_role}'})
         
         # Логируем действие перед удалением

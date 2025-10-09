@@ -966,7 +966,7 @@
                 {{ gettext('Журнал действий') }}
             </a>
             {% endif %}
-            {% if current_user.role in ['Инженер ПТО', 'Ген. директор'] %}
+            {% if current_user.role in ['Инженер ПТО', 'Ген.Директор'] %}
             <a href="{{ url_for('main.users') }}" class="mobile-menu-item {{ 'active' if active_page == 'users' else '' }}">
                 {{ gettext('Пользователи') }}
             </a>

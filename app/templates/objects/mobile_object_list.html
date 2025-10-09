@@ -4,7 +4,7 @@
 {% block mobile_title %}Объекты{% endblock %}
 
 {% block mobile_header_actions %}
-{% set has_plus = current_user.role in ['Инженер ПТО', 'Ген. директор'] %}
+{% set has_plus = current_user.role in ['Инженер ПТО', 'Ген.Директор'] %}
 <a class="mobile-header-btn{% if has_plus %} with-plus{% endif %}" href="javascript:void(0)" id="searchToggle" data-no-pjax="true" title="Поиск объектов" role="button" aria-label="Поиск объектов" style="color: #ffffff; display: flex; align-items: center;">
     <svg fill="currentColor" viewBox="0 0 16 16" style="width: 16px; height: 16px; stroke: #ffffff; stroke-width: 0.5;">
         <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
@@ -80,7 +80,7 @@
                 {% endif %}
             </a>
         </div>
-        {% if current_user.role in ['Инженер ПТО', 'Ген. директор'] %}
+        {% if current_user.role in ['Инженер ПТО', 'Ген.Директор'] %}
         <div class="swipe-actions">
             <button class="swipe-action-btn swipe-action-delete" data-object-id="{{ obj.id }}" data-object-name="{{ obj.name }}">
                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 4px;">

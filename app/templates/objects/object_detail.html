@@ -176,7 +176,7 @@
                         <div class="card-body">
                             <p class="text-muted">Управление позициями чек-листа объекта</p>
                             <div class="d-grid">
-                                {% if current_user.role in ['Инженер ПТО', 'Ген. директор'] %}
+                                {% if current_user.role in ['Инженер ПТО', 'Ген.Директор'] %}
                                 <a href="{{ url_for('objects.add_checklist_item', object_id=object.id) }}" class="btn btn-warning" data-ignore-card-click="true">
                                     <i class="bi bi-plus-lg me-1"></i>
                                     Добавить позицию

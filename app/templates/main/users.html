@@ -7,7 +7,7 @@
 <div class="container-fluid py-3" style="margin-top: 80px;">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Управление пользователями</h2>
-                 {% if current_user.role in ['Инженер ПТО', 'Ген. директор'] %}
+                 {% if current_user.role in ['Инженер ПТО', 'Ген.Директор'] %}
          <a href="{{ url_for('main.add_user') }}" class="btn btn-primary">
              <svg class="bi me-2" width="16" height="16" fill="currentColor">
                  <use href="#plus-circle"></use>
@@ -100,7 +100,7 @@
                         <tr>
                             <td><code>{{ user.userid }}...</code></td>
                             <td>
-                                {% if current_user.role in ['Инженер ПТО', 'Ген. директор'] %}
+                                {% if current_user.role in ['Инженер ПТО', 'Ген.Директор'] %}
                                     <a href="{{ url_for('main.view_user_profile', user_id=user.userid) }}" 
                                        class="text-decoration-none fw-bold text-primary">
                                         {{ user.login }}
@@ -148,7 +148,7 @@
                                  {% endif %}
                              </td>
                                                          <td>
-                                 {% if current_user.role in ['Инженер ПТО', 'Ген. директор'] %}
+                                 {% if current_user.role in ['Инженер ПТО', 'Ген.Директор'] %}
                                  <div class="btn-group btn-group-sm" role="group">
                                      <a href="{{ url_for('main.edit_user', user_id=user.userid) }}" class="btn btn-outline-primary" title="Редактировать">
                                          <svg class="bi" width="16" height="16" fill="currentColor">
