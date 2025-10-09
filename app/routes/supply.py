@@ -179,6 +179,30 @@ def warehouse_allocations():
     
     return render_template('supply/allocations.html')
 
+@supply.route('/supply/warehouse/user/<uuid:user_id>')
+@login_required
+def warehouse_user_detail(user_id):
+    """Страница детального просмотра пользователя с его позициями"""
+    if not is_supplier_or_admin():
+        flash('У вас нет прав для доступа к распределению позиций', 'error')
+        return redirect(url_for('objects.object_list'))
+    
+    # Получаем информацию о пользователе
+    user = Users.query.get_or_404(user_id)
+    
+    # Логируем просмотр страницы пользователя
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр страницы",
+        description=f"Пользователь {current_user.login} просмотрел позиции пользователя {user.login}",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return render_template('supply/user_detail.html', user=user)
+
 @supply.route('/supply/equipment')
 @login_required
 def equipment_list():
@@ -337,6 +361,13 @@ def api_create_movement():
     except Exception:
         return jsonify({'error': 'quantity должен быть числом'}), 400
 
+    # Проверяем достаточность количества для выдачи и списания
+    if movement_type in ['move', 'writeoff']:
+        if material.current_quantity < quantity:
+            return jsonify({
+                'error': f'Недостаточно материала на складе. Доступно: {material.current_quantity} {material.unit}, требуется: {quantity} {material.unit}'
+            }), 400
+
     movement = WarehouseMovement(
         material_id=material.id,
         from_user_id=from_user_id,
@@ -416,6 +447,17 @@ def api_list_movements():
         movement_dict = movement.to_dict()
         movement_dict['material_name'] = material_name
         movement_dict['to_user_name'] = f"{user_last_name or ''} {user_first_name or ''}".strip() or user_login
+        
+        # Получаем вложения для этого движения
+        attachments = WarehouseAttachment.query.filter_by(movement_id=movement.id).all()
+        movement_dict['attachments'] = [{
+            'id': str(att.id),
+            'filename': att.filename,
+            'original_filename': att.original_filename,
+            'file_size': att.file_size,
+            'mime_type': att.mime_type
+        } for att in attachments]
+        
         result.append(movement_dict)
     
     return jsonify(result)
@@ -450,6 +492,76 @@ def api_list_allocations():
         allocation_dict['material_unit'] = material_unit
         allocation_dict['user_name'] = f"{user_last_name or ''} {user_first_name or ''}".strip() or user_login
         allocation_dict['user_login'] = user_login
+        result.append(allocation_dict)
+    
+    return jsonify(result)
+
+@supply.route('/api/supply/users-with-allocations', methods=['GET'])
+@login_required
+def api_users_with_allocations():
+    """Получение списка пользователей с их позициями"""
+    if not is_supplier_or_admin():
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    
+    # Получаем всех пользователей, у которых есть распределения
+    users_with_allocations = db.session.query(
+        Users.userid,
+        Users.secondname,
+        Users.firstname,
+        Users.thirdname,
+        Users.login,
+        Users.role,
+        db.func.count(UserMaterialAllocation.id).label('allocations_count'),
+        db.func.sum(UserMaterialAllocation.quantity).label('total_quantity')
+    ).join(
+        UserMaterialAllocation, Users.userid == UserMaterialAllocation.user_id
+    ).group_by(
+        Users.userid, Users.secondname, Users.firstname, Users.thirdname, Users.login, Users.role
+    ).order_by(
+        Users.secondname, Users.firstname
+    ).all()
+    
+    result = []
+    for user in users_with_allocations:
+        user_dict = {
+            'id': str(user.userid),
+            'name': f"{user.secondname or ''} {user.firstname or ''} {user.thirdname or ''}".strip(),
+            'login': user.login,
+            'role': user.role,
+            'allocations_count': user.allocations_count,
+            'total_quantity': float(user.total_quantity or 0)
+        }
+        result.append(user_dict)
+    
+    return jsonify(result)
+
+@supply.route('/api/supply/user/<uuid:user_id>/allocations', methods=['GET'])
+@login_required
+def api_user_allocations(user_id):
+    """Получение позиций конкретного пользователя"""
+    if not is_supplier_or_admin():
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    
+    # Получаем распределения конкретного пользователя
+    allocations = db.session.query(
+        UserMaterialAllocation,
+        Material.name.label('material_name'),
+        Material.unit.label('material_unit'),
+        Material.current_quantity.label('warehouse_quantity')
+    ).join(
+        Material, UserMaterialAllocation.material_id == Material.id
+    ).filter(
+        UserMaterialAllocation.user_id == user_id
+    ).order_by(
+        UserMaterialAllocation.created_at.desc()
+    ).all()
+    
+    result = []
+    for allocation, material_name, material_unit, warehouse_quantity in allocations:
+        allocation_dict = allocation.to_dict()
+        allocation_dict['material_name'] = material_name
+        allocation_dict['material_unit'] = material_unit
+        allocation_dict['warehouse_quantity'] = warehouse_quantity
         result.append(allocation_dict)
     
     return jsonify(result)
