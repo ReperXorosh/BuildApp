@@ -453,9 +453,9 @@ def api_list_movements():
         movement_dict['attachments'] = [{
             'id': str(att.id),
             'filename': att.filename,
-            'original_filename': att.original_filename,
-            'file_size': att.file_size,
-            'mime_type': att.mime_type
+            'original_filename': att.filename,  # В текущей модели нет отдельного поля
+            'file_size': att.size_bytes,
+            'mime_type': att.content_type
         } for att in attachments]
         
         result.append(movement_dict)
