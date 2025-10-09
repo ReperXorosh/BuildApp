@@ -133,26 +133,27 @@
                 <form id="form-movement">
                     <div class="row">
                         <div class="col-6">
-                            <label class="form-label">Материал</label>
-                            <select class="form-select" name="material_id" required>
-                                <option value="">Выберите материал</option>
-                            </select>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">Количество</label>
-                            <input type="number" class="form-control" name="quantity" step="0.01" min="0" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">Тип</label>
-                            <select class="form-select" name="movement_type" required>
+                            <label class="form-label">Тип операции <span class="text-danger">*</span></label>
+                            <select class="form-select" name="movement_type" id="movement_type" required onchange="onMovementTypeChange()">
+                                <option value="">Выберите тип операции</option>
                                 <option value="move">Выдача</option>
                                 <option value="return">Возврат</option>
                                 <option value="writeoff">Списание</option>
                             </select>
                         </div>
                         <div class="col-6">
-                            <label class="form-label">Кому выдать</label>
-                            <select class="form-select" name="to_user_id" id="to_user_id" required>
+                            <label class="form-label">Материал <span class="text-danger">*</span></label>
+                            <select class="form-select" name="material_id" id="material_id" required onchange="onMaterialChange()">
+                                <option value="">Сначала выберите тип операции</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Количество <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="quantity" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-6" id="user-selection-container" style="display: none;">
+                            <label class="form-label" id="user-label">Пользователь</label>
+                            <select class="form-select" name="to_user_id" id="to_user_id">
                                 <option value="">Выберите пользователя...</option>
                             </select>
                         </div>
@@ -258,23 +259,138 @@ async function loadMaterials() {
   }
 }
 
-// Загрузка материалов в select для перемещения
-async function loadMaterialsForMovement() {
+// Обработка изменения типа операции
+async function onMovementTypeChange() {
+  const movementType = document.getElementById('movement_type').value;
+  const materialSelect = document.getElementById('material_id');
+  const userContainer = document.getElementById('user-selection-container');
+  const userLabel = document.getElementById('user-label');
+  const userSelect = document.getElementById('to_user_id');
+  
+  // Очищаем предыдущие выборы
+  materialSelect.innerHTML = '<option value="">Загрузка материалов...</option>';
+  userSelect.innerHTML = '<option value="">Выберите пользователя...</option>';
+  
+  if (!movementType) {
+    materialSelect.innerHTML = '<option value="">Сначала выберите тип операции</option>';
+    userContainer.style.display = 'none';
+    return;
+  }
+  
+  // Показываем/скрываем выбор пользователя в зависимости от типа операции
+  if (movementType === 'writeoff') {
+    userContainer.style.display = 'none';
+    userSelect.required = false;
+  } else {
+    userContainer.style.display = 'block';
+    userSelect.required = true;
+    
+    // Обновляем лейбл в зависимости от типа операции
+    if (movementType === 'move') {
+      userLabel.textContent = 'Кому выдать';
+    } else if (movementType === 'return') {
+      userLabel.textContent = 'От кого возврат';
+    }
+  }
+  
+  // Загружаем материалы
+  await loadMaterialsForMovementType(movementType);
+}
+
+// Загрузка материалов в зависимости от типа операции
+async function loadMaterialsForMovementType(movementType) {
   try {
     const response = await fetch('{{ url_for("supply.api_materials") }}');
     const materials = await response.json();
     
-    const select = document.querySelector('#movementModal select[name="material_id"]');
+    const select = document.getElementById('material_id');
     select.innerHTML = '<option value="">Выберите материал</option>';
     
     materials.forEach(material => {
       const option = document.createElement('option');
       option.value = material.id;
-      option.textContent = `${material.name} (${material.current_quantity || 0} ${material.unit})`;
+      
+      if (movementType === 'move' || movementType === 'writeoff') {
+        // Для выдачи и списания показываем доступное количество на складе
+        option.textContent = `${material.name} (${material.current_quantity || 0} ${material.unit})`;
+      } else if (movementType === 'return') {
+        // Для возврата показываем, что материал есть на складе
+        option.textContent = `${material.name} (${material.unit})`;
+      }
+      
       select.appendChild(option);
     });
   } catch (error) {
-    console.error('Ошибка загрузки материалов для перемещения:', error);
+    console.error('Ошибка загрузки материалов:', error);
+    document.getElementById('material_id').innerHTML = '<option value="">Ошибка загрузки материалов</option>';
+  }
+}
+
+// Обработка изменения материала
+async function onMaterialChange() {
+  const materialId = document.getElementById('material_id').value;
+  const movementType = document.getElementById('movement_type').value;
+  const userSelect = document.getElementById('to_user_id');
+  
+  if (!materialId || !movementType) {
+    userSelect.innerHTML = '<option value="">Сначала выберите материал</option>';
+    return;
+  }
+  
+  // Загружаем пользователей в зависимости от типа операции и материала
+  await loadUsersForMovement(movementType, materialId);
+}
+
+// Загрузка пользователей для движения
+async function loadUsersForMovement(movementType, materialId) {
+  const userSelect = document.getElementById('to_user_id');
+  userSelect.innerHTML = '<option value="">Загрузка пользователей...</option>';
+  
+  try {
+    let response;
+    
+    if (movementType === 'move') {
+      // Для выдачи загружаем всех пользователей
+      response = await fetch('{{ url_for("supply.api_get_all_users") }}');
+    } else if (movementType === 'return') {
+      // Для возврата загружаем только пользователей, у которых есть этот материал
+      response = await fetch(`{{ url_for("supply.api_material_allocations") }}?material_id=${materialId}`);
+    }
+    
+    if (!response || !response.ok) {
+      throw new Error('Ошибка загрузки пользователей');
+    }
+    
+    const users = await response.json();
+    userSelect.innerHTML = '<option value="">Выберите пользователя...</option>';
+    
+    if (users.length === 0) {
+      if (movementType === 'return') {
+        userSelect.innerHTML = '<option value="">У пользователей нет этого материала</option>';
+      } else {
+        userSelect.innerHTML = '<option value="">Пользователи не найдены</option>';
+      }
+      return;
+    }
+    
+    users.forEach(user => {
+      const option = document.createElement('option');
+      option.value = user.id;
+      
+      if (movementType === 'return' && user.quantity !== undefined) {
+        // Для возврата показываем количество у пользователя
+        option.textContent = `${user.name || user.login} (${user.quantity} ${user.material_unit || ''})`;
+      } else {
+        // Для выдачи показываем только имя
+        option.textContent = user.name || user.login;
+      }
+      
+      userSelect.appendChild(option);
+    });
+    
+  } catch (error) {
+    console.error('Ошибка загрузки пользователей:', error);
+    userSelect.innerHTML = '<option value="">Ошибка загрузки пользователей</option>';
   }
 }
 
@@ -323,7 +439,7 @@ async function submitAddMaterial() {
       bootstrap.Modal.getInstance(document.getElementById('addMaterialModal')).hide();
       form.reset();
       loadMaterials();
-      loadMaterialsForMovement();
+      // Материалы теперь загружаются динамически при выборе типа операции
     } else {
       alert('Ошибка сохранения материала');
     }
@@ -338,6 +454,19 @@ async function submitMovement() {
   const form = document.getElementById('form-movement');
   const formData = new FormData(form);
   
+  // Определяем правильные поля в зависимости от типа операции
+  const movementType = formData.get('movement_type');
+  const userId = formData.get('to_user_id');
+  
+  if (movementType === 'return' && userId) {
+    // Для возврата используем from_user_id вместо to_user_id
+    formData.delete('to_user_id');
+    formData.set('from_user_id', userId);
+  } else if (movementType === 'writeoff') {
+    // Для списания убираем пользователя
+    formData.delete('to_user_id');
+  }
+  
   try {
     const response = await fetch('{{ url_for("supply.api_create_movement") }}', {
       method: 'POST',
@@ -347,9 +476,13 @@ async function submitMovement() {
     if (response.ok) {
       bootstrap.Modal.getInstance(document.getElementById('movementModal')).hide();
       form.reset();
+      // Сбрасываем состояние формы
+      document.getElementById('user-selection-container').style.display = 'none';
+      document.getElementById('material_id').innerHTML = '<option value="">Сначала выберите тип операции</option>';
       loadMaterials();
     } else {
-      alert('Ошибка проведения движения');
+      const error = await response.json();
+      alert('Ошибка проведения движения: ' + (error.error || 'Неизвестная ошибка'));
     }
   } catch (error) {
     console.error('Ошибка:', error);
@@ -372,7 +505,7 @@ async function submitReceipt() {
       bootstrap.Modal.getInstance(document.getElementById('receiptModal')).hide();
       form.reset();
       loadMaterials();
-      loadMaterialsForMovement();
+      // Материалы теперь загружаются динамически при выборе типа операции
       alert('Поступление успешно проведено');
     } else {
       const error = await response.json();
@@ -426,8 +559,6 @@ async function loadUsersToSelect() {
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
   loadMaterials();
-  loadMaterialsForMovement();
-  loadUsersToSelect();
   
   // Поиск
   document.getElementById('searchInput').addEventListener('input', filterMaterials);

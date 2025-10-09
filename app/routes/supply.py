@@ -15,6 +15,7 @@ from app.models.users import Users
 from app.models.activity_log import ActivityLog
 from app.extensions import db
 from app.utils.mobile_detection import is_mobile_device
+from app.utils.timezone_utils import get_moscow_now
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
 import os
@@ -417,11 +418,23 @@ def api_create_movement():
             alloc = UserMaterialAllocation(user_id=to_user_id, material_id=material.id, quantity=0.0)
             db.session.add(alloc)
         alloc.quantity = (alloc.quantity or 0.0) + quantity
+        alloc.updated_at = get_moscow_now()  # Обновляем время изменения
+        
     elif movement_type == 'return' and from_user_id:
         # Возврат: уменьшаем количество у возвращающего
         alloc_from = UserMaterialAllocation.query.filter_by(user_id=from_user_id, material_id=material.id).first()
         if alloc_from:
-            alloc_from.quantity = max(0.0, (alloc_from.quantity or 0.0) - quantity)
+            new_quantity = max(0.0, (alloc_from.quantity or 0.0) - quantity)
+            alloc_from.quantity = new_quantity
+            alloc_from.updated_at = get_moscow_now()  # Обновляем время изменения
+            
+            # Если количество стало 0, удаляем запись
+            if new_quantity == 0:
+                db.session.delete(alloc_from)
+        else:
+            # Если у пользователя нет этого материала, но он пытается его вернуть
+            # Это может быть ошибка, но мы не блокируем операцию
+            pass
 
     # Обработка вложения
     upload = files.get('file') if hasattr(files, 'get') else None
@@ -438,6 +451,27 @@ def api_create_movement():
         db.session.add(attachment)
 
     db.session.commit()
+
+    # Логируем действие с деталями
+    action_description = f"Создано движение: {movement_type}, материал: {material.name}, количество: {quantity}"
+    if movement_type == 'move' and to_user_id:
+        user = Users.query.get(to_user_id)
+        if user:
+            action_description += f", выдано пользователю: {user.login}"
+    elif movement_type == 'return' and from_user_id:
+        user = Users.query.get(from_user_id)
+        if user:
+            action_description += f", возвращено от пользователя: {user.login}"
+
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Движение по складу",
+        description=action_description,
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
 
     return jsonify({
         'movement': movement.to_dict(),
@@ -516,6 +550,48 @@ def api_list_allocations():
         allocation_dict['user_name'] = f"{user_last_name or ''} {user_first_name or ''}".strip() or user_login
         allocation_dict['user_login'] = user_login
         result.append(allocation_dict)
+    
+    return jsonify(result)
+
+@supply.route('/api/supply/material-allocations', methods=['GET'])
+@login_required
+def api_material_allocations():
+    """Получение пользователей, у которых есть конкретный материал"""
+    if not is_supplier_or_admin():
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    
+    material_id = request.args.get('material_id')
+    if not material_id:
+        return jsonify({'error': 'material_id обязателен'}), 400
+    
+    # Получаем пользователей, у которых есть этот материал
+    allocations = db.session.query(
+        UserMaterialAllocation,
+        Users.secondname.label('user_last_name'),
+        Users.firstname.label('user_first_name'),
+        Users.thirdname.label('user_third_name'),
+        Users.login.label('user_login'),
+        Material.unit.label('material_unit')
+    ).join(
+        Users, UserMaterialAllocation.user_id == Users.userid
+    ).join(
+        Material, UserMaterialAllocation.material_id == Material.id
+    ).filter(
+        UserMaterialAllocation.material_id == material_id,
+        UserMaterialAllocation.quantity > 0
+    ).order_by(
+        Users.secondname, Users.firstname
+    ).all()
+    
+    result = []
+    for allocation, user_last_name, user_first_name, user_third_name, user_login, material_unit in allocations:
+        result.append({
+            'id': str(allocation.user_id),
+            'name': f"{user_last_name or ''} {user_first_name or ''} {user_third_name or ''}".strip(),
+            'login': user_login,
+            'quantity': allocation.quantity,
+            'material_unit': material_unit
+        })
     
     return jsonify(result)
 
