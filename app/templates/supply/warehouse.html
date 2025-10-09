@@ -33,6 +33,10 @@
                                 <input class="form-control" name="unit" required>
                             </div>
                             <div class="col-3">
+                                <label class="form-label">Количество</label>
+                                <input type="number" step="0.001" class="form-control" name="current_quantity" value="0" required>
+                            </div>
+                            <div class="col-3">
                                 <label class="form-label">Мин. запас</label>
                                 <input type="number" step="0.001" class="form-control" name="min_quantity" value="0">
                             </div>
@@ -75,12 +79,26 @@
                                 </select>
                             </div>
                             <div class="col-6">
-                                <label class="form-label">Кому (user_id)</label>
-                                <input class="form-control" name="to_user_id" placeholder="UUID пользователя">
+                                <label class="form-label">Кому</label>
+                                <div class="position-relative">
+                                    <input class="form-control" id="to_user_search" placeholder="Введите имя или фамилию" autocomplete="off">
+                                    <input type="hidden" name="to_user_id" id="to_user_id">
+                                    <div class="dropdown-menu w-100" id="to_user_dropdown" style="display: none; max-height: 200px; overflow-y: auto;">
+                                    </div>
+                                </div>
+                                <small class="text-muted" id="to_user_selected" style="display: none;"></small>
+                                <small class="form-text">Двойной клик для очистки</small>
                             </div>
                             <div class="col-6">
-                                <label class="form-label">От кого (user_id)</label>
-                                <input class="form-control" name="from_user_id" placeholder="UUID пользователя">
+                                <label class="form-label">От кого</label>
+                                <div class="position-relative">
+                                    <input class="form-control" id="from_user_search" placeholder="Введите имя или фамилию" autocomplete="off">
+                                    <input type="hidden" name="from_user_id" id="from_user_id">
+                                    <div class="dropdown-menu w-100" id="from_user_dropdown" style="display: none; max-height: 200px; overflow-y: auto;">
+                                    </div>
+                                </div>
+                                <small class="text-muted" id="from_user_selected" style="display: none;"></small>
+                                <small class="form-text">Двойной клик для очистки</small>
                             </div>
                             <div class="col-12">
                                 <label class="form-label">Примечание</label>
@@ -169,6 +187,43 @@
     </div>
 </div>
 
+<style>
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    clear: both;
+    font-weight: 400;
+    color: #212529;
+    text-align: inherit;
+    text-decoration: none;
+    white-space: nowrap;
+    background-color: transparent;
+    border: 0;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+.dropdown-item:focus {
+    background-color: #f8f9fa;
+    outline: none;
+}
+</style>
+
 <script>
 document.getElementById('form-create-material').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -177,6 +232,7 @@ document.getElementById('form-create-material').addEventListener('submit', async
     name: form.name.value,
     unit: form.unit.value,
     description: form.description.value,
+    current_quantity: form.current_quantity.value,
     min_quantity: form.min_quantity.value
   };
   const resp = await fetch('{{ url_for('supply.api_materials_create') }}', {
@@ -197,6 +253,82 @@ document.getElementById('form-movement').addEventListener('submit', async (e) =>
   });
   if (resp.ok) location.reload(); else alert('Ошибка проведения движения');
 });
+
+// Функция для создания автокомплита пользователей
+function createUserAutocomplete(inputId, hiddenId, dropdownId, selectedId) {
+  const input = document.getElementById(inputId);
+  const hidden = document.getElementById(hiddenId);
+  const dropdown = document.getElementById(dropdownId);
+  const selected = document.getElementById(selectedId);
+  let searchTimeout;
+
+  input.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    const query = this.value.trim();
+    
+    if (query.length < 2) {
+      dropdown.style.display = 'none';
+      hidden.value = '';
+      selected.style.display = 'none';
+      return;
+    }
+
+    searchTimeout = setTimeout(async () => {
+      try {
+        const response = await fetch(`{{ url_for('supply.api_search_users') }}?q=${encodeURIComponent(query)}`);
+        const users = await response.json();
+        
+        dropdown.innerHTML = '';
+        if (users.length === 0) {
+          dropdown.innerHTML = '<div class="dropdown-item text-muted">Пользователи не найдены</div>';
+        } else {
+          users.forEach(user => {
+            const item = document.createElement('div');
+            item.className = 'dropdown-item';
+            item.textContent = user.display;
+            item.addEventListener('click', () => {
+              input.value = user.display;
+              hidden.value = user.id;
+              selected.textContent = `Выбран: ${user.display}`;
+              selected.style.display = 'block';
+              dropdown.style.display = 'none';
+            });
+            dropdown.appendChild(item);
+          });
+        }
+        dropdown.style.display = 'block';
+      } catch (error) {
+        console.error('Ошибка поиска пользователей:', error);
+      }
+    }, 300);
+  });
+
+  // Скрыть dropdown при клике вне его
+  document.addEventListener('click', function(e) {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.style.display = 'none';
+    }
+  });
+
+  // Очистить при фокусе
+  input.addEventListener('focus', function() {
+    if (this.value.length >= 2) {
+      dropdown.style.display = 'block';
+    }
+  });
+
+  // Очистить выбор при двойном клике
+  input.addEventListener('dblclick', function() {
+    this.value = '';
+    hidden.value = '';
+    selected.style.display = 'none';
+    dropdown.style.display = 'none';
+  });
+}
+
+// Инициализация автокомплитов
+createUserAutocomplete('to_user_search', 'to_user_id', 'to_user_dropdown', 'to_user_selected');
+createUserAutocomplete('from_user_search', 'from_user_id', 'from_user_dropdown', 'from_user_selected');
 </script>
 {% endblock %}
 

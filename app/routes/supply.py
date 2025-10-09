@@ -353,6 +353,36 @@ def api_list_movements():
     q = WarehouseMovement.query.order_by(WarehouseMovement.created_at.desc()).limit(200).all()
     return jsonify([m.to_dict() for m in q])
 
+@supply.route('/api/supply/users/search', methods=['GET'])
+@login_required
+def api_search_users():
+    """Поиск пользователей по имени/фамилии/логину"""
+    if not is_supplier_or_admin():
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    
+    query = request.args.get('q', '').strip()
+    if len(query) < 2:
+        return jsonify([])
+    
+    from app.models.users import Users
+    
+    # Поиск по имени, фамилии, логину
+    users = Users.query.filter(
+        db.or_(
+            Users.first_name.ilike(f'%{query}%'),
+            Users.last_name.ilike(f'%{query}%'),
+            Users.login.ilike(f'%{query}%'),
+            db.func.concat(Users.first_name, ' ', Users.last_name).ilike(f'%{query}%')
+        )
+    ).limit(10).all()
+    
+    return jsonify([{
+        'id': str(user.userid),
+        'name': f"{user.first_name} {user.last_name}".strip(),
+        'login': user.login,
+        'display': f"{user.first_name} {user.last_name} ({user.login})".strip()
+    } for user in users])
+
 @supply.route('/api/supply/movements/<uuid:movement_id>/attachments/<uuid:attachment_id>/download', methods=['GET'])
 @login_required
 def api_download_attachment(movement_id, attachment_id):
