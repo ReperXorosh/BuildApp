@@ -152,8 +152,8 @@ def sign_in():
     print(f"DEBUG: Главная страница - Параметр mobile=1: {mobile_param}, Устройство мобильное: {device_mobile}, Итоговое решение: {is_mobile}")
     
     if is_mobile:
-        # Временно отключаем PIN/FaceID и всегда показываем мобильную страницу логина
-        print(f"DEBUG: Отображение мобильной страницы входа на главной (PIN отключен)")
+        # Показываем мобильную страницу логина
+        print(f"DEBUG: Отображение мобильной страницы входа на главной")
         return render_template('main/mobile_sign_in.html')
     else:
         print(f"DEBUG: Отображение десктопной страницы входа на главной")
@@ -163,7 +163,7 @@ def sign_in():
 @login_required
 def dashboard():
     """Главная страница для авторизованных пользователей"""
-    # Всегда направляем в приложение (PIN/FaceID отключены)
+    # Направляем в приложение
     return redirect(url_for('objects.object_list'))
 
 from ..models.users import Users

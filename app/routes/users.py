@@ -84,12 +84,7 @@ def login():
                 method=request.method
             )
             
-            # Проверяем, нужно ли предложить настройку PIN-кода
-            from ..utils.mobile_detection import is_mobile_device
-            
-            is_mobile = is_mobile_device()
-            
-            # Перенаправляем на dashboard, где будет проверка PIN для мобильных устройств
+            # Перенаправляем на dashboard
             return redirect(url_for('main.dashboard'))
         else:
             # Логируем неудачную попытку входа
@@ -121,8 +116,8 @@ def login():
     print(f"DEBUG: Параметр mobile=1: {mobile_param}, Устройство мобильное: {device_mobile}, Итоговое решение: {is_mobile}")
     
     if is_mobile:
-        # Временно отключаем PIN/FaceID и всегда показываем мобильную страницу логина
-        print(f"DEBUG: Отображение мобильной страницы входа (PIN отключен)")
+        # Показываем мобильную страницу логина
+        print(f"DEBUG: Отображение мобильной страницы входа")
         return render_template('main/mobile_sign_in.html')
     else:
         print(f"DEBUG: Отображение десктопной страницы входа")
