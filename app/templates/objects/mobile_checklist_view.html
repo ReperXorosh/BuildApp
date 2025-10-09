@@ -15,7 +15,7 @@
             <div class="mobile-card-text">Чек‑лист ещё не создан</div>
             {% endif %}
         </div>
-        {% if current_user.role == 'Инженер ПТО' %}
+        {% if current_user.role in ['Инженер ПТО', 'Ген. директор'] %}
         <a class="btn btn-sm btn-primary" href="{{ url_for('objects.add_checklist_item', object_id=object.id) }}">Добавить</a>
         {% endif %}
     </div>
@@ -47,7 +47,7 @@
                     <button class="btn btn-sm btn-{{ 'success' if item.is_completed else 'outline-success' }}" onclick="toggleItem('{{ item.id }}', '{{ object.id }}')" title="Переключить статус">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </button>
-                    {% if current_user.role == 'Инженер ПТО' %}
+                    {% if current_user.role in ['Инженер ПТО', 'Ген. директор'] %}
                     <button class="btn btn-sm btn-outline-info" 
                         data-item-id="{{ item.id }}" data-object-id="{{ object.id }}" 
                         data-current-quantity="{{ item.current_quantity or 0 }}" data-planned-quantity="{{ item.quantity or 0 }}" data-unit="{{ item.unit or 'шт' }}"

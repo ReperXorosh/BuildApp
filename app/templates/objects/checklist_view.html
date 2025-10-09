@@ -296,7 +296,7 @@
                         <i class="bi bi-arrow-left me-1"></i>
                         Назад к объекту
                     </a>
-                    {% if current_user.role == 'Инженер ПТО' %}
+                    {% if current_user.role in ['Инженер ПТО', 'Ген. директор'] %}
                       <a href="{{ url_for('objects.add_checklist_item', object_id=object.id) }}" class="btn btn-primary me-2">
                         <i class="bi bi-plus-lg me-1"></i>
                         Добавить позицию
@@ -490,7 +490,7 @@
                                             </button>
                                             
                                              <!-- Кнопка редактирования -->
-                                            {% if current_user.role == 'Инженер ПТО' %}
+                                            {% if current_user.role in ['Инженер ПТО', 'Ген. директор'] %}
                                             <a href="{{ url_for('objects.edit_checklist_item', object_id=object.id, item_id=item.id) }}" 
                                                class="btn btn-sm btn-outline-primary" title="Редактировать">
                                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -501,7 +501,7 @@
                                              {% endif %}
                                             
                                              <!-- Кнопка удаления -->
-                                             {% if current_user.role == 'Инженер ПТО' %}
+                                             {% if current_user.role in ['Инженер ПТО', 'Ген. директор'] %}
                                             <button class="btn btn-sm btn-outline-danger" 
                                                     onclick="deleteItem('{{ item.id }}', '{{ object.id }}')"
                                                     title="Удалить">
@@ -537,7 +537,7 @@
                     <i class="bi bi-list-check"></i>
                     <h4>Чек-лист пуст</h4>
                     <p>В чек-листе пока нет позиций для проверки</p>
-                    {% if current_user.role == 'Инженер ПТО' %}
+                    {% if current_user.role in ['Инженер ПТО', 'Ген. директор'] %}
                     <a href="{{ url_for('objects.add_checklist_item', object_id=object.id) }}" class="btn btn-primary">
                         Добавить первую позицию
                     </a>
@@ -548,7 +548,7 @@
                     <i class="bi bi-list-check"></i>
                     <h4>Чек-лист не создан</h4>
                     <p>Чек-лист для этого объекта еще не создан</p>
-                    {% if current_user.role == 'Инженер ПТО' %}
+                    {% if current_user.role in ['Инженер ПТО', 'Ген. директор'] %}
                     <a href="{{ url_for('objects.add_checklist_item', object_id=object.id) }}" class="btn btn-primary">
                         Создать чек-лист
                     </a>

@@ -637,7 +637,7 @@
                  </a>
              </li>
              {% endif %}
-                    {% if current_user.role == 'Инженер ПТО' %}
+                    {% if current_user.role in ['Инженер ПТО', 'Ген. директор'] %}
        <li>
            <a href="{{ url_for('main.users') }}"
               class="nav-link {{ 'active' if active_page == 'users' else 'link-body-emphasis' }}">
@@ -647,6 +647,8 @@
                {{ gettext('Пользователи') }}
            </a>
        </li>
+       {% endif %}
+       {% if current_user.role == 'Инженер ПТО' %}
        <li>
            <a href="{{ url_for('activity_log.view_activity_log') }}"
               class="nav-link {{ 'active' if active_page == 'activity-log' else 'link-body-emphasis' }}">
@@ -658,7 +660,7 @@
        </li>
        {% endif %}
        
-       {% if current_user.role in ['Снабженец', 'Инженер ПТО'] %}
+       {% if current_user.role in ['Снабженец', 'Инженер ПТО', 'Ген. директор'] %}
        <li>
            <a href="{{ url_for('supply.supply_dashboard') }}"
               class="nav-link {{ 'active' if active_page == 'supply' else 'link-body-emphasis' }}">

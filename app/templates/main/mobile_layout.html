@@ -567,7 +567,7 @@
             <a href="{{ url_for('objects.planned_works_overview') }}" class="mobile-menu-item {{ 'active' if active_page == 'planned_works' else '' }}">
                 {{ gettext('Запланированные работы') }}
             </a>
-            {% if current_user.role in ['Инженер ПТО', 'Зам. директор', 'Ген. директор'] %}
+            {% if current_user.role == 'Инженер ПТО' %}
             <a href="{{ url_for('activity_log.view_activity_log') }}" class="mobile-menu-item {{ 'active' if active_page == 'activity_log' else '' }}">
                 {{ gettext('Журнал действий') }}
             </a>

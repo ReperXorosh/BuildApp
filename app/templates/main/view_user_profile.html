@@ -22,7 +22,7 @@
                 </svg>
                 Назад к списку
             </a>
-            {% if current_user.role == 'Инженер ПТО' %}
+            {% if current_user.role in ['Инженер ПТО', 'Ген. директор'] %}
             <a href="{{ url_for('main.edit_user', user_id=user.userid) }}" class="btn btn-primary">
                 <svg class="bi me-1" width="16" height="16" fill="currentColor">
                     <use href="#pencil"></use>
@@ -102,7 +102,7 @@
                     </div>
 
                     <!-- Дополнительные действия -->
-                    {% if current_user.role == 'Инженер ПТО' and user.userid != current_user.userid %}
+                    {% if current_user.role in ['Инженер ПТО', 'Ген. директор'] and user.userid != current_user.userid %}
                     <div class="d-grid gap-2">
                         <button type="button" class="btn btn-outline-danger btn-sm" 
                                 onclick="confirmDelete('{{ user.userid }}', '{{ user.login }}')">
