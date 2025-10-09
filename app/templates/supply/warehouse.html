@@ -8,7 +8,9 @@
     <!-- Заголовок с кнопками -->
     <div class="row">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4" 
+                 data-user-role="{{ current_user.role }}" 
+                 data-can-delete="{% if current_user.role in ['Инженер ПТО', 'Ген.Директор'] %}true{% else %}false{% endif %}">
                 <h2><i class="bi bi-boxes me-2"></i>Склад</h2>
                 <div class="btn-group" role="group">
                     <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#movementModal">
@@ -239,6 +241,28 @@ async function loadMaterials() {
         statusBadge = '<span class="badge bg-success">В наличии</span>';
       }
       
+      // Определяем, может ли пользователь удалять материалы (только админы)
+      const canDelete = document.querySelector('[data-can-delete]').getAttribute('data-can-delete') === 'true';
+      
+      let actionsHtml = `
+        <button class="btn btn-sm btn-outline-primary" onclick="editMaterial('${material.id}')" title="Редактировать">
+          <i class="bi bi-pencil"></i>
+        </button>
+      `;
+      
+      if (canDelete) {
+        actionsHtml += `
+          <button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteMaterial('${material.id}')" title="Удалить">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        `;
+      }
+      
       row.innerHTML = `
         <td>${material.name}</td>
         <td>${material.unit}</td>
@@ -246,9 +270,7 @@ async function loadMaterials() {
         <td>${material.min_quantity || 0}</td>
         <td>${statusBadge}</td>
         <td>
-          <button class="btn btn-sm btn-outline-primary" onclick="editMaterial('${material.id}')">
-            <i class="bi bi-pencil"></i>
-          </button>
+          ${actionsHtml}
         </td>
       `;
       
@@ -553,6 +575,30 @@ async function loadUsersToSelect() {
   } catch (error) {
     console.error('Ошибка загрузки пользователей:', error);
     select.innerHTML = '<option value="">Ошибка загрузки пользователей: ' + error.message + '</option>';
+  }
+}
+
+// Удаление материала
+async function deleteMaterial(materialId) {
+  if (!confirm('Вы уверены, что хотите удалить эту позицию? Это действие нельзя отменить.')) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`{{ url_for("supply.api_materials") }}/${materialId}`, {
+      method: 'DELETE'
+    });
+    
+    if (response.ok) {
+      loadMaterials(); // Перезагружаем таблицу
+      alert('Позиция успешно удалена');
+    } else {
+      const error = await response.json();
+      alert('Ошибка удаления позиции: ' + (error.error || 'Неизвестная ошибка'));
+    }
+  } catch (error) {
+    console.error('Ошибка:', error);
+    alert('Ошибка удаления позиции');
   }
 }
 

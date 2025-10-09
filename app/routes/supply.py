@@ -136,7 +136,7 @@ def warehouse_view():
         method=request.method
     )
 
-    return render_template('supply/warehouse.html', materials=materials, recent_movements=recent_movements, allocations=allocations)
+    return render_template('supply/warehouse.html', materials=materials, recent_movements=recent_movements, allocations=allocations, current_user=current_user)
 
 @supply.route('/supply/warehouse/movements')
 @login_required
@@ -326,6 +326,48 @@ def api_materials_update(material_id):
                 return jsonify({'error': f'Неверное значение {fnum}'}), 400
     db.session.commit()
     return jsonify(material.to_dict())
+
+@supply.route('/api/supply/materials/<uuid:material_id>', methods=['DELETE'])
+@login_required
+def api_materials_delete(material_id):
+    """Удаление материала (только для админов)"""
+    if not is_supplier_or_admin():
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    
+    # Проверяем, что пользователь - админ
+    if current_user.role not in ['Инженер ПТО', 'Ген.Директор']:
+        return jsonify({'error': 'Удаление материалов доступно только администраторам'}), 403
+    
+    material = Material.query.get(material_id)
+    if not material:
+        return jsonify({'error': 'Материал не найден'}), 404
+    
+    # Проверяем, есть ли связанные движения или распределения
+    movements_count = WarehouseMovement.query.filter_by(material_id=material_id).count()
+    allocations_count = UserMaterialAllocation.query.filter_by(material_id=material_id).count()
+    
+    if movements_count > 0 or allocations_count > 0:
+        return jsonify({
+            'error': f'Нельзя удалить материал, так как с ним связаны движения ({movements_count}) или распределения ({allocations_count})'
+        }), 400
+    
+    material_name = material.name
+    
+    # Логируем действие перед удалением
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Удаление материала",
+        description=f"Удален материал: {material_name}",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    db.session.delete(material)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': f'Материал "{material_name}" успешно удален'})
 
 @supply.route('/api/supply/movements', methods=['POST'])
 @login_required
