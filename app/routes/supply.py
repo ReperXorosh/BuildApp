@@ -137,6 +137,48 @@ def warehouse_view():
 
     return render_template('supply/warehouse.html', materials=materials, recent_movements=recent_movements, allocations=allocations)
 
+@supply.route('/supply/warehouse/movements')
+@login_required
+def warehouse_movements():
+    """Страница истории перемещений"""
+    if not is_supplier_or_admin():
+        flash('У вас нет прав для доступа к истории перемещений', 'error')
+        return redirect(url_for('objects.object_list'))
+    
+    # Логируем просмотр страницы истории перемещений
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр страницы",
+        description=f"Пользователь {current_user.login} просмотрел историю перемещений",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return render_template('supply/movements_history.html')
+
+@supply.route('/supply/warehouse/allocations')
+@login_required
+def warehouse_allocations():
+    """Страница распределения позиций по пользователям"""
+    if not is_supplier_or_admin():
+        flash('У вас нет прав для доступа к распределению позиций', 'error')
+        return redirect(url_for('objects.object_list'))
+    
+    # Логируем просмотр страницы распределения
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр страницы",
+        description=f"Пользователь {current_user.login} просмотрел распределение позиций",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return render_template('supply/allocations.html')
+
 @supply.route('/supply/equipment')
 @login_required
 def equipment_list():
@@ -353,8 +395,64 @@ def api_create_movement():
 def api_list_movements():
     if not is_supplier_or_admin():
         return jsonify({'error': 'Недостаточно прав'}), 403
-    q = WarehouseMovement.query.order_by(WarehouseMovement.created_at.desc()).limit(200).all()
-    return jsonify([m.to_dict() for m in q])
+    
+    # Получаем движения с информацией о материалах и пользователях
+    movements = db.session.query(
+        WarehouseMovement,
+        Material.name.label('material_name'),
+        Users.secondname.label('user_last_name'),
+        Users.firstname.label('user_first_name'),
+        Users.login.label('user_login')
+    ).join(
+        Material, WarehouseMovement.material_id == Material.id
+    ).outerjoin(
+        Users, WarehouseMovement.to_user_id == Users.userid
+    ).order_by(
+        WarehouseMovement.created_at.desc()
+    ).limit(200).all()
+    
+    result = []
+    for movement, material_name, user_last_name, user_first_name, user_login in movements:
+        movement_dict = movement.to_dict()
+        movement_dict['material_name'] = material_name
+        movement_dict['to_user_name'] = f"{user_last_name or ''} {user_first_name or ''}".strip() or user_login
+        result.append(movement_dict)
+    
+    return jsonify(result)
+
+@supply.route('/api/supply/allocations', methods=['GET'])
+@login_required
+def api_list_allocations():
+    """Получение списка распределений позиций по пользователям"""
+    if not is_supplier_or_admin():
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    
+    # Получаем распределения с информацией о материалах и пользователях
+    allocations = db.session.query(
+        UserMaterialAllocation,
+        Material.name.label('material_name'),
+        Material.unit.label('material_unit'),
+        Users.secondname.label('user_last_name'),
+        Users.firstname.label('user_first_name'),
+        Users.login.label('user_login')
+    ).join(
+        Material, UserMaterialAllocation.material_id == Material.id
+    ).join(
+        Users, UserMaterialAllocation.user_id == Users.userid
+    ).order_by(
+        UserMaterialAllocation.created_at.desc()
+    ).all()
+    
+    result = []
+    for allocation, material_name, material_unit, user_last_name, user_first_name, user_login in allocations:
+        allocation_dict = allocation.to_dict()
+        allocation_dict['material_name'] = material_name
+        allocation_dict['material_unit'] = material_unit
+        allocation_dict['user_name'] = f"{user_last_name or ''} {user_first_name or ''}".strip() or user_login
+        allocation_dict['user_login'] = user_login
+        result.append(allocation_dict)
+    
+    return jsonify(result)
 
 @supply.route('/api/supply/users/search', methods=['GET'])
 @login_required

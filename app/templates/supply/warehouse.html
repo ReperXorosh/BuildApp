@@ -4,7 +4,7 @@
 {% block title %}Склад{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid" style="margin-top: 80px;">
     <!-- Заголовок с кнопками -->
     <div class="row">
         <div class="col-12">
@@ -20,6 +20,14 @@
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMaterialModal">
                         <i class="bi bi-plus me-1"></i>Добавить позицию
                     </button>
+                </div>
+                <div class="btn-group ms-2" role="group">
+                    <a href="{{ url_for('supply.warehouse_movements') }}" class="btn btn-outline-info">
+                        <i class="bi bi-clock-history me-1"></i>История
+                    </a>
+                    <a href="{{ url_for('supply.warehouse_allocations') }}" class="btn btn-outline-warning">
+                        <i class="bi bi-people me-1"></i>Распределение
+                    </a>
                 </div>
             </div>
         </div>

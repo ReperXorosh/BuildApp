@@ -1,0 +1,283 @@
+{% extends "main/layout.html" %}
+{% set active_page = 'supply' %}
+
+{% block title %}История перемещений{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="margin-top: 80px;">
+    <!-- Заголовок -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-clock-history me-2"></i>История перемещений</h2>
+                <div class="btn-group" role="group">
+                    <a href="{{ url_for('supply.warehouse_view') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>Назад к складу
+                    </a>
+                    <a href="{{ url_for('supply.warehouse_allocations') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-people me-1"></i>Распределение
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Фильтры -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Поиск по материалу</label>
+                            <input type="text" class="form-control" id="searchMaterial" placeholder="Название материала...">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Тип движения</label>
+                            <select class="form-select" id="filterType">
+                                <option value="">Все типы</option>
+                                <option value="add">Поступление</option>
+                                <option value="move">Выдача</option>
+                                <option value="return">Возврат</option>
+                                <option value="writeoff">Списание</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Пользователь</label>
+                            <input type="text" class="form-control" id="searchUser" placeholder="Имя пользователя...">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Дата от</label>
+                            <input type="date" class="form-control" id="dateFrom">
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-3">
+                            <label class="form-label">Дата до</label>
+                            <input type="date" class="form-control" id="dateTo">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-primary me-2" onclick="applyFilters()">
+                                <i class="bi bi-search me-1"></i>Применить
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                                <i class="bi bi-x-lg me-1"></i>Очистить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Таблица истории -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="card-title mb-0">История перемещений</h5>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <span class="badge bg-info" id="totalCount">Всего записей: 0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Материал</th>
+                                    <th>Тип</th>
+                                    <th>Количество</th>
+                                    <th>Пользователь</th>
+                                    <th>Примечание</th>
+                                    <th>Файлы</th>
+                                </tr>
+                            </thead>
+                            <tbody id="movements-table">
+                                <!-- Данные будут загружены через JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Загрузка истории перемещений
+async function loadMovements() {
+  try {
+    const response = await fetch('{{ url_for("supply.api_list_movements") }}');
+    const movements = await response.json();
+    
+    displayMovements(movements);
+  } catch (error) {
+    console.error('Ошибка загрузки истории перемещений:', error);
+  }
+}
+
+// Отображение перемещений
+function displayMovements(movements) {
+  const tbody = document.getElementById('movements-table');
+  tbody.innerHTML = '';
+  
+  document.getElementById('totalCount').textContent = `Всего записей: ${movements.length}`;
+  
+  movements.forEach(movement => {
+    const row = document.createElement('tr');
+    
+    // Определяем тип движения
+    let typeBadge = '';
+    switch(movement.movement_type) {
+      case 'add':
+        typeBadge = '<span class="badge bg-success">Поступление</span>';
+        break;
+      case 'move':
+        typeBadge = '<span class="badge bg-primary">Выдача</span>';
+        break;
+      case 'return':
+        typeBadge = '<span class="badge bg-info">Возврат</span>';
+        break;
+      case 'writeoff':
+        typeBadge = '<span class="badge bg-danger">Списание</span>';
+        break;
+      default:
+        typeBadge = '<span class="badge bg-secondary">Неизвестно</span>';
+    }
+    
+    // Форматируем дату
+    const date = new Date(movement.created_at);
+    const formattedDate = date.toLocaleDateString('ru-RU') + ' ' + date.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});
+    
+    // Файлы
+    let filesHtml = '';
+    if (movement.attachments && movement.attachments.length > 0) {
+      movement.attachments.forEach(attachment => {
+        filesHtml += `<a href="/supply/api/supply/movements/${movement.id}/attachments/${attachment.id}/download" class="btn btn-sm btn-outline-secondary me-1" title="${attachment.original_filename}">
+          <i class="bi bi-file-earmark"></i>
+        </a>`;
+      });
+    } else {
+      filesHtml = '<span class="text-muted">-</span>';
+    }
+    
+    row.innerHTML = `
+      <td>${formattedDate}</td>
+      <td>${movement.material_name || 'Неизвестно'}</td>
+      <td>${typeBadge}</td>
+      <td>${movement.quantity}</td>
+      <td>${movement.to_user_name || 'Не указан'}</td>
+      <td>${movement.notes || '-'}</td>
+      <td>${filesHtml}</td>
+    `;
+    
+    tbody.appendChild(row);
+  });
+}
+
+// Применение фильтров
+function applyFilters() {
+  const searchMaterial = document.getElementById('searchMaterial').value.toLowerCase();
+  const filterType = document.getElementById('filterType').value;
+  const searchUser = document.getElementById('searchUser').value.toLowerCase();
+  const dateFrom = document.getElementById('dateFrom').value;
+  const dateTo = document.getElementById('dateTo').value;
+  
+  const rows = document.querySelectorAll('#movements-table tr');
+  let visibleCount = 0;
+  
+  rows.forEach(row => {
+    const material = row.cells[1]?.textContent.toLowerCase() || '';
+    const type = row.cells[2]?.textContent.toLowerCase() || '';
+    const user = row.cells[4]?.textContent.toLowerCase() || '';
+    const dateText = row.cells[0]?.textContent || '';
+    
+    let show = true;
+    
+    // Фильтр по материалу
+    if (searchMaterial && !material.includes(searchMaterial)) {
+      show = false;
+    }
+    
+    // Фильтр по типу
+    if (filterType) {
+      const typeMap = {
+        'add': 'поступление',
+        'move': 'выдача',
+        'return': 'возврат',
+        'writeoff': 'списание'
+      };
+      if (!type.includes(typeMap[filterType])) {
+        show = false;
+      }
+    }
+    
+    // Фильтр по пользователю
+    if (searchUser && !user.includes(searchUser)) {
+      show = false;
+    }
+    
+    // Фильтр по дате
+    if (dateFrom || dateTo) {
+      const rowDate = new Date(dateText.split(' ')[0].split('.').reverse().join('-'));
+      
+      if (dateFrom) {
+        const fromDate = new Date(dateFrom);
+        if (rowDate < fromDate) show = false;
+      }
+      
+      if (dateTo) {
+        const toDate = new Date(dateTo);
+        if (rowDate > toDate) show = false;
+      }
+    }
+    
+    if (show) {
+      row.style.display = '';
+      visibleCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+  
+  document.getElementById('totalCount').textContent = `Показано записей: ${visibleCount}`;
+}
+
+// Очистка фильтров
+function clearFilters() {
+  document.getElementById('searchMaterial').value = '';
+  document.getElementById('filterType').value = '';
+  document.getElementById('searchUser').value = '';
+  document.getElementById('dateFrom').value = '';
+  document.getElementById('dateTo').value = '';
+  
+  // Показываем все строки
+  const rows = document.querySelectorAll('#movements-table tr');
+  rows.forEach(row => {
+    row.style.display = '';
+  });
+  
+  document.getElementById('totalCount').textContent = `Всего записей: ${rows.length}`;
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+  loadMovements();
+  
+  // Устанавливаем сегодняшнюю дату по умолчанию
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('dateTo').value = today;
+  
+  // Устанавливаем дату месяц назад
+  const monthAgo = new Date();
+  monthAgo.setMonth(monthAgo.getMonth() - 1);
+  document.getElementById('dateFrom').value = monthAgo.toISOString().split('T')[0];
+});
+</script>
+{% endblock %}

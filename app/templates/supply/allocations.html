@@ -1,0 +1,297 @@
+{% extends "main/layout.html" %}
+{% set active_page = 'supply' %}
+
+{% block title %}Распределение позиций{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="margin-top: 80px;">
+    <!-- Заголовок -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-people me-2"></i>Распределение позиций</h2>
+                <div class="btn-group" role="group">
+                    <a href="{{ url_for('supply.warehouse_view') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>Назад к складу
+                    </a>
+                    <a href="{{ url_for('supply.warehouse_movements') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-clock-history me-1"></i>История
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Фильтры -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Поиск по пользователю</label>
+                            <input type="text" class="form-control" id="searchUser" placeholder="Имя пользователя...">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Поиск по материалу</label>
+                            <input type="text" class="form-control" id="searchMaterial" placeholder="Название материала...">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button class="btn btn-primary me-2" onclick="applyFilters()">
+                                <i class="bi bi-search me-1"></i>Применить
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                                <i class="bi bi-x-lg me-1"></i>Очистить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title" id="totalUsers">0</h4>
+                            <p class="card-text">Пользователей</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-people fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title" id="totalMaterials">0</h4>
+                            <p class="card-text">Материалов</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-boxes fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title" id="totalAllocations">0</h4>
+                            <p class="card-text">Распределений</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-arrow-left-right fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title" id="totalQuantity">0</h4>
+                            <p class="card-text">Общее количество</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-calculator fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Таблица распределения -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="card-title mb-0">Распределение позиций по пользователям</h5>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <span class="badge bg-info" id="visibleCount">Показано записей: 0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Пользователь</th>
+                                    <th>Материал</th>
+                                    <th>Количество</th>
+                                    <th>Ед. изм.</th>
+                                    <th>Дата выдачи</th>
+                                    <th>Статус</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allocations-table">
+                                <!-- Данные будут загружены через JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Загрузка распределений
+async function loadAllocations() {
+  try {
+    const response = await fetch('{{ url_for("supply.api_list_allocations") }}');
+    const allocations = await response.json();
+    
+    displayAllocations(allocations);
+    updateStatistics(allocations);
+  } catch (error) {
+    console.error('Ошибка загрузки распределений:', error);
+  }
+}
+
+// Отображение распределений
+function displayAllocations(allocations) {
+  const tbody = document.getElementById('allocations-table');
+  tbody.innerHTML = '';
+  
+  allocations.forEach(allocation => {
+    const row = document.createElement('tr');
+    
+    // Определяем статус
+    let statusBadge = '';
+    if (allocation.quantity > 0) {
+      statusBadge = '<span class="badge bg-success">Активно</span>';
+    } else {
+      statusBadge = '<span class="badge bg-secondary">Завершено</span>';
+    }
+    
+    // Форматируем дату
+    const date = new Date(allocation.created_at);
+    const formattedDate = date.toLocaleDateString('ru-RU');
+    
+    row.innerHTML = `
+      <td>
+        <div class="d-flex align-items-center">
+          <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
+            <i class="bi bi-person text-white"></i>
+          </div>
+          <div>
+            <div class="fw-semibold">${allocation.user_name || 'Неизвестно'}</div>
+            <small class="text-muted">${allocation.user_login || ''}</small>
+          </div>
+        </div>
+      </td>
+      <td>${allocation.material_name || 'Неизвестно'}</td>
+      <td><span class="fw-semibold">${allocation.quantity}</span></td>
+      <td>${allocation.material_unit || ''}</td>
+      <td>${formattedDate}</td>
+      <td>${statusBadge}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-info" onclick="viewAllocationDetails('${allocation.id}')" title="Подробности">
+          <i class="bi bi-eye"></i>
+        </button>
+      </td>
+    `;
+    
+    tbody.appendChild(row);
+  });
+  
+  document.getElementById('visibleCount').textContent = `Показано записей: ${allocations.length}`;
+}
+
+// Обновление статистики
+function updateStatistics(allocations) {
+  const users = new Set(allocations.map(a => a.user_id)).size;
+  const materials = new Set(allocations.map(a => a.material_id)).size;
+  const totalQuantity = allocations.reduce((sum, a) => sum + (a.quantity || 0), 0);
+  
+  document.getElementById('totalUsers').textContent = users;
+  document.getElementById('totalMaterials').textContent = materials;
+  document.getElementById('totalAllocations').textContent = allocations.length;
+  document.getElementById('totalQuantity').textContent = totalQuantity;
+}
+
+// Применение фильтров
+function applyFilters() {
+  const searchUser = document.getElementById('searchUser').value.toLowerCase();
+  const searchMaterial = document.getElementById('searchMaterial').value.toLowerCase();
+  
+  const rows = document.querySelectorAll('#allocations-table tr');
+  let visibleCount = 0;
+  
+  rows.forEach(row => {
+    const user = row.cells[0]?.textContent.toLowerCase() || '';
+    const material = row.cells[1]?.textContent.toLowerCase() || '';
+    
+    let show = true;
+    
+    if (searchUser && !user.includes(searchUser)) {
+      show = false;
+    }
+    
+    if (searchMaterial && !material.includes(searchMaterial)) {
+      show = false;
+    }
+    
+    if (show) {
+      row.style.display = '';
+      visibleCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+  
+  document.getElementById('visibleCount').textContent = `Показано записей: ${visibleCount}`;
+}
+
+// Очистка фильтров
+function clearFilters() {
+  document.getElementById('searchUser').value = '';
+  document.getElementById('searchMaterial').value = '';
+  
+  const rows = document.querySelectorAll('#allocations-table tr');
+  rows.forEach(row => {
+    row.style.display = '';
+  });
+  
+  document.getElementById('visibleCount').textContent = `Показано записей: ${rows.length}`;
+}
+
+// Просмотр деталей распределения
+function viewAllocationDetails(allocationId) {
+  // Здесь можно добавить модальное окно с деталями
+  alert('Функция просмотра деталей будет добавлена позже');
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+  loadAllocations();
+});
+</script>
+
+<style>
+.avatar-sm {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+}
+</style>
+{% endblock %}
