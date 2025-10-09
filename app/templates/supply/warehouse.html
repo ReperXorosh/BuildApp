@@ -80,26 +80,10 @@
                             </div>
                             <div class="col-12">
                                 <label class="form-label">Кому выдать</label>
-                                <div class="position-relative">
-                                    <input type="text" class="form-control" id="user_search" placeholder="Начните вводить имя или фамилию..." autocomplete="off">
-                                    <input type="hidden" name="to_user_id" id="to_user_id">
-                                    <div class="user-dropdown" id="user_dropdown" style="display: none;">
-                                        <div class="user-dropdown-header">
-                                            <small class="text-muted">Выберите пользователя:</small>
-                                        </div>
-                                        <div class="user-dropdown-list" id="users_list">
-                                            <!-- Список пользователей будет загружен здесь -->
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="selected-user-display mt-2" id="selected_user_display" style="display: none;">
-                                    <span class="badge bg-primary">
-                                        <i class="bi bi-person-check me-1"></i>
-                                        <span id="selected_user_name"></span>
-                                        <button type="button" class="btn-close btn-close-white ms-2" style="font-size: 0.7em;" onclick="clearUserSelection()"></button>
-                                      </span>
-                                  </div>
-                             </div>
+                                <select class="form-select" name="to_user_id" id="to_user_id" required>
+                                    <option value="">Выберите пользователя...</option>
+                                </select>
+                            </div>
                               <div class="col-12">
                                 <label class="form-label">Примечание</label>
                                 <input class="form-control" name="note">
@@ -187,119 +171,6 @@
     </div>
 </div>
 
-<style>
-/* Стили для компактного выбора пользователей */
-.user-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    background: var(--bs-body-bg);
-    border: 1px solid var(--bs-border-color);
-    border-radius: 0.375rem;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    max-height: 300px;
-    overflow: hidden;
-}
-
-.user-dropdown-header {
-    padding: 0.5rem 0.75rem;
-    background: var(--bs-light);
-    border-bottom: 1px solid var(--bs-border-color);
-}
-
-.user-dropdown-list {
-    max-height: 250px;
-    overflow-y: auto;
-}
-
-.user-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0.75rem;
-    cursor: pointer;
-    border-bottom: 1px solid var(--bs-border-color);
-    transition: background-color 0.15s ease;
-}
-
-.user-item:last-child {
-    border-bottom: none;
-}
-
-.user-item:hover {
-    background-color: var(--bs-primary);
-    color: white;
-}
-
-.user-item:hover .user-role {
-    background-color: rgba(255, 255, 255, 0.2) !important;
-    color: white !important;
-}
-
-.user-info {
-    flex: 1;
-}
-
-.user-name {
-    font-weight: 500;
-    font-size: 0.9rem;
-}
-
-.user-login {
-    font-size: 0.8rem;
-    opacity: 0.7;
-}
-
-.user-role {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    background-color: var(--bs-secondary);
-    color: var(--bs-body-color);
-}
-
-.selected-user-display .badge {
-    font-size: 0.9rem;
-    padding: 0.5rem 0.75rem;
-}
-
-/* Поддержка темной темы */
-[data-bs-theme="dark"] .user-dropdown {
-    background: var(--bs-dark);
-    border-color: var(--bs-border-color);
-}
-
-[data-bs-theme="dark"] .user-dropdown-header {
-    background: var(--bs-dark);
-    border-color: var(--bs-border-color);
-}
-
-[data-bs-theme="dark"] .user-item {
-    border-color: var(--bs-border-color);
-}
-
-[data-bs-theme="dark"] .user-item:hover {
-    background-color: var(--bs-primary);
-}
-
-/* Стили для поиска */
-#user_search:focus {
-    border-color: var(--bs-primary);
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
-
-/* Анимации */
-.user-dropdown {
-    animation: fadeIn 0.15s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-</style>
 
 <script>
 document.getElementById('form-create-material').addEventListener('submit', async (e) => {
@@ -331,155 +202,50 @@ document.getElementById('form-movement').addEventListener('submit', async (e) =>
   if (resp.ok) location.reload(); else alert('Ошибка проведения движения');
 });
 
-// Функция для компактного выбора пользователей
-function createUserSelector() {
-  const searchInput = document.getElementById('user_search');
-  const usersList = document.getElementById('users_list');
-  const hiddenInput = document.getElementById('to_user_id');
-  const dropdown = document.getElementById('user_dropdown');
-  const selectedDisplay = document.getElementById('selected_user_display');
-  const selectedName = document.getElementById('selected_user_name');
-  let allUsers = [];
-  let filteredUsers = [];
-  let searchTimeout;
-
-  // Загрузка всех пользователей
-  async function loadAllUsers() {
-    try {
-      const response = await fetch('{{ url_for('supply.api_get_all_users') }}');
-      
-      if (response.status === 403) {
-        usersList.innerHTML = '<div class="text-warning p-3">Недостаточно прав для просмотра пользователей</div>';
-        return;
-      }
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      allUsers = await response.json();
-      filteredUsers = [...allUsers];
-      
-      // Показываем сообщение если пользователей нет
-      if (allUsers.length === 0) {
-        usersList.innerHTML = '<div class="text-muted text-center py-3">Пользователи не найдены в системе</div>';
-      }
-    } catch (error) {
-      console.error('Ошибка загрузки пользователей:', error);
-      usersList.innerHTML = '<div class="text-danger p-3">Ошибка загрузки пользователей: ' + error.message + '</div>';
-    }
-  }
-
-  // Отображение пользователей
-  function renderUsers() {
-    usersList.innerHTML = '';
+// Простая загрузка пользователей в select
+async function loadUsersToSelect() {
+  const select = document.getElementById('to_user_id');
+  
+  try {
+    const response = await fetch('{{ url_for('supply.api_get_all_users') }}');
     
-    if (filteredUsers.length === 0) {
-      usersList.innerHTML = '<div class="text-muted text-center py-3">Пользователи не найдены</div>';
+    if (response.status === 403) {
+      select.innerHTML = '<option value="">Недостаточно прав для просмотра пользователей</option>';
       return;
     }
-
-    // Показываем только первые 20 результатов для производительности
-    const displayUsers = filteredUsers.slice(0, 20);
     
-    displayUsers.forEach(user => {
-      const userItem = document.createElement('div');
-      userItem.className = 'user-item';
-      
-      const userInfo = document.createElement('div');
-      userInfo.className = 'user-info';
-      userInfo.innerHTML = `
-        <div class="user-name">${user.name}</div>
-        <div class="user-login">${user.login}</div>
-      `;
-      
-      const roleBadge = document.createElement('span');
-      roleBadge.className = 'user-role';
-      roleBadge.textContent = user.role || 'Не указана';
-      
-      userItem.appendChild(userInfo);
-      userItem.appendChild(roleBadge);
-      
-      userItem.addEventListener('click', () => {
-        selectUser(user);
-      });
-      
-      usersList.appendChild(userItem);
+    if (!response.ok) {
+      select.innerHTML = '<option value="">Ошибка загрузки пользователей</option>';
+      return;
+    }
+    
+    const users = await response.json();
+    
+    if (users.length === 0) {
+      select.innerHTML = '<option value="">Пользователи не найдены в системе</option>';
+      return;
+    }
+    
+    // Очищаем select и добавляем пользователей
+    select.innerHTML = '<option value="">Выберите пользователя...</option>';
+    
+    users.forEach(user => {
+      const option = document.createElement('option');
+      option.value = user.id;
+      option.textContent = `${user.name} (${user.login}) - ${user.role}`;
+      select.appendChild(option);
     });
-
-    // Показываем информацию о количестве результатов
-    if (filteredUsers.length > 20) {
-      const moreInfo = document.createElement('div');
-      moreInfo.className = 'text-muted text-center py-2';
-      moreInfo.style.fontSize = '0.8rem';
-      moreInfo.textContent = `Показано 20 из ${filteredUsers.length} результатов`;
-      usersList.appendChild(moreInfo);
-    }
-  }
-
-  // Выбор пользователя
-  function selectUser(user) {
-    hiddenInput.value = user.id;
-    selectedName.textContent = user.display;
-    selectedDisplay.style.display = 'block';
-    searchInput.value = '';
-    dropdown.style.display = 'none';
-  }
-
-  // Очистка выбора
-  window.clearUserSelection = function() {
-    hiddenInput.value = '';
-    selectedDisplay.style.display = 'none';
-    searchInput.value = '';
-    dropdown.style.display = 'none';
-  };
-
-  // Поиск пользователей
-  searchInput.addEventListener('input', function() {
-    clearTimeout(searchTimeout);
-    const query = this.value.toLowerCase().trim();
     
-    if (query.length < 2) {
-      dropdown.style.display = 'none';
-      return;
-    }
-
-    searchTimeout = setTimeout(() => {
-      filteredUsers = allUsers.filter(user => {
-        const nameMatch = user.name.toLowerCase().includes(query);
-        const loginMatch = user.login.toLowerCase().includes(query);
-        const roleMatch = user.role && user.role.toLowerCase().includes(query);
-        
-        return nameMatch || loginMatch || roleMatch;
-      });
-      
-      renderUsers();
-      dropdown.style.display = 'block';
-    }, 200);
-  });
-
-  // Показать всех пользователей при фокусе
-  searchInput.addEventListener('focus', function() {
-    if (this.value.length < 2 && allUsers.length > 0) {
-      filteredUsers = [...allUsers];
-      renderUsers();
-      dropdown.style.display = 'block';
-    }
-  });
-
-  // Скрыть dropdown при клике вне его
-  document.addEventListener('click', function(e) {
-    if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
-      dropdown.style.display = 'none';
-    }
-  });
-
-  // Инициализация
-  loadAllUsers();
+  } catch (error) {
+    console.error('Ошибка загрузки пользователей:', error);
+    select.innerHTML = '<option value="">Ошибка загрузки пользователей</option>';
+  }
 }
 
-// Инициализация выбора пользователей
-createUserSelector();
+// Загружаем пользователей при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+  loadUsersToSelect();
+});
 </script>
 {% endblock %}
 
