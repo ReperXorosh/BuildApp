@@ -389,16 +389,30 @@ def api_get_all_users():
     if not is_supplier_or_admin():
         return jsonify({'error': 'Недостаточно прав'}), 403
     
-    # Получаем всех пользователей, отсортированных по фамилии
-    users = Users.query.order_by(Users.last_name, Users.first_name).all()
-    
-    return jsonify([{
-        'id': str(user.userid),
-        'name': f"{user.first_name} {user.last_name}".strip(),
-        'login': user.login,
-        'display': f"{user.first_name} {user.last_name} ({user.login})".strip(),
-        'role': user.role or 'Не указана'
-    } for user in users])
+    try:
+        # Получаем всех пользователей, отсортированных по фамилии
+        users = Users.query.order_by(Users.last_name, Users.first_name).all()
+        
+        print(f"API: Найдено {len(users)} пользователей в БД")
+        
+        result = []
+        for user in users:
+            user_data = {
+                'id': str(user.userid),
+                'name': f"{user.first_name or ''} {user.last_name or ''}".strip(),
+                'login': user.login or '',
+                'display': f"{user.first_name or ''} {user.last_name or ''} ({user.login or ''})".strip(),
+                'role': user.role or 'Не указана'
+            }
+            result.append(user_data)
+            print(f"API: Пользователь - {user_data['display']}")
+        
+        print(f"API: Возвращаем {len(result)} пользователей")
+        return jsonify(result)
+        
+    except Exception as e:
+        print(f"API: Ошибка при получении пользователей: {e}")
+        return jsonify({'error': f'Ошибка сервера: {str(e)}'}), 500
 
 @supply.route('/api/supply/movements/<uuid:movement_id>/attachments/<uuid:attachment_id>/download', methods=['GET'])
 @login_required

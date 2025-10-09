@@ -346,21 +346,30 @@ function createUserSelector() {
   // Загрузка всех пользователей
   async function loadAllUsers() {
     try {
+      console.log('Загружаем пользователей...');
       const response = await fetch('{{ url_for('supply.api_get_all_users') }}');
+      console.log('Response status:', response.status);
+      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      
       allUsers = await response.json();
+      console.log('Загружено пользователей:', allUsers.length);
+      console.log('Первые 3 пользователя:', allUsers.slice(0, 3));
+      
       filteredUsers = [...allUsers];
     } catch (error) {
       console.error('Ошибка загрузки пользователей:', error);
-      usersList.innerHTML = '<div class="text-danger p-3">Ошибка загрузки пользователей</div>';
+      usersList.innerHTML = '<div class="text-danger p-3">Ошибка загрузки пользователей: ' + error.message + '</div>';
     }
   }
 
   // Отображение пользователей
   function renderUsers() {
     usersList.innerHTML = '';
+    
+    console.log('renderUsers: filteredUsers.length =', filteredUsers.length);
     
     if (filteredUsers.length === 0) {
       usersList.innerHTML = '<div class="text-muted text-center py-3">Пользователи не найдены</div>';
@@ -427,17 +436,27 @@ function createUserSelector() {
     clearTimeout(searchTimeout);
     const query = this.value.toLowerCase().trim();
     
+    console.log('Поиск по запросу:', query);
+    console.log('Всего пользователей для поиска:', allUsers.length);
+    
     if (query.length < 2) {
       dropdown.style.display = 'none';
       return;
     }
 
     searchTimeout = setTimeout(() => {
-      filteredUsers = allUsers.filter(user => 
-        user.name.toLowerCase().includes(query) ||
-        user.login.toLowerCase().includes(query) ||
-        (user.role && user.role.toLowerCase().includes(query))
-      );
+      filteredUsers = allUsers.filter(user => {
+        const nameMatch = user.name.toLowerCase().includes(query);
+        const loginMatch = user.login.toLowerCase().includes(query);
+        const roleMatch = user.role && user.role.toLowerCase().includes(query);
+        
+        console.log(`Пользователь ${user.name}: name=${nameMatch}, login=${loginMatch}, role=${roleMatch}`);
+        
+        return nameMatch || loginMatch || roleMatch;
+      });
+      
+      console.log('Найдено пользователей:', filteredUsers.length);
+      console.log('Результаты поиска:', filteredUsers);
       
       renderUsers();
       dropdown.style.display = 'block';
