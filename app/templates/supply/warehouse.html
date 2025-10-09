@@ -78,27 +78,28 @@
                                     <option value="writeoff">Списание</option>
                                 </select>
                             </div>
-                            <div class="col-6">
-                                <label class="form-label">Кому</label>
-                                <div class="position-relative">
-                                    <input class="form-control" id="to_user_search" placeholder="Введите имя или фамилию" autocomplete="off">
-                                    <input type="hidden" name="to_user_id" id="to_user_id">
-                                    <div class="dropdown-menu w-100" id="to_user_dropdown" style="display: none; max-height: 200px; overflow-y: auto;">
+                            <div class="col-12">
+                                <label class="form-label">Кому выдать</label>
+                                <div class="accordion" id="userAccordion">
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#userCollapse" aria-expanded="false" aria-controls="userCollapse">
+                                                <span id="selected_user_display">Выберите пользователя</span>
+                                            </button>
+                                        </h2>
+                                        <div id="userCollapse" class="accordion-collapse collapse" data-bs-parent="#userAccordion">
+                                            <div class="accordion-body">
+                                                <div class="mb-3">
+                                                    <input type="text" class="form-control" id="user_search" placeholder="Поиск по имени или фамилии..." autocomplete="off">
+                                                </div>
+                                                <div id="users_list" style="max-height: 300px; overflow-y: auto;">
+                                                    <!-- Список пользователей будет загружен здесь -->
+                                                </div>
+                                                <input type="hidden" name="to_user_id" id="to_user_id">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <small class="text-muted" id="to_user_selected" style="display: none;"></small>
-                                <small class="form-text">Двойной клик для очистки</small>
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label">От кого</label>
-                                <div class="position-relative">
-                                    <input class="form-control" id="from_user_search" placeholder="Введите имя или фамилию" autocomplete="off">
-                                    <input type="hidden" name="from_user_id" id="from_user_id">
-                                    <div class="dropdown-menu w-100" id="from_user_dropdown" style="display: none; max-height: 200px; overflow-y: auto;">
-                                    </div>
-                                </div>
-                                <small class="text-muted" id="from_user_selected" style="display: none;"></small>
-                                <small class="form-text">Двойной клик для очистки</small>
                             </div>
                             <div class="col-12">
                                 <label class="form-label">Примечание</label>
@@ -188,39 +189,40 @@
 </div>
 
 <style>
-.dropdown-menu {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    z-index: 1000;
-    background: white;
+/* Стили для аккордеона пользователей */
+#userAccordion .accordion-button {
+    background-color: #f8f9fa;
     border: 1px solid #dee2e6;
+}
+
+#userAccordion .accordion-button:not(.collapsed) {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+}
+
+#userAccordion .accordion-button:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+#users_list .list-group-item {
+    border: 1px solid #dee2e6;
+    margin-bottom: 2px;
     border-radius: 0.375rem;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
 
-.dropdown-item {
-    display: block;
-    width: 100%;
-    padding: 0.5rem 1rem;
-    clear: both;
-    font-weight: 400;
-    color: #212529;
-    text-align: inherit;
-    text-decoration: none;
-    white-space: nowrap;
-    background-color: transparent;
-    border: 0;
-    cursor: pointer;
-}
-
-.dropdown-item:hover {
+#users_list .list-group-item:hover {
     background-color: #f8f9fa;
+    border-color: #0d6efd;
 }
 
-.dropdown-item:focus {
-    background-color: #f8f9fa;
-    outline: none;
+#users_list .list-group-item:active {
+    background-color: #e9ecef;
+}
+
+/* Стили для поиска */
+#user_search:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 </style>
 
@@ -254,81 +256,135 @@ document.getElementById('form-movement').addEventListener('submit', async (e) =>
   if (resp.ok) location.reload(); else alert('Ошибка проведения движения');
 });
 
-// Функция для создания автокомплита пользователей
-function createUserAutocomplete(inputId, hiddenId, dropdownId, selectedId) {
-  const input = document.getElementById(inputId);
-  const hidden = document.getElementById(hiddenId);
-  const dropdown = document.getElementById(dropdownId);
-  const selected = document.getElementById(selectedId);
-  let searchTimeout;
+// Функция для создания аккордеона пользователей
+function createUserAccordion() {
+  const searchInput = document.getElementById('user_search');
+  const usersList = document.getElementById('users_list');
+  const hiddenInput = document.getElementById('to_user_id');
+  const displaySpan = document.getElementById('selected_user_display');
+  const accordionButton = document.querySelector('#userAccordion .accordion-button');
+  let allUsers = [];
+  let filteredUsers = [];
 
-  input.addEventListener('input', function() {
-    clearTimeout(searchTimeout);
-    const query = this.value.trim();
+  // Загрузка всех пользователей
+  async function loadAllUsers() {
+    try {
+      const response = await fetch('{{ url_for('supply.api_get_all_users') }}');
+      allUsers = await response.json();
+      filteredUsers = [...allUsers];
+      renderUsers();
+    } catch (error) {
+      console.error('Ошибка загрузки пользователей:', error);
+      usersList.innerHTML = '<div class="text-danger">Ошибка загрузки пользователей</div>';
+    }
+  }
+
+  // Отображение пользователей
+  function renderUsers() {
+    usersList.innerHTML = '';
     
-    if (query.length < 2) {
-      dropdown.style.display = 'none';
-      hidden.value = '';
-      selected.style.display = 'none';
+    if (filteredUsers.length === 0) {
+      usersList.innerHTML = '<div class="text-muted text-center py-3">Пользователи не найдены</div>';
       return;
     }
 
-    searchTimeout = setTimeout(async () => {
-      try {
-        const response = await fetch(`{{ url_for('supply.api_search_users') }}?q=${encodeURIComponent(query)}`);
-        const users = await response.json();
-        
-        dropdown.innerHTML = '';
-        if (users.length === 0) {
-          dropdown.innerHTML = '<div class="dropdown-item text-muted">Пользователи не найдены</div>';
-        } else {
-          users.forEach(user => {
-            const item = document.createElement('div');
-            item.className = 'dropdown-item';
-            item.textContent = user.display;
-            item.addEventListener('click', () => {
-              input.value = user.display;
-              hidden.value = user.id;
-              selected.textContent = `Выбран: ${user.display}`;
-              selected.style.display = 'block';
-              dropdown.style.display = 'none';
-            });
-            dropdown.appendChild(item);
-          });
-        }
-        dropdown.style.display = 'block';
-      } catch (error) {
-        console.error('Ошибка поиска пользователей:', error);
+    // Группировка по ролям
+    const groupedUsers = {};
+    filteredUsers.forEach(user => {
+      const role = user.role || 'Не указана';
+      if (!groupedUsers[role]) {
+        groupedUsers[role] = [];
       }
-    }, 300);
-  });
+      groupedUsers[role].push(user);
+    });
 
-  // Скрыть dropdown при клике вне его
-  document.addEventListener('click', function(e) {
-    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
-      dropdown.style.display = 'none';
+    // Отображение по группам
+    Object.keys(groupedUsers).sort().forEach(role => {
+      const roleDiv = document.createElement('div');
+      roleDiv.className = 'mb-3';
+      
+      const roleHeader = document.createElement('h6');
+      roleHeader.className = 'text-muted mb-2';
+      roleHeader.textContent = role;
+      roleDiv.appendChild(roleHeader);
+
+      const usersDiv = document.createElement('div');
+      usersDiv.className = 'list-group list-group-flush';
+      
+      groupedUsers[role].forEach(user => {
+        const userItem = document.createElement('div');
+        userItem.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+        userItem.style.cursor = 'pointer';
+        
+        const userInfo = document.createElement('div');
+        userInfo.innerHTML = `
+          <div class="fw-medium">${user.name}</div>
+          <small class="text-muted">${user.login}</small>
+        `;
+        
+        const roleBadge = document.createElement('span');
+        roleBadge.className = 'badge bg-secondary';
+        roleBadge.textContent = user.role || 'Не указана';
+        
+        userItem.appendChild(userInfo);
+        userItem.appendChild(roleBadge);
+        
+        userItem.addEventListener('click', () => {
+          selectUser(user);
+        });
+        
+        usersDiv.appendChild(userItem);
+      });
+      
+      roleDiv.appendChild(usersDiv);
+      usersList.appendChild(roleDiv);
+    });
+  }
+
+  // Выбор пользователя
+  function selectUser(user) {
+    hiddenInput.value = user.id;
+    displaySpan.textContent = user.display;
+    // Закрываем аккордеон после выбора
+    accordionButton.classList.add('collapsed');
+    accordionButton.setAttribute('aria-expanded', 'false');
+    document.getElementById('userCollapse').classList.remove('show');
+  }
+
+  // Поиск пользователей
+  searchInput.addEventListener('input', function() {
+    const query = this.value.toLowerCase().trim();
+    
+    if (query === '') {
+      filteredUsers = [...allUsers];
+    } else {
+      filteredUsers = allUsers.filter(user => 
+        user.name.toLowerCase().includes(query) ||
+        user.login.toLowerCase().includes(query) ||
+        (user.role && user.role.toLowerCase().includes(query))
+      );
     }
+    
+    renderUsers();
   });
 
-  // Очистить при фокусе
-  input.addEventListener('focus', function() {
-    if (this.value.length >= 2) {
-      dropdown.style.display = 'block';
-    }
+  // Очистка выбора при двойном клике на кнопку аккордеона
+  accordionButton.addEventListener('dblclick', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    hiddenInput.value = '';
+    displaySpan.textContent = 'Выберите пользователя';
+    searchInput.value = '';
+    filteredUsers = [...allUsers];
+    renderUsers();
   });
 
-  // Очистить выбор при двойном клике
-  input.addEventListener('dblclick', function() {
-    this.value = '';
-    hidden.value = '';
-    selected.style.display = 'none';
-    dropdown.style.display = 'none';
-  });
+  // Инициализация
+  loadAllUsers();
 }
 
-// Инициализация автокомплитов
-createUserAutocomplete('to_user_search', 'to_user_id', 'to_user_dropdown', 'to_user_selected');
-createUserAutocomplete('from_user_search', 'from_user_id', 'from_user_dropdown', 'from_user_selected');
+// Инициализация аккордеона пользователей
+createUserAccordion();
 </script>
 {% endblock %}
 

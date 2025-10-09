@@ -383,6 +383,26 @@ def api_search_users():
         'display': f"{user.first_name} {user.last_name} ({user.login})".strip()
     } for user in users])
 
+@supply.route('/api/supply/users/all', methods=['GET'])
+@login_required
+def api_get_all_users():
+    """Получение всех пользователей для аккордеона"""
+    if not is_supplier_or_admin():
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    
+    from app.models.users import Users
+    
+    # Получаем всех пользователей, отсортированных по фамилии
+    users = Users.query.order_by(Users.last_name, Users.first_name).all()
+    
+    return jsonify([{
+        'id': str(user.userid),
+        'name': f"{user.first_name} {user.last_name}".strip(),
+        'login': user.login,
+        'display': f"{user.first_name} {user.last_name} ({user.login})".strip(),
+        'role': user.role or 'Не указана'
+    } for user in users])
+
 @supply.route('/api/supply/movements/<uuid:movement_id>/attachments/<uuid:attachment_id>/download', methods=['GET'])
 @login_required
 def api_download_attachment(movement_id, attachment_id):
