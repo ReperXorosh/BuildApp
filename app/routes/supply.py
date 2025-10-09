@@ -386,14 +386,9 @@ def api_search_users():
 @login_required
 def api_get_all_users():
     """Получение всех пользователей для аккордеона"""
-    if not is_supplier_or_admin():
-        return jsonify({'error': 'Недостаточно прав'}), 403
-    
     try:
         # Получаем всех пользователей, отсортированных по фамилии
         users = Users.query.order_by(Users.last_name, Users.first_name).all()
-        
-        print(f"API: Найдено {len(users)} пользователей в БД")
         
         result = []
         for user in users:
@@ -405,9 +400,7 @@ def api_get_all_users():
                 'role': user.role or 'Не указана'
             }
             result.append(user_data)
-            print(f"API: Пользователь - {user_data['display']}")
         
-        print(f"API: Возвращаем {len(result)} пользователей")
         return jsonify(result)
         
     except Exception as e:

@@ -207,21 +207,27 @@ async function loadUsersToSelect() {
   const select = document.getElementById('to_user_id');
   
   try {
+    console.log('Загружаем пользователей...');
     const response = await fetch('{{ url_for('supply.api_get_all_users') }}');
+    console.log('Статус ответа:', response.status);
     
     if (response.status === 403) {
+      console.log('Ошибка 403: Недостаточно прав');
       select.innerHTML = '<option value="">Недостаточно прав для просмотра пользователей</option>';
       return;
     }
     
     if (!response.ok) {
-      select.innerHTML = '<option value="">Ошибка загрузки пользователей</option>';
+      console.log('Ошибка HTTP:', response.status);
+      select.innerHTML = '<option value="">Ошибка загрузки пользователей (HTTP ' + response.status + ')</option>';
       return;
     }
     
     const users = await response.json();
+    console.log('Получены пользователи:', users);
     
     if (users.length === 0) {
+      console.log('Пользователи не найдены');
       select.innerHTML = '<option value="">Пользователи не найдены в системе</option>';
       return;
     }
@@ -236,9 +242,11 @@ async function loadUsersToSelect() {
       select.appendChild(option);
     });
     
+    console.log('Пользователи загружены успешно');
+    
   } catch (error) {
     console.error('Ошибка загрузки пользователей:', error);
-    select.innerHTML = '<option value="">Ошибка загрузки пользователей</option>';
+    select.innerHTML = '<option value="">Ошибка загрузки пользователей: ' + error.message + '</option>';
   }
 }
 
