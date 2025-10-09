@@ -9,7 +9,7 @@ from ..utils.timezone_utils import get_moscow_now
 class Users(db.Model, UserMixin):
     __tablename__ = 'users'
 
-    userid = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    userid = db.Column(Integer, primary_key=True, default=uuid.uuid4)
     login = db.Column(db.String(100), nullable=False, unique=True)
     password = db.Column(db.String(200), nullable=False)
     firstname = db.Column(db.String(100), nullable=True)
