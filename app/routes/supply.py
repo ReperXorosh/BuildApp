@@ -365,49 +365,66 @@ def api_search_users():
     if len(query) < 2:
         return jsonify([])
     
-    # Поиск по имени, фамилии, логину
+    # Поиск по имени, фамилии, логину (используем правильные названия полей)
     users = Users.query.filter(
         db.or_(
-            Users.first_name.ilike(f'%{query}%'),
-            Users.last_name.ilike(f'%{query}%'),
+            Users.firstname.ilike(f'%{query}%'),
+            Users.secondname.ilike(f'%{query}%'),
+            Users.thirdname.ilike(f'%{query}%'),
             Users.login.ilike(f'%{query}%'),
-            db.func.concat(Users.first_name, ' ', Users.last_name).ilike(f'%{query}%')
+            db.func.concat(Users.secondname, ' ', Users.firstname, ' ', Users.thirdname).ilike(f'%{query}%')
         )
     ).limit(10).all()
     
-    return jsonify([{
-        'id': str(user.userid),
-        'name': f"{user.first_name} {user.last_name}".strip(),
-        'login': user.login,
-        'display': f"{user.first_name} {user.last_name} ({user.login})".strip()
-    } for user in users])
+    result = []
+    for user in users:
+        firstname = user.firstname or ''
+        secondname = user.secondname or ''
+        thirdname = user.thirdname or ''
+        login = user.login or ''
+        
+        # Формируем полное имя
+        full_name = f"{secondname} {firstname} {thirdname}".strip()
+        if not full_name:
+            full_name = login
+        
+        result.append({
+            'id': str(user.userid),
+            'name': full_name,
+            'login': login,
+            'display': f"{full_name} ({login})"
+        })
+    
+    return jsonify(result)
 
 @supply.route('/api/supply/users/all', methods=['GET'])
 @login_required
 def api_get_all_users():
     """Получение всех пользователей для аккордеона"""
     try:
-        # Проверяем, что модель Users доступна
-        if not Users:
-            return jsonify({'error': 'Модель Users не найдена'}), 500
-            
         # Получаем всех пользователей, отсортированных по фамилии
-        users = Users.query.order_by(Users.last_name, Users.first_name).all()
+        users = Users.query.order_by(Users.secondname, Users.firstname).all()
         
         result = []
         for user in users:
-            # Безопасное получение данных пользователя
-            first_name = getattr(user, 'first_name', '') or ''
-            last_name = getattr(user, 'last_name', '') or ''
-            login = getattr(user, 'login', '') or ''
-            role = getattr(user, 'role', '') or 'Не указана'
-            userid = getattr(user, 'userid', '') or ''
+            # Используем правильные названия полей из модели Users
+            firstname = user.firstname or ''
+            secondname = user.secondname or ''
+            thirdname = user.thirdname or ''
+            login = user.login or ''
+            role = user.role or 'Не указана'
+            userid = user.userid
+            
+            # Формируем полное имя
+            full_name = f"{secondname} {firstname} {thirdname}".strip()
+            if not full_name:
+                full_name = login  # Если нет имени, используем логин
             
             user_data = {
                 'id': str(userid),
-                'name': f"{first_name} {last_name}".strip(),
+                'name': full_name,
                 'login': login,
-                'display': f"{first_name} {last_name} ({login})".strip(),
+                'display': f"{full_name} ({login})",
                 'role': role
             }
             result.append(user_data)
@@ -430,12 +447,24 @@ def api_get_users_simple():
         
         result = []
         for user in users:
+            # Используем правильные названия полей
+            firstname = user.firstname or ''
+            secondname = user.secondname or ''
+            thirdname = user.thirdname or ''
+            login = user.login or ''
+            role = user.role or 'Не указана'
+            
+            # Формируем полное имя
+            full_name = f"{secondname} {firstname} {thirdname}".strip()
+            if not full_name:
+                full_name = login
+            
             result.append({
                 'id': str(user.userid),
-                'name': f"{user.first_name or ''} {user.last_name or ''}".strip(),
-                'login': user.login or '',
-                'display': f"{user.first_name or ''} {user.last_name or ''} ({user.login or ''})".strip(),
-                'role': user.role or 'Не указана'
+                'name': full_name,
+                'login': login,
+                'display': f"{full_name} ({login})",
+                'role': role
             })
         
         return jsonify(result)
