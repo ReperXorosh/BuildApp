@@ -81,7 +81,10 @@
                             <div class="col-12">
                                 <label class="form-label">Кому выдать</label>
                                 <div class="position-relative">
-                                    <input type="text" class="form-control" id="user_search" placeholder="Начните вводить имя или фамилию..." autocomplete="off">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="user_search" placeholder="Начните вводить имя или фамилию..." autocomplete="off">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="testAPI()">Тест API</button>
+                                    </div>
                                     <input type="hidden" name="to_user_id" id="to_user_id">
                                     <div class="user-dropdown" id="user_dropdown" style="display: none;">
                                         <div class="user-dropdown-header">
@@ -97,10 +100,10 @@
                                         <i class="bi bi-person-check me-1"></i>
                                         <span id="selected_user_name"></span>
                                         <button type="button" class="btn-close btn-close-white ms-2" style="font-size: 0.7em;" onclick="clearUserSelection()"></button>
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="col-12">
+                                      </span>
+                                  </div>
+                             </div>
+                              <div class="col-12">
                                 <label class="form-label">Примечание</label>
                                 <input class="form-control" name="note">
                             </div>
@@ -346,22 +349,36 @@ function createUserSelector() {
   // Загрузка всех пользователей
   async function loadAllUsers() {
     try {
-      console.log('Загружаем пользователей...');
+      console.log('=== НАЧАЛО ЗАГРУЗКИ ПОЛЬЗОВАТЕЛЕЙ ===');
+      console.log('URL для запроса:', '{{ url_for('supply.api_get_all_users') }}');
+      
       const response = await fetch('{{ url_for('supply.api_get_all_users') }}');
       console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Ошибка ответа:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, text: ${errorText}`);
       }
       
-      allUsers = await response.json();
+      const responseText = await response.text();
+      console.log('Raw response:', responseText);
+      
+      allUsers = JSON.parse(responseText);
       console.log('Загружено пользователей:', allUsers.length);
       console.log('Первые 3 пользователя:', allUsers.slice(0, 3));
       
+      if (allUsers.length === 0) {
+        console.warn('ВНИМАНИЕ: API вернул пустой массив пользователей!');
+        usersList.innerHTML = '<div class="text-warning p-3">API вернул пустой список пользователей. Проверьте права доступа и наличие пользователей в БД.</div>';
+      }
+      
       filteredUsers = [...allUsers];
+      console.log('=== КОНЕЦ ЗАГРУЗКИ ПОЛЬЗОВАТЕЛЕЙ ===');
     } catch (error) {
-      console.error('Ошибка загрузки пользователей:', error);
-      usersList.innerHTML = '<div class="text-danger p-3">Ошибка загрузки пользователей: ' + error.message + '</div>';
+      console.error('КРИТИЧЕСКАЯ ОШИБКА загрузки пользователей:', error);
+      usersList.innerHTML = '<div class="text-danger p-3">КРИТИЧЕСКАЯ ОШИБКА: ' + error.message + '</div>';
     }
   }
 
@@ -482,6 +499,37 @@ function createUserSelector() {
   // Инициализация
   loadAllUsers();
 }
+
+// Функция для тестирования API
+window.testAPI = async function() {
+  console.log('=== ТЕСТИРОВАНИЕ API ===');
+  try {
+    const response = await fetch('{{ url_for('supply.api_get_all_users') }}');
+    console.log('Статус ответа:', response.status);
+    console.log('Заголовки ответа:', [...response.headers.entries()]);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Ошибка API:', errorText);
+      alert('Ошибка API: ' + response.status + ' - ' + errorText);
+      return;
+    }
+    
+    const data = await response.json();
+    console.log('Данные API:', data);
+    console.log('Количество пользователей:', data.length);
+    
+    if (data.length === 0) {
+      alert('API вернул пустой список пользователей!');
+    } else {
+      alert(`API работает! Найдено ${data.length} пользователей. Первый: ${data[0].display}`);
+    }
+  } catch (error) {
+    console.error('Ошибка при тестировании API:', error);
+    alert('Ошибка при тестировании API: ' + error.message);
+  }
+  console.log('=== КОНЕЦ ТЕСТИРОВАНИЯ API ===');
+};
 
 // Инициализация выбора пользователей
 createUserSelector();
