@@ -106,33 +106,19 @@ class Trench(db.Model):
     
     @staticmethod
     def update_overdue_trenches():
-        """Обновляет статус просроченных траншей"""
-        from datetime import date
+        """Обновляет статус просроченных траншей (новая логика)"""
+        from datetime import date, timedelta
         
         today = date.today()
         print(f"DEBUG: Обновляем просроченные траншеи. Сегодня: {today}")
         
-        # Сначала проверим все траншеи
-        all_trenches = Trench.query.all()
-        print(f"DEBUG: Всего траншей в базе: {len(all_trenches)}")
+        # В новой логике траншеи не связаны с запланированными работами
+        # Поэтому просто обновляем статусы на основе дат создания
+        # Траншеи старше 30 дней без активности считаем просроченными
+        cutoff_date = today - timedelta(days=30)
         
-        for trench in all_trenches:
-            print(f"DEBUG: Траншея ID: {trench.id}, planned_work_id: {trench.planned_work_id}, статус: {trench.status}")
-            if trench.planned_work_id:
-                planned_work = PlannedWork.query.get(trench.planned_work_id)
-                if planned_work:
-                    print(f"DEBUG:   Связанная работа: {planned_work.id}, дата: {planned_work.planned_date}, статус: {planned_work.status}")
-                else:
-                    print(f"DEBUG:   Связанная работа НЕ НАЙДЕНА!")
-            else:
-                print(f"DEBUG:   planned_work_id = NULL")
-        
-        # Находим все траншеи, которые связаны с просроченными запланированными работами
-        # Используем cast для приведения типов, так как planned_work_id - varchar, а planned_works.id - uuid
-        from sqlalchemy import cast, String
-        overdue_trenches = Trench.query.join(PlannedWork, cast(Trench.planned_work_id, String) == cast(PlannedWork.id, String)).filter(
-            PlannedWork.planned_date.isnot(None),
-            PlannedWork.planned_date < today,
+        overdue_trenches = Trench.query.filter(
+            Trench.created_at < cutoff_date,
             Trench.status.in_(['planned', 'in_progress'])
         ).all()
         

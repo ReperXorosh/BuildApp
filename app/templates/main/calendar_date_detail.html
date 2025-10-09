@@ -215,7 +215,13 @@
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div>
                                             <strong>Траншея</strong>
-                                            <br><small class="text-muted">{{ trench.planned_length }}м запланировано</small>
+                                            <br><small class="text-muted">
+                                                {% if trench.total_length %}
+                                                    {{ trench.total_length }}м общий метраж
+                                                {% else %}
+                                                    Метраж не указан
+                                                {% endif %}
+                                            </small>
                                         </div>
                                         <span class="badge bg-{{ 'success' if trench.status == 'completed' else 'warning' if trench.status == 'in_progress' else 'danger' if trench.status == 'overdue' else 'secondary' }}">
                                             {% if trench.status == 'planned' %}

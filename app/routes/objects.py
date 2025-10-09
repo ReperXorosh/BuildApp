@@ -303,9 +303,9 @@ def debug_planned_works():
         debug_info['trenches'].append({
             'id': trench.id,
             'object_id': trench.object_id,
-            'planned_work_id': trench.planned_work_id,
-            'planned_length': trench.planned_length,
-            'current_length': trench.current_length
+            'total_length': trench.total_length,
+            'status': trench.status,
+            'total_excavated': trench.get_total_excavated_length()
         })
     
     return jsonify(debug_info)
