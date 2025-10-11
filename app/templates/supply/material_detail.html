@@ -53,13 +53,13 @@
                             <label class="form-label fw-bold">Текущее количество</label>
                             <p class="form-control-plaintext">
                                 <span class="badge bg-{{ 'danger' if material.current_quantity <= 0 else 'warning' if material.current_quantity <= material.min_quantity else 'success' }} fs-6">
-                                    {{ material.current_quantity || 0 }} {{ material.unit }}
+                                    {{ material.current_quantity or 0 }} {{ material.unit }}
                                 </span>
                             </p>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-bold">Минимальный запас</label>
-                            <p class="form-control-plaintext">{{ material.min_quantity || 0 }} {{ material.unit }}</p>
+                            <p class="form-control-plaintext">{{ material.min_quantity or 0 }} {{ material.unit }}</p>
                         </div>
                         {% if material.description %}
                         <div class="col-12">
