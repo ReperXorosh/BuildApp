@@ -411,8 +411,18 @@ async function onMovementTypeChange() {
 // Загрузка материалов в зависимости от типа операции
 async function loadMaterialsForMovementType(movementType) {
   try {
-    const response = await fetch('{{ url_for("supply.api_materials") }}');
-    const materials = await response.json();
+    let response;
+    let materials;
+    
+    if (movementType === 'return') {
+      // Для возврата загружаем все материалы, которые есть у пользователей
+      response = await fetch('{{ url_for("supply.api_materials_for_return") }}');
+      materials = await response.json();
+    } else {
+      // Для выдачи и списания загружаем только материалы на складе
+      response = await fetch('{{ url_for("supply.api_materials") }}');
+      materials = await response.json();
+    }
     
     const select = document.getElementById('material_id');
     select.innerHTML = '<option value="">Выберите материал</option>';
@@ -425,8 +435,8 @@ async function loadMaterialsForMovementType(movementType) {
         // Для выдачи и списания показываем доступное количество на складе
         option.textContent = `${material.name} (${material.current_quantity || 0} ${material.unit})`;
       } else if (movementType === 'return') {
-        // Для возврата показываем, что материал есть на складе
-        option.textContent = `${material.name} (${material.unit})`;
+        // Для возврата показываем общее количество у пользователей
+        option.textContent = `${material.name} (у пользователей: ${material.total_allocated || 0} ${material.unit})`;
       }
       
       select.appendChild(option);
