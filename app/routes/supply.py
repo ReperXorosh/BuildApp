@@ -7,11 +7,11 @@ from app.models.supply import (
     SupplyOrderItem,
     WarehouseMovement,
     WarehouseAttachment,
-    UserMaterialAllocation,
+    UsersMaterialAllocation,
     SupplyRequest,
     SupplyRequestItem,
 )
-from app.models.users import User as User
+from app.models.users import Users
 from app.models.activity_log import ActivityLog
 from app.extensions import db
 from app.utils.mobile_detection import is_mobile_device
@@ -124,7 +124,7 @@ def warehouse_view():
 
     materials = Material.query.order_by(Material.name).all()
     recent_movements = WarehouseMovement.query.order_by(WarehouseMovement.created_at.desc()).limit(20).all()
-    allocations = UserMaterialAllocation.query.all()
+    allocations = UsersMaterialAllocation.query.all()
 
     ActivityLog.log_action(
         user_id=current_user.userid,
@@ -189,7 +189,7 @@ def warehouse_user_detail(user_id):
         return redirect(url_for('objects.object_list'))
     
     # Получаем информацию о пользователе
-    user = User.query.get_or_404(user_id)
+    user = Users.query.get_or_404(user_id)
     
     # Логируем просмотр страницы пользователя
     ActivityLog.log_action(
@@ -213,7 +213,7 @@ def user_material_movements(user_id, material_id):
     
     try:
         # Получаем информацию о пользователе
-        user = User.query.get_or_404(user_id)
+        user = Users.query.get_or_404(user_id)
         
         # Получаем информацию о материале
         material = Material.query.get_or_404(material_id)
@@ -277,8 +277,8 @@ def material_detail(material_id):
         all_actions.sort(key=lambda x: x.created_at, reverse=True)
         
         # Получаем распределения материала по пользователям с загрузкой пользователей
-        allocations = db.session.query(UserMaterialAllocation).options(
-            db.joinedload(UserMaterialAllocation.user)
+        allocations = db.session.query(UsersMaterialAllocation).options(
+            db.joinedload(UsersMaterialAllocation.user)
         ).filter_by(material_id=material_id).all()
         
         # Логируем просмотр страницы материала
@@ -716,7 +716,7 @@ def api_create_movement():
     elif movement_type == 'return':
         # Для возврата проверяем наличие у пользователя
         if from_user_id:
-            user_alloc = UserMaterialAllocation.query.filter_by(user_id=from_user_id, material_id=material.id).first()
+            user_alloc = UsersMaterialAllocation.query.filter_by(user_id=from_user_id, material_id=material.id).first()
             user_quantity = user_alloc.quantity if user_alloc else 0.0
             if user_quantity < quantity:
                 return jsonify({
@@ -772,16 +772,16 @@ def api_create_movement():
     # Обновляем распределение по пользователям
     if movement_type == 'move' and to_user_id:
         # Выдача: увеличиваем количество у получателя
-        alloc = UserMaterialAllocation.query.filter_by(user_id=to_user_id, material_id=material.id).first()
+        alloc = UsersMaterialAllocation.query.filter_by(user_id=to_user_id, material_id=material.id).first()
         if not alloc:
-            alloc = UserMaterialAllocation(user_id=to_user_id, material_id=material.id, quantity=0.0)
+            alloc = UsersMaterialAllocation(user_id=to_user_id, material_id=material.id, quantity=0.0)
             db.session.add(alloc)
         alloc.quantity = (alloc.quantity or 0.0) + quantity
         alloc.updated_at = get_moscow_now()  # Обновляем время изменения
         
     elif movement_type == 'return' and from_user_id:
         # Возврат: уменьшаем количество у возвращающего
-        alloc_from = UserMaterialAllocation.query.filter_by(user_id=from_user_id, material_id=material.id).first()
+        alloc_from = UsersMaterialAllocation.query.filter_by(user_id=from_user_id, material_id=material.id).first()
         if alloc_from:
             new_quantity = max(0.0, (alloc_from.quantity or 0.0) - quantity)
             alloc_from.quantity = new_quantity
@@ -821,11 +821,11 @@ def api_create_movement():
     # Логируем действие с деталями
     action_description = f"Создано движение: {movement_type}, материал: {material.name}, количество: {quantity}"
     if movement_type == 'move' and to_user_id:
-        user = User.query.get(to_user_id)
+        user = Users.query.get(to_user_id)
         if user:
             action_description += f", выдано пользователю: {user.login}"
     elif movement_type == 'return' and from_user_id:
-        user = User.query.get(from_user_id)
+        user = Users.query.get(from_user_id)
         if user:
             action_description += f", возвращено от пользователя: {user.login}"
 
@@ -875,12 +875,12 @@ def api_list_movements():
         user_name = "Не указан"
         if movement.movement_type == 'return' and movement.from_user_id:
             # Для возврата ищем пользователя по from_user_id
-            user = User.query.get(movement.from_user_id)
+            user = Users.query.get(movement.from_user_id)
             if user:
                 user_name = f"{user.secondname or ''} {user.firstname or ''}".strip() or user.login
         elif movement.movement_type in ['move', 'add'] and movement.to_user_id:
             # Для выдачи и поступления ищем пользователя по to_user_id
-            user = User.query.get(movement.to_user_id)
+            user = Users.query.get(movement.to_user_id)
             if user:
                 user_name = f"{user.secondname or ''} {user.firstname or ''}".strip() or user.login
         
@@ -909,18 +909,18 @@ def api_list_allocations():
     
     # Получаем распределения с информацией о материалах и пользователях
     allocations = db.session.query(
-        UserMaterialAllocation,
+        UsersMaterialAllocation,
         Material.name.label('material_name'),
         Material.unit.label('material_unit'),
-        User.secondname.label('user_last_name'),
-        User.firstname.label('user_first_name'),
-        User.login.label('user_login')
+        Users.secondname.label('user_last_name'),
+        Users.firstname.label('user_first_name'),
+        Users.login.label('user_login')
     ).join(
-        Material, UserMaterialAllocation.material_id == Material.id
+        Material, UsersMaterialAllocation.material_id == Material.id
     ).join(
-        User, UserMaterialAllocation.user_id == User.userid
+        Users, UsersMaterialAllocation.user_id == Users.userid
     ).order_by(
-        UserMaterialAllocation.updated_at.desc()
+        UsersMaterialAllocation.updated_at.desc()
     ).all()
     
     result = []
@@ -947,21 +947,21 @@ def api_material_allocations():
     
     # Получаем пользователей, у которых есть этот материал
     allocations = db.session.query(
-        UserMaterialAllocation,
-        User.secondname.label('user_last_name'),
-        User.firstname.label('user_first_name'),
-        User.thirdname.label('user_third_name'),
-        User.login.label('user_login'),
+        UsersMaterialAllocation,
+        Users.secondname.label('user_last_name'),
+        Users.firstname.label('user_first_name'),
+        Users.thirdname.label('user_third_name'),
+        Users.login.label('user_login'),
         Material.unit.label('material_unit')
     ).join(
-        User, UserMaterialAllocation.user_id == User.userid
+        Users, UsersMaterialAllocation.user_id == Users.userid
     ).join(
-        Material, UserMaterialAllocation.material_id == Material.id
+        Material, UsersMaterialAllocation.material_id == Material.id
     ).filter(
-        UserMaterialAllocation.material_id == material_id,
-        UserMaterialAllocation.quantity > 0
+        UsersMaterialAllocation.material_id == material_id,
+        UsersMaterialAllocation.quantity > 0
     ).order_by(
-        User.secondname, User.firstname
+        Users.secondname, Users.firstname
     ).all()
     
     result = []
@@ -985,21 +985,21 @@ def api_users_with_allocations():
     
     # Получаем всех пользователей, у которых есть распределения
     users_with_allocations = db.session.query(
-        User.userid,
-        User.secondname,
-        User.firstname,
-        User.thirdname,
-        User.login,
-        User.role,
-        User.avatar,
-        db.func.count(UserMaterialAllocation.id).label('allocations_count'),
-        db.func.sum(UserMaterialAllocation.quantity).label('total_quantity')
+        Users.userid,
+        Users.secondname,
+        Users.firstname,
+        Users.thirdname,
+        Users.login,
+        Users.role,
+        Users.avatar,
+        db.func.count(UsersMaterialAllocation.id).label('allocations_count'),
+        db.func.sum(UsersMaterialAllocation.quantity).label('total_quantity')
     ).join(
-        UserMaterialAllocation, User.userid == UserMaterialAllocation.user_id
+        UsersMaterialAllocation, Users.userid == UsersMaterialAllocation.user_id
     ).group_by(
-        User.userid, User.secondname, User.firstname, User.thirdname, User.login, User.role, User.avatar
+        Users.userid, Users.secondname, Users.firstname, Users.thirdname, Users.login, Users.role, Users.avatar
     ).order_by(
-        User.secondname, User.firstname
+        Users.secondname, Users.firstname
     ).all()
     
     result = []
@@ -1026,16 +1026,16 @@ def api_user_allocations(user_id):
     
     # Получаем распределения конкретного пользователя
     allocations = db.session.query(
-        UserMaterialAllocation,
+        UsersMaterialAllocation,
         Material.name.label('material_name'),
         Material.unit.label('material_unit'),
         Material.current_quantity.label('warehouse_quantity')
     ).join(
-        Material, UserMaterialAllocation.material_id == Material.id
+        Material, UsersMaterialAllocation.material_id == Material.id
     ).filter(
-        UserMaterialAllocation.user_id == user_id
+        UsersMaterialAllocation.user_id == user_id
     ).order_by(
-        UserMaterialAllocation.updated_at.desc()
+        UsersMaterialAllocation.updated_at.desc()
     ).all()
     
     result = []
@@ -1060,13 +1060,13 @@ def api_user_material_movements(user_id, material_id):
         WarehouseMovement,
         Material.name.label('material_name'),
         Material.unit.label('material_unit'),
-        User.firstname.label('user_firstname'),
-        User.secondname.label('user_secondname'),
-        User.login.label('user_login')
+        Users.firstname.label('user_firstname'),
+        Users.secondname.label('user_secondname'),
+        Users.login.label('user_login')
     ).join(
         Material, WarehouseMovement.material_id == Material.id
     ).outerjoin(
-        User, WarehouseMovement.to_user_id == User.userid
+        Users, WarehouseMovement.to_user_id == Users.userid
     ).filter(
         WarehouseMovement.material_id == material_id,
         db.or_(
@@ -1107,13 +1107,13 @@ def api_search_users():
         return jsonify([])
     
     # Поиск по имени, фамилии, логину (используем правильные названия полей)
-    users = User.query.filter(
+    users = Users.query.filter(
         db.or_(
-            User.firstname.ilike(f'%{query}%'),
-            User.secondname.ilike(f'%{query}%'),
-            User.thirdname.ilike(f'%{query}%'),
-            User.login.ilike(f'%{query}%'),
-            db.func.concat(User.secondname, ' ', User.firstname, ' ', User.thirdname).ilike(f'%{query}%')
+            Users.firstname.ilike(f'%{query}%'),
+            Users.secondname.ilike(f'%{query}%'),
+            Users.thirdname.ilike(f'%{query}%'),
+            Users.login.ilike(f'%{query}%'),
+            db.func.concat(Users.secondname, ' ', Users.firstname, ' ', Users.thirdname).ilike(f'%{query}%')
         )
     ).limit(10).all()
     
@@ -1144,11 +1144,11 @@ def api_get_all_users():
     """Получение всех пользователей для аккордеона"""
     try:
         # Получаем всех пользователей, отсортированных по фамилии
-        users = User.query.order_by(User.secondname, User.firstname).all()
+        users = Users.query.order_by(Users.secondname, Users.firstname).all()
         
         result = []
         for user in users:
-            # Используем правильные названия полей из модели User
+            # Используем правильные названия полей из модели Users
             firstname = user.firstname or ''
             secondname = user.secondname or ''
             thirdname = user.thirdname or ''
@@ -1184,7 +1184,7 @@ def api_get_users_simple():
     """Простое получение пользователей без сложной логики"""
     try:
         # Простой запрос без сортировки
-        users = User.query.all()
+        users = Users.query.all()
         
         result = []
         for user in users:
