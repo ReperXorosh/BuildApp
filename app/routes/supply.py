@@ -1055,26 +1055,33 @@ def api_materials_for_return():
     if not is_supplier_or_admin():
         return jsonify({'error': 'Недостаточно прав'}), 403
     
-    # Получаем все материалы, которые есть у пользователей (даже если количество на складе = 0)
-    materials = db.session.query(
-        Material,
-        db.func.sum(UserMaterialAllocation.quantity).label('total_allocated')
-    ).join(
-        UserMaterialAllocation, Material.id == UserMaterialAllocation.material_id
-    ).filter(
-        Material.is_active == True,
-        UserMaterialAllocation.quantity > 0
-    ).group_by(
-        Material.id
-    ).all()
-    
-    result = []
-    for material, total_allocated in materials:
-        material_dict = material.to_dict()
-        material_dict['total_allocated'] = float(total_allocated or 0)
-        result.append(material_dict)
-    
-    return jsonify(result)
+    try:
+        # Получаем все материалы, которые есть у пользователей (даже если количество на складе = 0)
+        materials = db.session.query(
+            Material,
+            db.func.sum(UserMaterialAllocation.quantity).label('total_allocated')
+        ).join(
+            UserMaterialAllocation, Material.id == UserMaterialAllocation.material_id
+        ).filter(
+            Material.is_active == True,
+            UserMaterialAllocation.quantity > 0
+        ).group_by(
+            Material.id
+        ).all()
+        
+        print(f"DEBUG: Найдено материалов для возврата: {len(materials)}")
+        
+        result = []
+        for material, total_allocated in materials:
+            material_dict = material.to_dict()
+            material_dict['total_allocated'] = float(total_allocated or 0)
+            result.append(material_dict)
+            print(f"DEBUG: Материал {material.name}, у пользователей: {total_allocated}")
+        
+        return jsonify(result)
+    except Exception as e:
+        print(f"DEBUG: Ошибка в api_materials_for_return: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @supply.route('/api/supply/user/<uuid:user_id>/material/<uuid:material_id>/movements', methods=['GET'])
 @login_required

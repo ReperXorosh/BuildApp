@@ -417,7 +417,16 @@ async function loadMaterialsForMovementType(movementType) {
     if (movementType === 'return') {
       // Для возврата загружаем все материалы, которые есть у пользователей
       response = await fetch('{{ url_for("supply.api_materials_for_return") }}');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       materials = await response.json();
+      console.log('DEBUG: Материалы для возврата:', materials);
+      
+      if (materials.error) {
+        console.error('DEBUG: Ошибка API:', materials.error);
+        throw new Error(materials.error);
+      }
     } else {
       // Для выдачи и списания загружаем только материалы на складе
       response = await fetch('{{ url_for("supply.api_materials") }}');
