@@ -240,6 +240,7 @@ async function loadMaterials() {
       row.className = 'clickable-row';
       row.style.cursor = 'pointer';
       row.setAttribute('data-material-id', material.id);
+      console.log('Создана строка для материала:', material.id, material.name); // Для отладки
       
       // Определяем статус
       let statusBadge = '';
@@ -725,17 +726,6 @@ function setupQuantityValidation() {
   }
 }
 
-// Обработчик клика по строкам таблицы
-document.addEventListener('click', function(e) {
-  const clickableRow = e.target.closest('.clickable-row');
-  if (clickableRow) {
-    const materialId = clickableRow.getAttribute('data-material-id');
-    if (materialId) {
-      window.location.href = `/supply/warehouse/material/${materialId}`;
-    }
-  }
-});
-
 // Функция редактирования материала
 function editMaterial(materialId) {
   // Пока что просто показываем сообщение
@@ -749,6 +739,22 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Поиск
   document.getElementById('searchInput').addEventListener('input', filterMaterials);
+  
+  // Обработчик клика по строкам таблицы (добавляем после загрузки DOM)
+  document.addEventListener('click', function(e) {
+    console.log('Клик по элементу:', e.target); // Для отладки
+    const clickableRow = e.target.closest('.clickable-row');
+    console.log('Найденная строка:', clickableRow); // Для отладки
+    if (clickableRow) {
+      const materialId = clickableRow.getAttribute('data-material-id');
+      console.log('ID материала:', materialId); // Для отладки
+      if (materialId) {
+        console.log('Переход к материалу:', materialId); // Для отладки
+        e.preventDefault(); // Предотвращаем стандартное поведение
+        window.location.href = `/supply/warehouse/material/${materialId}`;
+      }
+    }
+  });
 });
 </script>
 
