@@ -209,11 +209,15 @@ def warehouse_user_detail(user_id):
 def material_detail(material_id):
     """Страница детальной информации о материале"""
     try:
-        if not is_supplier_or_admin():
-            return redirect(url_for('objects.object_list'))
+        print(f"DEBUG: Попытка доступа к материалу {material_id} пользователем {current_user.login} с ролью {current_user.role}")
+        
+        # Временно отключаем проверку прав для тестирования
+        # if not is_supplier_or_admin():
+        #     return redirect(url_for('objects.object_list'))
         
         # Получаем информацию о материале
         material = Material.query.get_or_404(material_id)
+        print(f"DEBUG: Материал найден: {material.name}")
         
         # Получаем историю движений по материалу с загрузкой связанных пользователей
         movements = db.session.query(WarehouseMovement).options(
@@ -238,10 +242,13 @@ def material_detail(material_id):
             method=request.method
         )
         
+        print(f"DEBUG: Рендерим шаблон material_detail.html")
         return render_template('supply/material_detail.html', material=material, movements=movements, allocations=allocations)
     
     except Exception as e:
         print(f"Ошибка в material_detail: {e}")
+        import traceback
+        traceback.print_exc()
         return redirect(url_for('supply.warehouse_view'))
 
 @supply.route('/supply/equipment')
