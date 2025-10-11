@@ -30,6 +30,11 @@
                     <a href="{{ url_for('supply.warehouse_allocations') }}" class="btn btn-outline-warning">
                         <i class="bi bi-people me-1"></i>Распределение
                     </a>
+                    {% if current_user.role in ['Инженер ПТО', 'Ген.Директор'] %}
+                    <button type="button" class="btn btn-outline-secondary" id="toggleHiddenMaterials" title="Показать/скрыть удаленные материалы">
+                        <i class="bi bi-eye-slash me-1"></i>Скрытые
+                    </button>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -228,11 +233,15 @@
 <script>
 console.log('=== СКРИПТ ЗАГРУЖЕН ===');
 
+// Переменная для отслеживания режима просмотра
+let showHiddenMaterials = false;
+
 // Загрузка материалов в таблицу
 async function loadMaterials() {
   console.log('=== НАЧИНАЕМ ЗАГРУЗКУ МАТЕРИАЛОВ ===');
   try {
-    const response = await fetch('{{ url_for("supply.api_materials") }}');
+    const url = showHiddenMaterials ? '{{ url_for("supply.api_materials_all") }}' : '{{ url_for("supply.api_materials") }}';
+    const response = await fetch(url);
     const materials = await response.json();
     console.log('=== МАТЕРИАЛЫ ЗАГРУЖЕНЫ ===', materials);
     
@@ -242,7 +251,13 @@ async function loadMaterials() {
     materials.forEach(material => {
       const row = document.createElement('tr');
       row.setAttribute('data-material-id', material.id);
-      console.log('Создана строка для материала:', material.id, material.name); // Для отладки
+      
+      // Добавляем класс для скрытых материалов
+      if (!material.is_active) {
+        row.classList.add('hidden-material');
+      }
+      
+      console.log('Создана строка для материала:', material.id, material.name, 'активен:', material.is_active); // Для отладки
       
       // Определяем статус
       let statusBadge = '';
@@ -264,16 +279,26 @@ async function loadMaterials() {
       `;
       
       if (canDelete) {
-        actionsHtml += `
-          <button class="btn btn-sm btn-outline-danger ms-1 action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); deleteMaterial('${material.id}'); return false;" title="Удалить" data-no-pjax>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-        `;
+        if (material.is_active) {
+          // Кнопка удаления для активных материалов
+          actionsHtml += `
+            <button class="btn btn-sm btn-outline-danger ms-1 action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); deleteMaterial('${material.id}'); return false;" title="Удалить" data-no-pjax>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          `;
+        } else {
+          // Кнопка восстановления для скрытых материалов
+          actionsHtml += `
+            <button class="btn btn-sm btn-outline-success ms-1 action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); restoreMaterial('${material.id}'); return false;" title="Восстановить" data-no-pjax>
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+          `;
+        }
       }
       
       row.innerHTML = `
@@ -749,6 +774,52 @@ function editMaterial(materialId) {
   alert('Функция редактирования материала будет добавлена позже');
 }
 
+// Функция восстановления материала
+async function restoreMaterial(materialId) {
+  if (!confirm('Вы уверены, что хотите восстановить этот материал?')) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/supply/api/supply/materials/${materialId}/restore`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    const result = await response.json();
+    
+    if (response.ok) {
+      alert(result.message);
+      loadMaterials(); // Перезагружаем список материалов
+    } else {
+      alert('Ошибка: ' + result.error);
+    }
+  } catch (error) {
+    console.error('Ошибка:', error);
+    alert('Произошла ошибка при восстановлении материала');
+  }
+}
+
+// Функция переключения режима просмотра скрытых материалов
+function toggleHiddenMaterials() {
+  showHiddenMaterials = !showHiddenMaterials;
+  const button = document.getElementById('toggleHiddenMaterials');
+  
+  if (showHiddenMaterials) {
+    button.innerHTML = '<i class="bi bi-eye me-1"></i>Активные';
+    button.classList.remove('btn-outline-secondary');
+    button.classList.add('btn-secondary');
+  } else {
+    button.innerHTML = '<i class="bi bi-eye-slash me-1"></i>Скрытые';
+    button.classList.remove('btn-secondary');
+    button.classList.add('btn-outline-secondary');
+  }
+  
+  loadMaterials(); // Перезагружаем список материалов
+}
+
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
   console.log('=== DOM ЗАГРУЖЕН, НАЧИНАЕМ ИНИЦИАЛИЗАЦИЮ ===');
@@ -757,6 +828,12 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Поиск
   document.getElementById('searchInput').addEventListener('input', filterMaterials);
+  
+  // Кнопка переключения скрытых материалов
+  const toggleButton = document.getElementById('toggleHiddenMaterials');
+  if (toggleButton) {
+    toggleButton.addEventListener('click', toggleHiddenMaterials);
+  }
 });
 </script>
 
@@ -764,6 +841,25 @@ document.addEventListener('DOMContentLoaded', function() {
 .material-name-clickable:hover {
   color: #0a58ca !important;
   text-decoration: underline !important;
+}
+
+/* Стили для скрытых материалов */
+.hidden-material {
+  opacity: 0.6;
+  background-color: #f8f9fa !important;
+}
+
+.hidden-material td {
+  color: #6c757d !important;
+}
+
+.hidden-material .material-name-clickable {
+  color: #6c757d !important;
+  text-decoration: line-through !important;
+}
+
+.hidden-material .badge {
+  opacity: 0.7;
 }
 
 /* Адаптивные стили для мобильных устройств */

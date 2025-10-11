@@ -318,9 +318,23 @@ def requests_list():
 @supply.route('/api/supply/materials', methods=['GET'])
 @login_required
 def api_materials():
-    """API для получения списка материалов"""
+    """API для получения списка активных материалов"""
     if not is_supplier_or_admin():
         return jsonify({'error': 'Недостаточно прав'}), 403
+    
+    materials = Material.query.filter_by(is_active=True).all()
+    return jsonify([material.to_dict() for material in materials])
+
+@supply.route('/api/supply/materials/all', methods=['GET'])
+@login_required
+def api_materials_all():
+    """API для получения всех материалов (включая скрытые) - только для админов"""
+    if not is_supplier_or_admin():
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    
+    # Проверяем, что пользователь - админ
+    if current_user.role not in ['Инженер ПТО', 'Ген.Директор']:
+        return jsonify({'error': 'Просмотр скрытых материалов доступен только администраторам'}), 403
     
     materials = Material.query.all()
     return jsonify([material.to_dict() for material in materials])
@@ -338,18 +352,35 @@ def api_materials_create():
     if not name or not unit:
         return jsonify({'error': 'Требуются name и unit'}), 400
 
-    material = Material(
-        name=name,
-        unit=unit,
-        description=data.get('description'),
-        current_quantity=float(data.get('current_quantity') or 0.0),
-        min_quantity=float(data.get('min_quantity') or 0.0),
-        supplier=data.get('supplier'),
-        price_per_unit=float(data.get('price_per_unit') or 0.0) if data.get('price_per_unit') is not None else None,
-    )
-    db.session.add(material)
-    db.session.commit()
-    return jsonify(material.to_dict()), 201
+    # Проверяем, есть ли неактивный материал с таким же именем
+    existing_material = Material.query.filter_by(name=name, is_active=False).first()
+    
+    if existing_material:
+        # Восстанавливаем существующий материал
+        existing_material.is_active = True
+        existing_material.current_quantity = float(data.get('current_quantity') or 0.0)
+        existing_material.min_quantity = float(data.get('min_quantity') or 0.0)
+        existing_material.description = data.get('description')
+        existing_material.supplier = data.get('supplier')
+        existing_material.price_per_unit = float(data.get('price_per_unit') or 0.0) if data.get('price_per_unit') is not None else None
+        existing_material.updated_at = get_moscow_now()
+        
+        db.session.commit()
+        return jsonify(existing_material.to_dict()), 201
+    else:
+        # Создаем новый материал
+        material = Material(
+            name=name,
+            unit=unit,
+            description=data.get('description'),
+            current_quantity=float(data.get('current_quantity') or 0.0),
+            min_quantity=float(data.get('min_quantity') or 0.0),
+            supplier=data.get('supplier'),
+            price_per_unit=float(data.get('price_per_unit') or 0.0) if data.get('price_per_unit') is not None else None,
+        )
+        db.session.add(material)
+        db.session.commit()
+        return jsonify(material.to_dict()), 201
 
 @supply.route('/api/supply/materials/<uuid:material_id>', methods=['PUT'])
 @login_required
@@ -389,15 +420,6 @@ def api_materials_delete(material_id):
     if not material:
         return jsonify({'error': 'Материал не найден'}), 404
     
-    # Проверяем, есть ли связанные движения или распределения
-    movements_count = WarehouseMovement.query.filter_by(material_id=material_id).count()
-    allocations_count = UserMaterialAllocation.query.filter_by(material_id=material_id).count()
-    
-    if movements_count > 0 or allocations_count > 0:
-        return jsonify({
-            'error': f'Нельзя удалить материал, так как с ним связаны движения ({movements_count}) или распределения ({allocations_count})'
-        }), 400
-    
     material_name = material.name
     
     # Логируем действие перед удалением
@@ -411,10 +433,50 @@ def api_materials_delete(material_id):
         method=request.method
     )
     
-    db.session.delete(material)
+    # Мягкое удаление - помечаем как неактивный
+    material.is_active = False
+    material.updated_at = get_moscow_now()
     db.session.commit()
     
     return jsonify({'success': True, 'message': f'Материал "{material_name}" успешно удален'})
+
+@supply.route('/api/supply/materials/<uuid:material_id>/restore', methods=['POST'])
+@login_required
+def api_materials_restore(material_id):
+    """Восстановление скрытого материала (только для админов)"""
+    if not is_supplier_or_admin():
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    
+    # Проверяем, что пользователь - админ
+    if current_user.role not in ['Инженер ПТО', 'Ген.Директор']:
+        return jsonify({'error': 'Восстановление материалов доступно только администраторам'}), 403
+    
+    material = Material.query.get(material_id)
+    if not material:
+        return jsonify({'error': 'Материал не найден'}), 404
+    
+    if material.is_active:
+        return jsonify({'error': 'Материал уже активен'}), 400
+    
+    material_name = material.name
+    
+    # Логируем действие
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Восстановление материала",
+        description=f"Восстановлен материал: {material_name}",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    # Восстанавливаем материал
+    material.is_active = True
+    material.updated_at = get_moscow_now()
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': f'Материал "{material_name}" успешно восстановлен'})
 
 @supply.route('/api/supply/movements', methods=['POST'])
 @login_required
@@ -489,12 +551,22 @@ def api_create_movement():
     if movement_type == 'add':
         # Поступление на склад - увеличиваем количество
         material.current_quantity = (material.current_quantity or 0.0) + quantity
+        # Если материал был неактивен, восстанавливаем его
+        if not material.is_active:
+            material.is_active = True
+            material.updated_at = get_moscow_now()
+            print(f"DEBUG: Материал '{material.name}' автоматически восстановлен при поступлении")
     elif movement_type == 'move':
         # Выдача со склада пользователю - уменьшаем склад, увеличиваем у пользователя
         material.current_quantity = (material.current_quantity or 0.0) - quantity
     elif movement_type == 'return':
         # Возврат от пользователя на склад - увеличиваем склад, уменьшаем у пользователя
         material.current_quantity = (material.current_quantity or 0.0) + quantity
+        # Если материал был неактивен, восстанавливаем его
+        if not material.is_active:
+            material.is_active = True
+            material.updated_at = get_moscow_now()
+            print(f"DEBUG: Материал '{material.name}' автоматически восстановлен при возврате")
     elif movement_type == 'writeoff':
         # Списание - только уменьшаем склад
         material.current_quantity = (material.current_quantity or 0.0) - quantity
@@ -540,6 +612,13 @@ def api_create_movement():
         db.session.add(attachment)
 
     db.session.commit()
+
+    # Проверяем, нужно ли скрыть материал (если количество стало 0 или меньше)
+    if material.current_quantity <= 0 and material.is_active:
+        material.is_active = False
+        material.updated_at = get_moscow_now()
+        db.session.commit()
+        print(f"DEBUG: Материал '{material.name}' автоматически скрыт (количество: {material.current_quantity})")
 
     # Логируем действие с деталями
     action_description = f"Создано движение: {movement_type}, материал: {material.name}, количество: {quantity}"
