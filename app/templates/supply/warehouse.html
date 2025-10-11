@@ -249,16 +249,10 @@ async function loadMaterials() {
       
       // Добавляем обработчик клика прямо к строке
       row.addEventListener('click', function(e) {
-        // Проверяем, не кликнули ли по кнопке или её дочерним элементам
-        const clickedActionButton = e.target.closest('.action-button');
-        const clickedButton = e.target.closest('button');
-        const clickedBtn = e.target.closest('.btn');
-        const clickedSvg = e.target.closest('svg');
-        const clickedIcon = e.target.closest('i');
-        
-        if (clickedActionButton || clickedButton || clickedBtn || (clickedSvg && clickedSvg.closest('button')) || (clickedIcon && clickedIcon.closest('button'))) {
-          console.log('=== КЛИК ПО КНОПКЕ, ИГНОРИРУЕМ ===', e.target);
-          return; // Не обрабатываем клик по кнопкам
+        // Проверяем, не кликнули ли по SVG иконке или кнопке
+        if (e.target.tagName === 'svg' || e.target.tagName === 'path' || e.target.closest('button')) {
+          console.log('=== КЛИК ПО ИКОНКЕ/КНОПКЕ, ИГНОРИРУЕМ ===', e.target.tagName);
+          return; // Не обрабатываем клик по иконкам и кнопкам
         }
         
         console.log('=== КЛИК ПО СТРОКЕ ===', material.id);
@@ -818,6 +812,11 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .action-button {
+  cursor: pointer !important;
+}
+
+.clickable-row svg,
+.clickable-row path {
   cursor: pointer !important;
 }
 
