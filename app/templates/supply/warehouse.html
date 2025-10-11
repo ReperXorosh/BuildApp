@@ -746,6 +746,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('searchInput').addEventListener('input', filterMaterials);
   
   // Обработчик клика по строкам таблицы (добавляем после загрузки DOM)
+  // Используем capture: true для перехвата события раньше других обработчиков
   document.addEventListener('click', function(e) {
     console.log('=== КЛИК ОБНАРУЖЕН ===');
     console.log('Клик по элементу:', e.target);
@@ -764,12 +765,19 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('URL:', `/supply/warehouse/material/${materialId}`);
         e.preventDefault();
         e.stopPropagation();
-        window.location.href = `/supply/warehouse/material/${materialId}`;
+        e.stopImmediatePropagation();
+        
+        // Используем setTimeout для задержки перехода
+        setTimeout(() => {
+          console.log('=== ВЫПОЛНЯЕМ ПЕРЕХОД ===');
+          window.location.replace(`/supply/warehouse/material/${materialId}`);
+        }, 100);
+        
         return false;
       }
     }
     console.log('=== КЛИК НЕ ОБРАБОТАН ===');
-  });
+  }, true); // Используем capture: true
   
   // Дополнительный простой обработчик для отладки
   document.addEventListener('click', function(e) {
