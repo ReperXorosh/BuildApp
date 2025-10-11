@@ -226,6 +226,36 @@ def material_detail(material_id):
             db.joinedload(WarehouseMovement.attachments)
         ).filter_by(material_id=material_id).order_by(WarehouseMovement.created_at.desc()).limit(20).all()
         
+        # Создаем виртуальную запись для первоначального создания материала
+        from datetime import datetime
+        from app.utils.timezone_utils import get_moscow_now
+        
+        # Создаем объект для отображения операции создания
+        class VirtualMovement:
+            def __init__(self, movement_type, quantity, created_at, note="", user=None):
+                self.movement_type = movement_type
+                self.quantity = quantity
+                self.created_at = created_at
+                self.note = note
+                self.to_user = user
+                self.from_user = None
+                self.attachments = []
+        
+        # Добавляем виртуальную запись о создании материала
+        creation_movement = VirtualMovement(
+            movement_type='creation',
+            quantity=material.current_quantity,
+            created_at=material.created_at,
+            note="Создание материала",
+            user=None
+        )
+        
+        # Объединяем реальные движения с виртуальным созданием
+        all_actions = [creation_movement] + list(movements)
+        
+        # Сортируем по дате (новые сверху)
+        all_actions.sort(key=lambda x: x.created_at, reverse=True)
+        
         # Получаем распределения материала по пользователям с загрузкой пользователей
         allocations = db.session.query(UserMaterialAllocation).options(
             db.joinedload(UserMaterialAllocation.user)
@@ -243,7 +273,7 @@ def material_detail(material_id):
         )
         
         print(f"DEBUG: Рендерим шаблон material_detail.html")
-        return render_template('supply/material_detail.html', material=material, movements=movements, allocations=allocations)
+        return render_template('supply/material_detail.html', material=material, movements=all_actions, allocations=allocations)
     
     except Exception as e:
         print(f"Ошибка в material_detail: {e}")

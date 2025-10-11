@@ -891,11 +891,19 @@ function showMaterialExistsInfo(material) {
   unitInput.value = material.unit;
   minQuantityInput.value = material.min_quantity;
   
+  // Блокируем поля для редактирования
+  unitInput.disabled = true;
+  minQuantityInput.disabled = true;
+  
+  // Добавляем визуальные стили для заблокированных полей
+  unitInput.classList.add('bg-light');
+  minQuantityInput.classList.add('bg-light');
+  
   // Показываем информацию
   infoDiv.innerHTML = `
     <i class="bi bi-info-circle"></i> 
     Материал уже существует на складе (${material.current_quantity} ${material.unit}). 
-    При сохранении количество будет пополнено.
+    При сохранении количество будет пополнено. Ед. изм. и мин. запас заблокированы.
   `;
   infoDiv.style.display = 'block';
   infoDiv.className = 'form-text text-warning';
@@ -904,6 +912,19 @@ function showMaterialExistsInfo(material) {
 // Скрыть информацию о существующем материале
 function hideMaterialExistsInfo() {
   const infoDiv = document.getElementById('material-exists-info');
+  const unitInput = document.querySelector('input[name="unit"]');
+  const minQuantityInput = document.querySelector('input[name="min_quantity"]');
+  
+  // Разблокируем поля
+  if (unitInput) {
+    unitInput.disabled = false;
+    unitInput.classList.remove('bg-light');
+  }
+  if (minQuantityInput) {
+    minQuantityInput.disabled = false;
+    minQuantityInput.classList.remove('bg-light');
+  }
+  
   infoDiv.style.display = 'none';
 }
 

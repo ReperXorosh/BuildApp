@@ -79,7 +79,7 @@
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
-                        <i class="bi bi-clock-history me-2"></i>История движений
+                        <i class="bi bi-clock-history me-2"></i>Действия
                     </h5>
                 </div>
                 <div class="card-body p-0">
@@ -110,6 +110,8 @@
                                             <span class="badge bg-danger">Списание</span>
                                         {% elif movement.movement_type == 'receipt' %}
                                             <span class="badge bg-info">Поступление</span>
+                                        {% elif movement.movement_type == 'creation' %}
+                                            <span class="badge bg-warning">Создание</span>
                                         {% else %}
                                             <span class="badge bg-secondary">{{ movement.movement_type }}</span>
                                         {% endif %}
