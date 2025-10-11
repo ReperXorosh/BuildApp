@@ -204,7 +204,7 @@ def warehouse_user_detail(user_id):
     
     return render_template('supply/user_detail.html', user=user)
 
-@supply.route('/supply/warehouse/material/<uuid:material_id>')
+@supply.route('/warehouse/material/<uuid:material_id>')
 @login_required
 def material_detail(material_id):
     """Страница детальной информации о материале"""
