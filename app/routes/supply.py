@@ -1406,6 +1406,41 @@ def api_download_attachment(movement_id, attachment_id):
         return redirect(url_for('supply.warehouse_view'))
     return send_file(BytesIO(att.data), mimetype=att.content_type or 'application/octet-stream', as_attachment=True, download_name=att.filename)
 
+@supply.route('/api/supply/movements/<uuid:movement_id>/attachments/<uuid:attachment_id>/view', methods=['GET'])
+@login_required
+def api_view_attachment(movement_id, attachment_id):
+    """Просмотр файла в браузере (без скачивания)"""
+    if not is_supplier_or_admin():
+        return jsonify({'error': 'Недостаточно прав для просмотра файла'}), 403
+    
+    att = WarehouseAttachment.query.filter_by(id=attachment_id, movement_id=movement_id).first()
+    if not att:
+        return jsonify({'error': 'Вложение не найдено'}), 404
+    
+    # Определяем, можно ли отобразить файл в браузере
+    viewable_types = [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+        'application/pdf',
+        'text/plain', 'text/html', 'text/css', 'text/javascript',
+        'application/json', 'application/xml', 'text/xml'
+    ]
+    
+    if att.content_type in viewable_types:
+        # Отправляем файл для просмотра в браузере
+        return send_file(
+            BytesIO(att.data), 
+            mimetype=att.content_type or 'application/octet-stream', 
+            as_attachment=False
+        )
+    else:
+        # Для неподдерживаемых типов файлов предлагаем скачать
+        return send_file(
+            BytesIO(att.data), 
+            mimetype=att.content_type or 'application/octet-stream', 
+            as_attachment=True, 
+            download_name=att.filename
+        )
+
 @supply.route('/api/supply/equipment', methods=['GET'])
 @login_required
 def api_equipment():
