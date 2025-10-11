@@ -731,7 +731,7 @@ document.addEventListener('click', function(e) {
   if (clickableRow) {
     const materialId = clickableRow.getAttribute('data-material-id');
     if (materialId) {
-      window.location.href = `{{ url_for('supply.material_detail', material_id='') }}${materialId}`;
+      window.location.href = `/supply/warehouse/material/${materialId}`;
     }
   }
 });
