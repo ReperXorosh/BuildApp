@@ -241,30 +241,8 @@ async function loadMaterials() {
     
     materials.forEach(material => {
       const row = document.createElement('tr');
-      row.className = 'clickable-row';
-      row.style.cursor = 'pointer';
       row.setAttribute('data-material-id', material.id);
-      row.setAttribute('data-no-pjax', 'true');
       console.log('Создана строка для материала:', material.id, material.name); // Для отладки
-      
-      // Добавляем обработчик клика прямо к строке
-      row.addEventListener('click', function(e) {
-        // Проверяем, не кликнули ли в ячейке с кнопками
-        if (e.target.closest('.no-click')) {
-          console.log('=== КЛИК В ОБЛАСТИ КНОПОК, ИГНОРИРУЕМ ===');
-          return; // Не обрабатываем клик в области кнопок
-        }
-        
-        console.log('=== КЛИК ПО СТРОКЕ ===', material.id);
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        
-        setTimeout(() => {
-          console.log('=== ПЕРЕХОД К МАТЕРИАЛУ ===', material.id);
-          window.location.href = `/supply/warehouse/material/${material.id}`;
-        }, 100);
-      });
       
       // Определяем статус
       let statusBadge = '';
@@ -299,39 +277,24 @@ async function loadMaterials() {
       }
       
       row.innerHTML = `
-        <td>${material.name}</td>
+        <td>
+          <span class="material-name-clickable" 
+                data-material-id="${material.id}"
+                onclick="viewMaterial('${material.id}')" 
+                title="Нажмите для просмотра подробной информации"
+                style="cursor: pointer; color: #0d6efd; text-decoration: underline;">
+            ${material.name}
+          </span>
+        </td>
         <td>${material.unit}</td>
         <td>${material.current_quantity || 0}</td>
         <td>${material.min_quantity || 0}</td>
         <td>${statusBadge}</td>
-        <td class="no-click">
+        <td>
           ${actionsHtml}
         </td>
       `;
       
-      // Добавляем обработчики событий к кнопкам после создания
-      const editBtn = row.querySelector('.btn-outline-primary');
-      const deleteBtn = row.querySelector('.btn-outline-danger');
-      
-      if (editBtn) {
-        editBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-          console.log('=== КЛИК ПО КНОПКЕ РЕДАКТИРОВАНИЯ ===');
-          editMaterial(material.id);
-          return false;
-        });
-      }
-      
-      if (deleteBtn) {
-        deleteBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-          console.log('=== КЛИК ПО КНОПКЕ УДАЛЕНИЯ ===');
-          deleteMaterial(material.id);
-          return false;
-        });
-      }
       
       tbody.appendChild(row);
     });
@@ -774,6 +737,12 @@ function setupQuantityValidation() {
   }
 }
 
+// Функция просмотра материала
+function viewMaterial(materialId) {
+  console.log('=== ПЕРЕХОД К ПРОСМОТРУ МАТЕРИАЛА ===', materialId);
+  window.location.href = `/supply/warehouse/material/${materialId}`;
+}
+
 // Функция редактирования материала
 function editMaterial(materialId) {
   // Пока что просто показываем сообщение
@@ -788,77 +757,13 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Поиск
   document.getElementById('searchInput').addEventListener('input', filterMaterials);
-  
-  // Обработчик клика по строкам таблицы (добавляем после загрузки DOM)
-  // Используем capture: true для перехвата события раньше других обработчиков
-  document.addEventListener('click', function(e) {
-    console.log('=== КЛИК ОБНАРУЖЕН ===');
-    console.log('Клик по элементу:', e.target);
-    console.log('Класс элемента:', e.target.className);
-    
-    const clickableRow = e.target.closest('.clickable-row');
-    console.log('Найденная строка:', clickableRow);
-    
-    if (clickableRow) {
-      console.log('=== НАЙДЕНА КЛИКАБЕЛЬНАЯ СТРОКА ===');
-      const materialId = clickableRow.getAttribute('data-material-id');
-      console.log('ID материала:', materialId);
-      
-      if (materialId) {
-        console.log('=== ПЕРЕХОД К МАТЕРИАЛУ ===');
-        console.log('URL:', `/supply/warehouse/material/${materialId}`);
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        
-        // Используем setTimeout для задержки перехода
-        setTimeout(() => {
-          console.log('=== ВЫПОЛНЯЕМ ПЕРЕХОД ===');
-          window.location.replace(`/supply/warehouse/material/${materialId}`);
-        }, 100);
-        
-        return false;
-      }
-    }
-    console.log('=== КЛИК НЕ ОБРАБОТАН ===');
-  }, true); // Используем capture: true
-  
-  // Дополнительный простой обработчик для отладки
-  document.addEventListener('click', function(e) {
-    console.log('=== ПРОСТОЙ КЛИК ===', e.target.tagName, e.target.className);
-  });
 });
 </script>
 
 <style>
-.clickable-row {
-  transition: background-color 0.2s ease, transform 0.1s ease;
-}
-
-.action-button {
-  cursor: pointer !important;
-}
-
-.clickable-row svg,
-.clickable-row path {
-  cursor: pointer !important;
-}
-
-.no-click {
-  cursor: default !important;
-}
-
-.no-click * {
-  cursor: pointer !important;
-}
-
-.clickable-row:hover {
-  background-color: rgba(0, 123, 255, 0.1) !important;
-  transform: scale(1.01);
-}
-
-.clickable-row:active {
-  transform: scale(0.99);
+.material-name-clickable:hover {
+  color: #0a58ca !important;
+  text-decoration: underline !important;
 }
 
 /* Адаптивные стили для мобильных устройств */
