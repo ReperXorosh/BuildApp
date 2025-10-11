@@ -228,9 +228,11 @@
 <script>
 // Загрузка материалов в таблицу
 async function loadMaterials() {
+  console.log('=== НАЧИНАЕМ ЗАГРУЗКУ МАТЕРИАЛОВ ===');
   try {
     const response = await fetch('{{ url_for("supply.api_materials") }}');
     const materials = await response.json();
+    console.log('=== МАТЕРИАЛЫ ЗАГРУЖЕНЫ ===', materials);
     
     const tbody = document.getElementById('materials-table');
     tbody.innerHTML = '';
@@ -734,6 +736,7 @@ function editMaterial(materialId) {
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('=== DOM ЗАГРУЖЕН, НАЧИНАЕМ ИНИЦИАЛИЗАЦИЮ ===');
   loadMaterials();
   setupQuantityValidation();
   
@@ -742,18 +745,28 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Обработчик клика по строкам таблицы (добавляем после загрузки DOM)
   document.addEventListener('click', function(e) {
-    console.log('Клик по элементу:', e.target); // Для отладки
+    console.log('=== КЛИК ОБНАРУЖЕН ===');
+    console.log('Клик по элементу:', e.target);
+    console.log('Класс элемента:', e.target.className);
+    
     const clickableRow = e.target.closest('.clickable-row');
-    console.log('Найденная строка:', clickableRow); // Для отладки
+    console.log('Найденная строка:', clickableRow);
+    
     if (clickableRow) {
+      console.log('=== НАЙДЕНА КЛИКАБЕЛЬНАЯ СТРОКА ===');
       const materialId = clickableRow.getAttribute('data-material-id');
-      console.log('ID материала:', materialId); // Для отладки
+      console.log('ID материала:', materialId);
+      
       if (materialId) {
-        console.log('Переход к материалу:', materialId); // Для отладки
-        e.preventDefault(); // Предотвращаем стандартное поведение
+        console.log('=== ПЕРЕХОД К МАТЕРИАЛУ ===');
+        console.log('URL:', `/supply/warehouse/material/${materialId}`);
+        e.preventDefault();
+        e.stopPropagation();
         window.location.href = `/supply/warehouse/material/${materialId}`;
+        return false;
       }
     }
+    console.log('=== КЛИК НЕ ОБРАБОТАН ===');
   });
 });
 </script>
