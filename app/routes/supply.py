@@ -1056,15 +1056,15 @@ def api_materials_for_return():
         return jsonify({'error': 'Недостаточно прав'}), 403
     
     try:
-        # Получаем все материалы, которые есть у пользователей (даже если количество на складе = 0)
+        # Получаем все материалы, которые когда-либо были выданы пользователям
+        # (даже если текущее количество у пользователей = 0)
         materials = db.session.query(
             Material,
             db.func.sum(UserMaterialAllocation.quantity).label('total_allocated')
         ).join(
             UserMaterialAllocation, Material.id == UserMaterialAllocation.material_id
         ).filter(
-            Material.is_active == True,
-            UserMaterialAllocation.quantity > 0
+            Material.is_active == True
         ).group_by(
             Material.id
         ).all()
@@ -1077,6 +1077,30 @@ def api_materials_for_return():
             material_dict['total_allocated'] = float(total_allocated or 0)
             result.append(material_dict)
             print(f"DEBUG: Материал {material.name}, у пользователей: {total_allocated}")
+        
+        # Если нет материалов через UserMaterialAllocation, попробуем через WarehouseMovement
+        if not result:
+            print("DEBUG: Нет материалов в UserMaterialAllocation, проверяем WarehouseMovement")
+            # Получаем материалы, которые были выданы (movement_type = 'move')
+            materials_with_movements = db.session.query(
+                Material,
+                db.func.sum(WarehouseMovement.quantity).label('total_moved')
+            ).join(
+                WarehouseMovement, Material.id == WarehouseMovement.material_id
+            ).filter(
+                Material.is_active == True,
+                WarehouseMovement.movement_type == 'move'
+            ).group_by(
+                Material.id
+            ).all()
+            
+            print(f"DEBUG: Найдено материалов через WarehouseMovement: {len(materials_with_movements)}")
+            
+            for material, total_moved in materials_with_movements:
+                material_dict = material.to_dict()
+                material_dict['total_allocated'] = float(total_moved or 0)
+                result.append(material_dict)
+                print(f"DEBUG: Материал {material.name}, было выдано: {total_moved}")
         
         return jsonify(result)
     except Exception as e:
