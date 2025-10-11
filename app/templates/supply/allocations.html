@@ -109,12 +109,18 @@ function displayUsers(users) {
     // Форматируем дату (используем текущую дату как пример)
     const formattedDate = new Date().toLocaleDateString('ru-RU');
     
+    // Определяем аватар пользователя
+    let avatarHtml = '';
+    if (user.avatar) {
+      avatarHtml = `<img src="{{ url_for('static', filename='uploads/avatars/') }}${user.avatar}" alt="Аватар" class="avatar-sm rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">`;
+    } else {
+      avatarHtml = `<img src="{{ url_for('static', filename='img/default-avatar.png') }}" alt="Аватар по умолчанию" class="avatar-sm rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">`;
+    }
+    
     row.innerHTML = `
       <td>
         <div class="d-flex align-items-center">
-          <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
-            <i class="bi bi-person text-white"></i>
-          </div>
+          ${avatarHtml}
           <div>
             <div class="fw-semibold">${user.name || 'Не указано'}</div>
             <small class="text-muted">${user.login}</small>

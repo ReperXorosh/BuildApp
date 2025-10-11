@@ -661,12 +661,13 @@ def api_users_with_allocations():
         Users.thirdname,
         Users.login,
         Users.role,
+        Users.avatar,
         db.func.count(UserMaterialAllocation.id).label('allocations_count'),
         db.func.sum(UserMaterialAllocation.quantity).label('total_quantity')
     ).join(
         UserMaterialAllocation, Users.userid == UserMaterialAllocation.user_id
     ).group_by(
-        Users.userid, Users.secondname, Users.firstname, Users.thirdname, Users.login, Users.role
+        Users.userid, Users.secondname, Users.firstname, Users.thirdname, Users.login, Users.role, Users.avatar
     ).order_by(
         Users.secondname, Users.firstname
     ).all()
@@ -678,6 +679,7 @@ def api_users_with_allocations():
             'name': f"{user.secondname or ''} {user.firstname or ''} {user.thirdname or ''}".strip(),
             'login': user.login,
             'role': user.role,
+            'avatar': user.avatar,
             'allocations_count': user.allocations_count,
             'total_quantity': float(user.total_quantity or 0)
         }
