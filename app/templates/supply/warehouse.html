@@ -184,9 +184,9 @@
                             <input class="form-control" name="note">
                         </div>
                         <div class="col-12">
-                            <label class="form-label" id="file-label">Вложение (файл)</label>
-                            <input type="file" class="form-control" name="file" id="movement-file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
-                            <small class="form-text text-muted" id="file-help">Прикрепите документ к движению</small>
+                            <label class="form-label" id="file-label">Вложение (файл) <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" name="file" id="movement-file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
+                            <small class="form-text text-muted" id="file-help">Прикрепите документ к движению (обязательно)</small>
                         </div>
                     </div>
                 </form>
@@ -392,16 +392,16 @@ async function onMovementTypeChange() {
   const fileLabel = document.getElementById('file-label');
   const fileHelp = document.getElementById('file-help');
   
-  if (movementType === 'move' || movementType === 'return') {
-    // Для выдачи и возврата файл обязателен
-    fileInput.required = true;
-    fileLabel.innerHTML = 'Вложение (файл) <span class="text-danger">*</span>';
-    fileHelp.textContent = 'Прикрепите документ к движению (обязательно)';
-  } else {
-    // Для списания файл не обязателен
+  if (movementType === 'writeoff') {
+    // Только для списания файл не обязателен
     fileInput.required = false;
     fileLabel.innerHTML = 'Вложение (файл)';
     fileHelp.textContent = 'Прикрепите документ к движению (необязательно)';
+  } else {
+    // Для выдачи и возврата файл обязателен (по умолчанию)
+    fileInput.required = true;
+    fileLabel.innerHTML = 'Вложение (файл) <span class="text-danger">*</span>';
+    fileHelp.textContent = 'Прикрепите документ к движению (обязательно)';
   }
   
   // Загружаем материалы
@@ -648,6 +648,14 @@ async function submitMovement() {
   // Определяем правильные поля в зависимости от типа операции
   const movementType = formData.get('movement_type');
   const userId = formData.get('to_user_id');
+  
+  // Проверяем обязательность файла
+  const fileInput = document.getElementById('movement-file');
+  if ((movementType === 'move' || movementType === 'return') && !fileInput.files || fileInput.files.length === 0) {
+    alert('Для операций выдачи и возврата обязательно прикрепите файл!');
+    fileInput.focus();
+    return;
+  }
   
   if (movementType === 'return' && userId) {
     // Для возврата используем from_user_id вместо to_user_id
