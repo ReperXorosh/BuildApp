@@ -156,7 +156,12 @@ function displayAllocations(allocations) {
   allocations.forEach(allocation => {
     const row = document.createElement('tr');
     row.style.cursor = 'pointer';
-    row.onclick = () => viewUserMaterialMovements(allocation.material_id, allocation.material_name);
+    row.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Клик по строке:', allocation);
+      viewUserMaterialMovements(allocation.material_id, allocation.material_name);
+    };
     
     // Определяем статус
     let statusBadge = '';
@@ -241,6 +246,7 @@ function clearFilters() {
 
 // Переход к истории движений материала с пользователем
 function viewUserMaterialMovements(materialId, materialName) {
+  console.log('Переход к истории движений:', materialId, materialName);
   window.location.href = `/supply/user/{{ user.userid }}/material/${materialId}/movements`;
 }
 
