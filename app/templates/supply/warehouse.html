@@ -392,13 +392,13 @@ async function onMovementTypeChange() {
   const fileLabel = document.getElementById('file-label');
   const fileHelp = document.getElementById('file-help');
   
-  if (movementType === 'move') {
-    // Для выдачи файл обязателен
+  if (movementType === 'move' || movementType === 'return') {
+    // Для выдачи и возврата файл обязателен
     fileInput.required = true;
     fileLabel.innerHTML = 'Вложение (файл) <span class="text-danger">*</span>';
     fileHelp.textContent = 'Прикрепите документ к движению (обязательно)';
   } else {
-    // Для других операций файл не обязателен
+    // Для списания файл не обязателен
     fileInput.required = false;
     fileLabel.innerHTML = 'Вложение (файл)';
     fileHelp.textContent = 'Прикрепите документ к движению (необязательно)';
