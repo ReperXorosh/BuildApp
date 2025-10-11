@@ -40,6 +40,8 @@
                                 <option value="move">Выдача</option>
                                 <option value="return">Возврат</option>
                                 <option value="writeoff">Списание</option>
+                                <option value="replenishment">Пополнение</option>
+                                <option value="creation">Создание</option>
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -136,16 +138,22 @@ function displayMovements(movements) {
     let typeBadge = '';
     switch(movement.movement_type) {
       case 'add':
-        typeBadge = '<span class="badge bg-success">Поступление</span>';
+        typeBadge = '<span class="badge bg-info">Поступление</span>';
         break;
       case 'move':
         typeBadge = '<span class="badge bg-primary">Выдача</span>';
         break;
       case 'return':
-        typeBadge = '<span class="badge bg-info">Возврат</span>';
+        typeBadge = '<span class="badge bg-success">Возврат</span>';
         break;
       case 'writeoff':
         typeBadge = '<span class="badge bg-danger">Списание</span>';
+        break;
+      case 'replenishment':
+        typeBadge = '<span class="badge bg-info">Пополнение</span>';
+        break;
+      case 'creation':
+        typeBadge = '<span class="badge bg-warning">Создание</span>';
         break;
       default:
         typeBadge = '<span class="badge bg-secondary">Неизвестно</span>';
@@ -211,7 +219,9 @@ function applyFilters() {
         'add': 'поступление',
         'move': 'выдача',
         'return': 'возврат',
-        'writeoff': 'списание'
+        'writeoff': 'списание',
+        'replenishment': 'пополнение',
+        'creation': 'создание'
       };
       if (!type.includes(typeMap[filterType])) {
         show = false;
