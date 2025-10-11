@@ -155,6 +155,8 @@ function displayAllocations(allocations) {
   
   allocations.forEach(allocation => {
     const row = document.createElement('tr');
+    row.style.cursor = 'pointer';
+    row.onclick = () => viewUserMaterialMovements(allocation.material_id, allocation.material_name);
     
     // Определяем статус
     let statusBadge = '';
@@ -235,6 +237,11 @@ function clearFilters() {
   });
   
   document.getElementById('visibleCount').textContent = `Показано позиций: ${rows.length}`;
+}
+
+// Переход к истории движений материала с пользователем
+function viewUserMaterialMovements(materialId, materialName) {
+  window.location.href = `/supply/user/{{ user.userid }}/material/${materialId}/movements`;
 }
 
 // Инициализация при загрузке страницы

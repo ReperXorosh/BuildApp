@@ -184,9 +184,9 @@
                             <input class="form-control" name="note">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Вложение (файл) <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
-                            <small class="form-text text-muted">Прикрепите документ к движению (обязательно)</small>
+                            <label class="form-label" id="file-label">Вложение (файл)</label>
+                            <input type="file" class="form-control" name="file" id="movement-file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                            <small class="form-text text-muted" id="file-help">Прикрепите документ к движению</small>
                         </div>
                     </div>
                 </form>
@@ -385,6 +385,23 @@ async function onMovementTypeChange() {
     } else if (movementType === 'return') {
       userLabel.textContent = 'От кого возврат';
     }
+  }
+  
+  // Управляем обязательностью файла
+  const fileInput = document.getElementById('movement-file');
+  const fileLabel = document.getElementById('file-label');
+  const fileHelp = document.getElementById('file-help');
+  
+  if (movementType === 'move') {
+    // Для выдачи файл обязателен
+    fileInput.required = true;
+    fileLabel.innerHTML = 'Вложение (файл) <span class="text-danger">*</span>';
+    fileHelp.textContent = 'Прикрепите документ к движению (обязательно)';
+  } else {
+    // Для других операций файл не обязателен
+    fileInput.required = false;
+    fileLabel.innerHTML = 'Вложение (файл)';
+    fileHelp.textContent = 'Прикрепите документ к движению (необязательно)';
   }
   
   // Загружаем материалы

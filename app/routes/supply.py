@@ -11,7 +11,7 @@ from app.models.supply import (
     SupplyRequest,
     SupplyRequestItem,
 )
-from app.models.users import Users
+from app.models.users import User as User
 from app.models.activity_log import ActivityLog
 from app.extensions import db
 from app.utils.mobile_detection import is_mobile_device
@@ -189,7 +189,7 @@ def warehouse_user_detail(user_id):
         return redirect(url_for('objects.object_list'))
     
     # Получаем информацию о пользователе
-    user = Users.query.get_or_404(user_id)
+    user = User.query.get_or_404(user_id)
     
     # Логируем просмотр страницы пользователя
     ActivityLog.log_action(
@@ -203,6 +203,26 @@ def warehouse_user_detail(user_id):
     )
     
     return render_template('supply/user_detail.html', user=user)
+
+@supply.route('/user/<uuid:user_id>/material/<uuid:material_id>/movements')
+@login_required
+def user_material_movements(user_id, material_id):
+    """Страница истории движений конкретного материала с конкретным пользователем"""
+    if not is_supplier_or_admin():
+        return redirect(url_for('supply.warehouse_view'))
+    
+    try:
+        # Получаем информацию о пользователе
+        user = User.query.get_or_404(user_id)
+        
+        # Получаем информацию о материале
+        material = Material.query.get_or_404(material_id)
+        
+        return render_template('supply/user_material_movements.html', 
+                             user=user, material=material)
+    except Exception as e:
+        print(f"Ошибка в user_material_movements: {e}")
+        return redirect(url_for('supply.warehouse_view'))
 
 @supply.route('/warehouse/material/<uuid:material_id>')
 @login_required
@@ -801,11 +821,11 @@ def api_create_movement():
     # Логируем действие с деталями
     action_description = f"Создано движение: {movement_type}, материал: {material.name}, количество: {quantity}"
     if movement_type == 'move' and to_user_id:
-        user = Users.query.get(to_user_id)
+        user = User.query.get(to_user_id)
         if user:
             action_description += f", выдано пользователю: {user.login}"
     elif movement_type == 'return' and from_user_id:
-        user = Users.query.get(from_user_id)
+        user = User.query.get(from_user_id)
         if user:
             action_description += f", возвращено от пользователя: {user.login}"
 
@@ -855,12 +875,12 @@ def api_list_movements():
         user_name = "Не указан"
         if movement.movement_type == 'return' and movement.from_user_id:
             # Для возврата ищем пользователя по from_user_id
-            user = Users.query.get(movement.from_user_id)
+            user = User.query.get(movement.from_user_id)
             if user:
                 user_name = f"{user.secondname or ''} {user.firstname or ''}".strip() or user.login
         elif movement.movement_type in ['move', 'add'] and movement.to_user_id:
             # Для выдачи и поступления ищем пользователя по to_user_id
-            user = Users.query.get(movement.to_user_id)
+            user = User.query.get(movement.to_user_id)
             if user:
                 user_name = f"{user.secondname or ''} {user.firstname or ''}".strip() or user.login
         
@@ -892,13 +912,13 @@ def api_list_allocations():
         UserMaterialAllocation,
         Material.name.label('material_name'),
         Material.unit.label('material_unit'),
-        Users.secondname.label('user_last_name'),
-        Users.firstname.label('user_first_name'),
-        Users.login.label('user_login')
+        User.secondname.label('user_last_name'),
+        User.firstname.label('user_first_name'),
+        User.login.label('user_login')
     ).join(
         Material, UserMaterialAllocation.material_id == Material.id
     ).join(
-        Users, UserMaterialAllocation.user_id == Users.userid
+        User, UserMaterialAllocation.user_id == User.userid
     ).order_by(
         UserMaterialAllocation.updated_at.desc()
     ).all()
@@ -928,20 +948,20 @@ def api_material_allocations():
     # Получаем пользователей, у которых есть этот материал
     allocations = db.session.query(
         UserMaterialAllocation,
-        Users.secondname.label('user_last_name'),
-        Users.firstname.label('user_first_name'),
-        Users.thirdname.label('user_third_name'),
-        Users.login.label('user_login'),
+        User.secondname.label('user_last_name'),
+        User.firstname.label('user_first_name'),
+        User.thirdname.label('user_third_name'),
+        User.login.label('user_login'),
         Material.unit.label('material_unit')
     ).join(
-        Users, UserMaterialAllocation.user_id == Users.userid
+        User, UserMaterialAllocation.user_id == User.userid
     ).join(
         Material, UserMaterialAllocation.material_id == Material.id
     ).filter(
         UserMaterialAllocation.material_id == material_id,
         UserMaterialAllocation.quantity > 0
     ).order_by(
-        Users.secondname, Users.firstname
+        User.secondname, User.firstname
     ).all()
     
     result = []
@@ -965,21 +985,21 @@ def api_users_with_allocations():
     
     # Получаем всех пользователей, у которых есть распределения
     users_with_allocations = db.session.query(
-        Users.userid,
-        Users.secondname,
-        Users.firstname,
-        Users.thirdname,
-        Users.login,
-        Users.role,
-        Users.avatar,
+        User.userid,
+        User.secondname,
+        User.firstname,
+        User.thirdname,
+        User.login,
+        User.role,
+        User.avatar,
         db.func.count(UserMaterialAllocation.id).label('allocations_count'),
         db.func.sum(UserMaterialAllocation.quantity).label('total_quantity')
     ).join(
-        UserMaterialAllocation, Users.userid == UserMaterialAllocation.user_id
+        UserMaterialAllocation, User.userid == UserMaterialAllocation.user_id
     ).group_by(
-        Users.userid, Users.secondname, Users.firstname, Users.thirdname, Users.login, Users.role, Users.avatar
+        User.userid, User.secondname, User.firstname, User.thirdname, User.login, User.role, User.avatar
     ).order_by(
-        Users.secondname, Users.firstname
+        User.secondname, User.firstname
     ).all()
     
     result = []
@@ -1028,6 +1048,53 @@ def api_user_allocations(user_id):
     
     return jsonify(result)
 
+@supply.route('/api/supply/user/<uuid:user_id>/material/<uuid:material_id>/movements', methods=['GET'])
+@login_required
+def api_user_material_movements(user_id, material_id):
+    """Получение истории движений конкретного материала с конкретным пользователем"""
+    if not is_supplier_or_admin():
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    
+    # Получаем движения материала с пользователем
+    movements = db.session.query(
+        WarehouseMovement,
+        Material.name.label('material_name'),
+        Material.unit.label('material_unit'),
+        User.firstname.label('user_firstname'),
+        User.secondname.label('user_secondname'),
+        User.login.label('user_login')
+    ).join(
+        Material, WarehouseMovement.material_id == Material.id
+    ).outerjoin(
+        User, WarehouseMovement.to_user_id == User.userid
+    ).filter(
+        WarehouseMovement.material_id == material_id,
+        db.or_(
+            WarehouseMovement.to_user_id == user_id,
+            WarehouseMovement.from_user_id == user_id
+        )
+    ).order_by(
+        WarehouseMovement.created_at.desc()
+    ).all()
+    
+    result = []
+    for movement, material_name, material_unit, user_firstname, user_secondname, user_login in movements:
+        movement_dict = movement.to_dict()
+        movement_dict['material_name'] = material_name
+        movement_dict['material_unit'] = material_unit
+        movement_dict['user_name'] = f"{user_secondname or ''} {user_firstname or ''}".strip()
+        movement_dict['user_login'] = user_login
+        
+        # Добавляем информацию о файлах
+        if movement.attachments:
+            movement_dict['attachments'] = [att.to_dict() for att in movement.attachments]
+        else:
+            movement_dict['attachments'] = []
+            
+        result.append(movement_dict)
+    
+    return jsonify(result)
+
 @supply.route('/api/supply/users/search', methods=['GET'])
 @login_required
 def api_search_users():
@@ -1040,13 +1107,13 @@ def api_search_users():
         return jsonify([])
     
     # Поиск по имени, фамилии, логину (используем правильные названия полей)
-    users = Users.query.filter(
+    users = User.query.filter(
         db.or_(
-            Users.firstname.ilike(f'%{query}%'),
-            Users.secondname.ilike(f'%{query}%'),
-            Users.thirdname.ilike(f'%{query}%'),
-            Users.login.ilike(f'%{query}%'),
-            db.func.concat(Users.secondname, ' ', Users.firstname, ' ', Users.thirdname).ilike(f'%{query}%')
+            User.firstname.ilike(f'%{query}%'),
+            User.secondname.ilike(f'%{query}%'),
+            User.thirdname.ilike(f'%{query}%'),
+            User.login.ilike(f'%{query}%'),
+            db.func.concat(User.secondname, ' ', User.firstname, ' ', User.thirdname).ilike(f'%{query}%')
         )
     ).limit(10).all()
     
@@ -1077,11 +1144,11 @@ def api_get_all_users():
     """Получение всех пользователей для аккордеона"""
     try:
         # Получаем всех пользователей, отсортированных по фамилии
-        users = Users.query.order_by(Users.secondname, Users.firstname).all()
+        users = User.query.order_by(User.secondname, User.firstname).all()
         
         result = []
         for user in users:
-            # Используем правильные названия полей из модели Users
+            # Используем правильные названия полей из модели User
             firstname = user.firstname or ''
             secondname = user.secondname or ''
             thirdname = user.thirdname or ''
@@ -1117,7 +1184,7 @@ def api_get_users_simple():
     """Простое получение пользователей без сложной логики"""
     try:
         # Простой запрос без сортировки
-        users = Users.query.all()
+        users = User.query.all()
         
         result = []
         for user in users:
