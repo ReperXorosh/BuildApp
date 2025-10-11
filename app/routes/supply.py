@@ -489,7 +489,7 @@ def api_materials_create():
         movement = WarehouseMovement(
             material_id=active_material.id,
             quantity=new_quantity,
-            movement_type='add',
+            movement_type='replenishment',
             note=f"Пополнение материала. Причина: {addition_reason}" if addition_reason else "Пополнение материала",
             created_by=current_user.userid,
         )

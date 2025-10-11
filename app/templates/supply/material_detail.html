@@ -112,6 +112,8 @@
                                             <span class="badge bg-info">Поступление</span>
                                         {% elif movement.movement_type == 'creation' %}
                                             <span class="badge bg-warning">Создание</span>
+                                        {% elif movement.movement_type == 'replenishment' %}
+                                            <span class="badge bg-info">Пополнение</span>
                                         {% else %}
                                             <span class="badge bg-secondary">{{ movement.movement_type }}</span>
                                         {% endif %}
