@@ -226,6 +226,8 @@
 </div>
 
 <script>
+console.log('=== СКРИПТ ЗАГРУЖЕН ===');
+
 // Загрузка материалов в таблицу
 async function loadMaterials() {
   console.log('=== НАЧИНАЕМ ЗАГРУЗКУ МАТЕРИАЛОВ ===');
@@ -767,6 +769,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     console.log('=== КЛИК НЕ ОБРАБОТАН ===');
+  });
+  
+  // Дополнительный простой обработчик для отладки
+  document.addEventListener('click', function(e) {
+    console.log('=== ПРОСТОЙ КЛИК ===', e.target.tagName, e.target.className);
   });
 });
 </script>
