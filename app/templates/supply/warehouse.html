@@ -249,10 +249,10 @@ async function loadMaterials() {
       
       // Добавляем обработчик клика прямо к строке
       row.addEventListener('click', function(e) {
-        // Проверяем, не кликнули ли по SVG иконке или кнопке
-        if (e.target.tagName === 'svg' || e.target.tagName === 'path' || e.target.closest('button')) {
-          console.log('=== КЛИК ПО ИКОНКЕ/КНОПКЕ, ИГНОРИРУЕМ ===', e.target.tagName);
-          return; // Не обрабатываем клик по иконкам и кнопкам
+        // Проверяем, не кликнули ли в ячейке с кнопками
+        if (e.target.closest('.no-click')) {
+          console.log('=== КЛИК В ОБЛАСТИ КНОПОК, ИГНОРИРУЕМ ===');
+          return; // Не обрабатываем клик в области кнопок
         }
         
         console.log('=== КЛИК ПО СТРОКЕ ===', material.id);
@@ -304,7 +304,7 @@ async function loadMaterials() {
         <td>${material.current_quantity || 0}</td>
         <td>${material.min_quantity || 0}</td>
         <td>${statusBadge}</td>
-        <td>
+        <td class="no-click">
           ${actionsHtml}
         </td>
       `;
@@ -841,6 +841,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .clickable-row svg,
 .clickable-row path {
+  cursor: pointer !important;
+}
+
+.no-click {
+  cursor: default !important;
+}
+
+.no-click * {
   cursor: pointer !important;
 }
 
