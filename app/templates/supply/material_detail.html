@@ -210,14 +210,10 @@
                                         <span class="badge bg-info">{{ allocation.quantity }} {{ material.unit }}</span>
                                     </td>
                                     <td>
-                                        <small class="text-muted">{{ allocation.created_at | moscow_time }}</small>
+                                        <small class="text-muted">{{ allocation.updated_at | moscow_time }}</small>
                                     </td>
                                     <td>
-                                        {% if allocation.notes %}
-                                            <small>{{ allocation.notes }}</small>
-                                        {% else %}
-                                            <span class="text-muted">-</span>
-                                        {% endif %}
+                                        <span class="text-muted">-</span>
                                     </td>
                                 </tr>
                                 {% endfor %}
