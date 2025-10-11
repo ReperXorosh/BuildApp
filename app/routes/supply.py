@@ -372,7 +372,7 @@ def api_materials_all():
 @supply.route('/api/supply/materials/check', methods=['POST'])
 @login_required
 def api_materials_check():
-    """Проверка существующего материала по названию"""
+    """Проверка существующего материала по названию с учетом регистра и опечаток"""
     if not is_supplier_or_admin():
         return jsonify({'error': 'Недостаточно прав'}), 403
     
@@ -382,20 +382,84 @@ def api_materials_check():
     if not name:
         return jsonify({'error': 'Требуется название материала'}), 400
     
-    # Ищем активный материал с таким названием
-    existing_material = Material.query.filter_by(name=name, is_active=True).first()
+    # Получаем все активные материалы
+    all_materials = Material.query.filter_by(is_active=True).all()
     
-    if existing_material:
+    # 1. Точное совпадение (с учетом регистра)
+    exact_match = next((m for m in all_materials if m.name == name), None)
+    if exact_match:
         return jsonify({
             'exists': True,
+            'exact_match': True,
             'material': {
-                'unit': existing_material.unit,
-                'min_quantity': existing_material.min_quantity,
-                'current_quantity': existing_material.current_quantity
+                'name': exact_match.name,
+                'unit': exact_match.unit,
+                'min_quantity': exact_match.min_quantity,
+                'current_quantity': exact_match.current_quantity
             }
         })
-    else:
-        return jsonify({'exists': False})
+    
+    # 2. Совпадение без учета регистра
+    case_insensitive_match = next((m for m in all_materials if m.name.lower() == name.lower()), None)
+    if case_insensitive_match:
+        return jsonify({
+            'exists': True,
+            'exact_match': False,
+            'case_corrected': True,
+            'corrected_name': case_insensitive_match.name,
+            'material': {
+                'name': case_insensitive_match.name,
+                'unit': case_insensitive_match.unit,
+                'min_quantity': case_insensitive_match.min_quantity,
+                'current_quantity': case_insensitive_match.current_quantity
+            }
+        })
+    
+    # 3. Поиск похожих названий (простой алгоритм Левенштейна)
+    def levenshtein_distance(s1, s2):
+        if len(s1) < len(s2):
+            return levenshtein_distance(s2, s1)
+        if len(s2) == 0:
+            return len(s1)
+        
+        previous_row = list(range(len(s2) + 1))
+        for i, c1 in enumerate(s1):
+            current_row = [i + 1]
+            for j, c2 in enumerate(s2):
+                insertions = previous_row[j + 1] + 1
+                deletions = current_row[j] + 1
+                substitutions = previous_row[j] + (c1 != c2)
+                current_row.append(min(insertions, deletions, substitutions))
+            previous_row = current_row
+        
+        return previous_row[-1]
+    
+    # Ищем похожие названия
+    similar_materials = []
+    for material in all_materials:
+        distance = levenshtein_distance(name.lower(), material.name.lower())
+        # Если расстояние меньше 30% от длины более короткой строки
+        max_distance = min(len(name), len(material.name)) * 0.3
+        if distance <= max_distance and distance > 0:
+            similar_materials.append({
+                'name': material.name,
+                'distance': distance,
+                'unit': material.unit,
+                'min_quantity': material.min_quantity,
+                'current_quantity': material.current_quantity
+            })
+    
+    # Сортируем по расстоянию (более похожие сначала)
+    similar_materials.sort(key=lambda x: x['distance'])
+    
+    if similar_materials:
+        return jsonify({
+            'exists': False,
+            'similar_found': True,
+            'similar_materials': similar_materials[:3]  # Возвращаем до 3 похожих
+        })
+    
+    return jsonify({'exists': False, 'similar_found': False})
 
 @supply.route('/api/supply/materials', methods=['POST'])
 @login_required

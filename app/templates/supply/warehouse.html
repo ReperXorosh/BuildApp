@@ -207,7 +207,10 @@
                     <div class="row">
                         <div class="col-12">
                             <label class="form-label">Наименование</label>
-                            <input class="form-control" name="name" required>
+                            <input class="form-control" name="name" id="receipt-name-input" required>
+                            <div id="receipt-exists-info" class="form-text text-info" style="display: none;">
+                                <i class="bi bi-info-circle"></i> Материал уже существует на складе
+                            </div>
                         </div>
                         <div class="col-6">
                             <label class="form-label">Ед. изм.</label>
@@ -687,6 +690,7 @@ async function submitReceipt() {
       
       bootstrap.Modal.getInstance(document.getElementById('receiptModal')).hide();
       form.reset();
+      hideReceiptExistsInfo(); // Скрываем информацию о существующем материале
       loadMaterials();
       // Материалы теперь загружаются динамически при выборе типа операции
     } else {
@@ -871,7 +875,13 @@ async function checkExistingMaterial(name) {
       const result = await response.json();
       
       if (result.exists) {
-        showMaterialExistsInfo(result.material);
+        // Если есть точное совпадение или исправление регистра
+        if (result.exact_match || result.case_corrected) {
+          showMaterialExistsInfo(result.material, result.corrected_name);
+        }
+      } else if (result.similar_found) {
+        // Если найдены похожие материалы
+        showSimilarMaterials(result.similar_materials, name);
       } else {
         hideMaterialExistsInfo();
       }
@@ -882,31 +892,97 @@ async function checkExistingMaterial(name) {
 }
 
 // Показать информацию о существующем материале
-function showMaterialExistsInfo(material) {
+function showMaterialExistsInfo(material, correctedName = null) {
   const infoDiv = document.getElementById('material-exists-info');
   const unitInput = document.querySelector('input[name="unit"]');
   const minQuantityInput = document.querySelector('input[name="min_quantity"]');
+  const nameInput = document.getElementById('material-name-input');
   
   // Заполняем поля автоматически
   unitInput.value = material.unit;
   minQuantityInput.value = material.min_quantity;
   
-  // Блокируем поля для редактирования
+  // Если есть исправление регистра, обновляем поле названия
+  if (correctedName) {
+    nameInput.value = correctedName;
+  }
+  
+  // Блокируем поля для редактирования (только функционально, без изменения внешнего вида)
   unitInput.disabled = true;
   minQuantityInput.disabled = true;
   
-  // Добавляем визуальные стили для заблокированных полей
-  unitInput.classList.add('bg-light');
-  minQuantityInput.classList.add('bg-light');
-  
   // Показываем информацию
+  let message = `Материал уже существует на складе (${material.current_quantity} ${material.unit}). При сохранении количество будет пополнено. Ед. изм. и мин. запас заблокированы.`;
+  
+  if (correctedName) {
+    message = `Исправлен регистр: "${correctedName}". Материал уже существует на складе (${material.current_quantity} ${material.unit}). При сохранении количество будет пополнено. Ед. изм. и мин. запас заблокированы.`;
+  }
+  
   infoDiv.innerHTML = `
     <i class="bi bi-info-circle"></i> 
-    Материал уже существует на складе (${material.current_quantity} ${material.unit}). 
-    При сохранении количество будет пополнено. Ед. изм. и мин. запас заблокированы.
+    ${message}
   `;
   infoDiv.style.display = 'block';
   infoDiv.className = 'form-text text-warning';
+}
+
+// Показать похожие материалы
+function showSimilarMaterials(similarMaterials, originalName) {
+  const infoDiv = document.getElementById('material-exists-info');
+  
+  let similarList = '';
+  similarMaterials.forEach((material, index) => {
+    similarList += `
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span>${material.name} (${material.current_quantity} ${material.unit})</span>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectSimilarMaterial('${material.name}', '${material.unit}', ${material.min_quantity})">
+          Выбрать
+        </button>
+      </div>
+    `;
+  });
+  
+  infoDiv.innerHTML = `
+    <div class="alert alert-info">
+      <i class="bi bi-question-circle"></i> 
+      <strong>Не найдено точного совпадения для "${originalName}"</strong>
+      <br>Возможно, вы имели в виду один из этих материалов:
+      <div class="mt-2">
+        ${similarList}
+      </div>
+      <div class="mt-2">
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="hideMaterialExistsInfo()">
+          Создать новый материал
+        </button>
+      </div>
+    </div>
+  `;
+  infoDiv.style.display = 'block';
+  infoDiv.className = 'form-text';
+}
+
+// Выбрать похожий материал
+function selectSimilarMaterial(name, unit, minQuantity) {
+  const nameInput = document.getElementById('material-name-input');
+  const unitInput = document.querySelector('input[name="unit"]');
+  const minQuantityInput = document.querySelector('input[name="min_quantity"]');
+  
+  // Заполняем поля
+  nameInput.value = name;
+  unitInput.value = unit;
+  minQuantityInput.value = minQuantity;
+  
+  // Блокируем поля
+  unitInput.disabled = true;
+  minQuantityInput.disabled = true;
+  
+  // Показываем информацию о выбранном материале
+  showMaterialExistsInfo({
+    name: name,
+    unit: unit,
+    min_quantity: minQuantity,
+    current_quantity: 0 // Будет получено из API
+  });
 }
 
 // Скрыть информацию о существующем материале
@@ -918,11 +994,143 @@ function hideMaterialExistsInfo() {
   // Разблокируем поля
   if (unitInput) {
     unitInput.disabled = false;
-    unitInput.classList.remove('bg-light');
   }
   if (minQuantityInput) {
     minQuantityInput.disabled = false;
-    minQuantityInput.classList.remove('bg-light');
+  }
+  
+  infoDiv.style.display = 'none';
+}
+
+// Функция проверки существующего материала для поступления
+async function checkExistingMaterialForReceipt(name) {
+  if (!name || name.length < 2) {
+    hideReceiptExistsInfo();
+    return;
+  }
+  
+  try {
+    const response = await fetch('{{ url_for("supply.api_materials_check") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name })
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      
+      if (result.exists) {
+        // Если есть точное совпадение или исправление регистра
+        if (result.exact_match || result.case_corrected) {
+          showReceiptExistsInfo(result.material, result.corrected_name);
+        }
+      } else if (result.similar_found) {
+        // Если найдены похожие материалы
+        showSimilarMaterialsForReceipt(result.similar_materials, name);
+      } else {
+        hideReceiptExistsInfo();
+      }
+    }
+  } catch (error) {
+    console.error('Ошибка проверки материала для поступления:', error);
+  }
+}
+
+// Показать информацию о существующем материале для поступления
+function showReceiptExistsInfo(material, correctedName = null) {
+  const infoDiv = document.getElementById('receipt-exists-info');
+  const unitInput = document.querySelector('#form-receipt input[name="unit"]');
+  const nameInput = document.getElementById('receipt-name-input');
+  
+  // Заполняем поле единицы измерения автоматически
+  unitInput.value = material.unit;
+  
+  // Если есть исправление регистра, обновляем поле названия
+  if (correctedName) {
+    nameInput.value = correctedName;
+  }
+  
+  // Блокируем поле для редактирования (только функционально, без изменения внешнего вида)
+  unitInput.disabled = true;
+  
+  // Показываем информацию
+  let message = `Материал уже существует на складе (${material.current_quantity} ${material.unit}). При поступлении количество будет пополнено. Ед. изм. заблокирована.`;
+  
+  if (correctedName) {
+    message = `Исправлен регистр: "${correctedName}". Материал уже существует на складе (${material.current_quantity} ${material.unit}). При поступлении количество будет пополнено. Ед. изм. заблокирована.`;
+  }
+  
+  infoDiv.innerHTML = `
+    <i class="bi bi-info-circle"></i> 
+    ${message}
+  `;
+  infoDiv.style.display = 'block';
+  infoDiv.className = 'form-text text-warning';
+}
+
+// Показать похожие материалы для поступления
+function showSimilarMaterialsForReceipt(similarMaterials, originalName) {
+  const infoDiv = document.getElementById('receipt-exists-info');
+  
+  let similarList = '';
+  similarMaterials.forEach((material, index) => {
+    similarList += `
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span>${material.name} (${material.current_quantity} ${material.unit})</span>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectSimilarMaterialForReceipt('${material.name}', '${material.unit}')">
+          Выбрать
+        </button>
+      </div>
+    `;
+  });
+  
+  infoDiv.innerHTML = `
+    <div class="alert alert-info">
+      <i class="bi bi-question-circle"></i> 
+      <strong>Не найдено точного совпадения для "${originalName}"</strong>
+      <br>Возможно, вы имели в виду один из этих материалов:
+      <div class="mt-2">
+        ${similarList}
+      </div>
+      <div class="mt-2">
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="hideReceiptExistsInfo()">
+          Создать новый материал
+        </button>
+      </div>
+    </div>
+  `;
+  infoDiv.style.display = 'block';
+  infoDiv.className = 'form-text';
+}
+
+// Выбрать похожий материал для поступления
+function selectSimilarMaterialForReceipt(name, unit) {
+  const nameInput = document.getElementById('receipt-name-input');
+  const unitInput = document.querySelector('#form-receipt input[name="unit"]');
+  
+  // Заполняем поля
+  nameInput.value = name;
+  unitInput.value = unit;
+  
+  // Блокируем поле
+  unitInput.disabled = true;
+  
+  // Показываем информацию о выбранном материале
+  showReceiptExistsInfo({
+    name: name,
+    unit: unit,
+    current_quantity: 0 // Будет получено из API
+  });
+}
+
+// Скрыть информацию о существующем материале для поступления
+function hideReceiptExistsInfo() {
+  const infoDiv = document.getElementById('receipt-exists-info');
+  const unitInput = document.querySelector('#form-receipt input[name="unit"]');
+  
+  // Разблокируем поле
+  if (unitInput) {
+    unitInput.disabled = false;
   }
   
   infoDiv.style.display = 'none';
@@ -951,6 +1159,18 @@ document.addEventListener('DOMContentLoaded', function() {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
         checkExistingMaterial(this.value);
+      }, 500); // Задержка 500мс для избежания частых запросов
+    });
+  }
+  
+  // Проверка существующего материала при вводе названия в поступлении
+  const receiptNameInput = document.getElementById('receipt-name-input');
+  if (receiptNameInput) {
+    let receiptTimeoutId;
+    receiptNameInput.addEventListener('input', function() {
+      clearTimeout(receiptTimeoutId);
+      receiptTimeoutId = setTimeout(() => {
+        checkExistingMaterialForReceipt(this.value);
       }, 500); // Задержка 500мс для избежания частых запросов
     });
   }
