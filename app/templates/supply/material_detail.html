@@ -136,8 +136,8 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if movement.attachments %}
-                                            <a href="{{ url_for('supply.download_attachment', movement_id=movement.id, attachment_id=movement.attachments[0].id) }}" 
+                                        {% if movement.attachments and movement.attachments|length > 0 %}
+                                            <a href="{{ url_for('supply.api_download_attachment', movement_id=movement.id, attachment_id=movement.attachments[0].id) }}" 
                                                class="btn btn-sm btn-outline-primary" title="Скачать документ">
                                                 <i class="bi bi-download"></i>
                                             </a>
