@@ -237,6 +237,9 @@ async function loadMaterials() {
     
     materials.forEach(material => {
       const row = document.createElement('tr');
+      row.className = 'clickable-row';
+      row.style.cursor = 'pointer';
+      row.setAttribute('data-material-id', material.id);
       
       // Определяем статус
       let statusBadge = '';
@@ -252,14 +255,14 @@ async function loadMaterials() {
       const canDelete = document.querySelector('[data-can-delete]').getAttribute('data-can-delete') === 'true';
       
       let actionsHtml = `
-        <button class="btn btn-sm btn-outline-primary" onclick="editMaterial('${material.id}')" title="Редактировать">
+        <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); editMaterial('${material.id}')" title="Редактировать">
           <i class="bi bi-pencil"></i>
         </button>
       `;
       
       if (canDelete) {
         actionsHtml += `
-          <button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteMaterial('${material.id}')" title="Удалить">
+          <button class="btn btn-sm btn-outline-danger ms-1" onclick="event.stopPropagation(); deleteMaterial('${material.id}')" title="Удалить">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -722,6 +725,23 @@ function setupQuantityValidation() {
   }
 }
 
+// Обработчик клика по строкам таблицы
+document.addEventListener('click', function(e) {
+  const clickableRow = e.target.closest('.clickable-row');
+  if (clickableRow) {
+    const materialId = clickableRow.getAttribute('data-material-id');
+    if (materialId) {
+      window.location.href = `{{ url_for('supply.material_detail', material_id='') }}${materialId}`;
+    }
+  }
+});
+
+// Функция редактирования материала
+function editMaterial(materialId) {
+  // Пока что просто показываем сообщение
+  alert('Функция редактирования материала будет добавлена позже');
+}
+
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
   loadMaterials();
@@ -731,4 +751,58 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('searchInput').addEventListener('input', filterMaterials);
 });
 </script>
+
+<style>
+.clickable-row {
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.clickable-row:hover {
+  background-color: rgba(0, 123, 255, 0.1) !important;
+  transform: scale(1.01);
+}
+
+.clickable-row:active {
+  transform: scale(0.99);
+}
+
+/* Адаптивные стили для мобильных устройств */
+@media (max-width: 768px) {
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+  
+  .clickable-row td {
+    padding: 0.5rem 0.25rem;
+  }
+  
+  .btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .badge {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .table-responsive {
+    font-size: 0.8rem;
+  }
+  
+  .clickable-row td {
+    padding: 0.375rem 0.125rem;
+  }
+  
+  .btn-group-sm .btn {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.7rem;
+  }
+  
+  .badge {
+    font-size: 0.65rem;
+  }
+}
+</style>
 {% endblock %}

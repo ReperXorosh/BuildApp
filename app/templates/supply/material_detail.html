@@ -1,0 +1,308 @@
+{% extends "main/layout.html" %}
+{% set active_page = 'supply' %}
+
+{% block title %}{{ material.name }} - Детали материала{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="margin-top: 80px;">
+    <!-- Заголовок -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="bi bi-box me-2"></i>{{ material.name }}</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ url_for('supply.warehouse_view') }}">Склад</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">{{ material.name }}</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="btn-group" role="group">
+                    <a href="{{ url_for('supply.warehouse_view') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>Назад к складу
+                    </a>
+                    <button type="button" class="btn btn-outline-primary" onclick="editMaterial('{{ material.id }}')">
+                        <i class="bi bi-pencil me-1"></i>Редактировать
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Основная информация о материале -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle me-2"></i>Основная информация
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Название</label>
+                            <p class="form-control-plaintext">{{ material.name }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Единица измерения</label>
+                            <p class="form-control-plaintext">{{ material.unit }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Текущее количество</label>
+                            <p class="form-control-plaintext">
+                                <span class="badge bg-{{ 'danger' if material.current_quantity <= 0 else 'warning' if material.current_quantity <= material.min_quantity else 'success' }} fs-6">
+                                    {{ material.current_quantity || 0 }} {{ material.unit }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Минимальный запас</label>
+                            <p class="form-control-plaintext">{{ material.min_quantity || 0 }} {{ material.unit }}</p>
+                        </div>
+                        {% if material.description %}
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Описание</label>
+                            <p class="form-control-plaintext">{{ material.description }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- История движений -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-clock-history me-2"></i>История движений
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Тип операции</th>
+                                    <th>Количество</th>
+                                    <th>Пользователь</th>
+                                    <th>Примечание</th>
+                                    <th>Документ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for movement in movements %}
+                                <tr>
+                                    <td>
+                                        <small class="text-muted">{{ movement.created_at | moscow_time }}</small>
+                                    </td>
+                                    <td>
+                                        {% if movement.movement_type == 'move' %}
+                                            <span class="badge bg-primary">Выдача</span>
+                                        {% elif movement.movement_type == 'return' %}
+                                            <span class="badge bg-success">Возврат</span>
+                                        {% elif movement.movement_type == 'writeoff' %}
+                                            <span class="badge bg-danger">Списание</span>
+                                        {% elif movement.movement_type == 'receipt' %}
+                                            <span class="badge bg-info">Поступление</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ movement.movement_type }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold">{{ movement.quantity }} {{ material.unit }}</span>
+                                    </td>
+                                    <td>
+                                        {% if movement.to_user %}
+                                            <span class="text-primary">{{ movement.to_user.secondname or '' }} {{ movement.to_user.firstname or '' }}</span>
+                                            <br><small class="text-muted">{{ movement.to_user.login }}</small>
+                                        {% elif movement.from_user %}
+                                            <span class="text-success">{{ movement.from_user.secondname or '' }} {{ movement.from_user.firstname or '' }}</span>
+                                            <br><small class="text-muted">{{ movement.from_user.login }}</small>
+                                        {% else %}
+                                            <span class="text-muted">Система</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if movement.note %}
+                                            <small>{{ movement.note }}</small>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if movement.attachments %}
+                                            <a href="{{ url_for('supply.download_attachment', movement_id=movement.id, attachment_id=movement.attachments[0].id) }}" 
+                                               class="btn btn-sm btn-outline-primary" title="Скачать документ">
+                                                <i class="bi bi-download"></i>
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        <i class="bi bi-inbox me-2"></i>Нет движений по данному материалу
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Распределения по пользователям -->
+    {% if allocations %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-people me-2"></i>Распределения по пользователям
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Пользователь</th>
+                                    <th>Количество</th>
+                                    <th>Дата выдачи</th>
+                                    <th>Примечание</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for allocation in allocations %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if allocation.user.avatar %}
+                                                <img src="{{ url_for('static', filename='uploads/avatars/' ~ allocation.user.avatar) }}" 
+                                                     alt="Аватар" class="rounded-circle me-2" 
+                                                     style="width: 32px; height: 32px; object-fit: cover;">
+                                            {% else %}
+                                                <img src="{{ url_for('static', filename='img/default-avatar.png') }}" 
+                                                     alt="Аватар" class="rounded-circle me-2" 
+                                                     style="width: 32px; height: 32px; object-fit: cover;">
+                                            {% endif %}
+                                            <div>
+                                                <div class="fw-semibold">{{ allocation.user.secondname or '' }} {{ allocation.user.firstname or '' }}</div>
+                                                <small class="text-muted">{{ allocation.user.login }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ allocation.quantity }} {{ material.unit }}</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ allocation.created_at | moscow_time }}</small>
+                                    </td>
+                                    <td>
+                                        {% if allocation.notes %}
+                                            <small>{{ allocation.notes }}</small>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function editMaterial(materialId) {
+    // Здесь можно добавить логику для редактирования материала
+    // Пока что просто показываем сообщение
+    alert('Функция редактирования материала будет добавлена позже');
+}
+</script>
+
+<style>
+.breadcrumb {
+    background: none;
+    padding: 0;
+    margin: 0;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: ">";
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+
+.badge {
+    font-size: 0.875em;
+}
+
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .btn-group .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .table-responsive {
+        font-size: 0.8rem;
+    }
+    
+    .btn-group .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .card-body {
+        padding: 0.75rem;
+    }
+    
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+    
+    .d-flex.justify-content-between .btn-group {
+        margin-top: 1rem;
+        width: 100%;
+    }
+    
+    .d-flex.justify-content-between .btn-group .btn {
+        flex: 1;
+    }
+}
+</style>
+{% endblock %}

@@ -204,6 +204,35 @@ def warehouse_user_detail(user_id):
     
     return render_template('supply/user_detail.html', user=user)
 
+@supply.route('/supply/warehouse/material/<uuid:material_id>')
+@login_required
+def material_detail(material_id):
+    """Страница детальной информации о материале"""
+    if not is_supplier_or_admin():
+        return redirect(url_for('objects.object_list'))
+    
+    # Получаем информацию о материале
+    material = Material.query.get_or_404(material_id)
+    
+    # Получаем историю движений по материалу
+    movements = WarehouseMovement.query.filter_by(material_id=material_id).order_by(WarehouseMovement.created_at.desc()).limit(20).all()
+    
+    # Получаем распределения материала по пользователям
+    allocations = UserMaterialAllocation.query.filter_by(material_id=material_id).all()
+    
+    # Логируем просмотр страницы материала
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр материала",
+        description=f"Пользователь {current_user.login} просмотрел детальную информацию о материале '{material.name}'",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return render_template('supply/material_detail.html', material=material, movements=movements, allocations=allocations)
+
 @supply.route('/supply/equipment')
 @login_required
 def equipment_list():
