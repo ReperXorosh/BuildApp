@@ -1069,13 +1069,12 @@ def api_materials_for_return():
         
         # Получаем все материалы, которые когда-либо были выданы пользователям
         # (даже если текущее количество у пользователей = 0)
+        # Для возврата показываем ВСЕ материалы, независимо от is_active
         materials = db.session.query(
             Material,
             db.func.sum(UserMaterialAllocation.quantity).label('total_allocated')
         ).join(
             UserMaterialAllocation, Material.id == UserMaterialAllocation.material_id
-        ).filter(
-            Material.is_active == True
         ).group_by(
             Material.id
         ).all()
@@ -1093,13 +1092,13 @@ def api_materials_for_return():
         if not result:
             print("DEBUG: Нет материалов в UserMaterialAllocation, проверяем WarehouseMovement")
             # Получаем материалы, которые были выданы (movement_type = 'move')
+            # Для возврата показываем ВСЕ материалы, независимо от is_active
             materials_with_movements = db.session.query(
                 Material,
                 db.func.sum(WarehouseMovement.quantity).label('total_moved')
             ).join(
                 WarehouseMovement, Material.id == WarehouseMovement.material_id
             ).filter(
-                Material.is_active == True,
                 WarehouseMovement.movement_type == 'move'
             ).group_by(
                 Material.id
@@ -1113,17 +1112,17 @@ def api_materials_for_return():
                 result.append(material_dict)
                 print(f"DEBUG: Материал {material.name}, было выдано: {total_moved}")
         
-        # Если все еще нет результатов, покажем все активные материалы
+        # Если все еще нет результатов, покажем все материалы (включая неактивные)
         if not result:
-            print("DEBUG: Все еще нет результатов, показываем все активные материалы")
-            all_materials = Material.query.filter_by(is_active=True).all()
-            print(f"DEBUG: Всего активных материалов: {len(all_materials)}")
+            print("DEBUG: Все еще нет результатов, показываем все материалы")
+            all_materials = Material.query.all()  # Убираем фильтр is_active
+            print(f"DEBUG: Всего материалов (включая неактивные): {len(all_materials)}")
             
             for material in all_materials:
                 material_dict = material.to_dict()
                 material_dict['total_allocated'] = 0.0  # Показываем как 0, но материал доступен
                 result.append(material_dict)
-                print(f"DEBUG: Показываем материал {material.name} с количеством 0")
+                print(f"DEBUG: Показываем материал {material.name} (is_active={material.is_active}) с количеством 0")
         
         return jsonify(result)
     except Exception as e:
