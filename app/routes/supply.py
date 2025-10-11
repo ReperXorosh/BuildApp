@@ -1056,6 +1056,17 @@ def api_materials_for_return():
         return jsonify({'error': 'Недостаточно прав'}), 403
     
     try:
+        # Сначала проверим, что вообще есть в базе данных
+        total_materials = Material.query.filter_by(is_active=True).count()
+        total_allocations = UserMaterialAllocation.query.count()
+        total_movements = WarehouseMovement.query.count()
+        move_movements = WarehouseMovement.query.filter_by(movement_type='move').count()
+        
+        print(f"DEBUG: Всего активных материалов: {total_materials}")
+        print(f"DEBUG: Всего записей в UserMaterialAllocation: {total_allocations}")
+        print(f"DEBUG: Всего записей в WarehouseMovement: {total_movements}")
+        print(f"DEBUG: Записей о выдаче (move): {move_movements}")
+        
         # Получаем все материалы, которые когда-либо были выданы пользователям
         # (даже если текущее количество у пользователей = 0)
         materials = db.session.query(
@@ -1069,7 +1080,7 @@ def api_materials_for_return():
             Material.id
         ).all()
         
-        print(f"DEBUG: Найдено материалов для возврата: {len(materials)}")
+        print(f"DEBUG: Найдено материалов для возврата через UserMaterialAllocation: {len(materials)}")
         
         result = []
         for material, total_allocated in materials:
@@ -1102,9 +1113,23 @@ def api_materials_for_return():
                 result.append(material_dict)
                 print(f"DEBUG: Материал {material.name}, было выдано: {total_moved}")
         
+        # Если все еще нет результатов, покажем все активные материалы
+        if not result:
+            print("DEBUG: Все еще нет результатов, показываем все активные материалы")
+            all_materials = Material.query.filter_by(is_active=True).all()
+            print(f"DEBUG: Всего активных материалов: {len(all_materials)}")
+            
+            for material in all_materials:
+                material_dict = material.to_dict()
+                material_dict['total_allocated'] = 0.0  # Показываем как 0, но материал доступен
+                result.append(material_dict)
+                print(f"DEBUG: Показываем материал {material.name} с количеством 0")
+        
         return jsonify(result)
     except Exception as e:
         print(f"DEBUG: Ошибка в api_materials_for_return: {e}")
+        import traceback
+        print(f"DEBUG: Traceback: {traceback.format_exc()}")
         return jsonify({'error': str(e)}), 500
 
 @supply.route('/api/supply/user/<uuid:user_id>/material/<uuid:material_id>/movements', methods=['GET'])
