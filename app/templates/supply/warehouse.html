@@ -902,7 +902,7 @@ function setupQuantityValidation() {
 // Функция просмотра материала
 function viewMaterial(materialId) {
   console.log('=== ПЕРЕХОД К ПРОСМОТРУ МАТЕРИАЛА ===', materialId);
-  window.location.href = `/supply/warehouse/material/${materialId}`;
+  window.location.href = `{{ url_for('supply.material_detail', material_id='') }}${materialId}`;
 }
 
 // Функция редактирования материала
