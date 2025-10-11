@@ -395,7 +395,8 @@ def api_materials_check():
                 'name': exact_match.name,
                 'unit': exact_match.unit,
                 'min_quantity': exact_match.min_quantity,
-                'current_quantity': exact_match.current_quantity
+                'current_quantity': exact_match.current_quantity,
+                'description': exact_match.description or ''
             }
         })
     
@@ -411,7 +412,8 @@ def api_materials_check():
                 'name': case_insensitive_match.name,
                 'unit': case_insensitive_match.unit,
                 'min_quantity': case_insensitive_match.min_quantity,
-                'current_quantity': case_insensitive_match.current_quantity
+                'current_quantity': case_insensitive_match.current_quantity,
+                'description': case_insensitive_match.description or ''
             }
         })
     
@@ -446,7 +448,8 @@ def api_materials_check():
                 'distance': distance,
                 'unit': material.unit,
                 'min_quantity': material.min_quantity,
-                'current_quantity': material.current_quantity
+                'current_quantity': material.current_quantity,
+                'description': material.description or ''
             })
     
     # Сортируем по расстоянию (более похожие сначала)
@@ -480,10 +483,34 @@ def api_materials_create():
     if active_material:
         # Пополняем существующий активный материал
         new_quantity = float(data.get('current_quantity') or 0.0)
+        addition_reason = data.get('addition_reason', '').strip()
+        
+        # Создаем запись о пополнении в истории движений
+        movement = WarehouseMovement(
+            material_id=active_material.id,
+            quantity=new_quantity,
+            movement_type='add',
+            note=f"Пополнение материала. Причина: {addition_reason}" if addition_reason else "Пополнение материала",
+            created_by=current_user.userid,
+        )
+        db.session.add(movement)
+        
+        # Обновляем количество материала
         active_material.current_quantity = (active_material.current_quantity or 0.0) + new_quantity
         active_material.updated_at = get_moscow_now()
         
         db.session.commit()
+        
+        # Логируем действие
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Пополнение материала",
+            description=f'Пополнен материал "{name}" на {new_quantity} {active_material.unit}. Причина: {addition_reason}' if addition_reason else f'Пополнен материал "{name}" на {new_quantity} {active_material.unit}',
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
         
         # Возвращаем информацию о пополнении
         return jsonify({

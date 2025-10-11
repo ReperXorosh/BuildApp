@@ -120,6 +120,11 @@
                             <label class="form-label">Описание</label>
                             <textarea class="form-control" name="description" rows="3"></textarea>
                         </div>
+                        <div class="col-12" id="reason-field" style="display: none;">
+                            <label class="form-label">Причина добавления существующей позиции? <span class="text-danger">*</span></label>
+                            <textarea class="form-control" name="addition_reason" rows="2" placeholder="Укажите причину пополнения существующего материала..."></textarea>
+                            <small class="form-text text-muted">Обязательно укажите причину пополнения существующего материала</small>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -580,7 +585,8 @@ async function submitAddMaterial() {
     unit: formData.get('unit'),
     description: formData.get('description'),
     current_quantity: formData.get('current_quantity'),
-    min_quantity: formData.get('min_quantity')
+    min_quantity: formData.get('min_quantity'),
+    addition_reason: formData.get('addition_reason') || null
   };
   
   try {
@@ -896,11 +902,17 @@ function showMaterialExistsInfo(material, correctedName = null) {
   const infoDiv = document.getElementById('material-exists-info');
   const unitInput = document.querySelector('input[name="unit"]');
   const minQuantityInput = document.querySelector('input[name="min_quantity"]');
+  const descriptionInput = document.querySelector('textarea[name="description"]');
   const nameInput = document.getElementById('material-name-input');
+  const reasonField = document.getElementById('reason-field');
+  const reasonInput = document.querySelector('textarea[name="addition_reason"]');
   
   // Заполняем поля автоматически
   unitInput.value = material.unit;
   minQuantityInput.value = material.min_quantity;
+  if (material.description) {
+    descriptionInput.value = material.description;
+  }
   
   // Если есть исправление регистра, обновляем поле названия
   if (correctedName) {
@@ -910,12 +922,18 @@ function showMaterialExistsInfo(material, correctedName = null) {
   // Блокируем поля для редактирования (только функционально, без изменения внешнего вида)
   unitInput.disabled = true;
   minQuantityInput.disabled = true;
+  descriptionInput.disabled = true;
+  
+  // Показываем поле причины и делаем его обязательным
+  reasonField.style.display = 'block';
+  reasonInput.required = true;
+  reasonInput.focus(); // Фокус на поле причины
   
   // Показываем информацию
-  let message = `Материал уже существует на складе (${material.current_quantity} ${material.unit}). При сохранении количество будет пополнено. Ед. изм. и мин. запас заблокированы.`;
+  let message = `Материал уже существует на складе (${material.current_quantity} ${material.unit}). При сохранении количество будет пополнено. Ед. изм., мин. запас и описание заблокированы.`;
   
   if (correctedName) {
-    message = `Исправлен регистр: "${correctedName}". Материал уже существует на складе (${material.current_quantity} ${material.unit}). При сохранении количество будет пополнено. Ед. изм. и мин. запас заблокированы.`;
+    message = `Исправлен регистр: "${correctedName}". Материал уже существует на складе (${material.current_quantity} ${material.unit}). При сохранении количество будет пополнено. Ед. изм., мин. запас и описание заблокированы.`;
   }
   
   infoDiv.innerHTML = `
@@ -932,10 +950,11 @@ function showSimilarMaterials(similarMaterials, originalName) {
   
   let similarList = '';
   similarMaterials.forEach((material, index) => {
+    const description = (material.description || '').replace(/'/g, "\\'");
     similarList += `
       <div class="d-flex justify-content-between align-items-center mb-2">
         <span>${material.name} (${material.current_quantity} ${material.unit})</span>
-        <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectSimilarMaterial('${material.name}', '${material.unit}', ${material.min_quantity})">
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectSimilarMaterial('${material.name}', '${material.unit}', ${material.min_quantity}, '${description}')">
           Выбрать
         </button>
       </div>
@@ -962,25 +981,38 @@ function showSimilarMaterials(similarMaterials, originalName) {
 }
 
 // Выбрать похожий материал
-function selectSimilarMaterial(name, unit, minQuantity) {
+function selectSimilarMaterial(name, unit, minQuantity, description = '') {
   const nameInput = document.getElementById('material-name-input');
   const unitInput = document.querySelector('input[name="unit"]');
   const minQuantityInput = document.querySelector('input[name="min_quantity"]');
+  const descriptionInput = document.querySelector('textarea[name="description"]');
+  const reasonField = document.getElementById('reason-field');
+  const reasonInput = document.querySelector('textarea[name="addition_reason"]');
   
   // Заполняем поля
   nameInput.value = name;
   unitInput.value = unit;
   minQuantityInput.value = minQuantity;
+  if (description) {
+    descriptionInput.value = description;
+  }
   
   // Блокируем поля
   unitInput.disabled = true;
   minQuantityInput.disabled = true;
+  descriptionInput.disabled = true;
+  
+  // Показываем поле причины и делаем его обязательным
+  reasonField.style.display = 'block';
+  reasonInput.required = true;
+  reasonInput.focus(); // Фокус на поле причины
   
   // Показываем информацию о выбранном материале
   showMaterialExistsInfo({
     name: name,
     unit: unit,
     min_quantity: minQuantity,
+    description: description,
     current_quantity: 0 // Будет получено из API
   });
 }
@@ -990,6 +1022,9 @@ function hideMaterialExistsInfo() {
   const infoDiv = document.getElementById('material-exists-info');
   const unitInput = document.querySelector('input[name="unit"]');
   const minQuantityInput = document.querySelector('input[name="min_quantity"]');
+  const descriptionInput = document.querySelector('textarea[name="description"]');
+  const reasonField = document.getElementById('reason-field');
+  const reasonInput = document.querySelector('textarea[name="addition_reason"]');
   
   // Разблокируем поля
   if (unitInput) {
@@ -997,6 +1032,18 @@ function hideMaterialExistsInfo() {
   }
   if (minQuantityInput) {
     minQuantityInput.disabled = false;
+  }
+  if (descriptionInput) {
+    descriptionInput.disabled = false;
+  }
+  
+  // Скрываем поле причины и убираем обязательность
+  if (reasonField) {
+    reasonField.style.display = 'none';
+  }
+  if (reasonInput) {
+    reasonInput.required = false;
+    reasonInput.value = ''; // Очищаем поле
   }
   
   infoDiv.style.display = 'none';
