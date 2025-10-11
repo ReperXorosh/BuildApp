@@ -85,7 +85,7 @@
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
-                            <thead class="table-light">
+                            <thead class="table-dark">
                                 <tr>
                                     <th>Дата</th>
                                     <th>Тип операции</th>
@@ -174,7 +174,7 @@
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
-                            <thead class="table-light">
+                            <thead class="table-dark">
                                 <tr>
                                     <th>Пользователь</th>
                                     <th>Количество</th>
@@ -255,6 +255,29 @@ function editMaterial(materialId) {
     border-top: none;
     font-weight: 600;
     color: #495057;
+}
+
+/* Стили для темной темы */
+[data-bs-theme="dark"] .table th {
+    color: #adb5bd;
+}
+
+[data-bs-theme="dark"] .table-dark th {
+    color: #fff;
+}
+
+[data-bs-theme="dark"] .card {
+    background-color: var(--bs-dark);
+    border-color: var(--bs-gray-700);
+}
+
+[data-bs-theme="dark"] .card-header {
+    background-color: var(--bs-gray-800);
+    border-bottom-color: var(--bs-gray-700);
+}
+
+[data-bs-theme="dark"] .form-control-plaintext {
+    color: var(--bs-body-color);
 }
 
 .badge {

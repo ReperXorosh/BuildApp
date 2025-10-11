@@ -249,6 +249,12 @@ async function loadMaterials() {
       
       // Добавляем обработчик клика прямо к строке
       row.addEventListener('click', function(e) {
+        // Проверяем, не кликнули ли по кнопке или её дочерним элементам
+        if (e.target.closest('button') || e.target.closest('.btn')) {
+          console.log('=== КЛИК ПО КНОПКЕ, ИГНОРИРУЕМ ===');
+          return; // Не обрабатываем клик по кнопкам
+        }
+        
         console.log('=== КЛИК ПО СТРОКЕ ===', material.id);
         e.preventDefault();
         e.stopPropagation();
