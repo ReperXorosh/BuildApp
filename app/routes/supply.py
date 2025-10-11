@@ -339,6 +339,34 @@ def api_materials_all():
     materials = Material.query.all()
     return jsonify([material.to_dict() for material in materials])
 
+@supply.route('/api/supply/materials/check', methods=['POST'])
+@login_required
+def api_materials_check():
+    """Проверка существующего материала по названию"""
+    if not is_supplier_or_admin():
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    
+    data = request.get_json()
+    name = (data.get('name') or '').strip()
+    
+    if not name:
+        return jsonify({'error': 'Требуется название материала'}), 400
+    
+    # Ищем активный материал с таким названием
+    existing_material = Material.query.filter_by(name=name, is_active=True).first()
+    
+    if existing_material:
+        return jsonify({
+            'exists': True,
+            'material': {
+                'unit': existing_material.unit,
+                'min_quantity': existing_material.min_quantity,
+                'current_quantity': existing_material.current_quantity
+            }
+        })
+    else:
+        return jsonify({'exists': False})
+
 @supply.route('/api/supply/materials', methods=['POST'])
 @login_required
 def api_materials_create():
@@ -352,6 +380,24 @@ def api_materials_create():
     if not name or not unit:
         return jsonify({'error': 'Требуются name и unit'}), 400
 
+    # Сначала проверяем, есть ли активный материал с таким же именем
+    active_material = Material.query.filter_by(name=name, is_active=True).first()
+    
+    if active_material:
+        # Пополняем существующий активный материал
+        new_quantity = float(data.get('current_quantity') or 0.0)
+        active_material.current_quantity = (active_material.current_quantity or 0.0) + new_quantity
+        active_material.updated_at = get_moscow_now()
+        
+        db.session.commit()
+        
+        # Возвращаем информацию о пополнении
+        return jsonify({
+            'success': True,
+            'material': active_material.to_dict(),
+            'message': f'Материал "{name}" пополнен на {new_quantity} {active_material.unit}. Текущее количество: {active_material.current_quantity} {active_material.unit}'
+        }), 201
+    
     # Проверяем, есть ли неактивный материал с таким же именем
     existing_material = Material.query.filter_by(name=name, is_active=False).first()
     

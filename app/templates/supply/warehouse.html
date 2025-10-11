@@ -99,7 +99,10 @@
                     <div class="row">
                         <div class="col-12">
                             <label class="form-label">Название</label>
-                            <input class="form-control" name="name" required>
+                            <input class="form-control" name="name" id="material-name-input" required>
+                            <div id="material-exists-info" class="form-text text-info" style="display: none;">
+                                <i class="bi bi-info-circle"></i> Материал уже существует на складе
+                            </div>
                         </div>
                         <div class="col-6">
                             <label class="form-label">Ед. изм.</label>
@@ -591,10 +594,14 @@ async function submitAddMaterial() {
       if (result.warning) {
         // Показываем предупреждение пользователю
         alert(result.warning);
+      } else if (result.message) {
+        // Показываем сообщение о пополнении
+        alert(result.message);
       }
       
       bootstrap.Modal.getInstance(document.getElementById('addMaterialModal')).hide();
       form.reset();
+      hideMaterialExistsInfo(); // Скрываем информацию о существующем материале
       loadMaterials();
       // Материалы теперь загружаются динамически при выборе типа операции
     } else {
@@ -846,6 +853,60 @@ function toggleHiddenMaterials() {
   loadMaterials(); // Перезагружаем список материалов
 }
 
+// Функция проверки существующего материала
+async function checkExistingMaterial(name) {
+  if (!name || name.length < 2) {
+    hideMaterialExistsInfo();
+    return;
+  }
+  
+  try {
+    const response = await fetch('{{ url_for("supply.api_materials_check") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name })
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      
+      if (result.exists) {
+        showMaterialExistsInfo(result.material);
+      } else {
+        hideMaterialExistsInfo();
+      }
+    }
+  } catch (error) {
+    console.error('Ошибка проверки материала:', error);
+  }
+}
+
+// Показать информацию о существующем материале
+function showMaterialExistsInfo(material) {
+  const infoDiv = document.getElementById('material-exists-info');
+  const unitInput = document.querySelector('input[name="unit"]');
+  const minQuantityInput = document.querySelector('input[name="min_quantity"]');
+  
+  // Заполняем поля автоматически
+  unitInput.value = material.unit;
+  minQuantityInput.value = material.min_quantity;
+  
+  // Показываем информацию
+  infoDiv.innerHTML = `
+    <i class="bi bi-info-circle"></i> 
+    Материал уже существует на складе (${material.current_quantity} ${material.unit}). 
+    При сохранении количество будет пополнено.
+  `;
+  infoDiv.style.display = 'block';
+  infoDiv.className = 'form-text text-warning';
+}
+
+// Скрыть информацию о существующем материале
+function hideMaterialExistsInfo() {
+  const infoDiv = document.getElementById('material-exists-info');
+  infoDiv.style.display = 'none';
+}
+
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
   console.log('=== DOM ЗАГРУЖЕН, НАЧИНАЕМ ИНИЦИАЛИЗАЦИЮ ===');
@@ -859,6 +920,18 @@ document.addEventListener('DOMContentLoaded', function() {
   const toggleButton = document.getElementById('toggleHiddenMaterials');
   if (toggleButton) {
     toggleButton.addEventListener('click', toggleHiddenMaterials);
+  }
+  
+  // Проверка существующего материала при вводе названия
+  const nameInput = document.getElementById('material-name-input');
+  if (nameInput) {
+    let timeoutId;
+    nameInput.addEventListener('input', function() {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        checkExistingMaterial(this.value);
+      }, 500); // Задержка 500мс для избежания частых запросов
+    });
   }
 });
 </script>
