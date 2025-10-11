@@ -919,10 +919,10 @@ function showMaterialExistsInfo(material, correctedName = null) {
     nameInput.value = correctedName;
   }
   
-  // Блокируем поля для редактирования (только функционально, без изменения внешнего вида)
-  unitInput.disabled = true;
-  minQuantityInput.disabled = true;
-  descriptionInput.disabled = true;
+  // Блокируем поля для редактирования (используем readonly вместо disabled)
+  unitInput.readOnly = true;
+  minQuantityInput.readOnly = true;
+  descriptionInput.readOnly = true;
   
   // Показываем поле причины и делаем его обязательным
   reasonField.style.display = 'block';
@@ -998,9 +998,9 @@ function selectSimilarMaterial(name, unit, minQuantity, description = '') {
   }
   
   // Блокируем поля
-  unitInput.disabled = true;
-  minQuantityInput.disabled = true;
-  descriptionInput.disabled = true;
+  unitInput.readOnly = true;
+  minQuantityInput.readOnly = true;
+  descriptionInput.readOnly = true;
   
   // Показываем поле причины и делаем его обязательным
   reasonField.style.display = 'block';
@@ -1028,13 +1028,13 @@ function hideMaterialExistsInfo() {
   
   // Разблокируем поля
   if (unitInput) {
-    unitInput.disabled = false;
+    unitInput.readOnly = false;
   }
   if (minQuantityInput) {
-    minQuantityInput.disabled = false;
+    minQuantityInput.readOnly = false;
   }
   if (descriptionInput) {
-    descriptionInput.disabled = false;
+    descriptionInput.readOnly = false;
   }
   
   // Скрываем поле причины и убираем обязательность
@@ -1097,8 +1097,8 @@ function showReceiptExistsInfo(material, correctedName = null) {
     nameInput.value = correctedName;
   }
   
-  // Блокируем поле для редактирования (только функционально, без изменения внешнего вида)
-  unitInput.disabled = true;
+  // Блокируем поле для редактирования (используем readonly вместо disabled)
+  unitInput.readOnly = true;
   
   // Показываем информацию
   let message = `Материал уже существует на складе (${material.current_quantity} ${material.unit}). При поступлении количество будет пополнено. Ед. изм. заблокирована.`;
@@ -1160,7 +1160,7 @@ function selectSimilarMaterialForReceipt(name, unit) {
   unitInput.value = unit;
   
   // Блокируем поле
-  unitInput.disabled = true;
+  unitInput.readOnly = true;
   
   // Показываем информацию о выбранном материале
   showReceiptExistsInfo({
@@ -1177,7 +1177,7 @@ function hideReceiptExistsInfo() {
   
   // Разблокируем поле
   if (unitInput) {
-    unitInput.disabled = false;
+    unitInput.readOnly = false;
   }
   
   infoDiv.style.display = 'none';
