@@ -7,7 +7,7 @@ from app.models.supply import (
     SupplyOrderItem,
     WarehouseMovement,
     WarehouseAttachment,
-    UsersMaterialAllocation,
+    UserMaterialAllocation,
     SupplyRequest,
     SupplyRequestItem,
 )
@@ -124,7 +124,7 @@ def warehouse_view():
 
     materials = Material.query.order_by(Material.name).all()
     recent_movements = WarehouseMovement.query.order_by(WarehouseMovement.created_at.desc()).limit(20).all()
-    allocations = UsersMaterialAllocation.query.all()
+    allocations = UserMaterialAllocation.query.all()
 
     ActivityLog.log_action(
         user_id=current_user.userid,
@@ -277,8 +277,8 @@ def material_detail(material_id):
         all_actions.sort(key=lambda x: x.created_at, reverse=True)
         
         # Получаем распределения материала по пользователям с загрузкой пользователей
-        allocations = db.session.query(UsersMaterialAllocation).options(
-            db.joinedload(UsersMaterialAllocation.user)
+        allocations = db.session.query(UserMaterialAllocation).options(
+            db.joinedload(UserMaterialAllocation.user)
         ).filter_by(material_id=material_id).all()
         
         # Логируем просмотр страницы материала
@@ -716,7 +716,7 @@ def api_create_movement():
     elif movement_type == 'return':
         # Для возврата проверяем наличие у пользователя
         if from_user_id:
-            user_alloc = UsersMaterialAllocation.query.filter_by(user_id=from_user_id, material_id=material.id).first()
+            user_alloc = UserMaterialAllocation.query.filter_by(user_id=from_user_id, material_id=material.id).first()
             user_quantity = user_alloc.quantity if user_alloc else 0.0
             if user_quantity < quantity:
                 return jsonify({
@@ -772,16 +772,16 @@ def api_create_movement():
     # Обновляем распределение по пользователям
     if movement_type == 'move' and to_user_id:
         # Выдача: увеличиваем количество у получателя
-        alloc = UsersMaterialAllocation.query.filter_by(user_id=to_user_id, material_id=material.id).first()
+        alloc = UserMaterialAllocation.query.filter_by(user_id=to_user_id, material_id=material.id).first()
         if not alloc:
-            alloc = UsersMaterialAllocation(user_id=to_user_id, material_id=material.id, quantity=0.0)
+            alloc = UserMaterialAllocation(user_id=to_user_id, material_id=material.id, quantity=0.0)
             db.session.add(alloc)
         alloc.quantity = (alloc.quantity or 0.0) + quantity
         alloc.updated_at = get_moscow_now()  # Обновляем время изменения
         
     elif movement_type == 'return' and from_user_id:
         # Возврат: уменьшаем количество у возвращающего
-        alloc_from = UsersMaterialAllocation.query.filter_by(user_id=from_user_id, material_id=material.id).first()
+        alloc_from = UserMaterialAllocation.query.filter_by(user_id=from_user_id, material_id=material.id).first()
         if alloc_from:
             new_quantity = max(0.0, (alloc_from.quantity or 0.0) - quantity)
             alloc_from.quantity = new_quantity
@@ -909,18 +909,18 @@ def api_list_allocations():
     
     # Получаем распределения с информацией о материалах и пользователях
     allocations = db.session.query(
-        UsersMaterialAllocation,
+        UserMaterialAllocation,
         Material.name.label('material_name'),
         Material.unit.label('material_unit'),
         Users.secondname.label('user_last_name'),
         Users.firstname.label('user_first_name'),
         Users.login.label('user_login')
     ).join(
-        Material, UsersMaterialAllocation.material_id == Material.id
+        Material, UserMaterialAllocation.material_id == Material.id
     ).join(
-        Users, UsersMaterialAllocation.user_id == Users.userid
+        Users, UserMaterialAllocation.user_id == Users.userid
     ).order_by(
-        UsersMaterialAllocation.updated_at.desc()
+        UserMaterialAllocation.updated_at.desc()
     ).all()
     
     result = []
@@ -947,19 +947,19 @@ def api_material_allocations():
     
     # Получаем пользователей, у которых есть этот материал
     allocations = db.session.query(
-        UsersMaterialAllocation,
+        UserMaterialAllocation,
         Users.secondname.label('user_last_name'),
         Users.firstname.label('user_first_name'),
         Users.thirdname.label('user_third_name'),
         Users.login.label('user_login'),
         Material.unit.label('material_unit')
     ).join(
-        Users, UsersMaterialAllocation.user_id == Users.userid
+        Users, UserMaterialAllocation.user_id == Users.userid
     ).join(
-        Material, UsersMaterialAllocation.material_id == Material.id
+        Material, UserMaterialAllocation.material_id == Material.id
     ).filter(
-        UsersMaterialAllocation.material_id == material_id,
-        UsersMaterialAllocation.quantity > 0
+        UserMaterialAllocation.material_id == material_id,
+        UserMaterialAllocation.quantity > 0
     ).order_by(
         Users.secondname, Users.firstname
     ).all()
@@ -992,10 +992,10 @@ def api_users_with_allocations():
         Users.login,
         Users.role,
         Users.avatar,
-        db.func.count(UsersMaterialAllocation.id).label('allocations_count'),
-        db.func.sum(UsersMaterialAllocation.quantity).label('total_quantity')
+        db.func.count(UserMaterialAllocation.id).label('allocations_count'),
+        db.func.sum(UserMaterialAllocation.quantity).label('total_quantity')
     ).join(
-        UsersMaterialAllocation, Users.userid == UsersMaterialAllocation.user_id
+        UserMaterialAllocation, Users.userid == UserMaterialAllocation.user_id
     ).group_by(
         Users.userid, Users.secondname, Users.firstname, Users.thirdname, Users.login, Users.role, Users.avatar
     ).order_by(
@@ -1026,16 +1026,16 @@ def api_user_allocations(user_id):
     
     # Получаем распределения конкретного пользователя
     allocations = db.session.query(
-        UsersMaterialAllocation,
+        UserMaterialAllocation,
         Material.name.label('material_name'),
         Material.unit.label('material_unit'),
         Material.current_quantity.label('warehouse_quantity')
     ).join(
-        Material, UsersMaterialAllocation.material_id == Material.id
+        Material, UserMaterialAllocation.material_id == Material.id
     ).filter(
-        UsersMaterialAllocation.user_id == user_id
+        UserMaterialAllocation.user_id == user_id
     ).order_by(
-        UsersMaterialAllocation.updated_at.desc()
+        UserMaterialAllocation.updated_at.desc()
     ).all()
     
     result = []
