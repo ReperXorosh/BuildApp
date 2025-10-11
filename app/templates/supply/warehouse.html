@@ -585,12 +585,21 @@ async function submitAddMaterial() {
     });
     
     if (response.ok) {
+      const result = await response.json();
+      
+      // Проверяем, есть ли предупреждение о восстановлении
+      if (result.warning) {
+        // Показываем предупреждение пользователю
+        alert(result.warning);
+      }
+      
       bootstrap.Modal.getInstance(document.getElementById('addMaterialModal')).hide();
       form.reset();
       loadMaterials();
       // Материалы теперь загружаются динамически при выборе типа операции
     } else {
-      alert('Ошибка сохранения материала');
+      const errorData = await response.json();
+      alert(errorData.error || 'Ошибка сохранения материала');
     }
   } catch (error) {
     console.error('Ошибка:', error);
@@ -623,6 +632,14 @@ async function submitMovement() {
     });
     
     if (response.ok) {
+      const result = await response.json();
+      
+      // Проверяем, есть ли предупреждение о восстановлении
+      if (result.warning) {
+        // Показываем предупреждение пользователю
+        alert(result.warning);
+      }
+      
       bootstrap.Modal.getInstance(document.getElementById('movementModal')).hide();
       form.reset();
       // Сбрасываем состояние формы
@@ -651,11 +668,20 @@ async function submitReceipt() {
     });
     
     if (response.ok) {
+      const result = await response.json();
+      
+      // Проверяем, есть ли предупреждение о восстановлении
+      if (result.warning) {
+        // Показываем предупреждение пользователю
+        alert(result.warning);
+      } else {
+        alert('Поступление успешно проведено');
+      }
+      
       bootstrap.Modal.getInstance(document.getElementById('receiptModal')).hide();
       form.reset();
       loadMaterials();
       // Материалы теперь загружаются динамически при выборе типа операции
-      alert('Поступление успешно проведено');
     } else {
       const error = await response.json();
       alert('Ошибка проведения поступления: ' + (error.error || 'Неизвестная ошибка'));

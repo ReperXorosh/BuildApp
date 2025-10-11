@@ -366,7 +366,13 @@ def api_materials_create():
         existing_material.updated_at = get_moscow_now()
         
         db.session.commit()
-        return jsonify(existing_material.to_dict()), 201
+        
+        # Возвращаем предупреждение о восстановлении
+        return jsonify({
+            'success': True,
+            'material': existing_material.to_dict(),
+            'warning': f'Материал "{name}" уже существовал ранее и был восстановлен. Все предыдущие перемещения и история будут сохранены и объединены с новыми операциями.'
+        }), 201
     else:
         # Создаем новый материал
         material = Material(
@@ -547,6 +553,9 @@ def api_create_movement():
     )
     db.session.add(movement)
 
+    # Отслеживаем, был ли материал восстановлен
+    material_restored = False
+    
     # Обновление остатков материала
     if movement_type == 'add':
         # Поступление на склад - увеличиваем количество
@@ -555,6 +564,7 @@ def api_create_movement():
         if not material.is_active:
             material.is_active = True
             material.updated_at = get_moscow_now()
+            material_restored = True
             print(f"DEBUG: Материал '{material.name}' автоматически восстановлен при поступлении")
     elif movement_type == 'move':
         # Выдача со склада пользователю - уменьшаем склад, увеличиваем у пользователя
@@ -566,6 +576,7 @@ def api_create_movement():
         if not material.is_active:
             material.is_active = True
             material.updated_at = get_moscow_now()
+            material_restored = True
             print(f"DEBUG: Материал '{material.name}' автоматически восстановлен при возврате")
     elif movement_type == 'writeoff':
         # Списание - только уменьшаем склад
@@ -641,10 +652,16 @@ def api_create_movement():
         method=request.method
     )
 
-    return jsonify({
+    response_data = {
         'movement': movement.to_dict(),
         'material': material.to_dict(),
-    }), 201
+    }
+    
+    # Добавляем предупреждение, если материал был восстановлен
+    if material_restored:
+        response_data['warning'] = f'Материал "{material.name}" был автоматически восстановлен, так как ранее был скрыт. Все предыдущие перемещения и история сохранены.'
+    
+    return jsonify(response_data), 201
 
 @supply.route('/api/supply/movements', methods=['GET'])
 @login_required
