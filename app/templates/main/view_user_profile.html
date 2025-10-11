@@ -81,7 +81,11 @@
                             <svg class="bi me-1" width="12" height="12" fill="currentColor">
                                 <use href="#clock"></use>
                             </svg>
-                            {{ user.get_online_status() }}
+                            {% if user.last_activity %}
+                                Последняя активность: {{ user.last_activity | moscow_time }}
+                            {% else %}
+                                Никогда не был активен
+                            {% endif %}
                         </small>
                         <small class="text-muted d-block text-center">
                             <svg class="bi me-1" width="12" height="12" fill="currentColor">
