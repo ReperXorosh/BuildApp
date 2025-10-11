@@ -155,7 +155,10 @@
                         <div class="col-md-4">
                             <label class="form-label fw-bold">ID пользователя</label>
                             <p class="form-control-plaintext">
-                                <code>{{ user.userid }}</code>
+                                <span id="user-id-display" class="text-muted" style="cursor: pointer; user-select: none;" onclick="toggleUserId()">
+                                    <i class="bi bi-eye-slash me-1"></i>Нажмите, чтобы показать ID
+                                </span>
+                                <code id="user-id-full" style="display: none;">{{ user.userid }}</code>
                             </p>
                         </div>
                         <div class="col-md-4">
@@ -286,6 +289,21 @@ function confirmDelete(userId, userName) {
         const form = document.getElementById('deleteForm');
         form.action = '/delete_user/' + userId;
         form.submit();
+    }
+}
+
+function toggleUserId() {
+    const display = document.getElementById('user-id-display');
+    const full = document.getElementById('user-id-full');
+    
+    if (full.style.display === 'none') {
+        // Показываем ID
+        display.style.display = 'none';
+        full.style.display = 'inline';
+    } else {
+        // Скрываем ID
+        display.style.display = 'inline';
+        full.style.display = 'none';
     }
 }
 </script>
