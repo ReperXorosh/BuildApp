@@ -280,7 +280,7 @@ async function submitMovement() {
     formData.append('movement_type', 'move');
     
     try {
-        const response = await fetch('{{ url_for("supply.api_movement_create") }}', {
+        const response = await fetch('{{ url_for("supply.api_create_movement") }}', {
             method: 'POST',
             body: formData
         });
