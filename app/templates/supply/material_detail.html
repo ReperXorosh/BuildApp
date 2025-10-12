@@ -77,12 +77,15 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="bi bi-clock-history me-2"></i>Действия
+                <div class="card-header accordion-header" style="cursor: pointer;" onclick="toggleAccordion('movements')">
+                    <h5 class="card-title mb-0 d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="bi bi-clock-history me-2"></i>Действия
+                        </span>
+                        <i class="bi bi-chevron-down accordion-icon" id="movements-icon"></i>
                     </h5>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body p-0 accordion-content" id="movements-content" style="display: none;">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead class="table-dark">
@@ -170,12 +173,15 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="bi bi-people me-2"></i>Распределения по пользователям
+                <div class="card-header accordion-header" style="cursor: pointer;" onclick="toggleAccordion('allocations')">
+                    <h5 class="card-title mb-0 d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="bi bi-people me-2"></i>Распределения по пользователям
+                        </span>
+                        <i class="bi bi-chevron-down accordion-icon" id="allocations-icon"></i>
                     </h5>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body p-0 accordion-content" id="allocations-content" style="display: none;">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead class="table-dark">
@@ -232,6 +238,24 @@ function editMaterial(materialId) {
     // Здесь можно добавить логику для редактирования материала
     // Пока что просто показываем сообщение
     alert('Функция редактирования материала будет добавлена позже');
+}
+
+// Функция для управления аккордеоном
+function toggleAccordion(sectionId) {
+    const content = document.getElementById(sectionId + '-content');
+    const icon = document.getElementById(sectionId + '-icon');
+    
+    if (content.style.display === 'none') {
+        // Показываем контент
+        content.style.display = 'block';
+        icon.classList.remove('bi-chevron-down');
+        icon.classList.add('bi-chevron-up');
+    } else {
+        // Скрываем контент
+        content.style.display = 'none';
+        icon.classList.remove('bi-chevron-up');
+        icon.classList.add('bi-chevron-down');
+    }
 }
 </script>
 
@@ -326,6 +350,28 @@ function editMaterial(materialId) {
     .d-flex.justify-content-between .btn-group .btn {
         flex: 1;
     }
+}
+
+/* Стили для аккордеона */
+.accordion-header {
+    transition: background-color 0.2s ease;
+}
+
+.accordion-header:hover {
+    background-color: #f8f9fa;
+}
+
+.accordion-icon {
+    transition: transform 0.2s ease;
+}
+
+.accordion-content {
+    transition: all 0.3s ease;
+}
+
+/* Темная тема для аккордеона */
+[data-bs-theme="dark"] .accordion-header:hover {
+    background-color: var(--bs-gray-800);
 }
 </style>
 {% endblock %}
