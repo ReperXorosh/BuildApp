@@ -81,6 +81,18 @@
         </div>
 
         <div class="mobile-mt-4">
+            <button type="button" class="mobile-btn mobile-btn-secondary w-100 mb-2" onclick="alert('Тест 1: JavaScript работает!')">
+                Тест 1: JavaScript
+            </button>
+            <button type="button" class="mobile-btn mobile-btn-secondary w-100 mb-2" onclick="testFunction()">
+                Тест 2: Функция
+            </button>
+            <button type="button" class="mobile-btn mobile-btn-secondary w-100 mb-2" onclick="testDOM()">
+                Тест 3: DOM элементы
+            </button>
+            <button type="button" class="mobile-btn mobile-btn-secondary w-100 mb-2" onclick="testMaterialCheck()">
+                Тест 4: Проверка материала
+            </button>
             <button type="button" class="mobile-btn mobile-btn-primary w-100" id="submit-btn">Сохранить позицию</button>
         </div>
     </form>
@@ -157,6 +169,51 @@
 
 {% block scripts %}
 <script>
+// ТЕСТОВЫЕ ФУНКЦИИ ДЛЯ ДИАГНОСТИКИ
+function testFunction() {
+    alert('Тест 2: Функция testFunction() работает!');
+}
+
+function testDOM() {
+    const nameInput = document.getElementById('material-name-input');
+    const unitInput = document.querySelector('input[name="unit"]');
+    const reasonField = document.getElementById('reason-field');
+    
+    let message = 'Тест 3: DOM элементы найдены:\n';
+    message += 'nameInput: ' + (nameInput ? 'ДА' : 'НЕТ') + '\n';
+    message += 'unitInput: ' + (unitInput ? 'ДА' : 'НЕТ') + '\n';
+    message += 'reasonField: ' + (reasonField ? 'ДА' : 'НЕТ');
+    
+    alert(message);
+}
+
+function testMaterialCheck() {
+    const unitInput = document.querySelector('input[name="unit"]');
+    const minQuantityInput = document.querySelector('input[name="min_quantity"]');
+    const reasonField = document.getElementById('reason-field');
+    
+    if (unitInput && minQuantityInput && reasonField) {
+        // Заполняем поля
+        unitInput.value = 'шт';
+        minQuantityInput.value = '10';
+        
+        // Блокируем поля
+        unitInput.readOnly = true;
+        minQuantityInput.readOnly = true;
+        
+        // Показываем поле причины
+        reasonField.style.display = 'block';
+        
+        alert('Тест 4: Поля заблокированы и поле причины показано!');
+    } else {
+        alert('Тест 4: ОШИБКА - не все элементы найдены!');
+    }
+}
+
+// Проверяем, что скрипт загружается
+console.log('=== СКРИПТ ЗАГРУЖЕН ===');
+alert('Скрипт загружен!');
+
 // Валидация формы
 function validateForm() {
     const name = document.getElementById('material-name-input');
