@@ -464,7 +464,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Загрузка превью материалов
 async function loadMaterialsPreview() {
     try {
-        const response = await fetch('{{ url_for("supply.api_materials_list") }}?limit=5');
+        const response = await fetch('{{ url_for("supply.api_materials") }}');
         const materials = await response.json();
         
         displayMaterialsPreview(materials);
@@ -485,6 +485,9 @@ async function loadMaterialsPreview() {
 function displayMaterialsPreview(materials) {
     const container = document.getElementById('materialsPreview');
     
+    // Показываем только первые 5 материалов
+    const previewMaterials = materials.slice(0, 5);
+    
     if (!materials || materials.length === 0) {
         container.innerHTML = `
             <div class="text-center text-muted py-4">
@@ -498,7 +501,7 @@ function displayMaterialsPreview(materials) {
     }
     
     let html = '';
-    materials.forEach(material => {
+    previewMaterials.forEach(material => {
         const quantity = material.current_quantity || 0;
         const minQuantity = material.min_quantity || 0;
         
