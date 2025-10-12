@@ -1477,16 +1477,8 @@ def api_create_receipt():
             db.session.add(material)
             db.session.flush()  # Получаем ID
         
-        # Сохраняем файл накладной
-        if file:
-            filename = secure_filename(file.filename)
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            unique_filename = f"{timestamp}_{filename}"
-            file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'warehouse', unique_filename)
-            
-            # Создаем директорию если не существует
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            file.save(file_path)
+        # Получаем имя файла для записи в движение
+        filename = secure_filename(file.filename) if file else 'Без файла'
         
         # Создаем движение поступления
         movement = WarehouseMovement(
@@ -1502,14 +1494,17 @@ def api_create_receipt():
         
         # Создаем вложение с накладной
         if file:
+            # Читаем файл в память для хранения в БД
+            file.seek(0)  # Возвращаемся к началу файла
+            file_data = file.read()
+            
             attachment = WarehouseAttachment(
                 movement_id=movement.id,
-                filename=unique_filename,
-                original_filename=filename,
-                file_path=file_path,
-                file_size=os.path.getsize(file_path),
-                mime_type=file.content_type,
-                created_by=current_user.userid
+                filename=filename,  # Оригинальное имя файла
+                content_type=file.content_type,
+                data=file_data,
+                size_bytes=len(file_data),
+                uploaded_by=current_user.userid
             )
             db.session.add(attachment)
         
