@@ -87,8 +87,8 @@
 {% endif %}
 
 <!-- Модальное окно для поступления -->
-<div class="modal fade" id="receiptModal" tabindex="-1" aria-labelledby="receiptModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen">
+<div class="modal fade" id="receiptModal" tabindex="-1" aria-labelledby="receiptModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="receiptModalLabel">Поступление на склад</h5>
@@ -96,60 +96,41 @@
             </div>
             <div class="modal-body">
                 <form id="form-receipt">
-                    <div class="mb-3">
-                        <label class="form-label">Наименование</label>
-                        <input class="form-control" name="name" id="receipt-name-input" required>
-                        <div id="receipt-exists-info" class="form-text text-info" style="display: none;">
-                            <i class="bi bi-info-circle"></i> Материал уже существует на складе
-                        </div>
-                    </div>
                     <div class="row">
-                        <div class="col-6">
-                            <div class="mb-3">
-                                <label class="form-label">Ед. изм.</label>
-                                <input class="form-control" name="unit" required>
+                        <div class="col-12">
+                            <label class="form-label">Наименование</label>
+                            <input class="form-control" name="name" id="receipt-name-input" required>
+                            <div id="receipt-exists-info" class="form-text text-info" style="display: none;">
+                                <i class="bi bi-info-circle"></i> Материал уже существует на складе
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="mb-3">
-                                <label class="form-label">Количество</label>
-                                <input type="number" class="form-control" name="quantity" step="0.01" min="0" required>
-                            </div>
+                            <label class="form-label">Ед. изм.</label>
+                            <input class="form-control" name="unit" required>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Минимальный запас</label>
-                        <input type="number" class="form-control" name="min_quantity" step="0.01" min="0" value="0">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Поставщик</label>
-                        <input class="form-control" name="supplier">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Цена за единицу</label>
-                        <input type="number" class="form-control" name="price_per_unit" step="0.01" min="0">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Описание</label>
-                        <textarea class="form-control" name="description" rows="3"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Примечание</label>
-                        <textarea class="form-control" name="note" rows="2"></textarea>
+                        <div class="col-6">
+                            <label class="form-label">Количество</label>
+                            <input type="number" class="form-control" name="quantity" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Накладная (файл) <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
+                            <small class="form-text text-muted">Прикрепите накладную к поступлению (обязательно)</small>
+                        </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-primary" onclick="submitReceipt()">Провести поступление</button>
+                <button type="button" class="btn btn-success" onclick="submitReceipt()">Провести поступление</button>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Модальное окно для перемещения -->
-<div class="modal fade" id="movementModal" tabindex="-1" aria-labelledby="movementModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen">
+<div class="modal fade" id="movementModal" tabindex="-1" aria-labelledby="movementModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="movementModalLabel">Перемещение материала</h5>
@@ -190,6 +171,19 @@
 
 <!-- Дополнительный отступ для нижней панели -->
 <div style="height: 140px"></div>
+
+<style>
+/* Исправление расположения кнопок в разделе "Действия" */
+.mobile-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mobile-sections .mobile-btn {
+    margin-bottom: 0;
+}
+</style>
 
 <script>
 // Загрузка материалов для перемещения
