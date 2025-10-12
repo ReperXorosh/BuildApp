@@ -122,7 +122,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-success" id="submit-receipt-btn">Провести поступление</button>
+                <button type="button" class="btn btn-success" id="submit-receipt-btn" onclick="alert('Кнопка нажата!')">Провести поступление</button>
             </div>
         </div>
     </div>
@@ -317,6 +317,8 @@
 </style>
 
 <script>
+console.log('=== JavaScript загружен ===');
+
 // Функции для работы с модальным окном перемещения (как в десктопной версии)
 
 // Загрузка материалов в зависимости от типа операции
@@ -510,19 +512,27 @@ async function submitMovement() {
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== DOMContentLoaded выполнен ===');
+    
     // Загружаем пользователей при открытии модального окна движения
-    document.getElementById('movementModal').addEventListener('show.bs.modal', function() {
-        loadUsers();
-    });
+    const movementModal = document.getElementById('movementModal');
+    if (movementModal) {
+        movementModal.addEventListener('show.bs.modal', function() {
+            loadUsers();
+        });
+    }
     
     // Добавляем обработчик для кнопки поступления
     const submitReceiptBtn = document.getElementById('submit-receipt-btn');
+    console.log('Кнопка submit-receipt-btn найдена:', submitReceiptBtn);
+    
     if (submitReceiptBtn) {
         submitReceiptBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('Кнопка поступления нажата');
+            console.log('=== Кнопка поступления нажата ===');
             submitReceipt();
         });
+        console.log('Обработчик события добавлен к кнопке');
     } else {
         console.error('Кнопка submit-receipt-btn не найдена');
     }
@@ -530,6 +540,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Делаем функции глобальными для onclick
     window.submitReceipt = submitReceipt;
     window.submitMovement = submitMovement;
+    console.log('Функции добавлены в window объект');
 });
 </script>
 {% endblock %}
