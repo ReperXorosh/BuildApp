@@ -341,9 +341,19 @@ async function loadMaterials() {
       
       if (canDelete) {
         if (material.is_active) {
-          // Кнопка мягкого удаления для активных материалов
+          // Кнопка скрытия для активных материалов
           actionsHtml += `
             <button class="btn btn-sm btn-outline-warning ms-1 action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); deleteMaterial('${material.id}'); return false;" title="Скрыть материал" data-no-pjax>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          `;
+          
+          // Кнопка полного удаления для активных материалов (только для админов)
+          actionsHtml += `
+            <button class="btn btn-sm btn-outline-danger ms-1 action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); hardDeleteMaterial('${material.id}'); return false;" title="Полное удаление (необратимо)" data-no-pjax>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -352,25 +362,27 @@ async function loadMaterials() {
               </svg>
             </button>
           `;
-          
-          // Кнопка полного удаления для активных материалов (только для админов)
-          actionsHtml += `
-            <button class="btn btn-sm btn-outline-danger ms-1 action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); hardDeleteMaterial('${material.id}'); return false;" title="Полное удаление (необратимо)" data-no-pjax>
-              <i class="bi bi-trash3"></i>
-            </button>
-          `;
         } else {
           // Кнопка восстановления для скрытых материалов
           actionsHtml += `
             <button class="btn btn-sm btn-outline-success ms-1 action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); restoreMaterial('${material.id}'); return false;" title="Восстановить" data-no-pjax>
-              <i class="bi bi-arrow-clockwise"></i>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 2L22 22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
             </button>
           `;
           
           // Кнопка полного удаления для скрытых материалов (только для админов)
           actionsHtml += `
             <button class="btn btn-sm btn-outline-danger ms-1 action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); hardDeleteMaterial('${material.id}'); return false;" title="Полное удаление (необратимо)" data-no-pjax>
-              <i class="bi bi-trash3"></i>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
             </button>
           `;
         }
