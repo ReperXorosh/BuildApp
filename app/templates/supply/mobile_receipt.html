@@ -24,51 +24,45 @@
             </div>
         </div>
 
-        <div class="row g-2">
-            <div class="col-6">
-                <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
-                    <label class="mobile-form-label" for="unit">Ед. изм. *</label>
-                    <input type="text" 
-                           name="unit" 
-                           id="unit" 
-                           class="mobile-form-control mobile-form-control-lg" 
-                           placeholder="шт, кг, м, л"
-                           required>
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
-                    <label class="mobile-form-label" for="quantity">Количество *</label>
-                    <input type="number" 
-                           name="quantity" 
-                           id="quantity" 
-                           step="0.01" 
-                           min="0" 
-                           class="mobile-form-control mobile-form-control-lg" 
-                           placeholder="0.00"
-                           required>
-                </div>
-            </div>
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+            <label class="mobile-form-label" for="unit">Ед. изм. *</label>
+            <input type="text" 
+                   name="unit" 
+                   id="unit" 
+                   class="mobile-form-control mobile-form-control-lg" 
+                   placeholder="шт, кг, м, л"
+                   required>
         </div>
 
         <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+            <label class="mobile-form-label" for="quantity">Количество *</label>
+            <input type="number" 
+                   name="quantity" 
+                   id="quantity" 
+                   step="0.01" 
+                   min="0" 
+                   class="mobile-form-control mobile-form-control-lg" 
+                   placeholder="0.00"
+                   required>
+        </div>
+
+        <div class="mobile-form-group mobile-form-group-files">
             <label class="mobile-form-label" for="file">Накладная (файл) *</label>
             <input type="file" 
                    name="file" 
                    id="file" 
-                   class="mobile-form-control mobile-form-control-lg" 
+                   class="mobile-form-control mobile-form-control-file" 
                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                    required>
-            <small class="form-text text-muted">Прикрепите накладную к поступлению (обязательно)</small>
+            <div class="form-text">
+                Прикрепите накладную к поступлению (обязательно)
+            </div>
         </div>
 
-        <div class="d-grid gap-2 mt-4">
-            <button type="button" class="btn btn-success btn-lg" onclick="submitReceipt()">
+        <div class="mobile-mt-4">
+            <button type="submit" class="mobile-btn mobile-btn-primary w-100" id="submit-btn">
                 Провести поступление
             </button>
-            <a href="{{ url_for('supply.mobile_warehouse_view') }}" class="btn btn-outline-secondary btn-lg">
-                Отмена
-            </a>
         </div>
     </form>
 </div>
@@ -208,33 +202,47 @@ function hideReceiptExistsInfo() {
   infoDiv.style.display = 'none';
 }
 
+// Валидация формы
+function validateForm() {
+    const name = document.getElementById('receipt-name-input');
+    const unit = document.getElementById('unit');
+    const quantity = document.getElementById('quantity');
+    const file = document.getElementById('file');
+    
+    if (!name.value.trim()) {
+        alert('Введите наименование материала');
+        name.focus();
+        return false;
+    }
+    
+    if (!unit.value.trim()) {
+        alert('Введите единицу измерения');
+        unit.focus();
+        return false;
+    }
+    
+    if (!quantity.value || parseFloat(quantity.value) <= 0) {
+        alert('Введите корректное количество');
+        quantity.focus();
+        return false;
+    }
+    
+    if (!file.files || file.files.length === 0) {
+        alert('Выберите файл накладной');
+        file.focus();
+        return false;
+    }
+    
+    return true;
+}
+
 // Отправка формы поступления
 async function submitReceipt() {
   console.log('=== submitReceipt вызвана в мобильной версии ===');
   
   const form = document.getElementById('form-receipt');
-  
-  if (!form) {
-    console.error('Форма form-receipt не найдена');
-    alert('Ошибка: форма не найдена');
-    return;
-  }
-  
-  // Проверяем валидность формы
-  if (!form.checkValidity()) {
-    console.log('Форма не валидна');
-    form.reportValidity();
-    return;
-  }
-  
   const formData = new FormData(form);
   console.log('Отправляем данные:', formData);
-  
-  // Показываем индикатор загрузки
-  const submitBtn = document.querySelector('button[onclick="submitReceipt()"]');
-  const originalText = submitBtn.textContent;
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Отправка...';
   
   try {
     const response = await fetch('{{ url_for("supply.api_create_receipt") }}', {
@@ -266,16 +274,33 @@ async function submitReceipt() {
   } catch (error) {
     console.error('Ошибка:', error);
     alert('Ошибка проведения поступления: ' + error.message);
-  } finally {
-    // Восстанавливаем кнопку
-    submitBtn.disabled = false;
-    submitBtn.textContent = originalText;
   }
 }
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
   console.log('=== DOM ЗАГРУЖЕН, НАЧИНАЕМ ИНИЦИАЛИЗАЦИЮ ===');
+  
+  const form = document.getElementById('form-receipt');
+  const submitBtn = document.getElementById('submit-btn');
+  
+  // Обработчик отправки формы
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    if (!validateForm()) { 
+      return false; 
+    }
+    
+    submitBtn.disabled = true;
+    const original = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Отправка...';
+    
+    submitReceipt().finally(() => {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = original;
+    });
+  });
   
   // Проверка существующего материала при вводе названия в поступлении
   const receiptNameInput = document.getElementById('receipt-name-input');
