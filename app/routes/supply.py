@@ -234,6 +234,26 @@ def mobile_warehouse_receipt():
 
     return render_template('supply/mobile_receipt.html', current_user=current_user)
 
+@supply.route('/supply/warehouse/add-material/mobile')
+@login_required
+def mobile_warehouse_add_material():
+    """Мобильная страница добавления позиции на склад"""
+    if not is_supplier_or_admin():
+        flash('У вас нет прав для добавления позиций на склад', 'error')
+        return redirect(url_for('objects.object_list'))
+
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр мобильной страницы добавления позиции",
+        description="Просмотр страницы добавления позиции на склад",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+
+    return render_template('supply/mobile_add_material.html', current_user=current_user)
+
 @supply.route('/supply/warehouse/materials/mobile')
 @login_required
 def mobile_warehouse_materials():
