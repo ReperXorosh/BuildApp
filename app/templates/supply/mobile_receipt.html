@@ -391,6 +391,35 @@ document.addEventListener('DOMContentLoaded', function() {
 .mobile-form-control-file:focus{ border-color:#0d6efd; box-shadow:0 0 0 4px rgba(13,110,253,.1), 0 4px 12px rgba(0,0,0,.1); outline:none; transform:translateY(-1px); }
 .mobile-form-control-file::-webkit-file-upload-button{ background:var(--bs-primary); color:white; border:none; padding:6px 12px; border-radius:6px; margin-right:8px; font-weight:500; cursor:pointer; transition:background-color .2s ease; }
 
+/* Исправление для файлового поля - предотвращение выхода за пределы */
+.mobile-form-control[type="file"],
+.mobile-form-control-file {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 8px 12px;
+}
+
+/* Специальные стили для группы с файлами */
+.mobile-form-group-files {
+    margin-bottom: 16px;
+}
+
+/* Дополнительные исправления для мобильных устройств */
+@media (max-width: 768px) {
+    .mobile-form-control-file {
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+    
+    .mobile-form-group-files {
+        margin-bottom: 16px;
+    }
+}
+
 @media (prefers-color-scheme: dark){
   .add-object-card{ background: var(--bs-body-bg); border-color:#2d3748; box-shadow:0 6px 18px rgba(0,0,0,.2); }
   .add-object-card .mobile-form-group{ background:#1f2937; border-color:#374151; }
