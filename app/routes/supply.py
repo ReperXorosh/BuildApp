@@ -1494,7 +1494,7 @@ def api_create_receipt():
             movement_type='add',
             quantity=quantity,
             to_user_id=current_user.userid,
-            notes=f'Поступление на склад. Накладная: {filename}',
+            note=f'Поступление на склад. Накладная: {filename}',
             created_by=current_user.userid
         )
         db.session.add(movement)
