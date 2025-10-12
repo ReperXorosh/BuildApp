@@ -234,6 +234,38 @@ def mobile_warehouse_receipt():
 
     return render_template('supply/mobile_receipt.html', current_user=current_user)
 
+@supply.route('/supply/warehouse/materials/mobile')
+@login_required
+def mobile_warehouse_materials():
+    """Мобильная страница просмотра материалов склада"""
+    if not is_supplier_or_admin():
+        flash('У вас нет прав для доступа к материалам склада', 'error')
+        return redirect(url_for('objects.object_list'))
+
+    # Получаем все активные материалы
+    materials = Material.query.filter_by(is_active=True).order_by(Material.name).all()
+    
+    # Подсчитываем статистику
+    materials_count = len(materials)
+    low_stock_materials = [m for m in materials if m.current_quantity <= m.min_quantity]
+    low_stock_count = len(low_stock_materials)
+
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр мобильной страницы материалов",
+        description="Просмотр материалов склада",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+
+    return render_template('supply/mobile_materials.html', 
+                         materials=materials,
+                         materials_count=materials_count,
+                         low_stock_count=low_stock_count,
+                         current_user=current_user)
+
 @supply.route('/supply/warehouse/movements')
 @login_required
 def warehouse_movements():

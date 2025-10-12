@@ -1,0 +1,166 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'supply' %}
+
+{% block title %}Материалы склада{% endblock %}
+{% block mobile_title %}Материалы склада{% endblock %}
+{% block mobile_header_actions %}
+<a class="mobile-header-btn" href="{{ url_for('supply.mobile_warehouse_receipt') }}" title="Добавить поступление" role="button" aria-label="Добавить поступление">
+    <svg fill="currentColor" viewBox="0 0 16 16">
+        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+    </svg>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="mobile-content">
+    <div class="mobile-header-info">
+        <h2 class="mobile-page-title">Материалы склада</h2>
+        <p class="mobile-page-subtitle">Всего позиций: {{ materials_count }}{% if low_stock_count > 0 %}, низкий запас: {{ low_stock_count }}{% endif %}</p>
+    </div>
+
+    {% if materials %}
+    <div class="mobile-cards-container">
+        {% for material in materials %}
+        <div class="mobile-card">
+            <div class="mobile-card-header">
+                <div class="mobile-card-title">
+                    <i class="bi bi-box me-2"></i>
+                    {{ material.name }}
+                </div>
+                <span class="badge bg-{{ 'danger' if material.current_quantity <= material.min_quantity else 'success' if material.current_quantity > material.min_quantity * 2 else 'warning' }}">
+                    {{ material.current_quantity }} {{ material.unit }}
+                </span>
+            </div>
+            <div class="mobile-card-body">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="mobile-info-item">
+                            <span class="mobile-info-label">Ед. изм.</span>
+                            <span class="mobile-info-value">{{ material.unit }}</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="mobile-info-item">
+                            <span class="mobile-info-label">Мин. запас</span>
+                            <span class="mobile-info-value">{{ material.min_quantity }} {{ material.unit }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% if material.supplier %}
+                <div class="mobile-info-item mt-2">
+                    <span class="mobile-info-label">Поставщик</span>
+                    <span class="mobile-info-value">{{ material.supplier }}</span>
+                </div>
+                {% endif %}
+                {% if material.price_per_unit %}
+                <div class="mobile-info-item mt-2">
+                    <span class="mobile-info-label">Цена за единицу</span>
+                    <span class="mobile-info-value">{{ "%.2f"|format(material.price_per_unit) }} ₽</span>
+                </div>
+                {% endif %}
+                {% if material.description %}
+                <div class="mobile-info-item mt-2">
+                    <span class="mobile-info-label">Описание</span>
+                    <span class="mobile-info-value">{{ material.description }}</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="mobile-card-footer">
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('supply.material_detail', material_id=material.id) }}" class="mobile-btn mobile-btn-outline flex-fill">
+                        <i class="bi bi-eye me-1"></i>
+                        Подробнее
+                    </a>
+                    {% if current_user.is_admin %}
+                    <button class="mobile-btn mobile-btn-outline-danger" onclick="hideMaterial('{{ material.id }}')" title="Скрыть материал">
+                        <i class="bi bi-eye-slash"></i>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="mobile-card">
+        <div class="mobile-card-body text-center">
+            <i class="bi bi-box display-1 text-muted"></i>
+            <h5 class="mt-3">Материалы не найдены</h5>
+            <p class="text-muted">На складе пока нет материалов</p>
+            <a href="{{ url_for('supply.mobile_warehouse_receipt') }}" class="mobile-btn mobile-btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>
+                Добавить поступление
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Скрытие материала (только для админов)
+async function hideMaterial(materialId) {
+    if (!confirm('Вы уверены, что хотите скрыть этот материал?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/supply/api/supply/materials/${materialId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            alert('Материал скрыт');
+            // Перезагружаем страницу
+            window.location.reload();
+        } else {
+            const error = await response.json();
+            alert('Ошибка: ' + (error.error || 'Неизвестная ошибка'));
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert('Ошибка при скрытии материала');
+    }
+}
+</script>
+
+<style>
+/* Стили для темной темы */
+[data-bs-theme="dark"] .mobile-card {
+    background: #2d3748 !important;
+    border: 1px solid #4a5568 !important;
+}
+
+[data-bs-theme="dark"] .mobile-card-header {
+    background: #1a202c !important;
+    border-bottom: 1px solid #4a5568 !important;
+}
+
+[data-bs-theme="dark"] .mobile-card-footer {
+    background: #1a202c !important;
+    border-top: 1px solid #4a5568 !important;
+}
+
+[data-bs-theme="dark"] .mobile-btn-outline {
+    color: #e2e8f0 !important;
+    border-color: #4a5568 !important;
+}
+
+[data-bs-theme="dark"] .mobile-btn-outline:hover {
+    background: #4a5568 !important;
+    color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] .mobile-btn-outline-danger {
+    color: #fc8181 !important;
+    border-color: #e53e3e !important;
+}
+
+[data-bs-theme="dark"] .mobile-btn-outline-danger:hover {
+    background: #e53e3e !important;
+    color: #ffffff !important;
+}
+</style>
+{% endblock %}
