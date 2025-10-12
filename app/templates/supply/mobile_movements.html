@@ -1,0 +1,329 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'supply' %}
+
+{% block title %}История движений{% endblock %}
+{% block mobile_title %}История{% endblock %}
+
+{% block content %}
+<!-- Фильтры -->
+<div class="mobile-card">
+    <div class="mobile-card-title">Фильтры</div>
+    <div class="row g-2">
+        <div class="col-12">
+            <input type="text" class="form-control" id="searchMaterial" placeholder="Поиск по материалу...">
+        </div>
+        <div class="col-6">
+            <select class="form-select" id="filterType">
+                <option value="">Все типы</option>
+                <option value="add">Поступление</option>
+                <option value="move">Выдача</option>
+                <option value="return">Возврат</option>
+                <option value="writeoff">Списание</option>
+                <option value="replenishment">Пополнение</option>
+                <option value="creation">Создание</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <select class="form-select" id="filterUser">
+                <option value="">Все пользователи</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Список движений -->
+<div class="mobile-card">
+    <div class="mobile-card-title d-flex justify-content-between align-items-center">
+        <span>История движений</span>
+        <span class="badge bg-primary" id="totalCount">0</span>
+    </div>
+    <div id="movementsList">
+        <div class="text-center text-muted py-4">
+            <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Загрузка...</span>
+            </div>
+            <p class="mt-2">Загрузка движений...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Дополнительный отступ для нижней панели -->
+<div style="height: 140px"></div>
+
+<script>
+// Загрузка истории движений
+async function loadMovements() {
+    try {
+        const response = await fetch('{{ url_for("supply.api_list_movements") }}');
+        const movements = await response.json();
+        
+        displayMovements(movements);
+    } catch (error) {
+        console.error('Ошибка загрузки истории движений:', error);
+        document.getElementById('movementsList').innerHTML = `
+            <div class="text-center text-muted py-4">
+                <svg width="48" height="48" fill="currentColor" viewBox="0 0 16 16" class="mb-3">
+                    <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.389.389 0 0 0-.029-.518z"/>
+                </svg>
+                <p>Ошибка загрузки истории движений</p>
+            </div>
+        `;
+    }
+}
+
+// Загрузка пользователей для фильтра
+async function loadUsers() {
+    try {
+        const response = await fetch('{{ url_for("supply.api_get_all_users") }}');
+        const users = await response.json();
+        
+        const select = document.getElementById('filterUser');
+        select.innerHTML = '<option value="">Все пользователи</option>';
+        
+        users.forEach(user => {
+            const option = document.createElement('option');
+            option.value = user.userid;
+            option.textContent = `${user.secondname || ''} ${user.firstname || ''} (${user.login})`;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Ошибка загрузки пользователей:', error);
+    }
+}
+
+// Отображение движений
+function displayMovements(movements) {
+    const container = document.getElementById('movementsList');
+    const totalCount = document.getElementById('totalCount');
+    
+    totalCount.textContent = movements.length;
+    
+    if (!movements || movements.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted py-4">
+                <svg width="48" height="48" fill="currentColor" viewBox="0 0 16 16" class="mb-3">
+                    <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+                </svg>
+                <p>Движения не найдены</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    movements.forEach(movement => {
+        // Определяем тип движения
+        let typeBadge = '';
+        switch(movement.movement_type) {
+            case 'add':
+                typeBadge = '<span class="badge bg-info">Поступление</span>';
+                break;
+            case 'move':
+                typeBadge = '<span class="badge bg-primary">Выдача</span>';
+                break;
+            case 'return':
+                typeBadge = '<span class="badge bg-success">Возврат</span>';
+                break;
+            case 'writeoff':
+                typeBadge = '<span class="badge bg-danger">Списание</span>';
+                break;
+            case 'replenishment':
+                typeBadge = '<span class="badge bg-info">Пополнение</span>';
+                break;
+            case 'creation':
+                typeBadge = '<span class="badge bg-warning">Создание</span>';
+                break;
+            default:
+                typeBadge = '<span class="badge bg-secondary">Неизвестно</span>';
+        }
+        
+        // Форматируем дату
+        const date = new Date(movement.created_at);
+        const formattedDate = date.toLocaleDateString('ru-RU') + ' ' + date.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});
+        
+        // Файлы
+        let filesHtml = '';
+        if (movement.attachments && movement.attachments.length > 0) {
+            movement.attachments.forEach(attachment => {
+                filesHtml += `<a href="/supply/api/supply/movements/${movement.id}/attachments/${attachment.id}/view" class="btn btn-sm btn-outline-secondary me-1" title="${attachment.original_filename}" target="_blank">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 13H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 17H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </a>`;
+            });
+        } else {
+            filesHtml = '<span class="text-muted">-</span>';
+        }
+        
+        html += `
+            <div class="movement-item">
+                <div class="movement-header">
+                    <div class="movement-type">${typeBadge}</div>
+                    <div class="movement-date">${formattedDate}</div>
+                </div>
+                <div class="movement-content">
+                    <div class="movement-material">
+                        <strong>${movement.material_name || 'Неизвестно'}</strong>
+                    </div>
+                    <div class="movement-details">
+                        <div class="movement-quantity">
+                            <span class="text-muted">Количество:</span> 
+                            <strong>${movement.quantity}</strong>
+                        </div>
+                        <div class="movement-user">
+                            <span class="text-muted">Пользователь:</span> 
+                            ${movement.to_user_name || 'Не указан'}
+                        </div>
+                        ${movement.notes ? `
+                            <div class="movement-note">
+                                <span class="text-muted">Примечание:</span> 
+                                ${movement.notes}
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="movement-files">
+                        <span class="text-muted">Документы:</span> ${filesHtml}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+// Применение фильтров
+function applyFilters() {
+    const searchMaterial = document.getElementById('searchMaterial').value.toLowerCase();
+    const filterType = document.getElementById('filterType').value;
+    const filterUser = document.getElementById('filterUser').value;
+    
+    const movementItems = document.querySelectorAll('.movement-item');
+    let visibleCount = 0;
+    
+    movementItems.forEach(item => {
+        const materialName = item.querySelector('.movement-material').textContent.toLowerCase();
+        const movementType = item.querySelector('.movement-type .badge').textContent.toLowerCase();
+        const userName = item.querySelector('.movement-user').textContent.toLowerCase();
+        
+        let show = true;
+        
+        if (searchMaterial && !materialName.includes(searchMaterial)) {
+            show = false;
+        }
+        
+        if (filterType && !movementType.includes(filterType)) {
+            show = false;
+        }
+        
+        if (filterUser && !userName.includes(filterUser)) {
+            show = false;
+        }
+        
+        if (show) {
+            item.style.display = 'block';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    
+    document.getElementById('totalCount').textContent = visibleCount;
+}
+
+// Инициализация
+document.addEventListener('DOMContentLoaded', function() {
+    loadMovements();
+    loadUsers();
+    
+    // Применяем фильтры при изменении
+    document.getElementById('searchMaterial').addEventListener('input', applyFilters);
+    document.getElementById('filterType').addEventListener('change', applyFilters);
+    document.getElementById('filterUser').addEventListener('change', applyFilters);
+    
+    // Улучшаем скролл
+    const content = document.querySelector('.mobile-content');
+    if (content) {
+        content.style.webkitOverflowScrolling = 'touch';
+        content.style.scrollBehavior = 'smooth';
+        const currentPaddingBottom = parseInt(window.getComputedStyle(content).paddingBottom || '0', 10);
+        if (currentPaddingBottom < 140) {
+            content.style.paddingBottom = '140px';
+        }
+    }
+});
+</script>
+
+<style>
+.movement-item {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.movement-item:last-child {
+    border-bottom: none;
+}
+
+.movement-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.movement-type .badge {
+    font-size: 11px;
+}
+
+.movement-date {
+    font-size: 12px;
+    color: var(--bs-secondary-color);
+}
+
+.movement-content {
+    margin-bottom: 8px;
+}
+
+.movement-material {
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.movement-details {
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.movement-details > div {
+    margin-bottom: 4px;
+}
+
+.movement-quantity,
+.movement-user,
+.movement-note {
+    display: flex;
+    gap: 8px;
+}
+
+.movement-files {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.movement-files .btn {
+    padding: 2px 6px;
+}
+
+/* Темная тема */
+[data-bs-theme="dark"] .movement-item {
+    border-color: var(--bs-gray-700);
+}
+</style>
+{% endblock %}

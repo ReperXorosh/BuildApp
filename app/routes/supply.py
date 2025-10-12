@@ -174,6 +174,46 @@ def mobile_warehouse_view():
                          low_stock_materials=low_stock_materials[:5],  # Показываем только первые 5
                          current_user=current_user)
 
+@supply.route('/supply/warehouse/allocations/mobile')
+@login_required
+def mobile_warehouse_allocations():
+    """Мобильная страница распределения позиций"""
+    if not is_supplier_or_admin():
+        flash('У вас нет прав для доступа к распределению', 'error')
+        return redirect(url_for('objects.object_list'))
+
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр мобильного распределения",
+        description="Просмотр списка пользователей для распределения",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+
+    return render_template('supply/mobile_allocations.html', current_user=current_user)
+
+@supply.route('/supply/warehouse/movements/mobile')
+@login_required
+def mobile_warehouse_movements():
+    """Мобильная страница истории движений"""
+    if not is_supplier_or_admin():
+        flash('У вас нет прав для доступа к истории движений', 'error')
+        return redirect(url_for('objects.object_list'))
+
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр мобильной истории движений",
+        description="Просмотр истории движений по складу",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+
+    return render_template('supply/mobile_movements.html', current_user=current_user)
+
 @supply.route('/supply/warehouse/movements')
 @login_required
 def warehouse_movements():

@@ -1,0 +1,202 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'supply' %}
+
+{% block title %}Распределение позиций{% endblock %}
+{% block mobile_title %}Распределение{% endblock %}
+
+{% block content %}
+<!-- Поиск -->
+<div class="mobile-card">
+    <div class="mobile-card-title">Поиск</div>
+    <div class="mb-3">
+        <input type="text" class="form-control" id="searchInput" placeholder="Поиск по имени пользователя...">
+    </div>
+</div>
+
+<!-- Список пользователей -->
+<div class="mobile-card">
+    <div class="mobile-card-title d-flex justify-content-between align-items-center">
+        <span>Пользователи</span>
+        <span class="badge bg-primary" id="totalCount">0</span>
+    </div>
+    <div id="usersList">
+        <div class="text-center text-muted py-4">
+            <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Загрузка...</span>
+            </div>
+            <p class="mt-2">Загрузка пользователей...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Дополнительный отступ для нижней панели -->
+<div style="height: 140px"></div>
+
+<script>
+// Загрузка пользователей
+async function loadUsers() {
+    try {
+        const response = await fetch('{{ url_for("supply.api_get_all_users") }}');
+        const users = await response.json();
+        
+        displayUsers(users);
+    } catch (error) {
+        console.error('Ошибка загрузки пользователей:', error);
+        document.getElementById('usersList').innerHTML = `
+            <div class="text-center text-muted py-4">
+                <svg width="48" height="48" fill="currentColor" viewBox="0 0 16 16" class="mb-3">
+                    <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.389.389 0 0 0-.029-.518z"/>
+                </svg>
+                <p>Ошибка загрузки пользователей</p>
+            </div>
+        `;
+    }
+}
+
+// Отображение пользователей
+function displayUsers(users) {
+    const container = document.getElementById('usersList');
+    const totalCount = document.getElementById('totalCount');
+    
+    totalCount.textContent = users.length;
+    
+    if (!users || users.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted py-4">
+                <svg width="48" height="48" fill="currentColor" viewBox="0 0 16 16" class="mb-3">
+                    <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216z"/>
+                    <path d="M4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/>
+                </svg>
+                <p>Пользователи не найдены</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    users.forEach(user => {
+        const fullName = `${user.secondname || ''} ${user.firstname || ''}`.trim() || 'Имя не указано';
+        const role = user.role || 'Роль не указана';
+        
+        html += `
+            <div class="user-item" onclick="viewUser('${user.userid}')">
+                <div class="d-flex align-items-center">
+                    <div class="user-avatar me-3">
+                        ${user.avatar ? 
+                            `<img src="/static/uploads/avatars/${user.avatar}" alt="Аватар" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">` :
+                            `<div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+                                </svg>
+                            </div>`
+                        }
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="user-name">${fullName}</div>
+                        <div class="user-details">
+                            <small class="text-muted">${user.login} • ${role}</small>
+                        </div>
+                    </div>
+                    <div class="user-arrow">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+// Поиск пользователей
+function filterUsers() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const userItems = document.querySelectorAll('.user-item');
+    let visibleCount = 0;
+    
+    userItems.forEach(item => {
+        const userName = item.querySelector('.user-name').textContent.toLowerCase();
+        const userLogin = item.querySelector('.user-details').textContent.toLowerCase();
+        
+        if (userName.includes(searchTerm) || userLogin.includes(searchTerm)) {
+            item.style.display = 'block';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    
+    document.getElementById('totalCount').textContent = visibleCount;
+}
+
+// Просмотр пользователя
+function viewUser(userId) {
+    window.location.href = `/supply/warehouse/user/${userId}`;
+}
+
+// Инициализация
+document.addEventListener('DOMContentLoaded', function() {
+    loadUsers();
+    
+    // Поиск в реальном времени
+    document.getElementById('searchInput').addEventListener('input', filterUsers);
+    
+    // Улучшаем скролл
+    const content = document.querySelector('.mobile-content');
+    if (content) {
+        content.style.webkitOverflowScrolling = 'touch';
+        content.style.scrollBehavior = 'smooth';
+        const currentPaddingBottom = parseInt(window.getComputedStyle(content).paddingBottom || '0', 10);
+        if (currentPaddingBottom < 140) {
+            content.style.paddingBottom = '140px';
+        }
+    }
+});
+</script>
+
+<style>
+.user-item {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--bs-border-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.user-item:last-child {
+    border-bottom: none;
+}
+
+.user-item:active {
+    background: var(--bs-body-bg);
+    transform: scale(0.98);
+}
+
+.user-name {
+    font-weight: 600;
+    color: var(--bs-body-color);
+    margin-bottom: 2px;
+}
+
+.user-details {
+    font-size: 12px;
+    color: var(--bs-secondary-color);
+}
+
+.user-arrow {
+    color: var(--bs-secondary-color);
+    opacity: 0.6;
+}
+
+.user-item:hover .user-arrow {
+    opacity: 1;
+}
+
+/* Темная тема */
+[data-bs-theme="dark"] .user-item:active {
+    background: var(--bs-gray-800);
+}
+</style>
+{% endblock %}
