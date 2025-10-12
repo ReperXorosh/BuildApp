@@ -584,7 +584,7 @@ async function submitAddMaterial() {
   };
   
   try {
-    const response = await fetch('{{ url_for("supply.api_create_material") }}', {
+    const response = await fetch('{{ url_for("supply.api_materials_create") }}', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
