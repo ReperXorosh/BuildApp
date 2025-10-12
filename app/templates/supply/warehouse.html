@@ -35,7 +35,7 @@
                         <span class="d-none d-sm-inline">Добавить позицию</span>
                         <span class="d-inline d-sm-none">Добавить</span>
                     </button>
-                    <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#receiptModal">
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#receiptModal">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-1" style="vertical-align: middle;">
                             <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -54,7 +54,7 @@
                         <span class="d-none d-sm-inline">Перемещение</span>
                         <span class="d-inline d-sm-none">Перемещение</span>
                     </button>
-                    <a href="{{ url_for('supply.warehouse_allocations') }}" class="btn btn-outline-warning btn-sm">
+                    <a href="{{ url_for('supply.warehouse_allocations') }}" class="btn btn-outline-primary btn-sm">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-1" style="vertical-align: middle;">
                             <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -64,7 +64,7 @@
                         <span class="d-none d-sm-inline">Распределение</span>
                         <span class="d-inline d-sm-none">Люди</span>
                     </a>
-                    <a href="{{ url_for('supply.warehouse_movements') }}" class="btn btn-outline-info btn-sm">
+                    <a href="{{ url_for('supply.warehouse_movements') }}" class="btn btn-outline-primary btn-sm">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-1" style="vertical-align: middle;">
                             <path d="M3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -73,7 +73,7 @@
                         <span class="d-inline d-sm-none">История</span>
                     </a>
                     {% if current_user.role in ['Инженер ПТО', 'Ген.Директор'] %}
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="toggleHiddenMaterials" title="Показать/скрыть удаленные материалы">
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="toggleHiddenMaterials" title="Показать/скрыть удаленные материалы">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-1" style="vertical-align: middle;">
                             <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -112,7 +112,7 @@
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
-                            <thead class="table-light">
+                            <thead class="table-secondary">
                                 <tr>
                                     <th>Название</th>
                                     <th>Ед. изм.</th>
@@ -946,12 +946,12 @@ function toggleHiddenMaterials() {
   
   if (showHiddenMaterials) {
     button.innerHTML = '<i class="bi bi-eye me-1"></i>Активные';
-    button.classList.remove('btn-outline-secondary');
-    button.classList.add('btn-secondary');
+    button.classList.remove('btn-outline-primary');
+    button.classList.add('btn-primary');
   } else {
     button.innerHTML = '<i class="bi bi-eye-slash me-1"></i>Скрытые';
-    button.classList.remove('btn-secondary');
-    button.classList.add('btn-outline-secondary');
+    button.classList.remove('btn-primary');
+    button.classList.add('btn-outline-primary');
   }
   
   loadMaterials(); // Перезагружаем список материалов
@@ -1322,6 +1322,23 @@ document.addEventListener('DOMContentLoaded', function() {
 .material-name-clickable:hover {
   color: #0a58ca !important;
   text-decoration: underline !important;
+}
+
+/* Стили для шапки таблицы */
+.table-secondary {
+  background-color: #f8f9fa !important;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.table-secondary th {
+  background-color: #f8f9fa !important;
+  color: #495057 !important;
+  font-weight: 600;
+  border-bottom: 2px solid #dee2e6 !important;
+  padding: 0.75rem 0.5rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 /* Стили для скрытых материалов */
