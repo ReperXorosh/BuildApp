@@ -84,8 +84,11 @@
             <button type="button" class="mobile-btn mobile-btn-secondary mobile-btn-sm w-100 mb-2" onclick="alert('JavaScript работает!')">
                 Тест JavaScript
             </button>
+            <button type="button" class="mobile-btn mobile-btn-secondary mobile-btn-sm w-100 mb-2" onclick="alert('Простой тест работает!')">
+                Простой тест (встроенный)
+            </button>
             <button type="button" class="mobile-btn mobile-btn-secondary mobile-btn-sm w-100 mb-2" onclick="window.simpleTest()">
-                Простой тест
+                Простой тест (функция)
             </button>
             <button type="button" class="mobile-btn mobile-btn-secondary mobile-btn-sm w-100 mb-2" onclick="window.testMaterialCheck()">
                 Тест блокировки полей
@@ -94,21 +97,31 @@
         </div>
     </form>
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script>
-console.log('=== СКРИПТ НАЧИНАЕТСЯ ===');
+try {
+    console.log('=== СКРИПТ НАЧИНАЕТСЯ ===');
 
-// Простейший тест - выносим наружу, чтобы был доступен сразу
-function simpleTest() {
-    alert('Простой тест работает!');
-    console.log('Простой тест выполнен');
+    // Простейший тест - выносим наружу, чтобы был доступен сразу
+    function simpleTest() {
+        alert('Простой тест работает!');
+        console.log('Простой тест выполнен');
+    }
+
+    // Делаем функцию глобальной
+    window.simpleTest = simpleTest;
+    
+    console.log('=== ФУНКЦИЯ simpleTest СОЗДАНА ===');
+} catch (error) {
+    console.error('Ошибка в начале скрипта:', error);
+    alert('Ошибка в начале скрипта: ' + error.message);
 }
 
-// Делаем функцию глобальной
-window.simpleTest = simpleTest;
-
-// Тестовая функция для проверки работы JavaScript
-function testMaterialCheck() {
+try {
+    // Тестовая функция для проверки работы JavaScript
+    function testMaterialCheck() {
     console.log('Тестовая функция вызвана');
     const unitInput = document.querySelector('input[name="unit"]');
     const minQuantityInput = document.querySelector('input[name="min_quantity"]');
@@ -590,7 +603,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('DOM загружен, настраиваем обработчики');
 });
+} catch (error) {
+    console.error('Ошибка в основном скрипте:', error);
+    alert('Ошибка в основном скрипте: ' + error.message);
+}
 </script>
+{% endblock %}
 
 <style>
 /* Локальные правки для лучшей читаемости в светлой теме только на этой странице */
