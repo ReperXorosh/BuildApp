@@ -122,7 +122,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-success" id="submit-receipt-btn" onclick="alert('Кнопка нажата!')">Провести поступление</button>
+                <button type="button" class="btn btn-success" id="submit-receipt-btn">Провести поступление</button>
             </div>
         </div>
     </div>
@@ -433,7 +433,6 @@ function onMaterialChange() {
 // Отправка формы поступления
 async function submitReceipt() {
     console.log('=== submitReceipt вызвана ===');
-    alert('Функция submitReceipt вызвана!'); // Временное сообщение для проверки
     
     const form = document.getElementById('form-receipt');
     
@@ -453,6 +452,12 @@ async function submitReceipt() {
     const formData = new FormData(form);
     console.log('Отправляем данные:', formData);
     
+    // Показываем индикатор загрузки
+    const submitBtn = document.getElementById('submit-receipt-btn');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Отправка...';
+    
     try {
         const response = await fetch('{{ url_for("supply.api_materials_create") }}', {
             method: 'POST',
@@ -467,6 +472,8 @@ async function submitReceipt() {
             alert('Поступление успешно проведено');
             bootstrap.Modal.getInstance(document.getElementById('receiptModal')).hide();
             form.reset();
+            // Перезагружаем страницу для обновления данных
+            window.location.reload();
         } else {
             const error = await response.json();
             console.error('Ошибка сервера:', error);
@@ -475,6 +482,10 @@ async function submitReceipt() {
     } catch (error) {
         console.error('Ошибка:', error);
         alert('Ошибка проведения поступления: ' + error.message);
+    } finally {
+        // Восстанавливаем кнопку
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
     }
 }
 
