@@ -154,7 +154,7 @@ def mobile_warehouse_view():
     low_stock_count = len(low_stock_materials)
     
     # Простой расчет общей стоимости (можно улучшить)
-    total_value = sum(m.current_quantity * (m.unit_price or 0) for m in materials if m.unit_price)
+    total_value = sum(m.current_quantity * (m.price_per_unit or 0) for m in materials if m.price_per_unit)
 
     ActivityLog.log_action(
         user_id=current_user.userid,
