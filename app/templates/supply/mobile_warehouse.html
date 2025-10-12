@@ -234,8 +234,10 @@
 
 /* Убираем ВСЕ отступы у модального тела */
 #receiptModal .modal-body {
-    padding-bottom: 8px !important;
+    padding-bottom: 0 !important;
     padding-top: 16px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
 }
 
 #receiptModal .modal-body .row {
@@ -270,6 +272,30 @@
 #receiptModal .file-input-container * {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
+}
+
+/* Исправляем отступы футера модального окна */
+#receiptModal .modal-footer {
+    padding-top: 8px !important;
+    padding-bottom: 16px !important;
+    margin-top: 0 !important;
+    border-top: 1px solid var(--bs-border-color) !important;
+}
+
+/* Убираем лишние отступы у последнего элемента формы */
+#receiptModal .file-input-container {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Дополнительные исправления для компактности */
+#receiptModal .modal-content {
+    border-radius: 12px !important;
+}
+
+#receiptModal .modal-header {
+    padding-bottom: 12px !important;
+    border-bottom: 1px solid var(--bs-border-color) !important;
 }
 </style>
 
