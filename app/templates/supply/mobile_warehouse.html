@@ -87,7 +87,7 @@
 {% endif %}
 
 <!-- Модальное окно для поступления -->
-<div class="modal fade" id="receiptModal" tabindex="-1" aria-labelledby="receiptModalLabel" aria-hidden="true" data-bs-backdrop="false">
+<div class="modal fade" id="receiptModal" tabindex="-1" aria-labelledby="receiptModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -115,7 +115,7 @@
                         <div class="col-12">
                             <label class="form-label">Накладная (файл) <span class="text-danger">*</span></label>
                             <input type="file" class="form-control" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
-                            <small class="form-text text-muted">Прикрепите накладную к поступлению (обязательно)</small>
+                            <small class="form-text text-muted mb-0">Прикрепите накладную к поступлению (обязательно)</small>
                         </div>
                     </div>
                 </form>
@@ -129,41 +129,63 @@
 </div>
 
 <!-- Модальное окно для перемещения -->
-<div class="modal fade" id="movementModal" tabindex="-1" aria-labelledby="movementModalLabel" aria-hidden="true" data-bs-backdrop="false">
-    <div class="modal-dialog modal-dialog-centered">
+<div class="modal fade" id="movementModal" tabindex="-1" aria-labelledby="movementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="movementModalLabel">Перемещение материала</h5>
+                <h5 class="modal-title" id="movementModalLabel">Движение по складу</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="form-movement">
-                    <div class="mb-3">
-                        <label class="form-label">Материал</label>
-                        <select class="form-select" name="material_id" id="movement-material-select" required>
-                            <option value="">Выберите материал</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Количество</label>
-                        <input type="number" class="form-control" name="quantity" step="0.01" min="0" required>
-                        <div class="form-text">Доступно: <span id="available-quantity">-</span></div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Получатель</label>
-                        <select class="form-select" name="to_user_id" id="to_user_id" required>
-                            <option value="">Выберите получателя</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Примечание</label>
-                        <textarea class="form-control" name="note" rows="3"></textarea>
+                    <div class="row">
+                        <div class="col-6">
+                            <label class="form-label">Тип операции <span class="text-danger">*</span></label>
+                            <select class="form-select" name="movement_type" id="movement_type" required onchange="onMovementTypeChange()">
+                                <option value="">Выберите тип операции</option>
+                                <option value="move">Выдача</option>
+                                <option value="return">Возврат</option>
+                                <option value="writeoff">Списание</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Материал <span class="text-danger">*</span></label>
+                            <select class="form-select" name="material_id" id="material_id" required onchange="onMaterialChange()">
+                                <option value="">Сначала выберите тип операции</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Количество <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" name="quantity" id="movement_quantity" step="0.01" min="0" required>
+                                <span class="input-group-text" id="movement_unit">шт</span>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted">Доступно: <span id="available_quantity" class="text-primary fw-bold">0</span></small>
+                                <small class="text-warning" id="quantity_warning" style="display: none;">Количество ограничено доступным</small>
+                            </div>
+                        </div>
+                        <div class="col-6" id="user-selection-container" style="display: none;">
+                            <label class="form-label" id="user-label">Пользователь</label>
+                            <select class="form-select" name="to_user_id" id="to_user_id">
+                                <option value="">Выберите пользователя...</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Примечание</label>
+                            <input class="form-control" name="note">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" id="file-label">Вложение (файл) <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" name="file" id="movement-file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
+                            <small class="form-text text-muted" id="file-help">Прикрепите документ к движению (обязательно)</small>
+                        </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-primary" onclick="submitMovement()">Провести перемещение</button>
+                <button type="button" class="btn btn-success" onclick="submitMovement()">Провести</button>
             </div>
         </div>
     </div>
@@ -186,23 +208,33 @@
 </style>
 
 <script>
-// Загрузка материалов для перемещения
-async function loadMaterialsForMovement() {
-    const select = document.getElementById('movement-material-select');
+// Функции для работы с модальным окном перемещения (как в десктопной версии)
+
+// Загрузка материалов в зависимости от типа операции
+async function loadMaterialsForMovementType(movementType) {
+    const materialSelect = document.getElementById('material_id');
     
     try {
-        const response = await fetch('{{ url_for("supply.api_materials") }}');
+        let url = '';
+        if (movementType === 'move') {
+            url = '{{ url_for("supply.api_materials") }}';
+        } else if (movementType === 'return') {
+            url = '{{ url_for("supply.api_materials_for_return") }}';
+        } else if (movementType === 'writeoff') {
+            url = '{{ url_for("supply.api_materials") }}';
+        }
+        
+        const response = await fetch(url);
         const materials = await response.json();
         
-        select.innerHTML = '<option value="">Выберите материал</option>';
+        materialSelect.innerHTML = '<option value="">Выберите материал</option>';
         materials.forEach(material => {
-            if (material.current_quantity > 0) {
-                const option = document.createElement('option');
-                option.value = material.id;
-                option.textContent = `${material.name} (${material.current_quantity} ${material.unit})`;
-                option.dataset.quantity = material.current_quantity;
-                select.appendChild(option);
-            }
+            const option = document.createElement('option');
+            option.value = material.id;
+            option.textContent = `${material.name} (${material.current_quantity || material.quantity} ${material.unit})`;
+            option.dataset.quantity = material.current_quantity || material.quantity;
+            option.dataset.unit = material.unit;
+            materialSelect.appendChild(option);
         });
     } catch (error) {
         console.error('Ошибка загрузки материалов:', error);
@@ -217,7 +249,7 @@ async function loadUsers() {
         const response = await fetch('{{ url_for("supply.api_get_all_users") }}');
         const users = await response.json();
         
-        select.innerHTML = '<option value="">Выберите получателя</option>';
+        select.innerHTML = '<option value="">Выберите пользователя...</option>';
         users.forEach(user => {
             const option = document.createElement('option');
             option.value = user.userid;
@@ -229,17 +261,63 @@ async function loadUsers() {
     }
 }
 
-// Обновление доступного количества при выборе материала
-document.getElementById('movement-material-select').addEventListener('change', function() {
-    const selectedOption = this.options[this.selectedIndex];
-    const availableQuantity = document.getElementById('available-quantity');
+// Обработка изменения типа операции
+function onMovementTypeChange() {
+    const movementType = document.getElementById('movement_type').value;
+    const materialSelect = document.getElementById('material_id');
+    const userContainer = document.getElementById('user-selection-container');
+    const userLabel = document.getElementById('user-label');
+    const fileLabel = document.getElementById('file-label');
+    const fileHelp = document.getElementById('file-help');
+    
+    // Сбрасываем форму
+    materialSelect.innerHTML = '<option value="">Сначала выберите тип операции</option>';
+    document.getElementById('movement_quantity').value = '';
+    document.getElementById('available_quantity').textContent = '0';
+    document.getElementById('movement_unit').textContent = 'шт';
+    
+    if (movementType) {
+        loadMaterialsForMovementType(movementType);
+        
+        // Показываем/скрываем выбор пользователя в зависимости от типа операции
+        if (movementType === 'move' || movementType === 'return') {
+            userContainer.style.display = 'block';
+            userLabel.textContent = movementType === 'move' ? 'Получатель' : 'Возвращающий';
+            document.getElementById('to_user_id').required = true;
+        } else {
+            userContainer.style.display = 'none';
+            document.getElementById('to_user_id').required = false;
+        }
+        
+        // Обновляем текст для файла
+        if (movementType === 'writeoff') {
+            fileLabel.innerHTML = 'Документ списания (файл) <span class="text-danger">*</span>';
+            fileHelp.textContent = 'Прикрепите документ списания (обязательно)';
+        } else {
+            fileLabel.innerHTML = 'Вложение (файл) <span class="text-danger">*</span>';
+            fileHelp.textContent = 'Прикрепите документ к движению (обязательно)';
+        }
+    } else {
+        userContainer.style.display = 'none';
+        document.getElementById('to_user_id').required = false;
+    }
+}
+
+// Обработка изменения материала
+function onMaterialChange() {
+    const materialSelect = document.getElementById('material_id');
+    const selectedOption = materialSelect.options[materialSelect.selectedIndex];
+    const availableQuantity = document.getElementById('available_quantity');
+    const movementUnit = document.getElementById('movement_unit');
     
     if (selectedOption.dataset.quantity) {
         availableQuantity.textContent = selectedOption.dataset.quantity;
+        movementUnit.textContent = selectedOption.dataset.unit || 'шт';
     } else {
-        availableQuantity.textContent = '-';
+        availableQuantity.textContent = '0';
+        movementUnit.textContent = 'шт';
     }
-});
+}
 
 // Отправка формы поступления
 async function submitReceipt() {
@@ -267,11 +345,10 @@ async function submitReceipt() {
     }
 }
 
-// Отправка формы перемещения
+// Отправка формы движения
 async function submitMovement() {
     const form = document.getElementById('form-movement');
     const formData = new FormData(form);
-    formData.append('movement_type', 'move');
     
     try {
         const response = await fetch('{{ url_for("supply.api_create_movement") }}', {
@@ -281,28 +358,29 @@ async function submitMovement() {
         
         if (response.ok) {
             const result = await response.json();
-            alert('Перемещение успешно проведено');
+            if (result.warning) {
+                alert(result.warning);
+            }
+            alert('Движение успешно проведено');
             bootstrap.Modal.getInstance(document.getElementById('movementModal')).hide();
             form.reset();
+            // Сбрасываем состояние формы
+            document.getElementById('user-selection-container').style.display = 'none';
+            document.getElementById('material_id').innerHTML = '<option value="">Сначала выберите тип операции</option>';
         } else {
             const error = await response.json();
-            alert('Ошибка проведения перемещения: ' + (error.error || 'Неизвестная ошибка'));
+            alert('Ошибка проведения движения: ' + (error.error || 'Неизвестная ошибка'));
         }
     } catch (error) {
         console.error('Ошибка:', error);
-        alert('Ошибка проведения перемещения');
+        alert('Ошибка проведения движения');
     }
 }
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    // Загружаем данные при открытии модальных окон
-    document.getElementById('receiptModal').addEventListener('show.bs.modal', function() {
-        // Можно добавить дополнительную логику при открытии
-    });
-    
+    // Загружаем пользователей при открытии модального окна движения
     document.getElementById('movementModal').addEventListener('show.bs.modal', function() {
-        loadMaterialsForMovement();
         loadUsers();
     });
 });
