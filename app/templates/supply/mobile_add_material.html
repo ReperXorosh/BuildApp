@@ -236,12 +236,12 @@ function showMaterialExistsInfo(material, correctedName = null) {
     console.log('Показываем информацию о существующем материале:', material);
     
     const infoDiv = document.getElementById('material-exists-info');
-    const unitInput = document.getElementById('material-unit');
-    const minQuantityInput = document.getElementById('material-min-quantity');
-    const descriptionInput = document.getElementById('material-description');
+    const unitInput = document.querySelector('input[name="unit"]');
+    const minQuantityInput = document.querySelector('input[name="min_quantity"]');
+    const descriptionInput = document.querySelector('textarea[name="description"]');
     const nameInput = document.getElementById('material-name-input');
     const reasonField = document.getElementById('reason-field');
-    const reasonInput = document.getElementById('material-reason');
+    const reasonInput = document.querySelector('textarea[name="addition_reason"]');
     
     console.log('Найденные элементы:', {
         infoDiv: !!infoDiv,
@@ -272,7 +272,7 @@ function showMaterialExistsInfo(material, correctedName = null) {
         console.log('Исправили регистр названия:', correctedName);
     }
     
-    // Блокируем поля для редактирования
+    // Блокируем поля для редактирования (используем readonly вместо disabled)
     if (unitInput) {
         unitInput.readOnly = true;
         console.log('Заблокировали единицу измерения');
@@ -298,10 +298,10 @@ function showMaterialExistsInfo(material, correctedName = null) {
     }
     
     // Показываем информацию
-    let message = `Материал уже существует на складе (${material.current_quantity} ${material.unit}). Укажите причину добавления.`;
+    let message = `Материал уже существует на складе (${material.current_quantity} ${material.unit}). При сохранении количество будет пополнено. Ед. изм., мин. запас и описание заблокированы.`;
     
     if (correctedName) {
-        message = `Исправлен регистр: "${correctedName}". Материал уже существует на складе (${material.current_quantity} ${material.unit}). Укажите причину добавления.`;
+        message = `Исправлен регистр: "${correctedName}". Материал уже существует на складе (${material.current_quantity} ${material.unit}). При сохранении количество будет пополнено. Ед. изм., мин. запас и описание заблокированы.`;
     }
     
     if (infoDiv) {
@@ -353,29 +353,41 @@ function showSimilarMaterials(similarMaterials, originalName) {
 // Выбрать похожий материал
 function selectSimilarMaterial(name, unit, minQuantity, description = '') {
     const nameInput = document.getElementById('material-name-input');
-    const unitInput = document.getElementById('material-unit');
-    const minQuantityInput = document.getElementById('material-min-quantity');
-    const descriptionInput = document.getElementById('material-description');
+    const unitInput = document.querySelector('input[name="unit"]');
+    const minQuantityInput = document.querySelector('input[name="min_quantity"]');
+    const descriptionInput = document.querySelector('textarea[name="description"]');
     const reasonField = document.getElementById('reason-field');
-    const reasonInput = document.getElementById('material-reason');
+    const reasonInput = document.querySelector('textarea[name="addition_reason"]');
     
     // Заполняем поля
-    nameInput.value = name;
-    unitInput.value = unit;
-    minQuantityInput.value = minQuantity;
+    if (nameInput) {
+        nameInput.value = name;
+    }
+    if (unitInput) {
+        unitInput.value = unit;
+    }
+    if (minQuantityInput) {
+        minQuantityInput.value = minQuantity;
+    }
     if (descriptionInput && description) {
         descriptionInput.value = description;
     }
     
     // Блокируем поля
-    unitInput.readOnly = true;
-    minQuantityInput.readOnly = true;
+    if (unitInput) {
+        unitInput.readOnly = true;
+    }
+    if (minQuantityInput) {
+        minQuantityInput.readOnly = true;
+    }
     if (descriptionInput) {
         descriptionInput.readOnly = true;
     }
     
     // Показываем поле причины и делаем его обязательным
-    reasonField.style.display = 'block';
+    if (reasonField) {
+        reasonField.style.display = 'block';
+    }
     if (reasonInput) {
         reasonInput.required = true;
         reasonInput.focus(); // Фокус на поле причины
@@ -393,11 +405,11 @@ function selectSimilarMaterial(name, unit, minQuantity, description = '') {
 // Скрыть информацию о существующем материале
 function hideMaterialExistsInfo() {
     const infoDiv = document.getElementById('material-exists-info');
-    const unitInput = document.getElementById('material-unit');
-    const minQuantityInput = document.getElementById('material-min-quantity');
-    const descriptionInput = document.getElementById('material-description');
+    const unitInput = document.querySelector('input[name="unit"]');
+    const minQuantityInput = document.querySelector('input[name="min_quantity"]');
+    const descriptionInput = document.querySelector('textarea[name="description"]');
     const reasonField = document.getElementById('reason-field');
-    const reasonInput = document.getElementById('material-reason');
+    const reasonInput = document.querySelector('textarea[name="addition_reason"]');
     
     // Разблокируем поля
     if (unitInput) {
@@ -416,9 +428,12 @@ function hideMaterialExistsInfo() {
     }
     if (reasonInput) {
         reasonInput.required = false;
+        reasonInput.value = ''; // Очищаем поле
     }
     
-    infoDiv.style.display = 'none';
+    if (infoDiv) {
+        infoDiv.style.display = 'none';
+    }
 }
 
 // Инициализация при загрузке страницы
