@@ -114,14 +114,8 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label">Накладная (файл) <span class="text-danger">*</span></label>
-                            <div class="custom-file-upload">
-                                <input type="file" id="receipt-file-input" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required style="display: none;">
-                                <button type="button" class="btn btn-outline-secondary w-100" onclick="document.getElementById('receipt-file-input').click()">
-                                    <i class="bi bi-cloud-upload me-2"></i>
-                                    <span id="receipt-file-name">Выбрать файл</span>
-                                </button>
-                            </div>
-                            <small class="form-text text-muted mt-2">Прикрепите накладную к поступлению (обязательно)</small>
+                            <input type="file" class="form-control" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
+                            <small class="form-text text-muted">Прикрепите накладную к поступлению (обязательно)</small>
                         </div>
                     </div>
                 </form>
@@ -237,39 +231,33 @@
     padding-bottom: 8px !important;
 }
 
-/* Стили для кастомной кнопки выбора файла */
-.custom-file-upload {
-    margin-bottom: 0;
-}
-
-.custom-file-upload .btn {
-    border: 2px dashed #6c757d;
-    background: #f8f9fa;
-    color: #6c757d;
-    transition: all 0.3s ease;
-    padding: 12px 16px;
-    font-weight: 500;
-}
-
-.custom-file-upload .btn:hover {
-    border-color: #007bff;
-    background: #e3f2fd;
-    color: #007bff;
-}
-
-.custom-file-upload .btn:active {
-    transform: scale(0.98);
-}
-
-/* Убираем все отступы у контейнера файла */
-#receiptModal .col-12:has(.custom-file-upload) {
+/* Точные исправления для стандартного поля выбора файла */
+#receiptModal .col-12:last-child {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
 }
 
-.custom-file-upload {
+#receiptModal .form-control[type="file"] {
     margin-bottom: 0 !important;
+    padding-bottom: 8px !important;
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+#receiptModal .form-text {
+    margin-top: 4px !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
     padding-bottom: 0 !important;
+    line-height: 1.3 !important;
+}
+
+/* Убираем лишние отступы у модального тела */
+#receiptModal .modal-body .row {
+    margin-bottom: 0 !important;
+}
+
+#receiptModal .modal-body .row .col-12:last-child {
+    margin-bottom: 0 !important;
 }
 </style>
 
@@ -449,21 +437,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('movementModal').addEventListener('show.bs.modal', function() {
         loadUsers();
     });
-    
-    // Обработка выбора файла в модальном окне поступления
-    const receiptFileInput = document.getElementById('receipt-file-input');
-    const receiptFileName = document.getElementById('receipt-file-name');
-    
-    if (receiptFileInput && receiptFileName) {
-        receiptFileInput.addEventListener('change', function() {
-            if (this.files && this.files[0]) {
-                const fileName = this.files[0].name;
-                receiptFileName.textContent = fileName.length > 30 ? fileName.substring(0, 30) + '...' : fileName;
-            } else {
-                receiptFileName.textContent = 'Выбрать файл';
-            }
-        });
-    }
 });
 </script>
 {% endblock %}
