@@ -87,7 +87,7 @@
 {% endif %}
 
 <!-- Модальное окно для поступления -->
-<div class="modal fade" id="receiptModal" tabindex="-1" aria-labelledby="receiptModalLabel" aria-hidden="true" data-bs-backdrop="false">
+<div class="modal fade" id="receiptModal" tabindex="-1" aria-labelledby="receiptModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -112,17 +112,17 @@
                             <label class="form-label">Количество</label>
                             <input type="number" class="form-control" name="quantity" step="0.01" min="0" required>
                         </div>
-                        <div class="col-12 file-input-container">
+                        <div class="col-12">
                             <label class="form-label">Накладная (файл) <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control file-input-no-gap" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
-                            <small class="form-text text-muted file-text-no-gap">Прикрепите накладную к поступлению (обязательно)</small>
+                            <input type="file" class="form-control" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
+                            <small class="form-text text-muted">Прикрепите накладную к поступлению (обязательно)</small>
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-success" id="submit-receipt-btn">Провести поступление</button>
+                <button type="button" class="btn btn-success" onclick="submitReceipt()">Провести поступление</button>
             </div>
         </div>
     </div>
@@ -317,244 +317,192 @@
 </style>
 
 <script>
-console.log('=== JavaScript в блоке content загружен ===');
-alert('JavaScript загружен!'); // Временный тест
-
-// Функции для работы с модальным окном перемещения (как в десктопной версии)
-
-// Загрузка материалов в зависимости от типа операции
-async function loadMaterialsForMovementType(movementType) {
-    const materialSelect = document.getElementById('material_id');
-    
-    try {
-        let url = '';
-        if (movementType === 'move') {
-            url = '{{ url_for("supply.api_materials") }}';
-        } else if (movementType === 'return') {
-            url = '{{ url_for("supply.api_materials_for_return") }}';
-        } else if (movementType === 'writeoff') {
-            url = '{{ url_for("supply.api_materials") }}';
-        }
-        
-        const response = await fetch(url);
-        const materials = await response.json();
-        
-        materialSelect.innerHTML = '<option value="">Выберите материал</option>';
-        materials.forEach(material => {
-            const option = document.createElement('option');
-            option.value = material.id;
-            option.textContent = `${material.name} (${material.current_quantity || material.quantity} ${material.unit})`;
-            option.dataset.quantity = material.current_quantity || material.quantity;
-            option.dataset.unit = material.unit;
-            materialSelect.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Ошибка загрузки материалов:', error);
-    }
-}
-
-// Загрузка пользователей
-async function loadUsers() {
-    const select = document.getElementById('to_user_id');
-    
-    try {
-        const response = await fetch('{{ url_for("supply.api_get_all_users") }}');
-        const users = await response.json();
-        
-        select.innerHTML = '<option value="">Выберите пользователя...</option>';
-        users.forEach(user => {
-            const option = document.createElement('option');
-            option.value = user.userid;
-            option.textContent = `${user.secondname || ''} ${user.firstname || ''} (${user.login})`;
-            select.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Ошибка загрузки пользователей:', error);
-    }
-}
-
-// Обработка изменения типа операции
-function onMovementTypeChange() {
-    const movementType = document.getElementById('movement_type').value;
-    const materialSelect = document.getElementById('material_id');
-    const userContainer = document.getElementById('user-selection-container');
-    const userLabel = document.getElementById('user-label');
-    const fileLabel = document.getElementById('file-label');
-    const fileHelp = document.getElementById('file-help');
-    
-    // Сбрасываем форму
-    materialSelect.innerHTML = '<option value="">Сначала выберите тип операции</option>';
-    document.getElementById('movement_quantity').value = '';
-    document.getElementById('available_quantity').textContent = '0';
-    document.getElementById('movement_unit').textContent = 'шт';
-    
-    if (movementType) {
-        loadMaterialsForMovementType(movementType);
-        
-        // Показываем/скрываем выбор пользователя в зависимости от типа операции
-        if (movementType === 'move' || movementType === 'return') {
-            userContainer.style.display = 'block';
-            userLabel.textContent = movementType === 'move' ? 'Получатель' : 'Возвращающий';
-            document.getElementById('to_user_id').required = true;
-        } else {
-            userContainer.style.display = 'none';
-            document.getElementById('to_user_id').required = false;
-        }
-        
-        // Обновляем текст для файла
-        if (movementType === 'writeoff') {
-            fileLabel.innerHTML = 'Документ списания (файл) <span class="text-danger">*</span>';
-            fileHelp.textContent = 'Прикрепите документ списания (обязательно)';
-        } else {
-            fileLabel.innerHTML = 'Вложение (файл) <span class="text-danger">*</span>';
-            fileHelp.textContent = 'Прикрепите документ к движению (обязательно)';
-        }
-    } else {
-        userContainer.style.display = 'none';
-        document.getElementById('to_user_id').required = false;
-    }
-}
-
-// Обработка изменения материала
-function onMaterialChange() {
-    const materialSelect = document.getElementById('material_id');
-    const selectedOption = materialSelect.options[materialSelect.selectedIndex];
-    const availableQuantity = document.getElementById('available_quantity');
-    const movementUnit = document.getElementById('movement_unit');
-    
-    if (selectedOption.dataset.quantity) {
-        availableQuantity.textContent = selectedOption.dataset.quantity;
-        movementUnit.textContent = selectedOption.dataset.unit || 'шт';
-    } else {
-        availableQuantity.textContent = '0';
-        movementUnit.textContent = 'шт';
-    }
-}
-
-// Отправка формы поступления
+// Отправка формы поступления (скопировано из десктопной версии)
 async function submitReceipt() {
-    console.log('=== submitReceipt вызвана ===');
+  const form = document.getElementById('form-receipt');
+  const formData = new FormData(form);
+  
+  try {
+    const response = await fetch('{{ url_for("supply.api_create_receipt") }}', {
+      method: 'POST',
+      body: formData
+    });
     
-    const form = document.getElementById('form-receipt');
-    
-    if (!form) {
-        console.error('Форма form-receipt не найдена');
-        alert('Ошибка: форма не найдена');
-        return;
+    if (response.ok) {
+      const result = await response.json();
+      
+      // Проверяем, есть ли предупреждение о восстановлении
+      if (result.warning) {
+        // Показываем предупреждение пользователю
+        alert(result.warning);
+      } else {
+        alert('Поступление успешно проведено');
+      }
+      
+      bootstrap.Modal.getInstance(document.getElementById('receiptModal')).hide();
+      form.reset();
+      hideReceiptExistsInfo(); // Скрываем информацию о существующем материале
+      // Перезагружаем страницу для обновления данных
+      window.location.reload();
+    } else {
+      const error = await response.json();
+      alert('Ошибка проведения поступления: ' + (error.error || 'Неизвестная ошибка'));
     }
-    
-    // Проверяем валидность формы
-    if (!form.checkValidity()) {
-        console.log('Форма не валидна');
-        form.reportValidity();
-        return;
-    }
-    
-    const formData = new FormData(form);
-    console.log('Отправляем данные:', formData);
-    
-    // Показываем индикатор загрузки
-    const submitBtn = document.getElementById('submit-receipt-btn');
-    const originalText = submitBtn.textContent;
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Отправка...';
-    
-    try {
-        const response = await fetch('{{ url_for("supply.api_materials_create") }}', {
-            method: 'POST',
-            body: formData
-        });
-        
-        console.log('Ответ сервера:', response.status);
-        
-        if (response.ok) {
-            const result = await response.json();
-            console.log('Результат:', result);
-            alert('Поступление успешно проведено');
-            bootstrap.Modal.getInstance(document.getElementById('receiptModal')).hide();
-            form.reset();
-            // Перезагружаем страницу для обновления данных
-            window.location.reload();
-        } else {
-            const error = await response.json();
-            console.error('Ошибка сервера:', error);
-            alert('Ошибка проведения поступления: ' + (error.error || 'Неизвестная ошибка'));
-        }
-    } catch (error) {
-        console.error('Ошибка:', error);
-        alert('Ошибка проведения поступления: ' + error.message);
-    } finally {
-        // Восстанавливаем кнопку
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-    }
+  } catch (error) {
+    console.error('Ошибка:', error);
+    alert('Ошибка проведения поступления');
+  }
 }
 
-// Отправка формы движения
-async function submitMovement() {
-    const form = document.getElementById('form-movement');
-    const formData = new FormData(form);
+// Функция проверки существующего материала для поступления
+async function checkExistingMaterialForReceipt(name) {
+  if (!name || name.length < 2) {
+    hideReceiptExistsInfo();
+    return;
+  }
+  
+  try {
+    const response = await fetch('{{ url_for("supply.api_materials_check") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name })
+    });
     
-    try {
-        const response = await fetch('{{ url_for("supply.api_create_movement") }}', {
-            method: 'POST',
-            body: formData
-        });
-        
-        if (response.ok) {
-            const result = await response.json();
-            if (result.warning) {
-                alert(result.warning);
-            }
-            alert('Движение успешно проведено');
-            bootstrap.Modal.getInstance(document.getElementById('movementModal')).hide();
-            form.reset();
-            // Сбрасываем состояние формы
-            document.getElementById('user-selection-container').style.display = 'none';
-            document.getElementById('material_id').innerHTML = '<option value="">Сначала выберите тип операции</option>';
-        } else {
-            const error = await response.json();
-            alert('Ошибка проведения движения: ' + (error.error || 'Неизвестная ошибка'));
+    if (response.ok) {
+      const result = await response.json();
+      
+      if (result.exists) {
+        // Если есть точное совпадение или исправление регистра
+        if (result.exact_match || result.case_corrected) {
+          showReceiptExistsInfo(result.material, result.corrected_name);
         }
-    } catch (error) {
-        console.error('Ошибка:', error);
-        alert('Ошибка проведения движения');
+      } else if (result.similar_found) {
+        // Если найдены похожие материалы
+        showSimilarMaterialsForReceipt(result.similar_materials, name);
+      } else {
+        hideReceiptExistsInfo();
+      }
     }
+  } catch (error) {
+    console.error('Ошибка проверки материала для поступления:', error);
+  }
+}
+
+// Показать информацию о существующем материале для поступления
+function showReceiptExistsInfo(material, correctedName = null) {
+  const infoDiv = document.getElementById('receipt-exists-info');
+  const unitInput = document.querySelector('#form-receipt input[name="unit"]');
+  const nameInput = document.getElementById('receipt-name-input');
+  
+  // Заполняем поле единицы измерения автоматически
+  unitInput.value = material.unit;
+  
+  // Если есть исправление регистра, обновляем поле названия
+  if (correctedName) {
+    nameInput.value = correctedName;
+  }
+  
+  // Блокируем поле для редактирования (используем readonly вместо disabled)
+  unitInput.readOnly = true;
+  
+  // Показываем информацию
+  let message = `Материал уже существует на складе (${material.current_quantity} ${material.unit}). При поступлении количество будет пополнено. Ед. изм. заблокирована.`;
+  
+  if (correctedName) {
+    message = `Исправлен регистр: "${correctedName}". Материал уже существует на складе (${material.current_quantity} ${material.unit}). При поступлении количество будет пополнено. Ед. изм. заблокирована.`;
+  }
+  
+  infoDiv.innerHTML = `
+    <i class="bi bi-info-circle"></i> 
+    ${message}
+  `;
+  infoDiv.style.display = 'block';
+  infoDiv.className = 'form-text text-warning';
+}
+
+// Показать похожие материалы для поступления
+function showSimilarMaterialsForReceipt(similarMaterials, originalName) {
+  const infoDiv = document.getElementById('receipt-exists-info');
+  
+  let similarList = '';
+  similarMaterials.forEach((material, index) => {
+    similarList += `
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span>${material.name} (${material.current_quantity} ${material.unit})</span>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectSimilarMaterialForReceipt('${material.name}', '${material.unit}')">
+          Выбрать
+        </button>
+      </div>
+    `;
+  });
+  
+  infoDiv.innerHTML = `
+    <div class="alert alert-info">
+      <i class="bi bi-question-circle"></i> 
+      <strong>Не найдено точного совпадения для "${originalName}"</strong>
+      <br>Возможно, вы имели в виду один из этих материалов:
+      <div class="mt-2">
+        ${similarList}
+      </div>
+      <div class="mt-2">
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="hideReceiptExistsInfo()">
+          Создать новый материал
+        </button>
+      </div>
+    </div>
+  `;
+  infoDiv.style.display = 'block';
+  infoDiv.className = 'form-text';
+}
+
+// Выбрать похожий материал для поступления
+function selectSimilarMaterialForReceipt(name, unit) {
+  const nameInput = document.getElementById('receipt-name-input');
+  const unitInput = document.querySelector('#form-receipt input[name="unit"]');
+  
+  // Заполняем поля
+  nameInput.value = name;
+  unitInput.value = unit;
+  
+  // Блокируем поле
+  unitInput.readOnly = true;
+  
+  // Показываем информацию о выбранном материале
+  showReceiptExistsInfo({
+    name: name,
+    unit: unit,
+    current_quantity: 0 // Будет получено из API
+  });
+}
+
+// Скрыть информацию о существующем материале для поступления
+function hideReceiptExistsInfo() {
+  const infoDiv = document.getElementById('receipt-exists-info');
+  const unitInput = document.querySelector('#form-receipt input[name="unit"]');
+  
+  // Разблокируем поле
+  if (unitInput) {
+    unitInput.readOnly = false;
+  }
+  
+  infoDiv.style.display = 'none';
 }
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== DOMContentLoaded выполнен ===');
-    
-    // Загружаем пользователей при открытии модального окна движения
-    const movementModal = document.getElementById('movementModal');
-    if (movementModal) {
-        movementModal.addEventListener('show.bs.modal', function() {
-            loadUsers();
-        });
-    }
-    
-    // Добавляем обработчик для кнопки поступления
-    const submitReceiptBtn = document.getElementById('submit-receipt-btn');
-    console.log('Кнопка submit-receipt-btn найдена:', submitReceiptBtn);
-    
-    if (submitReceiptBtn) {
-        submitReceiptBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('=== Кнопка поступления нажата ===');
-            alert('Кнопка нажата!'); // Временный тест
-            submitReceipt();
-        });
-        console.log('Обработчик события добавлен к кнопке');
-    } else {
-        console.error('Кнопка submit-receipt-btn не найдена');
-        alert('Кнопка не найдена!'); // Временный тест
-    }
-    
-    // Делаем функции глобальными для onclick
-    window.submitReceipt = submitReceipt;
-    window.submitMovement = submitMovement;
-    console.log('Функции добавлены в window объект');
+  console.log('=== DOM ЗАГРУЖЕН, НАЧИНАЕМ ИНИЦИАЛИЗАЦИЮ ===');
+  
+  // Проверка существующего материала при вводе названия в поступлении
+  const receiptNameInput = document.getElementById('receipt-name-input');
+  if (receiptNameInput) {
+    let receiptTimeoutId;
+    receiptNameInput.addEventListener('input', function() {
+      clearTimeout(receiptTimeoutId);
+      receiptTimeoutId = setTimeout(() => {
+        checkExistingMaterialForReceipt(this.value);
+      }, 500); // Задержка 500мс для избежания частых запросов
+    });
+  }
 });
 </script>
 
