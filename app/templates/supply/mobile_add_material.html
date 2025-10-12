@@ -1,167 +1,262 @@
 {% extends "main/mobile_layout_bootstrap.html" %}
 {% set active_page = 'supply' %}
 
-{% block title %}Добавить позицию{% endblock %}
-{% block mobile_title %}Новая позиция{% endblock %}
-
 {% block content %}
-<div class="mobile-card add-object-card">
-    <div class="mobile-card-title text-center">Добавить позицию</div>
+<div class="container-fluid px-3 py-3">
+    <div class="row">
+        <div class="col-12">
+            <div class="mobile-card">
+                <div class="mobile-card-header">
+                    <h4 class="mobile-card-title">Новая позиция</h4>
+                </div>
+                <div class="mobile-card-body">
+                    <form id="add-material-form" onsubmit="return false;">
+                        <div class="mobile-form-group">
+                            <label for="material-name-input" class="mobile-form-label">Название материала *</label>
+                            <input type="text" 
+                                   class="mobile-form-control" 
+                                   id="material-name-input" 
+                                   name="name" 
+                                   required 
+                                   maxlength="200"
+                                   placeholder="Введите название материала">
+                        </div>
 
-    <form id="add-material-form" novalidate onsubmit="return false;">
-        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
-            <label class="mobile-form-label" for="material-name-input">Название *</label>
-            <input type="text"
-                   class="mobile-form-control mobile-form-control-lg"
-                   id="material-name-input"
-                   name="name"
-                   placeholder="Введите название материала"
-                   inputmode="text"
-                   maxlength="80"
-                   required>
-            <div id="material-exists-info" class="form-text text-info" style="display: none;">
-                <i class="bi bi-info-circle"></i> Материал уже существует на складе
+                        <div class="mobile-form-group">
+                            <label for="material-unit" class="mobile-form-label">Единица измерения *</label>
+                            <input type="text" 
+                                   class="mobile-form-control" 
+                                   id="material-unit" 
+                                   name="unit" 
+                                   required 
+                                   maxlength="20"
+                                   placeholder="шт, м, кг и т.д.">
+                        </div>
+
+                        <div class="mobile-form-group">
+                            <label for="material-quantity" class="mobile-form-label">Количество *</label>
+                            <input type="number" 
+                                   class="mobile-form-control" 
+                                   id="material-quantity" 
+                                   name="quantity" 
+                                   required 
+                                   min="0" 
+                                   step="0.01"
+                                   placeholder="0">
+                        </div>
+
+                        <div class="mobile-form-group">
+                            <label for="material-min-quantity" class="mobile-form-label">Минимальный запас *</label>
+                            <input type="number" 
+                                   class="mobile-form-control" 
+                                   id="material-min-quantity" 
+                                   name="min_quantity" 
+                                   required 
+                                   min="0" 
+                                   step="0.01"
+                                   placeholder="0">
+                        </div>
+
+                        <div class="mobile-form-group">
+                            <label for="material-description" class="mobile-form-label">Описание</label>
+                            <textarea class="mobile-form-control" 
+                                      id="material-description" 
+                                      name="description" 
+                                      rows="3"
+                                      maxlength="500"
+                                      placeholder="Дополнительная информация о материале"></textarea>
+                        </div>
+
+                        <div class="mobile-form-group">
+                            <label for="material-price" class="mobile-form-label">Цена за единицу</label>
+                            <input type="number" 
+                                   class="mobile-form-control" 
+                                   id="material-price" 
+                                   name="price_per_unit" 
+                                   min="0" 
+                                   step="0.01"
+                                   placeholder="0.00">
+                        </div>
+
+                        <div class="mobile-form-group">
+                            <label for="material-file" class="mobile-form-label">Файл</label>
+                            <input type="file" 
+                                   class="mobile-form-control" 
+                                   id="material-file" 
+                                   name="file"
+                                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                        </div>
+
+                        <!-- Информация о существующем материале -->
+                        <div id="material-exists-info" class="form-text" style="display: none;"></div>
+
+                        <!-- Поле причины (скрыто по умолчанию) -->
+                        <div id="reason-field" class="mobile-form-group" style="display: none;">
+                            <label for="addition-reason" class="mobile-form-label">Причина добавления существующей позиции *</label>
+                            <textarea class="mobile-form-control" 
+                                      id="addition-reason" 
+                                      name="addition_reason" 
+                                      rows="3"
+                                      maxlength="500"
+                                      placeholder="Укажите причину пополнения существующего материала..."></textarea>
+                            <div class="form-text text-muted">Обязательно укажите причину пополнения существующего материала</div>
+                        </div>
+
+                        <div class="mobile-mt-4">
+                            <button type="button" class="mobile-btn mobile-btn-primary w-100" id="submit-btn">Сохранить позицию</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-
-        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
-            <label class="mobile-form-label" for="material-unit">Ед. изм. *</label>
-            <input type="text"
-                   class="mobile-form-control mobile-form-control-lg"
-                   id="material-unit"
-                   name="unit"
-                   placeholder="шт, кг, м, л"
-                   maxlength="20"
-                   required>
-        </div>
-
-        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
-            <label class="mobile-form-label" for="material-quantity">Количество *</label>
-            <input type="number"
-                   class="mobile-form-control mobile-form-control-lg"
-                   id="material-quantity"
-                   name="current_quantity"
-                   step="0.01"
-                   min="0"
-                   placeholder="0.00"
-                   required>
-        </div>
-
-        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
-            <label class="mobile-form-label" for="material-min-quantity">Мин. запас *</label>
-            <input type="number"
-                   class="mobile-form-control mobile-form-control-lg"
-                   id="material-min-quantity"
-                   name="min_quantity"
-                   step="0.01"
-                   min="0"
-                   placeholder="0.00"
-                   required>
-        </div>
-
-        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
-            <label class="mobile-form-label" for="material-description">Описание</label>
-            <textarea class="mobile-form-control"
-                      id="material-description"
-                      name="description"
-                      rows="3"
-                      maxlength="500"
-                      placeholder="Дополнительная информация о материале"></textarea>
-        </div>
-
-        <div class="mobile-form-group" id="reason-field" style="border:none; background:transparent; padding-left:0; padding-right:0; display: none;">
-            <label class="mobile-form-label" for="material-reason">Причина добавления существующей позиции? <span class="text-danger">*</span></label>
-            <textarea class="mobile-form-control"
-                      id="material-reason"
-                      name="addition_reason"
-                      rows="2"
-                      maxlength="500"
-                      placeholder="Укажите причину пополнения существующего материала..."></textarea>
-            <div class="form-text text-muted">Обязательно укажите причину пополнения существующего материала</div>
-        </div>
-
-        <div class="mobile-mt-4">
-            <button type="button" class="mobile-btn mobile-btn-secondary w-100 mb-2" onclick="alert('Тест 1: JavaScript работает!')">
-                Тест 1: JavaScript
-            </button>
-            <button type="button" class="mobile-btn mobile-btn-secondary w-100 mb-2" onclick="testFunction()">
-                Тест 2: Функция
-            </button>
-            <button type="button" class="mobile-btn mobile-btn-secondary w-100 mb-2" onclick="testDOM()">
-                Тест 3: DOM элементы
-            </button>
-            <button type="button" class="mobile-btn mobile-btn-secondary w-100 mb-2" onclick="testMaterialCheck()">
-                Тест 4: Проверка материала
-            </button>
-            <button type="button" class="mobile-btn mobile-btn-primary w-100" id="submit-btn">Сохранить позицию</button>
-        </div>
-    </form>
+    </div>
 </div>
 
 <style>
 /* Локальные правки для лучшей читаемости в светлой теме только на этой странице */
-.mobile-app { background: var(--bs-body-bg); }
-[data-bs-theme="light"] .add-object-card { background:#fff; color:#0f172a; }
-[data-bs-theme="light"] .mobile-form-label { color:#111827; }
-[data-bs-theme="light"] .mobile-form-control, [data-bs-theme="light"] .mobile-form-control-lg { background:#fff; border-color:#d1d5db; color:#111827; }
-[data-bs-theme="light"] .mobile-card-title { color:#0f172a; }
+.mobile-card {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
 
-.add-object-card{ background:#fff; border:1px solid #e5e7eb; box-shadow:0 6px 18px rgba(0,0,0,.06); padding:12px; }
-.add-object-card .mobile-form-group{ background:#f9fafb; border:1px solid #eef2f7; border-radius:12px; padding:10px; }
-.add-object-card .mobile-form-group + .mobile-form-group{ margin-top:8px; }
-.mobile-card-title{ font-size:1.5rem; font-weight:700; margin-bottom:.75rem; color:#111827; letter-spacing:-.025em; }
-.mobile-form-label{ display:block; font-size:.9rem; font-weight:600; color:#374151; margin-bottom:6px; letter-spacing:.025em; }
-.mobile-form-control-lg{ font-size:1.02rem; padding:10px 14px; border-radius:12px; border:2px solid #e1e5e9; background:#fff; color:#111827; transition:all .3s cubic-bezier(.4,0,.2,1); box-shadow:0 2px 4px rgba(0,0,0,.04); font-weight:500; }
-.mobile-form-control{ font-size:.93rem; padding:8px 12px; border-radius:12px; border:2px solid #e1e5e9; background:#fff; color:#111827; transition:all .3s cubic-bezier(.4,0,.2,1); box-shadow:0 2px 4px rgba(0,0,0,.04); font-weight:500; }
-.mobile-form-control:focus, .mobile-form-control-lg:focus{ border-color:#0d6efd; box-shadow:0 0 0 4px rgba(13,110,253,.1), 0 4px 12px rgba(0,0,0,.1); outline:none; transform:translateY(-1px); }
-.mobile-btn{ border-radius:12px; font-weight:600; padding:10px 18px; font-size:.93rem; transition:all .3s cubic-bezier(.4,0,.2,1); letter-spacing:.025em; border:none; position:relative; overflow:hidden; }
-.mobile-btn-primary{ background:linear-gradient(135deg,#0d6efd 0%,#0b5ed7 100%); color:#fff; box-shadow:0 4px 12px rgba(13,110,253,.3); }
-.mobile-btn-primary:hover{ background:linear-gradient(135deg,#0b5ed7 0%,#0a58ca 100%); transform:translateY(-2px); box-shadow:0 6px 20px rgba(13,110,253,.4); }
-.mobile-btn-secondary{ background:linear-gradient(135deg,#6c757d 0%,#5a6268 100%); color:#fff; box-shadow:0 4px 12px rgba(108,117,125,.3); }
-.mobile-btn-secondary:hover{ background:linear-gradient(135deg,#5a6268 0%,#495057 100%); transform:translateY(-2px); box-shadow:0 6px 20px rgba(108,117,125,.4); }
-.mobile-btn-sm{ padding:8px 14px; font-size:.85rem; }
-.mobile-btn-lg{ padding:12px 22px; font-size:1rem; }
-.mobile-mt-4{ margin-top:1.5rem; }
+.mobile-card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 16px 20px;
+    border-radius: 12px 12px 0 0;
+    border-bottom: none;
+}
+
+.mobile-card-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.mobile-card-body {
+    padding: 20px;
+}
+
+.mobile-form-group {
+    margin-bottom: 16px;
+}
+
+.mobile-form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #333;
+    font-size: 14px;
+}
+
+.mobile-form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.mobile-form-control:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.mobile-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.mobile-btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.mobile-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.mobile-mt-4 {
+    margin-top: 24px;
+}
+
+/* Исправление для файлового поля - предотвращение выхода за пределы */
+.mobile-form-control[type="file"],
+.mobile-form-control-file {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 8px 12px;
+}
+
+/* Специальные стили для группы с файлами */
+.mobile-form-group-files {
+    margin-bottom: 16px;
+}
+
+/* Дополнительные исправления для мобильных устройств */
+@media (max-width: 768px) {
+    .mobile-form-control-file {
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+    
+    .mobile-form-group-files {
+        margin-bottom: 16px;
+    }
+}
 
 /* Темная тема */
-[data-bs-theme="dark"] .add-object-card{ background:#1f2937; border-color:#374151; color:#f9fafb; }
-[data-bs-theme="dark"] .mobile-form-group{ background:#374151; border-color:#4b5563; }
-[data-bs-theme="dark"] .mobile-form-label{ color:#d1d5db; }
-[data-bs-theme="dark"] .mobile-form-control, [data-bs-theme="dark"] .mobile-form-control-lg{ background:#1f2937; border-color:#374151; color:#f9fafb; box-shadow:0 2px 4px rgba(0,0,0,.2); }
-[data-bs-theme="dark"] .mobile-form-control:focus, [data-bs-theme="dark"] .mobile-form-control-lg:focus{ border-color:#3b82f6; box-shadow:0 0 0 4px rgba(59,130,246,.2), 0 4px 12px rgba(0,0,0,.3); }
-[data-bs-theme="dark"] .mobile-card-title{ color:#f9fafb; }
-
-/* Стили для информации о существующих материалах */
-#material-exists-info {
-    margin-top: 0.5rem;
-    padding: 0.75rem;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
-    line-height: 1.4;
+@media (prefers-color-scheme: dark) {
+    .mobile-card {
+        background: #2d3748;
+        border-color: #4a5568;
+    }
+    
+    .mobile-form-label {
+        color: #e2e8f0;
+    }
+    
+    .mobile-form-control {
+        background: #4a5568;
+        border-color: #718096;
+        color: #e2e8f0;
+    }
+    
+    .mobile-form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3);
+    }
+    
+    .form-text.text-muted {
+        color: #a0aec0 !important;
+    }
 }
 
-#material-exists-info.text-warning {
-    background-color: rgba(255, 193, 7, 0.1);
-    border: 1px solid rgba(255, 193, 7, 0.3);
-    color: #856404;
+/* Стили для предупреждений и информации */
+.form-text.text-warning {
+    color: #f6ad55 !important;
 }
 
-#material-exists-info.text-info {
-    background-color: rgba(13, 202, 240, 0.1);
-    border: 1px solid rgba(13, 202, 240, 0.3);
-    color: #055160;
-}
-
-/* Темная тема для информации о материалах */
-[data-bs-theme="dark"] #material-exists-info.text-warning {
-    background-color: rgba(255, 193, 7, 0.15);
-    border-color: rgba(255, 193, 7, 0.4);
-    color: #ffc107;
-}
-
-[data-bs-theme="dark"] #material-exists-info.text-info {
-    background-color: rgba(13, 202, 240, 0.15);
-    border-color: rgba(13, 202, 240, 0.4);
+.form-text.text-info {
     color: #0dcaf0;
 }
 </style>
@@ -169,429 +264,302 @@
 
 {% block scripts %}
 <script>
-// Проверяем, что скрипт загружается
-console.log('=== СКРИПТ ЗАГРУЖЕН ===');
-alert('Скрипт загружен!');
-
-// ТЕСТОВЫЕ ФУНКЦИИ ДЛЯ ДИАГНОСТИКИ
-function testFunction() {
-    alert('Тест 2: Функция testFunction() работает!');
-}
-
-function testDOM() {
-    const nameInput = document.getElementById('material-name-input');
-    const unitInput = document.querySelector('input[name="unit"]');
-    const reasonField = document.getElementById('reason-field');
-    
-    let message = 'Тест 3: DOM элементы найдены:\n';
-    message += 'nameInput: ' + (nameInput ? 'ДА' : 'НЕТ') + '\n';
-    message += 'unitInput: ' + (unitInput ? 'ДА' : 'НЕТ') + '\n';
-    message += 'reasonField: ' + (reasonField ? 'ДА' : 'НЕТ');
-    
-    alert(message);
-}
-
-function testMaterialCheck() {
-    const unitInput = document.querySelector('input[name="unit"]');
-    const minQuantityInput = document.querySelector('input[name="min_quantity"]');
-    const reasonField = document.getElementById('reason-field');
-    
-    if (unitInput && minQuantityInput && reasonField) {
-        unitInput.value = 'шт';
-        minQuantityInput.value = '10';
-        unitInput.readOnly = true;
-        minQuantityInput.readOnly = true;
-        reasonField.style.display = 'block';
-        alert('Тест 4: Поля заблокированы и поле причины показано!');
-    } else {
-        alert('Тест 4: ОШИБКА - не все элементы найдены!');
-    }
-}
-
-alert('Функции определены!');
-
-// ВРЕМЕННО ЗАКОММЕНТИРУЕМ ОСТАЛЬНОЙ КОД ДЛЯ ДИАГНОСТИКИ
-/*
-// Валидация формы
-function validateForm() {
-    const name = document.getElementById('material-name-input');
-    const unit = document.getElementById('material-unit');
-    const quantity = document.getElementById('material-quantity');
-    const minQuantity = document.getElementById('material-min-quantity');
-    const reasonField = document.getElementById('reason-field');
-    const reason = document.getElementById('material-reason');
-    
-    if (!name.value.trim()) {
-        alert('Введите название материала');
-        name.focus();
-        return false;
-    }
-    
-    if (!unit.value.trim()) {
-        alert('Введите единицу измерения');
-        unit.focus();
-        return false;
-    }
-    
-    if (!quantity.value || parseFloat(quantity.value) < 0) {
-        alert('Введите корректное количество');
-        quantity.focus();
-        return false;
-    }
-    
-    if (!minQuantity.value || parseFloat(minQuantity.value) < 0) {
-        alert('Введите корректное минимальное количество');
-        minQuantity.focus();
-        return false;
-    }
-    
-    // Проверяем поле причины, если оно видимо
-    if (reasonField.style.display !== 'none' && !reason.value.trim()) {
-        alert('Укажите причину добавления существующей позиции');
-        reason.focus();
-        return false;
-    }
-    
-    return true;
-}
-
-// Отправка формы добавления материала
-async function submitAddMaterial() {
-    if (!validateForm()) {
-        return false;
-    }
-    
-    const form = document.getElementById('add-material-form');
-    const formData = new FormData(form);
-    
-    const payload = {
-        name: formData.get('name'),
-        unit: formData.get('unit'),
-        description: formData.get('description'),
-        current_quantity: formData.get('current_quantity'),
-        min_quantity: formData.get('min_quantity'),
-        addition_reason: formData.get('addition_reason') || null
-    };
-    
-    const submitBtn = document.getElementById('submit-btn');
-    const original = submitBtn.innerHTML;
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Сохранение...';
-    
-    try {
-        const response = await fetch('{{ url_for("supply.api_materials_create") }}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        
-        if (response.ok) {
-            const result = await response.json();
-            if (result.warning) {
-                alert(result.warning);
-            } else {
-                alert('Позиция успешно добавлена');
-            }
-            
-            // Очищаем форму
-            form.reset();
-            hideMaterialExistsInfo();
-            
-            // Перенаправляем на страницу склада
-            window.location.href = '{{ url_for("supply.mobile_warehouse_view") }}';
-        } else {
-            const error = await response.json();
-            alert('Ошибка добавления позиции: ' + (error.error || 'Неизвестная ошибка'));
-        }
-    } catch (error) {
-        console.error('Ошибка:', error);
-        alert('Ошибка добавления позиции: ' + error.message);
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = original;
-    }
-}
-
-// Функция проверки существующего материала
+// Копируем рабочий код с десктопной версии
 async function checkExistingMaterial(name) {
-    if (!name || name.length < 2) {
-        hideMaterialExistsInfo();
-        return;
-    }
+  if (!name || name.length < 2) {
+    hideMaterialExistsInfo();
+    return;
+  }
+  
+  try {
+    const response = await fetch('{{ url_for("supply.api_materials_check") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name })
+    });
     
-    try {
-        const response = await fetch('{{ url_for("supply.api_materials_check") }}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: name })
-        });
-        
-        if (response.ok) {
-            const result = await response.json();
-            
-            if (result.exists) {
-                if (result.exact_match || result.case_corrected) {
-                    showMaterialExistsInfo(result.material, result.corrected_name);
-                }
-            } else if (result.similar_found) {
-                showSimilarMaterials(result.similar_materials, name);
-            } else {
-                hideMaterialExistsInfo();
-            }
+    if (response.ok) {
+      const result = await response.json();
+      
+      if (result.exists) {
+        // Если есть точное совпадение или исправление регистра
+        if (result.exact_match || result.case_corrected) {
+          showMaterialExistsInfo(result.material, result.corrected_name);
         }
-    } catch (error) {
-        console.error('Ошибка проверки материала:', error);
+      } else if (result.similar_found) {
+        // Если найдены похожие материалы
+        showSimilarMaterials(result.similar_materials, name);
+      } else {
+        hideMaterialExistsInfo();
+      }
     }
+  } catch (error) {
+    console.error('Ошибка проверки материала:', error);
+  }
 }
 
-// Показать информацию о существующем материале
 function showMaterialExistsInfo(material, correctedName = null) {
-    const infoDiv = document.getElementById('material-exists-info');
-    const unitInput = document.querySelector('input[name="unit"]');
-    const minQuantityInput = document.querySelector('input[name="min_quantity"]');
-    const descriptionInput = document.querySelector('textarea[name="description"]');
-    const nameInput = document.getElementById('material-name-input');
-    const reasonField = document.getElementById('reason-field');
-    const reasonInput = document.querySelector('textarea[name="addition_reason"]');
-    
-    // Заполняем поля автоматически
-    if (unitInput) {
-        unitInput.value = material.unit;
-    }
-    if (minQuantityInput) {
-        minQuantityInput.value = material.min_quantity;
-    }
-    if (descriptionInput && material.description) {
-        descriptionInput.value = material.description;
-    }
-    
-    // Если есть исправление регистра, обновляем поле названия
-    if (correctedName && nameInput) {
-        nameInput.value = correctedName;
-    }
-    
-    // Блокируем поля для редактирования
-    if (unitInput) {
-        unitInput.readOnly = true;
-    }
-    if (minQuantityInput) {
-        minQuantityInput.readOnly = true;
-    }
-    if (descriptionInput) {
-        descriptionInput.readOnly = true;
-    }
-    
-    // Показываем поле причины и делаем его обязательным
-    if (reasonField) {
-        reasonField.style.display = 'block';
-    }
-    if (reasonInput) {
-        reasonInput.required = true;
-        reasonInput.focus();
-    }
-    
-    // Показываем информацию
-    let message = `Материал уже существует на складе (${material.current_quantity} ${material.unit}). При сохранении количество будет пополнено. Ед. изм., мин. запас и описание заблокированы.`;
-    
-    if (correctedName) {
-        message = `Исправлен регистр: "${correctedName}". Материал уже существует на складе (${material.current_quantity} ${material.unit}). При сохранении количество будет пополнено. Ед. изм., мин. запас и описание заблокированы.`;
-    }
-    
-    if (infoDiv) {
-        infoDiv.innerHTML = `
-            <i class="bi bi-info-circle"></i> 
-            ${message}
-        `;
-        infoDiv.style.display = 'block';
-        infoDiv.className = 'form-text text-warning';
-    }
+  const infoDiv = document.getElementById('material-exists-info');
+  const unitInput = document.querySelector('input[name="unit"]');
+  const minQuantityInput = document.querySelector('input[name="min_quantity"]');
+  const descriptionInput = document.querySelector('textarea[name="description"]');
+  const nameInput = document.getElementById('material-name-input');
+  const reasonField = document.getElementById('reason-field');
+  const reasonInput = document.querySelector('textarea[name="addition_reason"]');
+  
+  // Заполняем поля автоматически
+  unitInput.value = material.unit;
+  minQuantityInput.value = material.min_quantity;
+  if (material.description) {
+    descriptionInput.value = material.description;
+  }
+  
+  // Если есть исправление регистра, обновляем поле названия
+  if (correctedName) {
+    nameInput.value = correctedName;
+  }
+  
+  // Блокируем поля для редактирования (используем readonly вместо disabled)
+  unitInput.readOnly = true;
+  minQuantityInput.readOnly = true;
+  descriptionInput.readOnly = true;
+  
+  // Показываем поле причины и делаем его обязательным
+  reasonField.style.display = 'block';
+  reasonInput.required = true;
+  reasonInput.focus(); // Фокус на поле причины
+
+  // Показываем информацию
+  let message = `Материал уже существует на складе (${material.current_quantity} ${material.unit}). Поля заблокированы. Укажите причину добавления.`;
+  
+  if (correctedName) {
+    message = `Исправлен регистр: "${correctedName}". Материал уже существует на складе (${material.current_quantity} ${material.unit}). Поля заблокированы. Укажите причину добавления.`;
+  }
+  
+  infoDiv.innerHTML = `
+    <i class="bi bi-info-circle"></i> 
+    ${message}
+  `;
+  infoDiv.style.display = 'block';
+  infoDiv.className = 'form-text text-warning';
+}
+
+function hideMaterialExistsInfo() {
+  const infoDiv = document.getElementById('material-exists-info');
+  const unitInput = document.querySelector('input[name="unit"]');
+  const minQuantityInput = document.querySelector('input[name="min_quantity"]');
+  const descriptionInput = document.querySelector('textarea[name="description"]');
+  const reasonField = document.getElementById('reason-field');
+  const reasonInput = document.querySelector('textarea[name="addition_reason"]');
+  
+  // Разблокируем поля
+  if (unitInput) {
+    unitInput.readOnly = false;
+  }
+  if (minQuantityInput) {
+    minQuantityInput.readOnly = false;
+  }
+  if (descriptionInput) {
+    descriptionInput.readOnly = false;
+  }
+  
+  // Скрываем поле причины и убираем обязательность
+  if (reasonField) {
+    reasonField.style.display = 'none';
+  }
+  if (reasonInput) {
+    reasonInput.required = false;
+    reasonInput.value = ''; // Очищаем поле
+  }
+  
+  infoDiv.style.display = 'none';
 }
 
 // Показать похожие материалы
 function showSimilarMaterials(similarMaterials, originalName) {
-    const infoDiv = document.getElementById('material-exists-info');
-    
-    let similarList = '';
-    similarMaterials.forEach((material, index) => {
-        similarList += `
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <span>${material.name} (${material.current_quantity} ${material.unit})</span>
-                <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectSimilarMaterial('${material.name}', '${material.unit}', '${material.min_quantity}', '${material.description || ''}')">
-                    Выбрать
-                </button>
-            </div>
-        `;
-    });
-    
-    infoDiv.innerHTML = `
-        <div class="alert alert-info">
-            <i class="bi bi-question-circle"></i>
-            <strong>Не найдено точного совпадения для "${originalName}"</strong>
-            <br>Возможно, вы имели в виду один из этих материалов:
-            <div class="mt-2">
-                ${similarList}
-            </div>
-            <div class="mt-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="hideMaterialExistsInfo()">
-                    Создать новый материал
-                </button>
-            </div>
-        </div>
+  const infoDiv = document.getElementById('material-exists-info');
+  
+  let similarList = '';
+  similarMaterials.forEach((material, index) => {
+    similarList += `
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span>${material.name} (${material.current_quantity} ${material.unit})</span>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectSimilarMaterial('${material.name}', '${material.unit}', '${material.min_quantity}', '${material.description || ''}')">
+          Выбрать
+        </button>
+      </div>
     `;
-    infoDiv.style.display = 'block';
-    infoDiv.className = 'form-text';
+  });
+  
+  infoDiv.innerHTML = `
+    <div class="alert alert-info">
+      <i class="bi bi-question-circle"></i> 
+      <strong>Не найдено точного совпадения для "${originalName}"</strong>
+      <br>Возможно, вы имели в виду один из этих материалов:
+      <div class="mt-2">
+        ${similarList}
+      </div>
+      <div class="mt-2">
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="hideMaterialExistsInfo()">
+          Создать новый материал
+        </button>
+      </div>
+    </div>
+  `;
+  infoDiv.style.display = 'block';
+  infoDiv.className = 'form-text';
 }
 
 // Выбрать похожий материал
 function selectSimilarMaterial(name, unit, minQuantity, description = '') {
-    const nameInput = document.getElementById('material-name-input');
-    const unitInput = document.querySelector('input[name="unit"]');
-    const minQuantityInput = document.querySelector('input[name="min_quantity"]');
-    const descriptionInput = document.querySelector('textarea[name="description"]');
-    const reasonField = document.getElementById('reason-field');
-    const reasonInput = document.querySelector('textarea[name="addition_reason"]');
-    
-    // Заполняем поля
-    if (nameInput) {
-        nameInput.value = name;
-    }
-    if (unitInput) {
-        unitInput.value = unit;
-    }
-    if (minQuantityInput) {
-        minQuantityInput.value = minQuantity;
-    }
-    if (descriptionInput && description) {
-        descriptionInput.value = description;
-    }
-    
-    // Блокируем поля
-    if (unitInput) {
-        unitInput.readOnly = true;
-    }
-    if (minQuantityInput) {
-        minQuantityInput.readOnly = true;
-    }
-    if (descriptionInput) {
-        descriptionInput.readOnly = true;
-    }
-    
-    // Показываем поле причины и делаем его обязательным
-    if (reasonField) {
-        reasonField.style.display = 'block';
-    }
-    if (reasonInput) {
-        reasonInput.required = true;
-        reasonInput.focus();
-    }
-    
-    showMaterialExistsInfo({
-        name: name,
-        unit: unit,
-        min_quantity: minQuantity,
-        description: description,
-        current_quantity: 0
-    });
+  const nameInput = document.getElementById('material-name-input');
+  const unitInput = document.querySelector('input[name="unit"]');
+  const minQuantityInput = document.querySelector('input[name="min_quantity"]');
+  const descriptionInput = document.querySelector('textarea[name="description"]');
+  const reasonField = document.getElementById('reason-field');
+  const reasonInput = document.querySelector('textarea[name="addition_reason"]');
+  
+  // Заполняем поля
+  nameInput.value = name;
+  unitInput.value = unit;
+  minQuantityInput.value = minQuantity;
+  if (description) {
+    descriptionInput.value = description;
+  }
+  
+  // Блокируем поля
+  unitInput.readOnly = true;
+  minQuantityInput.readOnly = true;
+  descriptionInput.readOnly = true;
+  
+  // Показываем поле причины
+  reasonField.style.display = 'block';
+  reasonInput.required = true;
+  reasonInput.focus();
+  
+  // Скрываем информацию о похожих материалах
+  hideMaterialExistsInfo();
 }
 
-// Скрыть информацию о существующем материале
-function hideMaterialExistsInfo() {
-    const infoDiv = document.getElementById('material-exists-info');
-    const unitInput = document.querySelector('input[name="unit"]');
-    const minQuantityInput = document.querySelector('input[name="min_quantity"]');
-    const descriptionInput = document.querySelector('textarea[name="description"]');
-    const reasonField = document.getElementById('reason-field');
+// Валидация формы
+function validateForm() {
+  const name = document.getElementById('material-name-input');
+  const unit = document.getElementById('material-unit');
+  const quantity = document.getElementById('material-quantity');
+  const minQuantity = document.getElementById('material-min-quantity');
+  const reasonInput = document.querySelector('textarea[name="addition_reason"]');
+  
+  if (!name.value.trim()) {
+    alert('Пожалуйста, введите название материала');
+    name.focus();
+    return false;
+  }
+  
+  if (!unit.value.trim()) {
+    alert('Пожалуйста, введите единицу измерения');
+    unit.focus();
+    return false;
+  }
+  
+  if (!quantity.value || parseFloat(quantity.value) < 0) {
+    alert('Пожалуйста, введите корректное количество');
+    quantity.focus();
+    return false;
+  }
+  
+  if (!minQuantity.value || parseFloat(minQuantity.value) < 0) {
+    alert('Пожалуйста, введите корректный минимальный запас');
+    minQuantity.focus();
+    return false;
+  }
+  
+  // Проверяем поле причины, если оно видимо
+  if (reasonInput && reasonInput.required && !reasonInput.value.trim()) {
+    alert('Пожалуйста, укажите причину добавления существующего материала');
+    reasonInput.focus();
+    return false;
+  }
+  
+  return true;
+}
+
+// Отправка формы
+async function submitAddMaterial() {
+  if (!validateForm()) {
+    return;
+  }
+  
+  const submitBtn = document.getElementById('submit-btn');
+  const originalText = submitBtn.textContent;
+  
+  try {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Сохранение...';
+    
+    const formData = new FormData();
+    formData.append('name', document.getElementById('material-name-input').value.trim());
+    formData.append('unit', document.getElementById('material-unit').value.trim());
+    formData.append('quantity', document.getElementById('material-quantity').value);
+    formData.append('min_quantity', document.getElementById('material-min-quantity').value);
+    formData.append('description', document.getElementById('material-description').value.trim());
+    formData.append('price_per_unit', document.getElementById('material-price').value || '0');
+    
     const reasonInput = document.querySelector('textarea[name="addition_reason"]');
-    
-    // Разблокируем поля
-    if (unitInput) {
-        unitInput.readOnly = false;
-    }
-    if (minQuantityInput) {
-        minQuantityInput.readOnly = false;
-    }
-    if (descriptionInput) {
-        descriptionInput.readOnly = false;
+    if (reasonInput && reasonInput.value.trim()) {
+      formData.append('addition_reason', reasonInput.value.trim());
     }
     
-    // Скрываем поле причины и убираем обязательность
-    if (reasonField) {
-        reasonField.style.display = 'none';
-    }
-    if (reasonInput) {
-        reasonInput.required = false;
-        reasonInput.value = '';
+    const fileInput = document.getElementById('material-file');
+    if (fileInput.files[0]) {
+      formData.append('file', fileInput.files[0]);
     }
     
-    if (infoDiv) {
-        infoDiv.style.display = 'none';
+    const response = await fetch('{{ url_for("supply.api_materials_create") }}', {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      if (result.success) {
+        alert('Материал успешно добавлен!');
+        window.location.href = '{{ url_for("supply.mobile_warehouse_view") }}';
+      } else {
+        alert('Ошибка: ' + (result.message || 'Неизвестная ошибка'));
+      }
+    } else {
+      const errorData = await response.json();
+      alert('Ошибка: ' + (errorData.message || 'Ошибка сервера'));
     }
+  } catch (error) {
+    console.error('Ошибка отправки формы:', error);
+    alert('Произошла ошибка при сохранении материала');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+  }
 }
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('add-material-form');
-    const submitBtn = document.getElementById('submit-btn');
-    const nameInput = document.getElementById('material-name-input');
-    let isDirty = false;
-
-    // На этой странице уменьшаем нижний отступ контента, чтобы не было лишней прокрутки
-    try {
-        const mobileContent = document.querySelector('.mobile-content');
-        if (mobileContent) {
-            mobileContent.style.paddingBottom = '60px';
-        }
-        document.documentElement.style.overscrollBehaviorY = 'contain';
-        document.body.style.overflow = 'hidden';
-        window.scrollTo(0, 0);
-    } catch(e) {}
-
-    // Фокус на названии
-    if (nameInput) nameInput.focus();
-
-    // Тримминг пробелов
-    const trimField = (el) => {
-        if (!el) return;
-        el.value = el.value.trim().replace(/\s{2,}/g, ' ');
-    };
-
-    // Помечаем форму как изменённую при вводе в любые поля
-    const allInputs = [nameInput, document.getElementById('material-unit'), document.getElementById('material-quantity'), document.getElementById('material-min-quantity'), document.getElementById('material-reason')];
-    allInputs.forEach(el => {
-        if (!el) return;
-        el.addEventListener('input', () => { isDirty = true; });
-        el.addEventListener('blur', () => trimField(el));
+  const nameInput = document.getElementById('material-name-input');
+  const submitBtn = document.getElementById('submit-btn');
+  
+  // Обработчик отправки формы
+  if (submitBtn) {
+    submitBtn.addEventListener('click', submitAddMaterial);
+  }
+  
+  // Проверка существующего материала при вводе названия
+  if (nameInput) {
+    let timeoutId;
+    nameInput.addEventListener('input', function() {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        checkExistingMaterial(this.value);
+      }, 500);
     });
-
-    // Обработчик отправки формы
-    if (submitBtn) {
-        submitBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (!validateForm()) return;
-            
-            submitBtn.disabled = true;
-            const original = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Сохранение...';
-            isDirty = false;
-
-            submitAddMaterial().finally(() => {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = original;
-            });
-        });
-    }
-    
-    // Проверка существующего материала при вводе названия
-    if (nameInput) {
-        let timeoutId;
-        nameInput.addEventListener('input', function() {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => {
-                checkExistingMaterial(this.value);
-            }, 500);
-        });
-    }
+  }
 });
-*/
 </script>
 {% endblock %}
