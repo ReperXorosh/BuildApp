@@ -2,18 +2,20 @@
 {% set active_page = 'supply' %}
 
 {% block title %}История движений{% endblock %}
-{% block mobile_title %}История{% endblock %}
+{% block mobile_title %}История движений{% endblock %}
 
 {% block content %}
 <!-- Фильтры -->
 <div class="mobile-card">
     <div class="mobile-card-title">Фильтры</div>
-    <div class="row g-2">
-        <div class="col-12">
-            <input type="text" class="form-control" id="searchMaterial" placeholder="Поиск по материалу...">
+    <div class="mobile-filters">
+        <div class="mobile-form-group">
+            <label class="mobile-form-label">Поиск по материалу</label>
+            <input type="text" class="mobile-form-control" id="searchMaterial" placeholder="Название материала...">
         </div>
-        <div class="col-6">
-            <select class="form-select" id="filterType">
+        <div class="mobile-form-group">
+            <label class="mobile-form-label">Тип движения</label>
+            <select class="mobile-form-control" id="filterType">
                 <option value="">Все типы</option>
                 <option value="add">Поступление</option>
                 <option value="move">Выдача</option>
@@ -23,10 +25,25 @@
                 <option value="creation">Создание</option>
             </select>
         </div>
-        <div class="col-6">
-            <select class="form-select" id="filterUser">
-                <option value="">Все пользователи</option>
-            </select>
+        <div class="mobile-form-group">
+            <label class="mobile-form-label">Пользователь</label>
+            <input type="text" class="mobile-form-control" id="searchUser" placeholder="Имя пользователя...">
+        </div>
+        <div class="mobile-form-group">
+            <label class="mobile-form-label">Дата от</label>
+            <input type="date" class="mobile-form-control" id="dateFrom">
+        </div>
+        <div class="mobile-form-group">
+            <label class="mobile-form-label">Дата до</label>
+            <input type="date" class="mobile-form-control" id="dateTo">
+        </div>
+        <div class="mobile-form-actions">
+            <button class="mobile-btn mobile-btn-primary" onclick="applyFilters()">
+                <i class="bi bi-search me-1"></i>Применить
+            </button>
+            <button class="mobile-btn mobile-btn-outline" onclick="clearFilters()">
+                <i class="bi bi-x-lg me-1"></i>Очистить
+            </button>
         </div>
     </div>
 </div>
@@ -55,6 +72,9 @@
 async function loadMovements() {
     try {
         const response = await fetch('{{ url_for("supply.api_list_movements") }}');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const movements = await response.json();
         
         displayMovements(movements);
@@ -66,28 +86,9 @@ async function loadMovements() {
                     <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.389.389 0 0 0-.029-.518z"/>
                 </svg>
                 <p>Ошибка загрузки истории движений</p>
+                <small class="text-muted">Проверьте подключение к интернету</small>
             </div>
         `;
-    }
-}
-
-// Загрузка пользователей для фильтра
-async function loadUsers() {
-    try {
-        const response = await fetch('{{ url_for("supply.api_get_all_users") }}');
-        const users = await response.json();
-        
-        const select = document.getElementById('filterUser');
-        select.innerHTML = '<option value="">Все пользователи</option>';
-        
-        users.forEach(user => {
-            const option = document.createElement('option');
-            option.value = user.userid;
-            option.textContent = `${user.secondname || ''} ${user.firstname || ''} (${user.login})`;
-            select.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Ошибка загрузки пользователей:', error);
     }
 }
 
@@ -146,7 +147,7 @@ function displayMovements(movements) {
         let filesHtml = '';
         if (movement.attachments && movement.attachments.length > 0) {
             movement.attachments.forEach(attachment => {
-                filesHtml += `<a href="/supply/api/supply/movements/${movement.id}/attachments/${attachment.id}/view" class="btn btn-sm btn-outline-secondary me-1" title="${attachment.original_filename}" target="_blank">
+                filesHtml += `<a href="/supply/api/supply/movements/${movement.id}/attachments/${attachment.id}/view" class="btn btn-sm btn-outline-secondary me-1" title="${attachment.filename || attachment.original_filename}" target="_blank">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -161,7 +162,7 @@ function displayMovements(movements) {
         }
         
         html += `
-            <div class="movement-item">
+            <div class="movement-item" data-material="${(movement.material_name || '').toLowerCase()}" data-type="${movement.movement_type}" data-user="${(movement.to_user_name || '').toLowerCase()}" data-date="${formattedDate}">
                 <div class="movement-header">
                     <div class="movement-type">${typeBadge}</div>
                     <div class="movement-date">${formattedDate}</div>
@@ -179,10 +180,10 @@ function displayMovements(movements) {
                             <span class="text-muted">Пользователь:</span> 
                             ${movement.to_user_name || 'Не указан'}
                         </div>
-                        ${movement.notes ? `
+                        ${movement.note ? `
                             <div class="movement-note">
                                 <span class="text-muted">Примечание:</span> 
-                                ${movement.notes}
+                                ${movement.note}
                             </div>
                         ` : ''}
                     </div>
@@ -201,28 +202,49 @@ function displayMovements(movements) {
 function applyFilters() {
     const searchMaterial = document.getElementById('searchMaterial').value.toLowerCase();
     const filterType = document.getElementById('filterType').value;
-    const filterUser = document.getElementById('filterUser').value;
+    const searchUser = document.getElementById('searchUser').value.toLowerCase();
+    const dateFrom = document.getElementById('dateFrom').value;
+    const dateTo = document.getElementById('dateTo').value;
     
     const movementItems = document.querySelectorAll('.movement-item');
     let visibleCount = 0;
     
     movementItems.forEach(item => {
-        const materialName = item.querySelector('.movement-material').textContent.toLowerCase();
-        const movementType = item.querySelector('.movement-type .badge').textContent.toLowerCase();
-        const userName = item.querySelector('.movement-user').textContent.toLowerCase();
+        const materialName = item.dataset.material || '';
+        const movementType = item.dataset.type || '';
+        const userName = item.dataset.user || '';
+        const dateText = item.dataset.date || '';
         
         let show = true;
         
+        // Фильтр по материалу
         if (searchMaterial && !materialName.includes(searchMaterial)) {
             show = false;
         }
         
-        if (filterType && !movementType.includes(filterType)) {
+        // Фильтр по типу
+        if (filterType && movementType !== filterType) {
             show = false;
         }
         
-        if (filterUser && !userName.includes(filterUser)) {
+        // Фильтр по пользователю
+        if (searchUser && !userName.includes(searchUser)) {
             show = false;
+        }
+        
+        // Фильтр по дате
+        if (dateFrom || dateTo) {
+            const rowDate = new Date(dateText.split(' ')[0].split('.').reverse().join('-'));
+            
+            if (dateFrom) {
+                const fromDate = new Date(dateFrom);
+                if (rowDate < fromDate) show = false;
+            }
+            
+            if (dateTo) {
+                const toDate = new Date(dateTo);
+                if (rowDate > toDate) show = false;
+            }
         }
         
         if (show) {
@@ -236,15 +258,34 @@ function applyFilters() {
     document.getElementById('totalCount').textContent = visibleCount;
 }
 
+// Очистка фильтров
+function clearFilters() {
+    document.getElementById('searchMaterial').value = '';
+    document.getElementById('filterType').value = '';
+    document.getElementById('searchUser').value = '';
+    document.getElementById('dateFrom').value = '';
+    document.getElementById('dateTo').value = '';
+    
+    // Показываем все элементы
+    const movementItems = document.querySelectorAll('.movement-item');
+    movementItems.forEach(item => {
+        item.style.display = 'block';
+    });
+    
+    document.getElementById('totalCount').textContent = movementItems.length;
+}
+
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
     loadMovements();
-    loadUsers();
     
-    // Применяем фильтры при изменении
-    document.getElementById('searchMaterial').addEventListener('input', applyFilters);
-    document.getElementById('filterType').addEventListener('change', applyFilters);
-    document.getElementById('filterUser').addEventListener('change', applyFilters);
+    // Устанавливаем даты по умолчанию
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('dateTo').value = today;
+    
+    const monthAgo = new Date();
+    monthAgo.setMonth(monthAgo.getMonth() - 1);
+    document.getElementById('dateFrom').value = monthAgo.toISOString().split('T')[0];
     
     // Улучшаем скролл
     const content = document.querySelector('.mobile-content');
@@ -260,6 +301,98 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
+/* Мобильные фильтры */
+.mobile-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.mobile-form-group {
+    margin-bottom: 0;
+}
+
+.mobile-form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: var(--bs-body-color);
+    font-size: 14px;
+}
+
+.mobile-form-control {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    background-clip: padding-box;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 8px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.mobile-form-control:focus {
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.mobile-form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.mobile-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--bs-body-color);
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    flex: 1;
+}
+
+.mobile-btn-primary {
+    color: #fff;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.mobile-btn-primary:hover {
+    color: #fff;
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.mobile-btn-outline {
+    color: var(--bs-body-color);
+    border-color: var(--bs-border-color);
+}
+
+.mobile-btn-outline:hover {
+    background-color: var(--bs-secondary-bg);
+    border-color: var(--bs-border-color);
+}
+
+/* Элементы движений */
 .movement-item {
     padding: 16px 0;
     border-bottom: 1px solid var(--bs-border-color);
@@ -273,16 +406,18 @@ document.addEventListener('DOMContentLoaded', function() {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 .movement-type .badge {
-    font-size: 11px;
+    font-size: 12px;
+    padding: 4px 8px;
 }
 
 .movement-date {
     font-size: 12px;
     color: var(--bs-secondary-color);
+    font-weight: 500;
 }
 
 .movement-content {
@@ -291,39 +426,70 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .movement-material {
     font-size: 16px;
-    margin-bottom: 8px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--bs-body-color);
 }
 
 .movement-details {
     font-size: 14px;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 .movement-details > div {
-    margin-bottom: 4px;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .movement-quantity,
 .movement-user,
 .movement-note {
     display: flex;
-    gap: 8px;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .movement-files {
-    font-size: 12px;
+    font-size: 14px;
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .movement-files .btn {
-    padding: 2px 6px;
+    padding: 4px 8px;
+    font-size: 12px;
 }
 
 /* Темная тема */
 [data-bs-theme="dark"] .movement-item {
-    border-color: var(--bs-gray-700);
+    border-color: #4a5568;
+}
+
+[data-bs-theme="dark"] .mobile-form-control {
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+}
+
+[data-bs-theme="dark"] .mobile-form-control:focus {
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+[data-bs-theme="dark"] .mobile-btn-outline {
+    color: var(--bs-body-color);
+    border-color: #4a5568;
+}
+
+[data-bs-theme="dark"] .mobile-btn-outline:hover {
+    background-color: #4a5568;
+    border-color: #4a5568;
 }
 </style>
 {% endblock %}

@@ -45,7 +45,7 @@
             </svg>
             Поступление
         </a>
-        <button class="mobile-btn mobile-btn-outline" data-bs-toggle="modal" data-bs-target="#movementModal">
+        <a href="{{ url_for('supply.mobile_warehouse_movement') }}" class="mobile-btn mobile-btn-outline">
             <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M8 17L4 21L0 17"/>
                 <path d="M4 21V9"/>
@@ -53,7 +53,7 @@
                 <path d="M20 3V15"/>
             </svg>
             Перемещение
-        </button>
+        </a>
         <a href="{{ url_for('supply.mobile_warehouse_materials') }}" class="mobile-btn mobile-btn-outline">
             <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
@@ -137,68 +137,6 @@
     </div>
 </div>
 
-<!-- Модальное окно для перемещения -->
-<div class="modal fade" id="movementModal" tabindex="-1" aria-labelledby="movementModalLabel" aria-hidden="true" data-bs-backdrop="false">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="movementModalLabel">Движение по складу</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="form-movement">
-                    <div class="row">
-                        <div class="col-6">
-                            <label class="form-label">Тип операции <span class="text-danger">*</span></label>
-                            <select class="form-select" name="movement_type" id="movement_type" required onchange="onMovementTypeChange()">
-                                <option value="">Выберите тип операции</option>
-                                <option value="move">Выдача</option>
-                                <option value="return">Возврат</option>
-                                <option value="writeoff">Списание</option>
-                            </select>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">Материал <span class="text-danger">*</span></label>
-                            <select class="form-select" name="material_id" id="material_id" required onchange="onMaterialChange()">
-                                <option value="">Сначала выберите тип операции</option>
-                            </select>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">Количество <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" name="quantity" id="movement_quantity" step="0.01" min="0" required>
-                                <span class="input-group-text" id="movement_unit">шт</span>
-                            </div>
-                            <div class="d-flex justify-content-between mt-1">
-                                <small class="text-muted">Доступно: <span id="available_quantity" class="text-primary fw-bold">0</span></small>
-                                <small class="text-warning" id="quantity_warning" style="display: none;">Количество ограничено доступным</small>
-                            </div>
-                        </div>
-                        <div class="col-6" id="user-selection-container" style="display: none;">
-                            <label class="form-label" id="user-label">Пользователь</label>
-                            <select class="form-select" name="to_user_id" id="to_user_id">
-                                <option value="">Выберите пользователя...</option>
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Примечание</label>
-                            <input class="form-control" name="note">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label" id="file-label">Вложение (файл) <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control" name="file" id="movement-file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
-                            <small class="form-text text-muted" id="file-help">Прикрепите документ к движению (обязательно)</small>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-success" onclick="submitMovement()">Провести</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Дополнительный отступ для нижней панели -->
 <div style="height: 140px"></div>

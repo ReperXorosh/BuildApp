@@ -254,6 +254,26 @@ def mobile_warehouse_add_material():
 
     return render_template('supply/mobile_add_material.html', current_user=current_user)
 
+@supply.route('/supply/warehouse/movement/mobile')
+@login_required
+def mobile_warehouse_movement():
+    """Мобильная страница перемещения материалов"""
+    if not is_supplier_or_admin():
+        flash('У вас нет прав для перемещения материалов', 'error')
+        return redirect(url_for('objects.object_list'))
+
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр мобильной страницы перемещения",
+        description="Просмотр страницы перемещения материалов",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+
+    return render_template('supply/mobile_movement.html', current_user=current_user)
+
 @supply.route('/supply/warehouse/materials/mobile')
 @login_required
 def mobile_warehouse_materials():

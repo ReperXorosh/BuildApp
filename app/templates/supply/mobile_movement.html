@@ -1,0 +1,465 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'supply' %}
+
+{% block title %}Перемещение материалов{% endblock %}
+{% block mobile_title %}Перемещение материалов{% endblock %}
+
+{% block content %}
+<div class="mobile-card add-object-card">
+    <div class="mobile-card-title text-center">
+        Перемещение материалов
+    </div>
+
+    <form id="form-movement" enctype="multipart/form-data" novalidate>
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+            <label class="mobile-form-label" for="movement_type">Тип операции *</label>
+            <select name="movement_type" id="movement_type" class="mobile-form-control mobile-form-control-lg" required onchange="onMovementTypeChange()">
+                <option value="">Выберите тип операции</option>
+                <option value="move">Выдача</option>
+                <option value="return">Возврат</option>
+                <option value="writeoff">Списание</option>
+            </select>
+        </div>
+
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+            <label class="mobile-form-label" for="material_id">Материал *</label>
+            <select name="material_id" id="material_id" class="mobile-form-control mobile-form-control-lg" required onchange="onMaterialChange()">
+                <option value="">Сначала выберите тип операции</option>
+            </select>
+        </div>
+
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+            <label class="mobile-form-label" for="movement_quantity">Количество *</label>
+            <div class="quantity-input-group">
+                <input type="number" 
+                       name="quantity" 
+                       id="movement_quantity" 
+                       step="0.01" 
+                       min="0" 
+                       class="mobile-form-control mobile-form-control-lg" 
+                       placeholder="0.00"
+                       required>
+                <span class="quantity-unit" id="movement_unit">шт</span>
+            </div>
+            <div class="quantity-info">
+                <small class="text-muted">Доступно: <span id="available_quantity" class="text-primary fw-bold">0</span></small>
+                <small class="text-warning" id="quantity_warning" style="display: none;">Количество ограничено доступным</small>
+            </div>
+        </div>
+
+        <div class="mobile-form-group" id="user-selection-container" style="border:none; background:transparent; padding-left:0; padding-right:0; display: none;">
+            <label class="mobile-form-label" id="user-label">Пользователь</label>
+            <select name="to_user_id" id="to_user_id" class="mobile-form-control mobile-form-control-lg">
+                <option value="">Выберите пользователя...</option>
+            </select>
+        </div>
+
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+            <label class="mobile-form-label" for="note">Примечание</label>
+            <textarea name="note" id="note" class="mobile-form-control" rows="3" placeholder="Дополнительная информация о движении"></textarea>
+        </div>
+
+        <div class="mobile-form-group mobile-form-group-files">
+            <label class="mobile-form-label" for="movement-file">Вложение (файл) *</label>
+            <input type="file" 
+                   name="file" 
+                   id="movement-file" 
+                   class="mobile-form-control mobile-form-control-file"
+                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                   required>
+            <div class="form-text">
+                Прикрепите документ к движению (обязательно)
+            </div>
+        </div>
+
+        <div class="mobile-mt-4">
+            <button type="submit" class="mobile-btn mobile-btn-primary w-100" id="submit-btn">
+                Провести перемещение
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Глобальные переменные
+let materials = [];
+let users = [];
+
+// Загрузка материалов для движения
+async function loadMaterialsForMovement() {
+    try {
+        const response = await fetch('{{ url_for("supply.api_materials") }}');
+        if (response.ok) {
+            materials = await response.json();
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки материалов:', error);
+    }
+}
+
+// Загрузка пользователей
+async function loadUsers() {
+    try {
+        const response = await fetch('{{ url_for("supply.api_users") }}');
+        if (response.ok) {
+            users = await response.json();
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки пользователей:', error);
+    }
+}
+
+// Обработка изменения типа операции
+function onMovementTypeChange() {
+    const movementType = document.getElementById('movement_type').value;
+    const materialSelect = document.getElementById('material_id');
+    const userContainer = document.getElementById('user-selection-container');
+    const userLabel = document.getElementById('user-label');
+    const fileLabel = document.getElementById('file-label');
+    const fileHelp = document.getElementById('file-help');
+
+    // Очищаем выбор материала
+    materialSelect.innerHTML = '<option value="">Сначала выберите тип операции</option>';
+
+    if (movementType === 'move') {
+        // Выдача - показываем пользователей
+        userContainer.style.display = 'block';
+        userLabel.textContent = 'Получатель *';
+        fileLabel.textContent = 'Документ выдачи (файл) *';
+        fileHelp.textContent = 'Прикрепите документ о выдаче (обязательно)';
+        
+        // Загружаем пользователей
+        loadUsers().then(() => {
+            const userSelect = document.getElementById('to_user_id');
+            userSelect.innerHTML = '<option value="">Выберите получателя...</option>';
+            users.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.id;
+                option.textContent = user.name;
+                userSelect.appendChild(option);
+            });
+        });
+    } else if (movementType === 'return') {
+        // Возврат - показываем пользователей
+        userContainer.style.display = 'block';
+        userLabel.textContent = 'Возвращающий *';
+        fileLabel.textContent = 'Документ возврата (файл) *';
+        fileHelp.textContent = 'Прикрепите документ о возврате (обязательно)';
+        
+        // Загружаем пользователей
+        loadUsers().then(() => {
+            const userSelect = document.getElementById('to_user_id');
+            userSelect.innerHTML = '<option value="">Выберите возвращающего...</option>';
+            users.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.id;
+                option.textContent = user.name;
+                userSelect.appendChild(option);
+            });
+        });
+    } else if (movementType === 'writeoff') {
+        // Списание - скрываем пользователей
+        userContainer.style.display = 'none';
+        fileLabel.textContent = 'Документ списания (файл) *';
+        fileHelp.textContent = 'Прикрепите документ о списании (обязательно)';
+    }
+
+    // Загружаем материалы в зависимости от типа операции
+    if (movementType) {
+        loadMaterialsForMovement().then(() => {
+            materialSelect.innerHTML = '<option value="">Выберите материал...</option>';
+            materials.forEach(material => {
+                const option = document.createElement('option');
+                option.value = material.id;
+                option.textContent = `${material.name} (${material.current_quantity} ${material.unit})`;
+                option.dataset.quantity = material.current_quantity;
+                option.dataset.unit = material.unit;
+                materialSelect.appendChild(option);
+            });
+        });
+    }
+}
+
+// Обработка изменения материала
+function onMaterialChange() {
+    const materialSelect = document.getElementById('material_id');
+    const selectedOption = materialSelect.options[materialSelect.selectedIndex];
+    const quantityInput = document.getElementById('movement_quantity');
+    const unitSpan = document.getElementById('movement_unit');
+    const availableSpan = document.getElementById('available_quantity');
+    const warningSpan = document.getElementById('quantity_warning');
+
+    if (selectedOption.value) {
+        const availableQuantity = parseFloat(selectedOption.dataset.quantity);
+        const unit = selectedOption.dataset.unit;
+        
+        unitSpan.textContent = unit;
+        availableSpan.textContent = availableQuantity;
+        
+        // Устанавливаем максимальное значение
+        quantityInput.max = availableQuantity;
+        
+        // Показываем предупреждение если количество большое
+        if (availableQuantity < 10) {
+            warningSpan.style.display = 'block';
+        } else {
+            warningSpan.style.display = 'none';
+        }
+    } else {
+        unitSpan.textContent = 'шт';
+        availableSpan.textContent = '0';
+        quantityInput.max = '';
+        warningSpan.style.display = 'none';
+    }
+}
+
+// Отправка формы перемещения
+async function submitMovement() {
+    const form = document.getElementById('form-movement');
+    const formData = new FormData(form);
+    const submitBtn = document.getElementById('submit-btn');
+
+    // Валидация формы
+    if (!validateMovementForm()) {
+        return;
+    }
+
+    submitBtn.disabled = true;
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Отправка...';
+
+    try {
+        const response = await fetch('{{ url_for("supply.api_create_movement") }}', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            alert('Перемещение успешно проведено');
+            window.location.href = '{{ url_for("supply.mobile_warehouse_view") }}';
+        } else {
+            const error = await response.json();
+            alert('Ошибка проведения перемещения: ' + (error.error || 'Неизвестная ошибка'));
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert('Ошибка проведения перемещения');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+}
+
+// Валидация формы
+function validateMovementForm() {
+    const movementType = document.getElementById('movement_type').value;
+    const materialId = document.getElementById('material_id').value;
+    const quantity = parseFloat(document.getElementById('movement_quantity').value);
+    const file = document.getElementById('movement-file').files[0];
+    const userContainer = document.getElementById('user-selection-container');
+    const toUserId = document.getElementById('to_user_id').value;
+
+    if (!movementType) {
+        alert('Выберите тип операции');
+        return false;
+    }
+
+    if (!materialId) {
+        alert('Выберите материал');
+        return false;
+    }
+
+    if (!quantity || quantity <= 0) {
+        alert('Введите корректное количество');
+        return false;
+    }
+
+    if (userContainer.style.display !== 'none' && !toUserId) {
+        alert('Выберите пользователя');
+        return false;
+    }
+
+    if (!file) {
+        alert('Прикрепите файл');
+        return false;
+    }
+
+    // Проверка доступного количества
+    const selectedOption = document.getElementById('material_id').options[document.getElementById('material_id').selectedIndex];
+    const availableQuantity = parseFloat(selectedOption.dataset.quantity);
+    
+    if (quantity > availableQuantity) {
+        alert(`Количество не может превышать доступное (${availableQuantity})`);
+        return false;
+    }
+
+    return true;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== DOM ЗАГРУЖЕН, НАЧИНАЕМ ИНИЦИАЛИЗАЦИЮ ===');
+
+    const form = document.getElementById('form-movement');
+    const submitBtn = document.getElementById('submit-btn');
+
+    // Обработчик отправки формы
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitMovement();
+    });
+
+    // Настройка стрелки назад
+    const mobileBackBtn = document.getElementById('mobileBackBtn');
+    if (mobileBackBtn) {
+        mobileBackBtn.onclick = function() {
+            window.location.href = '{{ url_for("supply.mobile_warehouse_view") }}';
+        };
+    }
+});
+</script>
+
+<style>
+/* Стили для мобильных форм - точно как в других страницах */
+.mobile-form-group {
+    margin-bottom: 1rem;
+}
+
+.mobile-form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--bs-body-color);
+}
+
+.mobile-form-control {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    background-clip: padding-box;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.375rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.mobile-form-control:focus {
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.mobile-form-control-lg {
+    min-height: calc(1.5em + 1rem + 2px);
+    padding: 0.5rem 1rem;
+    font-size: 1.25rem;
+    border-radius: 0.5rem;
+}
+
+.mobile-form-control-file {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    background-clip: padding-box;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.375rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.mobile-btn {
+    display: inline-block;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--bs-body-color);
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    background-color: transparent;
+    border: 1px solid transparent;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    border-radius: 0.375rem;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.mobile-btn-primary {
+    color: #fff;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.mobile-btn-primary:hover {
+    color: #fff;
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.mobile-mt-4 {
+    margin-top: 1.5rem !important;
+}
+
+/* Специальные стили для группы количества */
+.quantity-input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.quantity-input-group .mobile-form-control {
+    padding-right: 60px;
+}
+
+.quantity-unit {
+    position: absolute;
+    right: 12px;
+    color: var(--bs-secondary);
+    font-weight: 500;
+    font-size: 0.875rem;
+    pointer-events: none;
+}
+
+.quantity-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Темная тема */
+[data-bs-theme="dark"] .mobile-form-control {
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+}
+
+[data-bs-theme="dark"] .mobile-form-control:focus {
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+[data-bs-theme="dark"] .mobile-form-control-file {
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+}
+
+[data-bs-theme="dark"] .quantity-unit {
+    color: var(--bs-secondary);
+}
+</style>
+{% endblock %}

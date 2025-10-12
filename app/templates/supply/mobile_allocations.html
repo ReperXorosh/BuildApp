@@ -2,22 +2,33 @@
 {% set active_page = 'supply' %}
 
 {% block title %}Распределение позиций{% endblock %}
-{% block mobile_title %}Распределение{% endblock %}
+{% block mobile_title %}Распределение позиций{% endblock %}
 
 {% block content %}
 <!-- Поиск -->
 <div class="mobile-card">
     <div class="mobile-card-title">Поиск</div>
-    <div class="mb-3">
-        <input type="text" class="form-control" id="searchInput" placeholder="Поиск по имени пользователя...">
+    <div class="mobile-filters">
+        <div class="mobile-form-group">
+            <label class="mobile-form-label">Поиск по пользователю</label>
+            <input type="text" class="mobile-form-control" id="searchUser" placeholder="Имя пользователя или логин...">
+        </div>
+        <div class="mobile-form-actions">
+            <button class="mobile-btn mobile-btn-primary" onclick="applyFilters()">
+                <i class="bi bi-search me-1"></i>Применить
+            </button>
+            <button class="mobile-btn mobile-btn-outline" onclick="clearFilters()">
+                <i class="bi bi-x-lg me-1"></i>Очистить
+            </button>
+        </div>
     </div>
 </div>
 
 <!-- Список пользователей -->
 <div class="mobile-card">
     <div class="mobile-card-title d-flex justify-content-between align-items-center">
-        <span>Пользователи</span>
-        <span class="badge bg-primary" id="totalCount">0</span>
+        <span>Пользователи с позициями</span>
+        <span class="badge bg-primary" id="visibleCount">0</span>
     </div>
     <div id="usersList">
         <div class="text-center text-muted py-4">
@@ -33,10 +44,13 @@
 <div style="height: 140px"></div>
 
 <script>
-// Загрузка пользователей
+// Загрузка пользователей с позициями
 async function loadUsers() {
     try {
-        const response = await fetch('{{ url_for("supply.api_get_all_users") }}');
+        const response = await fetch('{{ url_for("supply.api_users_with_allocations") }}');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const users = await response.json();
         
         displayUsers(users);
@@ -48,6 +62,7 @@ async function loadUsers() {
                     <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.389.389 0 0 0-.029-.518z"/>
                 </svg>
                 <p>Ошибка загрузки пользователей</p>
+                <small class="text-muted">Проверьте подключение к интернету</small>
             </div>
         `;
     }
@@ -56,9 +71,9 @@ async function loadUsers() {
 // Отображение пользователей
 function displayUsers(users) {
     const container = document.getElementById('usersList');
-    const totalCount = document.getElementById('totalCount');
+    const visibleCount = document.getElementById('visibleCount');
     
-    totalCount.textContent = users.length;
+    visibleCount.textContent = users.length;
     
     if (!users || users.length === 0) {
         container.innerHTML = `
@@ -67,7 +82,7 @@ function displayUsers(users) {
                     <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216z"/>
                     <path d="M4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/>
                 </svg>
-                <p>Пользователи не найдены</p>
+                <p>Пользователи с позициями не найдены</p>
             </div>
         `;
         return;
@@ -75,33 +90,51 @@ function displayUsers(users) {
     
     let html = '';
     users.forEach(user => {
-        const fullName = `${user.secondname || ''} ${user.firstname || ''}`.trim() || 'Имя не указано';
+        const fullName = user.name || 'Имя не указано';
         const role = user.role || 'Роль не указана';
+        const allocationsCount = user.allocations_count || 0;
+        const totalQuantity = user.total_quantity || 0;
+        
+        // Определяем аватар пользователя
+        let avatarHtml = '';
+        if (user.avatar) {
+            avatarHtml = `<img src="/static/uploads/avatars/${user.avatar}" alt="Аватар" class="user-avatar-img">`;
+        } else {
+            avatarHtml = `<div class="user-avatar-default">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+                </svg>
+            </div>`;
+        }
         
         html += `
-            <div class="user-item" onclick="viewUser('${user.userid}')">
-                <div class="d-flex align-items-center">
-                    <div class="user-avatar me-3">
-                        ${user.avatar ? 
-                            `<img src="/static/uploads/avatars/${user.avatar}" alt="Аватар" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">` :
-                            `<div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-                                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
-                                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
-                                </svg>
-                            </div>`
-                        }
+            <div class="user-item" data-user="${fullName.toLowerCase()}" data-login="${(user.login || '').toLowerCase()}" onclick="viewUser('${user.id}')">
+                <div class="user-main">
+                    <div class="user-avatar">
+                        ${avatarHtml}
                     </div>
-                    <div class="flex-grow-1">
+                    <div class="user-info">
                         <div class="user-name">${fullName}</div>
-                        <div class="user-details">
-                            <small class="text-muted">${user.login} • ${role}</small>
+                        <div class="user-login">${user.login}</div>
+                        <div class="user-role">
+                            <span class="badge bg-secondary">${role}</span>
                         </div>
                     </div>
                     <div class="user-arrow">
                         <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                             <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
                         </svg>
+                    </div>
+                </div>
+                <div class="user-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Позиций:</span>
+                        <span class="stat-value">${allocationsCount}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Общее количество:</span>
+                        <span class="stat-value">${totalQuantity}</span>
                     </div>
                 </div>
             </div>
@@ -111,17 +144,24 @@ function displayUsers(users) {
     container.innerHTML = html;
 }
 
-// Поиск пользователей
-function filterUsers() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+// Применение фильтров
+function applyFilters() {
+    const searchUser = document.getElementById('searchUser').value.toLowerCase();
+    
     const userItems = document.querySelectorAll('.user-item');
     let visibleCount = 0;
     
     userItems.forEach(item => {
-        const userName = item.querySelector('.user-name').textContent.toLowerCase();
-        const userLogin = item.querySelector('.user-details').textContent.toLowerCase();
+        const userName = item.dataset.user || '';
+        const userLogin = item.dataset.login || '';
         
-        if (userName.includes(searchTerm) || userLogin.includes(searchTerm)) {
+        let show = true;
+        
+        if (searchUser && !userName.includes(searchUser) && !userLogin.includes(searchUser)) {
+            show = false;
+        }
+        
+        if (show) {
             item.style.display = 'block';
             visibleCount++;
         } else {
@@ -129,20 +169,29 @@ function filterUsers() {
         }
     });
     
-    document.getElementById('totalCount').textContent = visibleCount;
+    document.getElementById('visibleCount').textContent = visibleCount;
+}
+
+// Очистка фильтров
+function clearFilters() {
+    document.getElementById('searchUser').value = '';
+    
+    const userItems = document.querySelectorAll('.user-item');
+    userItems.forEach(item => {
+        item.style.display = 'block';
+    });
+    
+    document.getElementById('visibleCount').textContent = userItems.length;
 }
 
 // Просмотр пользователя
 function viewUser(userId) {
-    window.location.href = `/supply/warehouse/user/${userId}`;
+    window.location.href = `{{ url_for('supply.warehouse_user_detail', user_id='') }}${userId}`;
 }
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
     loadUsers();
-    
-    // Поиск в реальном времени
-    document.getElementById('searchInput').addEventListener('input', filterUsers);
     
     // Улучшаем скролл
     const content = document.querySelector('.mobile-content');
@@ -158,8 +207,100 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
+/* Мобильные фильтры */
+.mobile-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.mobile-form-group {
+    margin-bottom: 0;
+}
+
+.mobile-form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: var(--bs-body-color);
+    font-size: 14px;
+}
+
+.mobile-form-control {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    background-clip: padding-box;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 8px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.mobile-form-control:focus {
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.mobile-form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.mobile-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--bs-body-color);
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    flex: 1;
+}
+
+.mobile-btn-primary {
+    color: #fff;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.mobile-btn-primary:hover {
+    color: #fff;
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.mobile-btn-outline {
+    color: var(--bs-body-color);
+    border-color: var(--bs-border-color);
+}
+
+.mobile-btn-outline:hover {
+    background-color: var(--bs-secondary-bg);
+    border-color: var(--bs-border-color);
+}
+
+/* Элементы пользователей */
 .user-item {
-    padding: 12px 0;
+    padding: 16px 0;
     border-bottom: 1px solid var(--bs-border-color);
     cursor: pointer;
     transition: all 0.2s ease;
@@ -174,29 +315,123 @@ document.addEventListener('DOMContentLoaded', function() {
     transform: scale(0.98);
 }
 
-.user-name {
-    font-weight: 600;
-    color: var(--bs-body-color);
-    margin-bottom: 2px;
+.user-main {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
 }
 
-.user-details {
-    font-size: 12px;
-    color: var(--bs-secondary-color);
+.user-avatar {
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.user-avatar-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-avatar-default {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--bs-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--bs-body-color);
+    margin-bottom: 4px;
+}
+
+.user-login {
+    font-size: 14px;
+    color: var(--bs-secondary);
+    margin-bottom: 6px;
+}
+
+.user-role .badge {
+    font-size: 11px;
+    padding: 3px 6px;
 }
 
 .user-arrow {
-    color: var(--bs-secondary-color);
+    color: var(--bs-secondary);
     opacity: 0.6;
+    flex-shrink: 0;
 }
 
 .user-item:hover .user-arrow {
     opacity: 1;
 }
 
+.user-stats {
+    display: flex;
+    gap: 16px;
+    padding-left: 60px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--bs-secondary);
+    margin-bottom: 2px;
+}
+
+.stat-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--bs-primary);
+}
+
 /* Темная тема */
 [data-bs-theme="dark"] .user-item:active {
-    background: var(--bs-gray-800);
+    background: #2d3748;
+}
+
+[data-bs-theme="dark"] .mobile-form-control {
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+}
+
+[data-bs-theme="dark"] .mobile-form-control:focus {
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+[data-bs-theme="dark"] .mobile-btn-outline {
+    color: var(--bs-body-color);
+    border-color: #4a5568;
+}
+
+[data-bs-theme="dark"] .mobile-btn-outline:hover {
+    background-color: #4a5568;
+    border-color: #4a5568;
+}
+
+[data-bs-theme="dark"] .user-avatar-default {
+    background-color: #4a5568;
 }
 </style>
 {% endblock %}
