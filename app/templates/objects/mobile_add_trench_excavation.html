@@ -32,12 +32,12 @@
                    required>
         </div>
 
-        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+        <div class="mobile-form-group mobile-form-group-files">
             <label class="mobile-form-label" for="files">Файлы (фото/документы) *</label>
             <input type="file" 
                    name="files" 
                    id="files" 
-                   class="mobile-form-control" 
+                   class="mobile-form-control mobile-form-control-file" 
                    multiple 
                    accept="image/*,.pdf,.doc,.docx"
                    required>
@@ -323,6 +323,56 @@ document.addEventListener('DOMContentLoaded', function() {
     border: none; 
     position: relative; 
     overflow: hidden; 
+}
+
+/* Исправление для файлового поля */
+.mobile-form-control[type="file"],
+.mobile-form-control-file {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 8px 12px;
+}
+
+/* Специальные стили для группы с файлами */
+.mobile-form-group-files {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Убираем отступы у контейнера формы */
+.mobile-form-group {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+}
+
+/* Исправление для текста под файловым полем */
+.form-text {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    padding: 0 12px;
+}
+
+/* Дополнительные исправления для мобильных устройств */
+@media (max-width: 768px) {
+    .mobile-form-control-file {
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+    
+    .mobile-form-group-files {
+        margin-bottom: 16px;
+    }
 }
 </style>
 {% endblock %}
