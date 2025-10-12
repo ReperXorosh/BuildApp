@@ -81,7 +81,7 @@
         </div>
 
         <div class="mobile-mt-4">
-            <button type="submit" class="mobile-btn mobile-btn-primary w-100" id="submit-btn">Добавить позицию</button>
+            <button type="submit" class="mobile-btn mobile-btn-primary w-100" id="submit-btn">Сохранить позицию</button>
         </div>
     </form>
 </div>
@@ -327,31 +327,88 @@ function hideMaterialExistsInfo() {
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('add-material-form');
     const submitBtn = document.getElementById('submit-btn');
+    const nameInput = document.getElementById('material-name-input');
+    const backBtn = document.getElementById('mobileBackBtn');
+    let isDirty = false;
+
+    // На этой странице уменьшаем нижний отступ контента, чтобы не было лишней прокрутки
+    try {
+        const mobileContent = document.querySelector('.mobile-content');
+        if (mobileContent) {
+            mobileContent.style.paddingBottom = '16px';
+            mobileContent.style.overflow = 'hidden';
+            mobileContent.style.height = 'auto';
+        }
+        // Отключаем прокрутку страницы
+        document.documentElement.style.overscrollBehaviorY = 'contain';
+        document.body.style.overflow = 'hidden';
+        window.scrollTo(0, 0);
+    } catch(e) {}
+
+    // Фокус на названии
+    if (nameInput) nameInput.focus();
+
+    // Тримминг пробелов
+    const trimField = (el) => {
+        if (!el) return;
+        el.value = el.value.trim().replace(/\s{2,}/g, ' ');
+    };
+
+    // Помечаем форму как изменённую при вводе в любые поля
+    const allInputs = [nameInput, document.getElementById('material-unit'), document.getElementById('material-quantity'), document.getElementById('material-min-quantity'), document.getElementById('material-reason')];
+    allInputs.forEach(el => {
+        if (!el) return;
+        el.addEventListener('input', () => { isDirty = true; });
+        el.addEventListener('blur', () => trimField(el));
+    });
+
+    // Обработчик «Назад» с предупреждением
+    function confirmLeaveIfDirty(action){
+        if (!isDirty) { action(); return; }
+        if (confirm('Данные не будут сохранены. Вернуться на предыдущую страницу?')) {
+            action();
+        }
+    }
+
+    if (backBtn) {
+        backBtn.onclick = function(e){
+            e.preventDefault();
+            confirmLeaveIfDirty(() => { window.history.back(); });
+        };
+    }
     
     // Обработчик отправки формы
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-        submitAddMaterial();
+
+        // Тримминг полей
+        allInputs.forEach(el => trimField(el));
+
+        if (!validateForm()) {
+            return false;
+        }
+
+        // Индикатор отправки
+        submitBtn.disabled = true;
+        const original = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Сохранение...';
+        isDirty = false; // считаем, что уходим со страницы по сохранению
+
+        submitAddMaterial().finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = original;
+        });
     });
     
     // Проверка существующего материала при вводе названия
-    const materialNameInput = document.getElementById('material-name-input');
-    if (materialNameInput) {
+    if (nameInput) {
         let timeoutId;
-        materialNameInput.addEventListener('input', function() {
+        nameInput.addEventListener('input', function() {
             clearTimeout(timeoutId);
             timeoutId = setTimeout(() => {
                 checkExistingMaterial(this.value);
             }, 500);
         });
-    }
-    
-    // Настройка стрелки назад
-    const mobileBackBtn = document.getElementById('mobileBackBtn');
-    if (mobileBackBtn) {
-        mobileBackBtn.onclick = function() {
-            window.location.href = '{{ url_for("supply.mobile_warehouse_view") }}';
-        };
     }
 });
 </script>

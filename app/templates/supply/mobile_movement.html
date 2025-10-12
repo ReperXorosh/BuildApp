@@ -2,7 +2,7 @@
 {% set active_page = 'supply' %}
 
 {% block title %}Перемещение материалов{% endblock %}
-{% block mobile_title %}Перемещение материалов{% endblock %}
+{% block mobile_title %}Новое перемещение{% endblock %}
 
 {% block content %}
 <div class="mobile-card add-object-card">
@@ -74,7 +74,7 @@
 
         <div class="mobile-mt-4">
             <button type="submit" class="mobile-btn mobile-btn-primary w-100" id="submit-btn">
-                Провести перемещение
+                Сохранить перемещение
             </button>
         </div>
     </form>
@@ -297,24 +297,87 @@ function validateMovementForm() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== DOM ЗАГРУЖЕН, НАЧИНАЕМ ИНИЦИАЛИЗАЦИЮ ===');
-
     const form = document.getElementById('form-movement');
     const submitBtn = document.getElementById('submit-btn');
+    const movementTypeSelect = document.getElementById('movement_type');
+    const backBtn = document.getElementById('mobileBackBtn');
+    let isDirty = false;
+
+    // На этой странице уменьшаем нижний отступ контента, чтобы не было лишней прокрутки
+    try {
+        const mobileContent = document.querySelector('.mobile-content');
+        if (mobileContent) {
+            mobileContent.style.paddingBottom = '16px';
+            mobileContent.style.overflow = 'hidden';
+            mobileContent.style.height = 'auto';
+        }
+        // Отключаем прокрутку страницы
+        document.documentElement.style.overscrollBehaviorY = 'contain';
+        document.body.style.overflow = 'hidden';
+        window.scrollTo(0, 0);
+    } catch(e) {}
+
+    // Фокус на первом поле
+    if (movementTypeSelect) movementTypeSelect.focus();
+
+    // Тримминг пробелов
+    const trimField = (el) => {
+        if (!el) return;
+        el.value = el.value.trim().replace(/\s{2,}/g, ' ');
+    };
+
+    // Помечаем форму как изменённую при вводе в любые поля
+    const allInputs = [movementTypeSelect, document.getElementById('material_id'), document.getElementById('movement_quantity'), document.getElementById('user_id'), document.getElementById('movement_note'), document.getElementById('movement_file')];
+    allInputs.forEach(el => {
+        if (!el) return;
+        el.addEventListener('input', () => { isDirty = true; });
+        el.addEventListener('change', () => { isDirty = true; });
+        if (el.type === 'text' || el.tagName === 'TEXTAREA') {
+            el.addEventListener('blur', () => trimField(el));
+        }
+    });
+
+    // Обработчик «Назад» с предупреждением
+    function confirmLeaveIfDirty(action){
+        if (!isDirty) { action(); return; }
+        if (confirm('Данные не будут сохранены. Вернуться на предыдущую страницу?')) {
+            action();
+        }
+    }
+
+    if (backBtn) {
+        backBtn.onclick = function(e){
+            e.preventDefault();
+            confirmLeaveIfDirty(() => { window.history.back(); });
+        };
+    }
 
     // Обработчик отправки формы
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-        submitMovement();
-    });
 
-    // Настройка стрелки назад
-    const mobileBackBtn = document.getElementById('mobileBackBtn');
-    if (mobileBackBtn) {
-        mobileBackBtn.onclick = function() {
-            window.location.href = '{{ url_for("supply.mobile_warehouse_view") }}';
-        };
-    }
+        // Тримминг полей
+        allInputs.forEach(el => {
+            if (el.type === 'text' || el.tagName === 'TEXTAREA') {
+                trimField(el);
+            }
+        });
+
+        if (!validateMovementForm()) {
+            return false;
+        }
+
+        // Индикатор отправки
+        submitBtn.disabled = true;
+        const original = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Сохранение...';
+        isDirty = false; // считаем, что уходим со страницы по сохранению
+
+        submitMovement().finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = original;
+        });
+    });
 });
 </script>
 
