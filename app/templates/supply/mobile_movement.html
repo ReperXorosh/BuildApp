@@ -100,7 +100,7 @@ async function loadMaterialsForMovement() {
 // Загрузка пользователей
 async function loadUsers() {
     try {
-        const response = await fetch('{{ url_for("supply.api_users") }}');
+        const response = await fetch('{{ url_for("supply.api_get_all_users") }}');
         if (response.ok) {
             users = await response.json();
         }
