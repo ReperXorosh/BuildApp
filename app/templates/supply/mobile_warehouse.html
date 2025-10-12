@@ -347,6 +347,9 @@
 <script>
 // Отправка формы поступления (скопировано из десктопной версии)
 async function submitReceipt() {
+  console.log('=== submitReceipt вызвана в мобильной версии ===');
+  alert('Функция submitReceipt вызвана!'); // Временный тест
+  
   const form = document.getElementById('form-receipt');
   const formData = new FormData(form);
   
