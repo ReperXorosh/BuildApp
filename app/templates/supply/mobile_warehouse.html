@@ -122,7 +122,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-success" onclick="submitReceipt()">Провести поступление</button>
+                <button type="button" class="btn btn-success" id="submit-receipt-btn">Провести поступление</button>
             </div>
         </div>
     </div>
@@ -430,7 +430,9 @@ function onMaterialChange() {
 
 // Отправка формы поступления
 async function submitReceipt() {
-    console.log('submitReceipt вызвана');
+    console.log('=== submitReceipt вызвана ===');
+    alert('Функция submitReceipt вызвана!'); // Временное сообщение для проверки
+    
     const form = document.getElementById('form-receipt');
     
     if (!form) {
@@ -512,6 +514,18 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('movementModal').addEventListener('show.bs.modal', function() {
         loadUsers();
     });
+    
+    // Добавляем обработчик для кнопки поступления
+    const submitReceiptBtn = document.getElementById('submit-receipt-btn');
+    if (submitReceiptBtn) {
+        submitReceiptBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Кнопка поступления нажата');
+            submitReceipt();
+        });
+    } else {
+        console.error('Кнопка submit-receipt-btn не найдена');
+    }
     
     // Делаем функции глобальными для onclick
     window.submitReceipt = submitReceipt;
