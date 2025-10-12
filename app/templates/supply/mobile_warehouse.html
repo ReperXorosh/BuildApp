@@ -316,8 +316,11 @@
 }
 </style>
 
+{% endblock %}
+
+{% block scripts %}
 <script>
-console.log('=== JavaScript загружен ===');
+console.log('=== JavaScript в блоке scripts загружен ===');
 
 // Функции для работы с модальным окном перемещения (как в десктопной версии)
 
@@ -553,11 +556,5 @@ document.addEventListener('DOMContentLoaded', function() {
     window.submitMovement = submitMovement;
     console.log('Функции добавлены в window объект');
 });
-</script>
-{% endblock %}
-
-{% block scripts %}
-<script>
-console.log('=== JavaScript в блоке scripts загружен ===');
 </script>
 {% endblock %}
