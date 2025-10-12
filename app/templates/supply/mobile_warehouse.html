@@ -208,11 +208,27 @@
 
 /* Убираем зазор под полем выбора файла */
 #receiptModal input[type="file"] {
-    margin-bottom: 0;
+    margin-bottom: 0 !important;
 }
 
 #receiptModal .form-text {
-    margin-bottom: 0;
+    margin-bottom: 0 !important;
+    margin-top: 4px !important;
+}
+
+#receiptModal .col-12:has(input[type="file"]) {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Дополнительные исправления для модального окна поступления */
+#receiptModal .modal-body {
+    padding-bottom: 16px !important;
+}
+
+#receiptModal .form-control[type="file"] {
+    margin-bottom: 0 !important;
+    padding-bottom: 8px !important;
 }
 </style>
 
