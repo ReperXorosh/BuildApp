@@ -81,6 +81,9 @@
         </div>
 
         <div class="mobile-mt-4">
+            <button type="button" class="mobile-btn mobile-btn-secondary mobile-btn-sm w-100 mb-2" onclick="window.testMaterialCheck()">
+                Тест блокировки полей
+            </button>
             <button type="submit" class="mobile-btn mobile-btn-primary w-100" id="submit-btn">Сохранить позицию</button>
         </div>
     </form>
@@ -528,6 +531,33 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.error('Поле названия не найдено!');
     }
+    
+    // Тестовая функция для проверки работы JavaScript
+    window.testMaterialCheck = function() {
+        console.log('Тестовая функция вызвана');
+        const unitInput = document.querySelector('input[name="unit"]');
+        const minQuantityInput = document.querySelector('input[name="min_quantity"]');
+        const reasonField = document.getElementById('reason-field');
+        
+        console.log('Найденные элементы:', {
+            unitInput: !!unitInput,
+            minQuantityInput: !!minQuantityInput,
+            reasonField: !!reasonField
+        });
+        
+        if (unitInput && minQuantityInput && reasonField) {
+            unitInput.value = 'шт';
+            minQuantityInput.value = '10';
+            unitInput.readOnly = true;
+            minQuantityInput.readOnly = true;
+            reasonField.style.display = 'block';
+            console.log('Тест выполнен успешно - поля заблокированы и поле причины показано');
+        } else {
+            console.error('Не все элементы найдены для теста');
+        }
+    };
+    
+    console.log('Добавлена тестовая функция window.testMaterialCheck()');
 });
 </script>
 
