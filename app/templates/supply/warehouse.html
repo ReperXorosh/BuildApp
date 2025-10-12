@@ -115,9 +115,9 @@
                             <thead class="table-secondary">
                                 <tr>
                                     <th>Название</th>
-                                    <th>Ед. изм.</th>
-                                    <th>Количество</th>
-                                    <th>Мин. запас</th>
+                                    <th class="text-center">Ед. изм.</th>
+                                    <th class="text-center">Количество</th>
+                                    <th class="text-center">Мин. запас</th>
                                     <th>Статус</th>
                                     <th>Действия</th>
                                 </tr>
@@ -372,9 +372,9 @@ async function loadMaterials() {
             ${material.name}
           </span>
         </td>
-        <td>${material.unit}</td>
-        <td>${material.current_quantity || 0}</td>
-        <td>${material.min_quantity || 0}</td>
+        <td class="text-center">${material.unit}</td>
+        <td class="text-center">${material.current_quantity || 0}</td>
+        <td class="text-center">${material.min_quantity || 0}</td>
         <td>${statusBadge}</td>
         <td>
           ${actionsHtml}
