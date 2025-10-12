@@ -671,6 +671,71 @@ def api_materials_restore(material_id):
     
     return jsonify({'success': True, 'message': f'Материал "{material_name}" успешно восстановлен'})
 
+@supply.route('/api/supply/materials/<uuid:material_id>/hard-delete', methods=['DELETE'])
+@login_required
+def api_materials_hard_delete(material_id):
+    """Полное удаление материала со всеми связанными записями (только для админов)"""
+    if not is_supplier_or_admin():
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    
+    # Проверяем, что пользователь - админ
+    if current_user.role not in ['Инженер ПТО', 'Ген.Директор']:
+        return jsonify({'error': 'Полное удаление материалов доступно только администраторам'}), 403
+    
+    material = Material.query.get(material_id)
+    if not material:
+        return jsonify({'error': 'Материал не найден'}), 404
+    
+    material_name = material.name
+    
+    try:
+        # Логируем действие перед удалением
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Полное удаление материала",
+            description=f"Полностью удален материал: {material_name} со всеми связанными записями",
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+        
+        # Получаем все связанные записи для логирования
+        movements_count = WarehouseMovement.query.filter_by(material_id=material_id).count()
+        allocations_count = UserMaterialAllocation.query.filter_by(material_id=material_id).count()
+        request_items_count = SupplyRequestItem.query.filter_by(material_id=material_id).count()
+        
+        # Удаляем все вложения к движениям этого материала
+        movements = WarehouseMovement.query.filter_by(material_id=material_id).all()
+        for movement in movements:
+            WarehouseAttachment.query.filter_by(movement_id=movement.id).delete()
+        
+        # Удаляем все движения по материалу
+        WarehouseMovement.query.filter_by(material_id=material_id).delete()
+        
+        # Удаляем все распределения материала по пользователям
+        UserMaterialAllocation.query.filter_by(material_id=material_id).delete()
+        
+        # Удаляем все элементы заявок, связанные с материалом
+        SupplyRequestItem.query.filter_by(material_id=material_id).delete()
+        
+        # Удаляем сам материал
+        db.session.delete(material)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Материал "{material_name}" полностью удален. Удалено: {movements_count} движений, {allocations_count} распределений, {request_items_count} элементов заявок.'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Ошибка полного удаления материала: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'Ошибка удаления: {str(e)}'}), 500
+
 @supply.route('/api/supply/movements', methods=['POST'])
 @login_required
 def api_create_movement():

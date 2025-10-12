@@ -341,9 +341,9 @@ async function loadMaterials() {
       
       if (canDelete) {
         if (material.is_active) {
-          // Кнопка удаления для активных материалов
+          // Кнопка мягкого удаления для активных материалов
           actionsHtml += `
-            <button class="btn btn-sm btn-outline-danger ms-1 action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); deleteMaterial('${material.id}'); return false;" title="Удалить" data-no-pjax>
+            <button class="btn btn-sm btn-outline-warning ms-1 action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); deleteMaterial('${material.id}'); return false;" title="Скрыть материал" data-no-pjax>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -352,11 +352,25 @@ async function loadMaterials() {
               </svg>
             </button>
           `;
+          
+          // Кнопка полного удаления для активных материалов (только для админов)
+          actionsHtml += `
+            <button class="btn btn-sm btn-outline-danger ms-1 action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); hardDeleteMaterial('${material.id}'); return false;" title="Полное удаление (необратимо)" data-no-pjax>
+              <i class="bi bi-trash3"></i>
+            </button>
+          `;
         } else {
           // Кнопка восстановления для скрытых материалов
           actionsHtml += `
             <button class="btn btn-sm btn-outline-success ms-1 action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); restoreMaterial('${material.id}'); return false;" title="Восстановить" data-no-pjax>
               <i class="bi bi-arrow-clockwise"></i>
+            </button>
+          `;
+          
+          // Кнопка полного удаления для скрытых материалов (только для админов)
+          actionsHtml += `
+            <button class="btn btn-sm btn-outline-danger ms-1 action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); hardDeleteMaterial('${material.id}'); return false;" title="Полное удаление (необратимо)" data-no-pjax>
+              <i class="bi bi-trash3"></i>
             </button>
           `;
         }
@@ -842,9 +856,9 @@ async function loadUsersToSelect() {
   }
 }
 
-// Удаление материала
+// Мягкое удаление материала (скрытие)
 async function deleteMaterial(materialId) {
-  if (!confirm('Вы уверены, что хотите удалить эту позицию? Это действие нельзя отменить.')) {
+  if (!confirm('Вы уверены, что хотите скрыть эту позицию? Материал можно будет восстановить позже.')) {
     return;
   }
   
@@ -855,14 +869,14 @@ async function deleteMaterial(materialId) {
     
     if (response.ok) {
       loadMaterials(); // Перезагружаем таблицу
-      alert('Позиция успешно удалена');
+      alert('Позиция успешно скрыта');
     } else {
       const error = await response.json();
-      alert('Ошибка удаления позиции: ' + (error.error || 'Неизвестная ошибка'));
+      alert('Ошибка скрытия позиции: ' + (error.error || 'Неизвестная ошибка'));
     }
   } catch (error) {
     console.error('Ошибка:', error);
-    alert('Ошибка удаления позиции');
+    alert('Ошибка скрытия позиции');
   }
 }
 
@@ -936,6 +950,47 @@ async function restoreMaterial(materialId) {
   } catch (error) {
     console.error('Ошибка:', error);
     alert('Произошла ошибка при восстановлении материала');
+  }
+}
+
+// Функция полного удаления материала
+async function hardDeleteMaterial(materialId) {
+  const confirmMessage = 'ВНИМАНИЕ! Это действие полностью удалит материал и ВСЕ связанные с ним записи:\n\n' +
+                        '• Все движения по складу\n' +
+                        '• Все прикрепленные документы\n' +
+                        '• Все распределения по пользователям\n' +
+                        '• Все элементы заявок\n\n' +
+                        'Это действие НЕОБРАТИМО!\n\n' +
+                        'Вы уверены, что хотите продолжить?';
+  
+  if (!confirm(confirmMessage)) {
+    return;
+  }
+  
+  // Дополнительное подтверждение
+  if (!confirm('Последнее предупреждение! Материал будет удален навсегда. Продолжить?')) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/supply/api/supply/materials/${materialId}/hard-delete`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    const result = await response.json();
+    
+    if (response.ok) {
+      alert(result.message);
+      loadMaterials(); // Перезагружаем список материалов
+    } else {
+      alert('Ошибка: ' + result.error);
+    }
+  } catch (error) {
+    console.error('Ошибка:', error);
+    alert('Произошла ошибка при полном удалении материала');
   }
 }
 
