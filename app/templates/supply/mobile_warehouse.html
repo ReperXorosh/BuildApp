@@ -112,10 +112,10 @@
                             <label class="form-label">Количество</label>
                             <input type="number" class="form-control" name="quantity" step="0.01" min="0" required>
                         </div>
-                        <div class="col-12">
+                        <div class="col-12 file-input-container">
                             <label class="form-label">Накладная (файл) <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
-                            <small class="form-text text-muted">Прикрепите накладную к поступлению (обязательно)</small>
+                            <input type="file" class="form-control file-input-no-gap" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
+                            <small class="form-text text-muted file-text-no-gap">Прикрепите накладную к поступлению (обязательно)</small>
                         </div>
                     </div>
                 </form>
@@ -206,58 +206,70 @@
     margin-bottom: 0;
 }
 
-/* Убираем зазор под полем выбора файла */
-#receiptModal input[type="file"] {
-    margin-bottom: 0 !important;
-}
-
-#receiptModal .form-text {
-    margin-bottom: 0 !important;
-    margin-top: 4px !important;
-}
-
-#receiptModal .col-12:has(input[type="file"]) {
+/* АГРЕССИВНОЕ УБИРАНИЕ ВСЕХ ЗАЗОРОВ ПОД ФАЙЛОВЫМ ПОЛЕМ */
+#receiptModal .file-input-container {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
 }
 
-/* Дополнительные исправления для модального окна поступления */
-#receiptModal .modal-body {
-    padding-bottom: 16px !important;
-}
-
-#receiptModal .form-control[type="file"] {
-    margin-bottom: 0 !important;
-    padding-bottom: 8px !important;
-}
-
-/* Точные исправления для стандартного поля выбора файла */
-#receiptModal .col-12:last-child {
+#receiptModal .file-input-no-gap {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
 }
 
-#receiptModal .form-control[type="file"] {
-    margin-bottom: 0 !important;
-    padding-bottom: 8px !important;
-    border-bottom: 1px solid #dee2e6 !important;
-}
-
-#receiptModal .form-text {
-    margin-top: 4px !important;
+#receiptModal .file-text-no-gap {
+    margin-top: 0 !important;
     margin-bottom: 0 !important;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
-    line-height: 1.3 !important;
+    line-height: 1.2 !important;
+    font-size: 0.8rem !important;
 }
 
-/* Убираем лишние отступы у модального тела */
+/* Убираем ВСЕ отступы у модального тела */
+#receiptModal .modal-body {
+    padding-bottom: 8px !important;
+    padding-top: 16px !important;
+}
+
 #receiptModal .modal-body .row {
     margin-bottom: 0 !important;
+    margin-top: 0 !important;
+}
+
+#receiptModal .modal-body .row .col-12 {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
 }
 
 #receiptModal .modal-body .row .col-12:last-child {
     margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Дополнительные исправления */
+#receiptModal .form-control {
+    margin-bottom: 0 !important;
+}
+
+#receiptModal .form-label {
+    margin-bottom: 4px !important;
+}
+
+/* Убираем отступы у всех элементов в модальном окне */
+#receiptModal * {
+    box-sizing: border-box !important;
+}
+
+#receiptModal .file-input-container * {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
 }
 </style>
 
