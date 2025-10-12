@@ -321,6 +321,7 @@
 {% block scripts %}
 <script>
 console.log('=== JavaScript в блоке scripts загружен ===');
+alert('JavaScript загружен!'); // Временный тест
 
 // Функции для работы с модальным окном перемещения (как в десктопной версии)
 
@@ -544,11 +545,13 @@ document.addEventListener('DOMContentLoaded', function() {
         submitReceiptBtn.addEventListener('click', function(e) {
             e.preventDefault();
             console.log('=== Кнопка поступления нажата ===');
+            alert('Кнопка нажата!'); // Временный тест
             submitReceipt();
         });
         console.log('Обработчик события добавлен к кнопке');
     } else {
         console.error('Кнопка submit-receipt-btn не найдена');
+        alert('Кнопка не найдена!'); // Временный тест
     }
     
     // Делаем функции глобальными для onclick
