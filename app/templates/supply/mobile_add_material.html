@@ -81,6 +81,12 @@
         </div>
 
         <div class="mobile-mt-4">
+            <button type="button" class="mobile-btn mobile-btn-secondary mobile-btn-sm w-100 mb-2" onclick="alert('JavaScript работает!')">
+                Тест JavaScript
+            </button>
+            <button type="button" class="mobile-btn mobile-btn-secondary mobile-btn-sm w-100 mb-2" onclick="window.simpleTest()">
+                Простой тест
+            </button>
             <button type="button" class="mobile-btn mobile-btn-secondary mobile-btn-sm w-100 mb-2" onclick="window.testMaterialCheck()">
                 Тест блокировки полей
             </button>
@@ -90,6 +96,14 @@
 </div>
 
 <script>
+console.log('=== СКРИПТ НАЧИНАЕТСЯ ===');
+
+// Простейший тест
+window.simpleTest = function() {
+    alert('Простой тест работает!');
+    console.log('Простой тест выполнен');
+};
+
 // Валидация формы
 function validateForm() {
     const name = document.getElementById('material-name-input');
@@ -441,11 +455,20 @@ function hideMaterialExistsInfo() {
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== МОБИЛЬНАЯ СТРАНИЦА ДОБАВЛЕНИЯ МАТЕРИАЛА ЗАГРУЖЕНА ===');
+    
     const form = document.getElementById('add-material-form');
     const submitBtn = document.getElementById('submit-btn');
     const nameInput = document.getElementById('material-name-input');
     const backBtn = document.getElementById('mobileBackBtn');
     let isDirty = false;
+    
+    console.log('Найденные элементы:', {
+        form: !!form,
+        submitBtn: !!submitBtn,
+        nameInput: !!nameInput,
+        backBtn: !!backBtn
+    });
 
     // На этой странице уменьшаем нижний отступ контента, чтобы не было лишней прокрутки
     try {
