@@ -370,229 +370,34 @@ document.addEventListener('DOMContentLoaded', function() {
 <style>
 /* Локальные правки для лучшей читаемости в светлой теме только на этой странице */
 .mobile-app { background: var(--bs-body-bg); }
-[data-bs-theme="light"] .add-object-card { background: #ffffff; color: #0f172a; }
-[data-bs-theme="light"] .mobile-form-label { color: #111827; }
-[data-bs-theme="light"] .mobile-form-control,
-[data-bs-theme="light"] .mobile-form-control-lg {
-    background: #ffffff;
-    border-color: #d1d5db;
-    color: #111827;
-}
-[data-bs-theme="light"] .mobile-form-control::placeholder,
-[data-bs-theme="light"] .mobile-form-control-lg::placeholder { color: #6b7280; }
-[data-bs-theme="light"] .mobile-btn-outline { border-color: #cbd5e1; color: #334155; }
-[data-bs-theme="light"] .mobile-card-title { color: #0f172a; }
-/* Контраст и читаемость в светлой теме */
-.add-object-card {
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-}
+[data-bs-theme="light"] .add-object-card { background:#fff; color:#0f172a; }
+[data-bs-theme="light"] .mobile-form-label { color:#111827; }
+[data-bs-theme="light"] .mobile-form-control, [data-bs-theme="light"] .mobile-form-control-lg { background:#fff; border-color:#d1d5db; color:#111827; }
+[data-bs-theme="light"] .mobile-card-title { color:#0f172a; }
 
-.add-object-card .mobile-form-group {
-    background: #f9fafb;
-    border: 1px solid #eef2f7;
-    border-radius: 12px;
-    padding: 12px;
-}
-
-.add-object-card .mobile-form-group + .mobile-form-group { margin-top: 12px; }
-
-.add-object-card .mobile-card-title { color: #0f172a; }
-
-/* Разделители для лучшей структуры */
-.add-object-card .section-divider {
-    height: 1px;
-    background: #e5e7eb;
-    margin: 16px 0;
-}
-
-/* Тёмная тема — возвращаем нейтральные тона */
-[data-bs-theme="dark"] .add-object-card {
-    background: var(--bs-body-bg);
-    border-color: #2d3748;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
-}
-
-[data-bs-theme="dark"] .add-object-card .mobile-form-group {
-    background: #1f2937;
-    border-color: #374151;
-}
-/* Современные стили для полей ввода */
-.mobile-form-control-lg {
-    font-size: 1.1rem;
-    padding: 16px 20px;
-    border-radius: 12px;
-    border: 2px solid #e1e5e9;
-    background: #ffffff;
-    color: #111827;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-    font-weight: 500;
-}
-
-.mobile-form-control-lg:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
-    outline: none;
-    transform: translateY(-1px);
-}
-
-.mobile-form-control-lg::placeholder {
-    color: #9ca3af;
-    font-weight: 400;
-}
-
-.mobile-form-control {
-    font-size: 1rem;
-    padding: 14px 18px;
-    border-radius: 12px;
-    border: 2px solid #e1e5e9;
-    background: #ffffff;
-    color: #111827;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-    font-weight: 500;
-}
-
-.mobile-form-control:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
-    outline: none;
-    transform: translateY(-1px);
-}
-
-.mobile-form-control::placeholder {
-    color: #9ca3af;
-    font-weight: 400;
-}
+.add-object-card{ background:#fff; border:1px solid #e5e7eb; box-shadow:0 6px 18px rgba(0,0,0,.06); padding:12px; }
+.add-object-card .mobile-form-group{ background:#f9fafb; border:1px solid #eef2f7; border-radius:12px; padding:10px; }
+.add-object-card .mobile-form-group + .mobile-form-group{ margin-top:8px; }
+.mobile-card-title{ font-size:1.5rem; font-weight:700; margin-bottom:.75rem; color:#111827; letter-spacing:-.025em; }
+.mobile-form-label{ display:block; font-size:.9rem; font-weight:600; color:#374151; margin-bottom:6px; letter-spacing:.025em; }
+.mobile-form-control-lg{ font-size:1.02rem; padding:10px 14px; border-radius:12px; border:2px solid #e1e5e9; background:#fff; color:#111827; transition:all .3s cubic-bezier(.4,0,.2,1); box-shadow:0 2px 4px rgba(0,0,0,.04); font-weight:500; }
+.mobile-form-control{ font-size:.93rem; padding:8px 12px; border-radius:12px; border:2px solid #e1e5e9; background:#fff; color:#111827; transition:all .3s cubic-bezier(.4,0,.2,1); box-shadow:0 2px 4px rgba(0,0,0,.04); font-weight:500; }
+.mobile-form-control:focus, .mobile-form-control-lg:focus{ border-color:#0d6efd; box-shadow:0 0 0 4px rgba(13,110,253,.1), 0 4px 12px rgba(0,0,0,.1); outline:none; transform:translateY(-1px); }
+.mobile-btn{ border-radius:12px; font-weight:600; padding:10px 18px; font-size:.93rem; transition:all .3s cubic-bezier(.4,0,.2,1); letter-spacing:.025em; border:none; position:relative; overflow:hidden; }
+.mobile-btn-primary{ background:linear-gradient(135deg,#0d6efd 0%,#0056b3 100%); color:#fff; box-shadow:0 4px 14px rgba(13,110,253,.3); }
 
 /* Стили для файлового поля */
-.mobile-form-control-file {
-    font-size: 1rem;
-    padding: 14px 18px;
-    border-radius: 12px;
-    border: 2px solid #e1e5e9;
-    background: #ffffff;
-    color: #111827;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-    font-weight: 500;
-}
+.mobile-form-control-file{ font-size:.93rem; padding:8px 12px; border-radius:12px; border:2px solid #e1e5e9; background:#fff; color:#111827; transition:all .3s cubic-bezier(.4,0,.2,1); box-shadow:0 2px 4px rgba(0,0,0,.04); font-weight:500; }
+.mobile-form-control-file:focus{ border-color:#0d6efd; box-shadow:0 0 0 4px rgba(13,110,253,.1), 0 4px 12px rgba(0,0,0,.1); outline:none; transform:translateY(-1px); }
+.mobile-form-control-file::-webkit-file-upload-button{ background:var(--bs-primary); color:white; border:none; padding:6px 12px; border-radius:6px; margin-right:8px; font-weight:500; cursor:pointer; transition:background-color .2s ease; }
 
-.mobile-form-control-file:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
-    outline: none;
-    transform: translateY(-1px);
-}
-
-.mobile-form-control-file::-webkit-file-upload-button {
-    background: var(--bs-primary);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    margin-right: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.mobile-form-control-file::-webkit-file-upload-button:hover {
-    background: var(--bs-primary-dark, #0b5ed7);
-}
-
-/* Стили для кнопок */
-.mobile-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px 24px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    line-height: 1.5;
-    color: #ffffff;
-    text-align: center;
-    text-decoration: none;
-    vertical-align: middle;
-    cursor: pointer;
-    user-select: none;
-    background-color: #0d6efd;
-    border: 2px solid #0d6efd;
-    border-radius: 12px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
-}
-
-.mobile-btn:hover {
-    background-color: #0b5ed7;
-    border-color: #0a58ca;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(13, 110, 253, 0.4);
-    color: #ffffff;
-}
-
-.mobile-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
-}
-
-.mobile-btn-primary {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-    color: #ffffff;
-}
-
-.mobile-btn-primary:hover {
-    background-color: #0b5ed7;
-    border-color: #0a58ca;
-    color: #ffffff;
-}
-
-.mobile-mt-4 {
-    margin-top: 2rem !important;
-}
-
-/* Тёмная тема */
-[data-bs-theme="dark"] .add-object-card {
-    background: var(--bs-body-bg);
-    border-color: #2d3748;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
-}
-
-[data-bs-theme="dark"] .add-object-card .mobile-form-group {
-    background: #1f2937;
-    border-color: #374151;
-}
-
-[data-bs-theme="dark"] .mobile-form-control,
-[data-bs-theme="dark"] .mobile-form-control-lg,
-[data-bs-theme="dark"] .mobile-form-control-file {
-    background: #1f2937;
-    border-color: #374151;
-    color: #f9fafb;
-}
-
-[data-bs-theme="dark"] .mobile-form-control:focus,
-[data-bs-theme="dark"] .mobile-form-control-lg:focus,
-[data-bs-theme="dark"] .mobile-form-control-file:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-[data-bs-theme="dark"] .mobile-form-control::placeholder,
-[data-bs-theme="dark"] .mobile-form-control-lg::placeholder {
-    color: #9ca3af;
-}
-
-[data-bs-theme="dark"] .mobile-form-control-file::-webkit-file-upload-button {
-    background: var(--bs-primary);
-    color: white;
-}
-
-[data-bs-theme="dark"] .mobile-form-control-file::-webkit-file-upload-button:hover {
-    background: var(--bs-primary-dark, #0b5ed7);
+@media (prefers-color-scheme: dark){
+  .add-object-card{ background: var(--bs-body-bg); border-color:#2d3748; box-shadow:0 6px 18px rgba(0,0,0,.2); }
+  .add-object-card .mobile-form-group{ background:#1f2937; border-color:#374151; }
+  .mobile-form-label{ color:#e5e7eb; }
+  .mobile-card-title{ color:#f9fafb; }
+  .mobile-form-control-lg, .mobile-form-control, .mobile-form-control-file{ background:#1f2937; border-color:#374151; color:#f9fafb; box-shadow:0 2px 4px rgba(0,0,0,.2); }
+  .mobile-form-control:focus, .mobile-form-control-lg:focus, .mobile-form-control-file:focus{ border-color:#3b82f6; box-shadow:0 0 0 4px rgba(59,130,246,.2), 0 4px 12px rgba(0,0,0,.3); }
 }
 
 /* Стили для информации о существующих материалах */
