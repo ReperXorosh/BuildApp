@@ -430,8 +430,24 @@ function onMaterialChange() {
 
 // Отправка формы поступления
 async function submitReceipt() {
+    console.log('submitReceipt вызвана');
     const form = document.getElementById('form-receipt');
+    
+    if (!form) {
+        console.error('Форма form-receipt не найдена');
+        alert('Ошибка: форма не найдена');
+        return;
+    }
+    
+    // Проверяем валидность формы
+    if (!form.checkValidity()) {
+        console.log('Форма не валидна');
+        form.reportValidity();
+        return;
+    }
+    
     const formData = new FormData(form);
+    console.log('Отправляем данные:', formData);
     
     try {
         const response = await fetch('{{ url_for("supply.api_materials_create") }}', {
@@ -439,18 +455,22 @@ async function submitReceipt() {
             body: formData
         });
         
+        console.log('Ответ сервера:', response.status);
+        
         if (response.ok) {
             const result = await response.json();
+            console.log('Результат:', result);
             alert('Поступление успешно проведено');
             bootstrap.Modal.getInstance(document.getElementById('receiptModal')).hide();
             form.reset();
         } else {
             const error = await response.json();
+            console.error('Ошибка сервера:', error);
             alert('Ошибка проведения поступления: ' + (error.error || 'Неизвестная ошибка'));
         }
     } catch (error) {
         console.error('Ошибка:', error);
-        alert('Ошибка проведения поступления');
+        alert('Ошибка проведения поступления: ' + error.message);
     }
 }
 
@@ -492,6 +512,10 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('movementModal').addEventListener('show.bs.modal', function() {
         loadUsers();
     });
+    
+    // Делаем функции глобальными для onclick
+    window.submitReceipt = submitReceipt;
+    window.submitMovement = submitMovement;
 });
 </script>
 {% endblock %}
