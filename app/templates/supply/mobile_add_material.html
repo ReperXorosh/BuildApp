@@ -169,6 +169,10 @@
 
 {% block scripts %}
 <script>
+// Проверяем, что скрипт загружается
+console.log('=== СКРИПТ ЗАГРУЖЕН ===');
+alert('Скрипт загружен!');
+
 // ТЕСТОВЫЕ ФУНКЦИИ ДЛЯ ДИАГНОСТИКИ
 function testFunction() {
     alert('Тест 2: Функция testFunction() работает!');
@@ -193,27 +197,21 @@ function testMaterialCheck() {
     const reasonField = document.getElementById('reason-field');
     
     if (unitInput && minQuantityInput && reasonField) {
-        // Заполняем поля
         unitInput.value = 'шт';
         minQuantityInput.value = '10';
-        
-        // Блокируем поля
         unitInput.readOnly = true;
         minQuantityInput.readOnly = true;
-        
-        // Показываем поле причины
         reasonField.style.display = 'block';
-        
         alert('Тест 4: Поля заблокированы и поле причины показано!');
     } else {
         alert('Тест 4: ОШИБКА - не все элементы найдены!');
     }
 }
 
-// Проверяем, что скрипт загружается
-console.log('=== СКРИПТ ЗАГРУЖЕН ===');
-alert('Скрипт загружен!');
+alert('Функции определены!');
 
+// ВРЕМЕННО ЗАКОММЕНТИРУЕМ ОСТАЛЬНОЙ КОД ДЛЯ ДИАГНОСТИКИ
+/*
 // Валидация формы
 function validateForm() {
     const name = document.getElementById('material-name-input');
@@ -594,5 +592,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+*/
 </script>
 {% endblock %}
