@@ -223,22 +223,37 @@ async function checkExistingMaterial(name) {
 function showMaterialExistsInfo(material, correctedName = null) {
     const infoDiv = document.getElementById('material-exists-info');
     const unitInput = document.getElementById('material-unit');
+    const minQuantityInput = document.getElementById('material-min-quantity');
+    const descriptionInput = document.getElementById('material-description');
     const nameInput = document.getElementById('material-name-input');
     const reasonField = document.getElementById('reason-field');
+    const reasonInput = document.getElementById('material-reason');
     
-    // Заполняем поле единицы измерения автоматически
+    // Заполняем поля автоматически
     unitInput.value = material.unit;
+    minQuantityInput.value = material.min_quantity;
+    if (material.description) {
+        descriptionInput.value = material.description;
+    }
     
     // Если есть исправление регистра, обновляем поле названия
     if (correctedName) {
         nameInput.value = correctedName;
     }
     
-    // Блокируем поле для редактирования
+    // Блокируем поля для редактирования
     unitInput.readOnly = true;
+    minQuantityInput.readOnly = true;
+    if (descriptionInput) {
+        descriptionInput.readOnly = true;
+    }
     
-    // Показываем поле причины
+    // Показываем поле причины и делаем его обязательным
     reasonField.style.display = 'block';
+    if (reasonInput) {
+        reasonInput.required = true;
+        reasonInput.focus(); // Фокус на поле причины
+    }
     
     // Показываем информацию
     let message = `Материал уже существует на складе (${material.current_quantity} ${material.unit}). Укажите причину добавления.`;
@@ -264,7 +279,7 @@ function showSimilarMaterials(similarMaterials, originalName) {
         similarList += `
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <span>${material.name} (${material.current_quantity} ${material.unit})</span>
-                <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectSimilarMaterial('${material.name}', '${material.unit}')">
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectSimilarMaterial('${material.name}', '${material.unit}', '${material.min_quantity}', '${material.description || ''}')">
                     Выбрать
                 </button>
             </div>
@@ -291,20 +306,41 @@ function showSimilarMaterials(similarMaterials, originalName) {
 }
 
 // Выбрать похожий материал
-function selectSimilarMaterial(name, unit) {
+function selectSimilarMaterial(name, unit, minQuantity, description = '') {
     const nameInput = document.getElementById('material-name-input');
     const unitInput = document.getElementById('material-unit');
+    const minQuantityInput = document.getElementById('material-min-quantity');
+    const descriptionInput = document.getElementById('material-description');
     const reasonField = document.getElementById('reason-field');
+    const reasonInput = document.getElementById('material-reason');
     
+    // Заполняем поля
     nameInput.value = name;
     unitInput.value = unit;
+    minQuantityInput.value = minQuantity;
+    if (descriptionInput && description) {
+        descriptionInput.value = description;
+    }
     
+    // Блокируем поля
     unitInput.readOnly = true;
+    minQuantityInput.readOnly = true;
+    if (descriptionInput) {
+        descriptionInput.readOnly = true;
+    }
+    
+    // Показываем поле причины и делаем его обязательным
     reasonField.style.display = 'block';
+    if (reasonInput) {
+        reasonInput.required = true;
+        reasonInput.focus(); // Фокус на поле причины
+    }
     
     showMaterialExistsInfo({
         name: name,
         unit: unit,
+        min_quantity: minQuantity,
+        description: description,
         current_quantity: 0
     });
 }
@@ -313,13 +349,30 @@ function selectSimilarMaterial(name, unit) {
 function hideMaterialExistsInfo() {
     const infoDiv = document.getElementById('material-exists-info');
     const unitInput = document.getElementById('material-unit');
+    const minQuantityInput = document.getElementById('material-min-quantity');
+    const descriptionInput = document.getElementById('material-description');
     const reasonField = document.getElementById('reason-field');
+    const reasonInput = document.getElementById('material-reason');
     
+    // Разблокируем поля
     if (unitInput) {
         unitInput.readOnly = false;
     }
+    if (minQuantityInput) {
+        minQuantityInput.readOnly = false;
+    }
+    if (descriptionInput) {
+        descriptionInput.readOnly = false;
+    }
     
-    reasonField.style.display = 'none';
+    // Скрываем поле причины и убираем обязательность
+    if (reasonField) {
+        reasonField.style.display = 'none';
+    }
+    if (reasonInput) {
+        reasonInput.required = false;
+    }
+    
     infoDiv.style.display = 'none';
 }
 
