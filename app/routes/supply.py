@@ -214,6 +214,26 @@ def mobile_warehouse_movements():
 
     return render_template('supply/mobile_movements.html', current_user=current_user)
 
+@supply.route('/supply/warehouse/receipt/mobile')
+@login_required
+def mobile_warehouse_receipt():
+    """Мобильная страница поступления на склад"""
+    if not is_supplier_or_admin():
+        flash('У вас нет прав для доступа к поступлению на склад', 'error')
+        return redirect(url_for('objects.object_list'))
+
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр мобильной страницы поступления",
+        description="Просмотр страницы поступления на склад",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+
+    return render_template('supply/mobile_receipt.html', current_user=current_user)
+
 @supply.route('/supply/warehouse/movements')
 @login_required
 def warehouse_movements():

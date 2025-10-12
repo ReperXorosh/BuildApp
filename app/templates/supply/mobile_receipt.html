@@ -1,0 +1,293 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'supply' %}
+
+{% block title %}Поступление на склад{% endblock %}
+{% block mobile_title %}Поступление на склад{% endblock %}
+
+{% block content %}
+<div class="mobile-card add-object-card">
+    <div class="mobile-card-title text-center">
+        Поступление на склад
+    </div>
+
+    <form id="form-receipt" enctype="multipart/form-data" novalidate>
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+            <label class="mobile-form-label" for="receipt-name-input">Наименование *</label>
+            <input type="text" 
+                   name="name" 
+                   id="receipt-name-input" 
+                   class="mobile-form-control mobile-form-control-lg" 
+                   placeholder="Введите наименование материала"
+                   required>
+            <div id="receipt-exists-info" class="form-text text-info" style="display: none;">
+                <i class="bi bi-info-circle"></i> Материал уже существует на складе
+            </div>
+        </div>
+
+        <div class="row g-2">
+            <div class="col-6">
+                <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+                    <label class="mobile-form-label" for="unit">Ед. изм. *</label>
+                    <input type="text" 
+                           name="unit" 
+                           id="unit" 
+                           class="mobile-form-control mobile-form-control-lg" 
+                           placeholder="шт, кг, м, л"
+                           required>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+                    <label class="mobile-form-label" for="quantity">Количество *</label>
+                    <input type="number" 
+                           name="quantity" 
+                           id="quantity" 
+                           step="0.01" 
+                           min="0" 
+                           class="mobile-form-control mobile-form-control-lg" 
+                           placeholder="0.00"
+                           required>
+                </div>
+            </div>
+        </div>
+
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+            <label class="mobile-form-label" for="file">Накладная (файл) *</label>
+            <input type="file" 
+                   name="file" 
+                   id="file" 
+                   class="mobile-form-control mobile-form-control-lg" 
+                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                   required>
+            <small class="form-text text-muted">Прикрепите накладную к поступлению (обязательно)</small>
+        </div>
+
+        <div class="d-grid gap-2 mt-4">
+            <button type="button" class="btn btn-success btn-lg" onclick="submitReceipt()">
+                Провести поступление
+            </button>
+            <a href="{{ url_for('supply.mobile_warehouse_view') }}" class="btn btn-outline-secondary btn-lg">
+                Отмена
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+// Функция проверки существующего материала для поступления
+async function checkExistingMaterialForReceipt(name) {
+  if (!name || name.length < 2) {
+    hideReceiptExistsInfo();
+    return;
+  }
+  
+  try {
+    const response = await fetch('{{ url_for("supply.api_materials_check") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name })
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      
+      if (result.exists) {
+        // Если есть точное совпадение или исправление регистра
+        if (result.exact_match || result.case_corrected) {
+          showReceiptExistsInfo(result.material, result.corrected_name);
+        }
+      } else if (result.similar_found) {
+        // Если найдены похожие материалы
+        showSimilarMaterialsForReceipt(result.similar_materials, name);
+      } else {
+        hideReceiptExistsInfo();
+      }
+    }
+  } catch (error) {
+    console.error('Ошибка проверки материала для поступления:', error);
+  }
+}
+
+// Показать информацию о существующем материале для поступления
+function showReceiptExistsInfo(material, correctedName = null) {
+  const infoDiv = document.getElementById('receipt-exists-info');
+  const unitInput = document.getElementById('unit');
+  const nameInput = document.getElementById('receipt-name-input');
+  
+  // Заполняем поле единицы измерения автоматически
+  unitInput.value = material.unit;
+  
+  // Если есть исправление регистра, обновляем поле названия
+  if (correctedName) {
+    nameInput.value = correctedName;
+  }
+  
+  // Блокируем поле для редактирования (используем readonly вместо disabled)
+  unitInput.readOnly = true;
+  
+  // Показываем информацию
+  let message = `Материал уже существует на складе (${material.current_quantity} ${material.unit}). При поступлении количество будет пополнено. Ед. изм. заблокирована.`;
+  
+  if (correctedName) {
+    message = `Исправлен регистр: "${correctedName}". Материал уже существует на складе (${material.current_quantity} ${material.unit}). При поступлении количество будет пополнено. Ед. изм. заблокирована.`;
+  }
+  
+  infoDiv.innerHTML = `
+    <i class="bi bi-info-circle"></i> 
+    ${message}
+  `;
+  infoDiv.style.display = 'block';
+  infoDiv.className = 'form-text text-warning';
+}
+
+// Показать похожие материалы для поступления
+function showSimilarMaterialsForReceipt(similarMaterials, originalName) {
+  const infoDiv = document.getElementById('receipt-exists-info');
+  
+  let similarList = '';
+  similarMaterials.forEach((material, index) => {
+    similarList += `
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span>${material.name} (${material.current_quantity} ${material.unit})</span>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectSimilarMaterialForReceipt('${material.name}', '${material.unit}')">
+          Выбрать
+        </button>
+      </div>
+    `;
+  });
+  
+  infoDiv.innerHTML = `
+    <div class="alert alert-info">
+      <i class="bi bi-question-circle"></i> 
+      <strong>Не найдено точного совпадения для "${originalName}"</strong>
+      <br>Возможно, вы имели в виду один из этих материалов:
+      <div class="mt-2">
+        ${similarList}
+      </div>
+      <div class="mt-2">
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="hideReceiptExistsInfo()">
+          Создать новый материал
+        </button>
+      </div>
+    </div>
+  `;
+  infoDiv.style.display = 'block';
+  infoDiv.className = 'form-text';
+}
+
+// Выбрать похожий материал для поступления
+function selectSimilarMaterialForReceipt(name, unit) {
+  const nameInput = document.getElementById('receipt-name-input');
+  const unitInput = document.getElementById('unit');
+  
+  // Заполняем поля
+  nameInput.value = name;
+  unitInput.value = unit;
+  
+  // Блокируем поле
+  unitInput.readOnly = true;
+  
+  // Показываем информацию о выбранном материале
+  showReceiptExistsInfo({
+    name: name,
+    unit: unit,
+    current_quantity: 0 // Будет получено из API
+  });
+}
+
+// Скрыть информацию о существующем материале для поступления
+function hideReceiptExistsInfo() {
+  const infoDiv = document.getElementById('receipt-exists-info');
+  const unitInput = document.getElementById('unit');
+  
+  // Разблокируем поле
+  if (unitInput) {
+    unitInput.readOnly = false;
+  }
+  
+  infoDiv.style.display = 'none';
+}
+
+// Отправка формы поступления
+async function submitReceipt() {
+  console.log('=== submitReceipt вызвана в мобильной версии ===');
+  
+  const form = document.getElementById('form-receipt');
+  
+  if (!form) {
+    console.error('Форма form-receipt не найдена');
+    alert('Ошибка: форма не найдена');
+    return;
+  }
+  
+  // Проверяем валидность формы
+  if (!form.checkValidity()) {
+    console.log('Форма не валидна');
+    form.reportValidity();
+    return;
+  }
+  
+  const formData = new FormData(form);
+  console.log('Отправляем данные:', formData);
+  
+  // Показываем индикатор загрузки
+  const submitBtn = document.querySelector('button[onclick="submitReceipt()"]');
+  const originalText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Отправка...';
+  
+  try {
+    const response = await fetch('{{ url_for("supply.api_create_receipt") }}', {
+      method: 'POST',
+      body: formData
+    });
+    
+    console.log('Ответ сервера:', response.status);
+    
+    if (response.ok) {
+      const result = await response.json();
+      console.log('Результат:', result);
+      
+      // Проверяем, есть ли предупреждение о восстановлении
+      if (result.warning) {
+        // Показываем предупреждение пользователю
+        alert(result.warning);
+      } else {
+        alert('Поступление успешно проведено');
+      }
+      
+      // Перенаправляем на страницу склада
+      window.location.href = '{{ url_for("supply.mobile_warehouse_view") }}';
+    } else {
+      const error = await response.json();
+      console.error('Ошибка сервера:', error);
+      alert('Ошибка проведения поступления: ' + (error.error || 'Неизвестная ошибка'));
+    }
+  } catch (error) {
+    console.error('Ошибка:', error);
+    alert('Ошибка проведения поступления: ' + error.message);
+  } finally {
+    // Восстанавливаем кнопку
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+  }
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('=== DOM ЗАГРУЖЕН, НАЧИНАЕМ ИНИЦИАЛИЗАЦИЮ ===');
+  
+  // Проверка существующего материала при вводе названия в поступлении
+  const receiptNameInput = document.getElementById('receipt-name-input');
+  if (receiptNameInput) {
+    let receiptTimeoutId;
+    receiptNameInput.addEventListener('input', function() {
+      clearTimeout(receiptTimeoutId);
+      receiptTimeoutId = setTimeout(() => {
+        checkExistingMaterialForReceipt(this.value);
+      }, 500); // Задержка 500мс для избежания частых запросов
+    });
+  }
+});
+</script>
+{% endblock %}

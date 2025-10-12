@@ -31,14 +31,14 @@
 <div class="mobile-card">
     <div class="mobile-card-title">Действия</div>
     <div class="mobile-sections">
-        <button class="mobile-btn mobile-btn-outline" data-bs-toggle="modal" data-bs-target="#receiptModal">
+        <a href="{{ url_for('supply.mobile_warehouse_receipt') }}" class="mobile-btn mobile-btn-outline">
             <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M12 2L2 7L12 12L22 7L12 2Z"/>
                 <path d="M2 17L12 22L22 17"/>
                 <path d="M2 12L12 17L22 12"/>
             </svg>
             Поступление
-        </button>
+        </a>
         <button class="mobile-btn mobile-btn-outline" data-bs-toggle="modal" data-bs-target="#movementModal">
             <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M8 17L4 21L0 17"/>
