@@ -98,11 +98,44 @@
 <script>
 console.log('=== СКРИПТ НАЧИНАЕТСЯ ===');
 
-// Простейший тест
-window.simpleTest = function() {
+// Простейший тест - выносим наружу, чтобы был доступен сразу
+function simpleTest() {
     alert('Простой тест работает!');
     console.log('Простой тест выполнен');
-};
+}
+
+// Делаем функцию глобальной
+window.simpleTest = simpleTest;
+
+// Тестовая функция для проверки работы JavaScript
+function testMaterialCheck() {
+    console.log('Тестовая функция вызвана');
+    const unitInput = document.querySelector('input[name="unit"]');
+    const minQuantityInput = document.querySelector('input[name="min_quantity"]');
+    const reasonField = document.getElementById('reason-field');
+    
+    console.log('Найденные элементы:', {
+        unitInput: !!unitInput,
+        minQuantityInput: !!minQuantityInput,
+        reasonField: !!reasonField
+    });
+    
+    if (unitInput && minQuantityInput && reasonField) {
+        unitInput.value = 'шт';
+        minQuantityInput.value = '10';
+        unitInput.readOnly = true;
+        minQuantityInput.readOnly = true;
+        reasonField.style.display = 'block';
+        console.log('Тест выполнен успешно - поля заблокированы и поле причины показано');
+        alert('Тест выполнен! Поля заблокированы и поле причины показано.');
+    } else {
+        console.error('Не все элементы найдены для теста');
+        alert('Ошибка: не все элементы найдены для теста');
+    }
+}
+
+// Делаем функцию глобальной
+window.testMaterialCheck = testMaterialCheck;
 
 // Валидация формы
 function validateForm() {
@@ -555,32 +588,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Поле названия не найдено!');
     }
     
-    // Тестовая функция для проверки работы JavaScript
-    window.testMaterialCheck = function() {
-        console.log('Тестовая функция вызвана');
-        const unitInput = document.querySelector('input[name="unit"]');
-        const minQuantityInput = document.querySelector('input[name="min_quantity"]');
-        const reasonField = document.getElementById('reason-field');
-        
-        console.log('Найденные элементы:', {
-            unitInput: !!unitInput,
-            minQuantityInput: !!minQuantityInput,
-            reasonField: !!reasonField
-        });
-        
-        if (unitInput && minQuantityInput && reasonField) {
-            unitInput.value = 'шт';
-            minQuantityInput.value = '10';
-            unitInput.readOnly = true;
-            minQuantityInput.readOnly = true;
-            reasonField.style.display = 'block';
-            console.log('Тест выполнен успешно - поля заблокированы и поле причины показано');
-        } else {
-            console.error('Не все элементы найдены для теста');
-        }
-    };
-    
-    console.log('Добавлена тестовая функция window.testMaterialCheck()');
+    console.log('DOM загружен, настраиваем обработчики');
 });
 </script>
 
