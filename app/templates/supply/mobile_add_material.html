@@ -10,7 +10,7 @@
         Новая позиция
     </div>
 
-    <form method="POST" id="add-material-form" novalidate>
+    <form id="add-material-form" novalidate>
         <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label" for="material-name-input">Название материала *</label>
             <input type="text"
@@ -111,7 +111,7 @@
         </div>
 
         <div class="mobile-mt-4">
-            <button type="submit" class="mobile-btn mobile-btn-primary w-100" id="submit-btn">
+            <button type="button" class="mobile-btn mobile-btn-primary w-100" id="submit-btn">
                 Сохранить позицию
             </button>
         </div>
@@ -331,15 +331,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Обработка отправки формы
-    if (form) {
-        form.addEventListener('submit', async function(e) {
+    // Обработка клика по кнопке отправки
+    if (submitBtn) {
+        submitBtn.addEventListener('click', async function(e) {
             e.preventDefault();
             
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Сохранение...';
-            }
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Сохранение...';
             
             try {
                 const formData = new FormData(form);
@@ -365,10 +363,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Ошибка отправки формы:', error);
                 alert('Произошла ошибка при сохранении материала');
             } finally {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Сохранить позицию';
-                }
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Сохранить позицию';
             }
         });
     }
