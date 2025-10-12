@@ -5,6 +5,9 @@
 {% block mobile_title %}Склад{% endblock %}
 
 {% block content %}
+<!-- Собственное затемнение для модальных окон -->
+<div class="custom-modal-backdrop" id="customBackdrop"></div>
+
 <!-- Статистика склада -->
 <div class="mobile-card">
     <div class="mobile-card-title">Статистика склада</div>
@@ -87,7 +90,7 @@
 {% endif %}
 
 <!-- Модальное окно для поступления -->
-<div class="modal fade" id="receiptModal" tabindex="-1" aria-labelledby="receiptModalLabel" aria-hidden="true">
+<div class="modal fade" id="receiptModal" tabindex="-1" aria-labelledby="receiptModalLabel" aria-hidden="true" data-bs-backdrop="false">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -323,6 +326,22 @@
 .modal-backdrop {
     z-index: 1050 !important;
 }
+
+/* Собственное затемнение для модального окна */
+.custom-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1050;
+    display: none;
+}
+
+.modal.show .custom-modal-backdrop {
+    display: block;
+}
 </style>
 
 <script>
@@ -497,9 +516,36 @@ function hideReceiptExistsInfo() {
   infoDiv.style.display = 'none';
 }
 
+// Управление собственным затемнением
+function showCustomBackdrop() {
+  const backdrop = document.getElementById('customBackdrop');
+  if (backdrop) {
+    backdrop.style.display = 'block';
+  }
+}
+
+function hideCustomBackdrop() {
+  const backdrop = document.getElementById('customBackdrop');
+  if (backdrop) {
+    backdrop.style.display = 'none';
+  }
+}
+
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
   console.log('=== DOM ЗАГРУЖЕН, НАЧИНАЕМ ИНИЦИАЛИЗАЦИЮ ===');
+  
+  // Управление затемнением для модального окна поступления
+  const receiptModal = document.getElementById('receiptModal');
+  if (receiptModal) {
+    receiptModal.addEventListener('show.bs.modal', function() {
+      showCustomBackdrop();
+    });
+    
+    receiptModal.addEventListener('hide.bs.modal', function() {
+      hideCustomBackdrop();
+    });
+  }
   
   // Проверка существующего материала при вводе названия в поступлении
   const receiptNameInput = document.getElementById('receipt-name-input');
