@@ -138,6 +138,42 @@ def warehouse_view():
 
     return render_template('supply/warehouse.html', materials=materials, recent_movements=recent_movements, allocations=allocations, current_user=current_user)
 
+@supply.route('/supply/warehouse/mobile')
+@login_required
+def mobile_warehouse_view():
+    """Мобильная страница склада с современным дизайном"""
+    if not is_supplier_or_admin():
+        flash('У вас нет прав для доступа к складу', 'error')
+        return redirect(url_for('objects.object_list'))
+
+    # Получаем статистику
+    materials = Material.query.filter_by(is_active=True).all()
+    materials_count = len(materials)
+    active_materials_count = len([m for m in materials if m.is_active])
+    low_stock_materials = [m for m in materials if m.current_quantity <= m.min_quantity]
+    low_stock_count = len(low_stock_materials)
+    
+    # Простой расчет общей стоимости (можно улучшить)
+    total_value = sum(m.current_quantity * (m.unit_price or 0) for m in materials if m.unit_price)
+
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр мобильного склада",
+        description=f"Материалов: {materials_count}, низкий запас: {low_stock_count}",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+
+    return render_template('supply/mobile_warehouse.html', 
+                         materials_count=materials_count,
+                         active_materials_count=active_materials_count,
+                         low_stock_count=low_stock_count,
+                         total_value=total_value,
+                         low_stock_materials=low_stock_materials[:5],  # Показываем только первые 5
+                         current_user=current_user)
+
 @supply.route('/supply/warehouse/movements')
 @login_required
 def warehouse_movements():

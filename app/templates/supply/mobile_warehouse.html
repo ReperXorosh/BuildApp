@@ -1,0 +1,546 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'supply' %}
+
+{% block title %}Склад{% endblock %}
+{% block mobile_title %}Склад{% endblock %}
+
+{% block content %}
+<!-- Статистика склада -->
+<div class="mobile-card">
+    <div class="mobile-card-title d-flex align-items-center">
+        <svg width="20" height="20" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
+        </svg>
+        Обзор склада
+    </div>
+    <div class="row g-3">
+        <div class="col-6">
+            <div class="stat-card stat-card-primary">
+                <div class="stat-number">{{ materials_count or 0 }}</div>
+                <div class="stat-label">Позиций</div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="stat-card stat-card-success">
+                <div class="stat-number">{{ active_materials_count or 0 }}</div>
+                <div class="stat-label">Активных</div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="stat-card stat-card-warning">
+                <div class="stat-number">{{ low_stock_count or 0 }}</div>
+                <div class="stat-label">Низкий запас</div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="stat-card stat-card-info">
+                <div class="stat-number">{{ total_value or 0 }}</div>
+                <div class="stat-label">Общая стоимость</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Быстрые действия -->
+<div class="mobile-card">
+    <div class="mobile-card-title d-flex align-items-center">
+        <svg width="20" height="20" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.389.389 0 0 0-.029-.518z"/>
+        </svg>
+        Быстрые действия
+    </div>
+    <div class="mobile-actions">
+        <button class="action-btn action-btn-primary" onclick="openModal('receiptModal')">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.389.389 0 0 0-.029-.518z"/>
+            </svg>
+            <span>Поступление</span>
+        </button>
+        <button class="action-btn action-btn-success" onclick="openModal('movementModal')">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.389.389 0 0 0-.029-.518z"/>
+            </svg>
+            <span>Перемещение</span>
+        </button>
+        <button class="action-btn action-btn-info" onclick="openModal('allocationModal')">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.389.389 0 0 0-.029-.518z"/>
+            </svg>
+            <span>Распределение</span>
+        </button>
+        <button class="action-btn action-btn-secondary" onclick="window.location.href='{{ url_for('supply.warehouse_movements') }}'">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.389.389 0 0 0-.029-.518z"/>
+            </svg>
+            <span>История</span>
+        </button>
+    </div>
+</div>
+
+<!-- Материалы на складе -->
+<div class="mobile-card">
+    <div class="mobile-card-title d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            <svg width="20" height="20" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
+            </svg>
+            На складе
+        </div>
+        <span class="badge badge-primary">{{ materials_count or 0 }}</span>
+    </div>
+    <div class="materials-preview" id="materialsPreview">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Загрузка материалов...</p>
+        </div>
+    </div>
+    <button class="mobile-btn mobile-btn-outline mt-3" onclick="showAllMaterials()">
+        <svg width="16" height="16" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.389.389 0 0 0-.029-.518z"/>
+        </svg>
+        Показать все материалы
+    </button>
+</div>
+
+{% if low_stock_materials %}
+<!-- Уведомления о низком запасе -->
+<div class="mobile-card alert-card">
+    <div class="mobile-card-title d-flex align-items-center text-warning">
+        <svg width="20" height="20" class="me-2" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+        </svg>
+        Требует внимания
+    </div>
+    <div class="alert-list">
+        {% for material in low_stock_materials[:3] %}
+        <div class="alert-item">
+            <div class="alert-item-content">
+                <div class="alert-item-title">{{ material.name }}</div>
+                <div class="alert-item-subtitle">Остаток: {{ material.current_quantity }} / {{ material.min_quantity }} {{ material.unit }}</div>
+            </div>
+            <div class="alert-item-badge">
+                <span class="badge badge-warning">Низкий запас</span>
+            </div>
+        </div>
+        {% endfor %}
+        {% if low_stock_materials|length > 3 %}
+        <div class="alert-item">
+            <div class="alert-item-content">
+                <div class="alert-item-title">И еще {{ low_stock_materials|length - 3 }} позиций</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Дополнительный отступ для нижней панели -->
+<div style="height: 140px"></div>
+
+<!-- Модальные окна будут добавлены здесь -->
+
+<style>
+/* Профессиональные стили для мобильной страницы склада */
+
+/* Статистические карточки */
+.stat-card {
+    background: var(--bs-body-bg);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    border: 1px solid var(--bs-border-color);
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--bs-primary);
+}
+
+.stat-card-primary::before { background: var(--bs-primary); }
+.stat-card-success::before { background: var(--bs-success); }
+.stat-card-warning::before { background: var(--bs-warning); }
+.stat-card-info::before { background: var(--bs-info); }
+
+.stat-number {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--bs-body-color);
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--bs-secondary-color);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Быстрые действия */
+.mobile-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 16px;
+    border-radius: 12px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    min-height: 80px;
+    position: relative;
+    overflow: hidden;
+}
+
+.action-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.action-btn:active::before {
+    opacity: 1;
+}
+
+.action-btn svg {
+    margin-bottom: 8px;
+    opacity: 0.9;
+}
+
+.action-btn span {
+    font-size: 13px;
+    line-height: 1.2;
+}
+
+.action-btn-primary {
+    background: linear-gradient(135deg, var(--bs-primary) 0%, #0056b3 100%);
+    color: white;
+}
+
+.action-btn-success {
+    background: linear-gradient(135deg, var(--bs-success) 0%, #0a5d0a 100%);
+    color: white;
+}
+
+.action-btn-info {
+    background: linear-gradient(135deg, var(--bs-info) 0%, #0a5a7a 100%);
+    color: white;
+}
+
+.action-btn-secondary {
+    background: linear-gradient(135deg, var(--bs-secondary) 0%, #4a4a4a 100%);
+    color: white;
+}
+
+/* Превью материалов */
+.materials-preview {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.material-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--bs-border-color);
+    transition: all 0.2s ease;
+}
+
+.material-item:last-child {
+    border-bottom: none;
+}
+
+.material-item:active {
+    background: var(--bs-body-bg);
+    transform: scale(0.98);
+}
+
+.material-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.material-name {
+    font-weight: 600;
+    color: var(--bs-body-color);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.material-details {
+    font-size: 12px;
+    color: var(--bs-secondary-color);
+    display: flex;
+    gap: 8px;
+}
+
+.material-quantity {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 60px;
+}
+
+.quantity-badge {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.quantity-badge-success { background: var(--bs-success-bg-subtle); color: var(--bs-success-text); }
+.quantity-badge-warning { background: var(--bs-warning-bg-subtle); color: var(--bs-warning-text); }
+.quantity-badge-danger { background: var(--bs-danger-bg-subtle); color: var(--bs-danger-text); }
+
+/* Уведомления */
+.alert-card {
+    border-left: 4px solid var(--bs-warning);
+    background: var(--bs-warning-bg-subtle);
+}
+
+.alert-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.alert-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: var(--bs-body-bg);
+    border-radius: 8px;
+    border: 1px solid var(--bs-border-color);
+}
+
+.alert-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.alert-item-title {
+    font-weight: 600;
+    color: var(--bs-body-color);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.alert-item-subtitle {
+    font-size: 12px;
+    color: var(--bs-secondary-color);
+}
+
+.alert-item-badge {
+    margin-left: 8px;
+}
+
+/* Загрузка */
+.loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: var(--bs-secondary-color);
+}
+
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--bs-border-color);
+    border-top: 3px solid var(--bs-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 12px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Бейджи */
+.badge {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-primary {
+    background: var(--bs-primary-bg-subtle);
+    color: var(--bs-primary-text);
+}
+
+.badge-warning {
+    background: var(--bs-warning-bg-subtle);
+    color: var(--bs-warning-text);
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+    .mobile-actions {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-btn {
+        min-height: 60px;
+        padding: 16px;
+    }
+    
+    .stat-number {
+        font-size: 20px;
+    }
+}
+
+/* Темная тема */
+[data-bs-theme="dark"] .alert-card {
+    background: rgba(255, 193, 7, 0.1);
+}
+
+[data-bs-theme="dark"] .stat-card {
+    background: var(--bs-dark);
+    border-color: var(--bs-gray-700);
+}
+
+[data-bs-theme="dark"] .material-item:active {
+    background: var(--bs-gray-800);
+}
+
+[data-bs-theme="dark"] .alert-item {
+    background: var(--bs-dark);
+    border-color: var(--bs-gray-700);
+}
+</style>
+
+<script>
+// Загрузка материалов при инициализации
+document.addEventListener('DOMContentLoaded', function() {
+    loadMaterialsPreview();
+    
+    // Улучшаем скролл
+    const content = document.querySelector('.mobile-content');
+    if (content) {
+        content.style.webkitOverflowScrolling = 'touch';
+        content.style.scrollBehavior = 'smooth';
+        const currentPaddingBottom = parseInt(window.getComputedStyle(content).paddingBottom || '0', 10);
+        if (currentPaddingBottom < 140) {
+            content.style.paddingBottom = '140px';
+        }
+    }
+});
+
+// Загрузка превью материалов
+async function loadMaterialsPreview() {
+    try {
+        const response = await fetch('{{ url_for("supply.api_materials_list") }}?limit=5');
+        const materials = await response.json();
+        
+        displayMaterialsPreview(materials);
+    } catch (error) {
+        console.error('Ошибка загрузки материалов:', error);
+        document.getElementById('materialsPreview').innerHTML = `
+            <div class="text-center text-muted py-4">
+                <svg width="48" height="48" fill="currentColor" viewBox="0 0 16 16" class="mb-3">
+                    <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.389.389 0 0 0-.029-.518z"/>
+                </svg>
+                <p>Ошибка загрузки материалов</p>
+            </div>
+        `;
+    }
+}
+
+// Отображение превью материалов
+function displayMaterialsPreview(materials) {
+    const container = document.getElementById('materialsPreview');
+    
+    if (!materials || materials.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted py-4">
+                <svg width="48" height="48" fill="currentColor" viewBox="0 0 16 16" class="mb-3">
+                    <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.389.389 0 0 0-.029-.518z"/>
+                </svg>
+                <p>Материалы не найдены</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    materials.forEach(material => {
+        const quantity = material.current_quantity || 0;
+        const minQuantity = material.min_quantity || 0;
+        
+        let badgeClass = 'quantity-badge-success';
+        if (quantity <= 0) {
+            badgeClass = 'quantity-badge-danger';
+        } else if (quantity <= minQuantity) {
+            badgeClass = 'quantity-badge-warning';
+        }
+        
+        html += `
+            <div class="material-item" onclick="viewMaterial('${material.id}')">
+                <div class="material-info">
+                    <div class="material-name">${material.name}</div>
+                    <div class="material-details">
+                        <span>${material.unit || 'шт'}</span>
+                        <span>•</span>
+                        <span>Мин: ${minQuantity}</span>
+                    </div>
+                </div>
+                <div class="material-quantity">
+                    <span class="quantity-badge ${badgeClass}">${quantity}</span>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+// Функции навигации
+function viewMaterial(materialId) {
+    window.location.href = `/supply/materials/${materialId}`;
+}
+
+function showAllMaterials() {
+    window.location.href = '{{ url_for("supply.warehouse_view") }}';
+}
+
+function openModal(modalId) {
+    // Здесь будет логика открытия модальных окон
+    console.log('Открытие модального окна:', modalId);
+}
+</script>
+{% endblock %}

@@ -971,7 +971,7 @@
                 {{ gettext('Пользователи') }}
             </a>
             {% endif %}
-            <a href="{{ url_for('supply.supply_dashboard') }}" class="mobile-menu-item {{ 'active' if active_page == 'supply' else '' }}">
+            <a href="{{ url_for('supply.mobile_warehouse_view') }}" class="mobile-menu-item {{ 'active' if active_page == 'supply' else '' }}">
                 {{ gettext('Снабжение') }}
             </a>
             <a href="{{ url_for('main.profile') }}" class="mobile-menu-item {{ 'active' if active_page == 'profile' else '' }}">
