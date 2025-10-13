@@ -46,6 +46,43 @@
     <link href="/static/css/sidebars.css" rel="stylesheet">
     <link href="/static/css/mobile.css" rel="stylesheet">
     <link href="/static/css/fullscreen-mobile.css" rel="stylesheet">
+    
+    <!-- Переопределяем стили для полноэкранного режима на мобильных -->
+    {% if is_mobile %}
+    <style>
+        /* Принудительное полноэкранное отображение - переопределяем все остальные стили */
+        @media (max-width: 768px) {
+            html, body {
+                height: 100vh !important;
+                height: 100dvh !important;
+                overflow: hidden !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                position: fixed !important;
+                width: 100% !important;
+            }
+            
+            .mobile-app {
+                height: 100vh !important;
+                height: 100dvh !important;
+                display: flex !important;
+                flex-direction: column !important;
+                overflow: hidden !important;
+                position: relative !important;
+            }
+            
+            .mobile-content {
+                flex: 1 !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                scroll-behavior: smooth !important;
+                overscroll-behavior: contain !important;
+                height: calc(100vh - 60px) !important;
+                height: calc(100dvh - 60px) !important;
+            }
+        }
+    </style>
+    {% endif %}
 
     <style>
         .bd-placeholder-img {
@@ -741,6 +778,94 @@
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/sidebars.js"></script>
 <script src="/static/js/fullscreen-mobile.js"></script>
+
+<!-- Агрессивный JavaScript для скрытия UI браузера на мобильных -->
+{% if is_mobile %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Принудительное полноэкранное отображение
+    try {
+        // Агрессивное скрытие UI браузера
+        const hideBrowserUI = () => {
+            // Принудительно устанавливаем высоту
+            document.documentElement.style.height = '100vh';
+            document.documentElement.style.height = '100dvh';
+            document.body.style.height = '100vh';
+            document.body.style.height = '100dvh';
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            
+            // Скрываем адресную строку на iOS Safari
+            if (window.navigator.standalone !== undefined) {
+                // PWA режим - уже полноэкранный
+                console.log('PWA режим - полноэкранный');
+            } else {
+                // Обычный браузер - пытаемся скрыть UI
+                window.scrollTo(0, 1);
+                setTimeout(() => window.scrollTo(0, 0), 100);
+                
+                // Дополнительные попытки
+                setTimeout(() => {
+                    window.scrollTo(0, 1);
+                    setTimeout(() => window.scrollTo(0, 0), 50);
+                }, 200);
+                
+                setTimeout(() => {
+                    window.scrollTo(0, 1);
+                    setTimeout(() => window.scrollTo(0, 0), 50);
+                }, 500);
+                
+                setTimeout(() => {
+                    window.scrollTo(0, 1);
+                    setTimeout(() => window.scrollTo(0, 0), 50);
+                }, 1000);
+            }
+        };
+        
+        // Вызываем сразу
+        hideBrowserUI();
+        
+        // Вызываем при изменении ориентации
+        window.addEventListener('orientationchange', () => {
+            setTimeout(hideBrowserUI, 500);
+        });
+        
+        window.addEventListener('resize', () => {
+            setTimeout(hideBrowserUI, 100);
+        });
+        
+        // Дополнительные вызовы
+        setTimeout(hideBrowserUI, 1000);
+        setTimeout(hideBrowserUI, 2000);
+        setTimeout(hideBrowserUI, 3000);
+        
+        // Предотвращаем зум при двойном тапе
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+        
+        // Предотвращаем контекстное меню
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+        
+        // Принудительно скрываем UI при любом взаимодействии
+        document.addEventListener('touchstart', hideBrowserUI, { passive: true });
+        document.addEventListener('touchend', hideBrowserUI, { passive: true });
+        document.addEventListener('scroll', hideBrowserUI, { passive: true });
+        
+    } catch(e) {
+        console.warn('Ошибка при скрытии UI браузера:', e);
+    }
+});
+</script>
+{% endif %}
 
 {% endif %}
 </body>
