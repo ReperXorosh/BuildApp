@@ -509,9 +509,9 @@ async function reloadGroupItemsInto(container, groupId) {
       row.className = 'list-group-item d-flex justify-content-between align-items-center';
       const mat = (materialsCache || []).find(m => m.id === i.material_id);
       const label = mat ? mat.name : i.material_id;
-      row.innerHTML = `<span class="group-item-link" onclick="viewMaterial('${i.material_id}')" style="cursor:pointer;">${label}</span>` +
+      row.innerHTML = `<span class=\"group-item-link\" onclick=\"viewMaterial('${i.material_id}')\" style=\"cursor:pointer;\">${label}</span>` +
         `{% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}` +
-        `<button class="btn btn-sm btn-outline-danger" onclick="removeFromGroup('${i.material_id}')">Убрать</button>` +
+        `<button class=\"btn btn-sm btn-outline-danger\" onclick=\"removeFromGroup('${i.material_id}','${groupId}')\">Убрать</button>` +
         `{% endif %}`;
       container.appendChild(row);
     });
@@ -523,16 +523,19 @@ async function reloadGroupItemsInto(container, groupId) {
 
 // Удалили функцию добавления по ID — панель групп теперь только для просмотра
 
-async function removeFromGroup(materialId) {
+async function removeFromGroup(materialId, groupIdFromBtn) {
   if (!confirm('Удалить позицию из этой группы? Действие обратимо (позиция останется на складе).')) {
     return;
   }
-  const groupId = document.getElementById('groupItems').dataset.groupId;
+  const groupId = groupIdFromBtn || document.getElementById('groupItems')?.dataset?.groupId || document.querySelector('#groupsList .group-items')?.dataset?.groupId;
   try {
     const res = await fetch(`/supply/api/supply/groups/${groupId}/items`, {method:'DELETE', headers:{'Content-Type':'application/json'}, body: JSON.stringify({material_id: materialId})});
-    const data = await res.json();
-    if (!res.ok) { alert(data.error || 'Ошибка'); return; }
-    reloadGroupItems(groupId);
+    let data = {};
+    try { data = await res.json(); } catch {}
+    if (!res.ok) { alert((data && data.error) || 'Ошибка удаления'); return; }
+    // Обновить текущий аккордеон
+    const container = document.querySelector(`#groupsList .group-items[data-group-id="${groupId}"]`) || document.querySelector('#groupsList .group-items');
+    if (container) { await reloadGroupItemsInto(container, groupId); }
   } catch (e) { console.error(e); }
 }
 
