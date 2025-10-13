@@ -22,6 +22,17 @@
                 // Обычный браузер - пытаемся скрыть UI
                 window.scrollTo(0, 1);
                 setTimeout(() => window.scrollTo(0, 0), 100);
+                
+                // Дополнительные попытки скрыть UI
+                setTimeout(() => {
+                    window.scrollTo(0, 1);
+                    setTimeout(() => window.scrollTo(0, 0), 50);
+                }, 200);
+                
+                setTimeout(() => {
+                    window.scrollTo(0, 1);
+                    setTimeout(() => window.scrollTo(0, 0), 50);
+                }, 500);
             }
         } catch (e) {
             console.warn('Не удалось скрыть UI браузера:', e);
@@ -114,8 +125,10 @@
             window.addEventListener('orientationchange', handleOrientationChange);
             window.addEventListener('resize', handleOrientationChange);
             
-            // Дополнительная попытка скрыть UI после загрузки
+            // Дополнительные попытки скрыть UI после загрузки
             setTimeout(hideBrowserUI, 1000);
+            setTimeout(hideBrowserUI, 2000);
+            setTimeout(hideBrowserUI, 3000);
             
         } catch (e) {
             console.warn('Ошибка инициализации полноэкранного режима:', e);
