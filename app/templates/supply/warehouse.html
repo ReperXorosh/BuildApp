@@ -478,6 +478,7 @@ function toggleGroup(group, anchorEl) {
 
 async function reloadGroupItemsInto(container, groupId) {
   try {
+    container.innerHTML = '<div class="py-2 text-muted">Загрузка...</div>';
     const res = await fetch(`/supply/api/supply/groups/${groupId}/items`);
     const items = await res.json();
     // Обновляем множество материалов в группах (по всем группам)
@@ -501,7 +502,10 @@ async function reloadGroupItemsInto(container, groupId) {
         `{% endif %}`;
       container.appendChild(row);
     });
-  } catch (e) { console.error(e); }
+  } catch (e) {
+    console.error(e);
+    container.innerHTML = '<div class="py-2 text-danger">Ошибка загрузки состава группы</div>';
+  }
 }
 
 // Удалили функцию добавления по ID — панель групп теперь только для просмотра
