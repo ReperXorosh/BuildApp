@@ -533,13 +533,25 @@ async function loadMaterials() {
   try {
     const url = showHiddenMaterials ? '{{ url_for("supply.api_materials_all") }}' : '{{ url_for("supply.api_materials") }}';
     const response = await fetch(url);
+    const tbody = document.getElementById('materials-table');
+    if (!response.ok) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Ошибка загрузки списка (HTTP ' + response.status + ')</td></tr>';
+      return;
+    }
     let materials = await response.json();
     materialsCache = Array.isArray(materials) ? materials : [];
     console.log('=== МАТЕРИАЛЫ ЗАГРУЖЕНЫ ===', materials);
     
-    const tbody = document.getElementById('materials-table');
     tbody.innerHTML = '';
     
+    if (!Array.isArray(materials)) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Данные материалов в неверном формате</td></tr>';
+      return;
+    }
+    if (materials.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Позиции отсутствуют</td></tr>';
+      return;
+    }
     materials.forEach(material => {
       const row = document.createElement('tr');
       row.setAttribute('data-material-id', material.id);
