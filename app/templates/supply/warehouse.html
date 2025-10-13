@@ -430,6 +430,7 @@ async function loadGroups() {
       return;
     }
     groupsCache = groups;
+    console.log('GROUPS LOADED', groupsCache);
     groups.forEach(g => {
       const a = document.createElement('a');
       a.href = 'javascript:void(0)';
@@ -444,6 +445,7 @@ async function loadGroups() {
       if (!item) return;
       const gid = item.dataset.groupId;
       const g = (groupsCache || []).find(x => String(x.id) === String(gid));
+      console.log('GROUP CLICK', gid, g);
       if (g) toggleGroup(g);
     };
   } catch (e) { console.error(e); }
@@ -471,6 +473,7 @@ function toggleGroup(group) {
     return;
   }
   // Иначе откроем выбранную группу
+  console.log('TOGGLE -> OPEN', group);
   openGroup(group);
 }
 
