@@ -31,13 +31,20 @@ def inject_gettext():
     return dict(gettext=gettext)
 
 def is_supplier_or_admin():
-    """Проверяет, имеет ли пользователь права доступа к разделу снабжения (робастно по роли)"""
+    """Права на ИЗМЕНЕНИЯ в снабжении (операции): только Снабженец и Инженер ПТО."""
     if not current_user.is_authenticated:
         return False
     role = (current_user.role or '').strip().lower()
-    # Разрешаем снабженца, ПТО, ген/зам директора (учитываем вариации написания)
-    allowed_keywords = ['снабжен', 'пто', 'ген', 'зам']
+    allowed_keywords = ['снабжен', 'пто']
     return any(k in role for k in allowed_keywords)
+
+def has_warehouse_read_access():
+    """Право на ПРОСМОТР склада (читательский доступ). Добавляем роль прораба."""
+    if not current_user.is_authenticated:
+        return False
+    role = (current_user.role or '').strip().lower()
+    # разрешаем все роли из is_supplier_or_admin + прораб
+    return any(k in role for k in ['снабжен', 'пто', 'ген', 'зам', 'прораб'])
 
 @supply.route('/supply')
 @login_required
@@ -118,7 +125,7 @@ def materials_list():
 @login_required
 def warehouse_view():
     """Страница склада: список материалов, последние движения, распределение."""
-    if not is_supplier_or_admin():
+    if not has_warehouse_read_access():
         flash('У вас нет прав для доступа к складу', 'error')
         return redirect(url_for('objects.object_list'))
 
@@ -142,7 +149,7 @@ def warehouse_view():
 @login_required
 def mobile_warehouse_view():
     """Мобильная страница склада с современным дизайном"""
-    if not is_supplier_or_admin():
+    if not has_warehouse_read_access():
         flash('У вас нет прав для доступа к складу', 'error')
         return redirect(url_for('objects.object_list'))
 
@@ -537,7 +544,7 @@ def requests_list():
 @login_required
 def api_materials():
     """API для получения списка активных материалов"""
-    if not is_supplier_or_admin():
+    if not has_warehouse_read_access():
         return jsonify({'error': 'Недостаточно прав'}), 403
     
     materials = Material.query.filter_by(is_active=True).all()
@@ -551,7 +558,7 @@ def api_materials_all():
         return jsonify({'error': 'Недостаточно прав'}), 403
     
     # Проверяем, что пользователь - админ
-    if current_user.role not in ['Инженер ПТО', 'Ген.Директор']:
+    if current_user.role not in ['Инженер ПТО', 'Снабженец']:
         return jsonify({'error': 'Просмотр скрытых материалов доступен только администраторам'}), 403
     
     materials = Material.query.all()
