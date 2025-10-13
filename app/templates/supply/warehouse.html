@@ -373,6 +373,7 @@ console.log('=== СКРИПТ ЗАГРУЖЕН ===');
 // Переменная для отслеживания режима просмотра
 let showHiddenMaterials = false;
 let materialsCache = [];
+let groupsCache = [];
 // Материалы, которые уже состоят в каких-либо группах (для скрытия кнопки "+")
 let materialsInGroups = new Set();
 // ---------------- ГРУППЫ МАТЕРИАЛОВ ----------------
@@ -428,14 +429,23 @@ async function loadGroups() {
       list.appendChild(empty);
       return;
     }
+    groupsCache = groups;
     groups.forEach(g => {
       const a = document.createElement('a');
       a.href = 'javascript:void(0)';
       a.className = 'list-group-item list-group-item-action';
       a.textContent = g.name;
-      a.onclick = () => toggleGroup(g);
+      a.dataset.groupId = g.id;
       list.appendChild(a);
     });
+    // Делегирование кликов по списку групп
+    list.onclick = function(e) {
+      const item = e.target.closest('.list-group-item');
+      if (!item) return;
+      const gid = item.dataset.groupId;
+      const g = (groupsCache || []).find(x => String(x.id) === String(gid));
+      if (g) toggleGroup(g);
+    };
   } catch (e) { console.error(e); }
 }
 
@@ -496,6 +506,9 @@ async function reloadGroupItems(groupId) {
 // Удалили функцию добавления по ID — панель групп теперь только для просмотра
 
 async function removeFromGroup(materialId) {
+  if (!confirm('Удалить позицию из этой группы? Действие обратимо (позиция останется на складе).')) {
+    return;
+  }
   const groupId = document.getElementById('groupItems').dataset.groupId;
   try {
     const res = await fetch(`/supply/api/supply/groups/${groupId}/items`, {method:'DELETE', headers:{'Content-Type':'application/json'}, body: JSON.stringify({material_id: materialId})});
