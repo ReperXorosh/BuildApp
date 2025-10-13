@@ -465,7 +465,9 @@ async function reloadGroupItems(groupId) {
     items.forEach(i => {
       const row = document.createElement('div');
       row.className = 'list-group-item d-flex justify-content-between align-items-center';
-      row.innerHTML = `<span>${i.material_id}</span>` +
+      const mat = (materialsCache || []).find(m => m.id === i.material_id);
+      const label = mat ? mat.name : i.material_id;
+      row.innerHTML = `<span>${label}</span>` +
         `{% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}` +
         `<button class="btn btn-sm btn-outline-danger" onclick="removeFromGroup('${i.material_id}')">Убрать</button>` +
         `{% endif %}`;
@@ -529,8 +531,10 @@ async function submitAddMaterialToGroup() {
 async function loadMaterials() {
   console.log('=== НАЧИНАЕМ ЗАГРУЗКУ МАТЕРИАЛОВ ===');
   try {
-    const url = showHiddenMaterials ? '{{ url_for("supply.api_materials_all") }}' : '{{ url_for("supply.api_materials") }}';
-    const response = await fetch(url);
+    let url = showHiddenMaterials ? '{{ url_for("supply.api_materials_all") }}' : '{{ url_for("supply.api_materials") }}';
+    const sep = url.includes('?') ? '&' : '?';
+    url = `${url}${sep}_=${Date.now()}`; // cache-busting
+    const response = await fetch(url, { cache: 'no-store' });
     const materials = await response.json();
     materialsCache = Array.isArray(materials) ? materials : [];
     console.log('=== МАТЕРИАЛЫ ЗАГРУЖЕНЫ ===', materials);
@@ -653,10 +657,15 @@ async function loadMaterials() {
       
       // Вставляем собранные действия
       {% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}
-      row.querySelector('td:last-child').innerHTML = actionsHtml;
+      const cells = row.querySelectorAll('td');
+      if (cells && cells.length) {
+        cells[cells.length - 1].innerHTML = actionsHtml;
+      }
       {% endif %}
       tbody.appendChild(row);
     });
+    // Применим текущий фильтр после отрисовки
+    filterMaterials();
   } catch (error) {
     console.error('Ошибка загрузки материалов:', error);
   }
