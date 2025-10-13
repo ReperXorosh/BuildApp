@@ -486,7 +486,7 @@ function toggleGroup(group, anchorEl) {
   container.innerHTML = '<div class="py-2 text-muted">Загрузка...</div>';
   anchorEl.after(container);
   console.log('TOGGLE -> OPEN', group);
-  openGroupInto(container, group);
+  openGroup(container, group);
 }
 
 async function reloadGroupItemsInto(container, groupId) {
