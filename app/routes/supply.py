@@ -557,12 +557,12 @@ def api_materials():
 @supply.route('/api/supply/groups', methods=['GET', 'POST'])
 @login_required
 def api_groups():
-    """Список групп / создание группы."""
-    if not is_supplier_or_admin():
-        return jsonify({'error': 'Недостаточно прав'}), 403
+    """Список групп (GET — всем), создание группы (POST — только снабженец/ПТО)."""
     if request.method == 'GET':
         groups = MaterialGroup.query.order_by(MaterialGroup.name).all()
         return jsonify([g.to_dict() for g in groups])
+    if not is_supplier_or_admin():
+        return jsonify({'error': 'Недостаточно прав'}), 403
     data = request.get_json() or {}
     name = (data.get('name') or '').strip()
     description = (data.get('description') or '').strip() or None
@@ -578,12 +578,12 @@ def api_groups():
 @supply.route('/api/supply/groups/<uuid:group_id>/items', methods=['GET', 'POST', 'DELETE'])
 @login_required
 def api_group_items(group_id):
-    if not is_supplier_or_admin():
-        return jsonify({'error': 'Недостаточно прав'}), 403
     group = MaterialGroup.query.get_or_404(group_id)
     if request.method == 'GET':
         items = MaterialGroupItem.query.filter_by(group_id=group.id).all()
         return jsonify([i.to_dict() for i in items])
+    if not is_supplier_or_admin():
+        return jsonify({'error': 'Недостаточно прав'}), 403
     data = request.get_json() or {}
     material_id = data.get('material_id')
     if request.method == 'POST':

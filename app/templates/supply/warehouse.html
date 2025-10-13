@@ -134,12 +134,14 @@
                 </div>
             </div>
         </div>
-        {% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}
+        {% if True %}
         <div class="col-12 col-lg-4">
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Группы</h5>
-                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="createGroup()">Новая группа</button>
+                    {% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#createGroupModal">Новая группа</button>
+                    {% endif %}
                 </div>
                 <div class="card-body">
                     <div id="groupsList" class="list-group mb-3">
@@ -162,6 +164,34 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Модалка создания группы -->
+{% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}
+<div class="modal fade" id="createGroupModal" tabindex="-1" aria-labelledby="createGroupModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createGroupModalLabel">Новая группа</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Название группы <span class="text-danger">*</span></label>
+          <input id="groupNameInput" class="form-control" maxlength="120" placeholder="Введите название группы">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Описание</label>
+          <textarea id="groupDescriptionInput" class="form-control" rows="3" placeholder="Необязательно"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        <button type="button" class="btn btn-primary" onclick="submitCreateGroup()">Создать</button>
+      </div>
+    </div>
+  </div>
+ </div>
+{% endif %}
 
 <!-- Модальное окно для добавления позиции -->
 <div class="modal fade" id="addMaterialModal" tabindex="-1" aria-labelledby="addMaterialModalLabel" aria-hidden="true">
@@ -323,6 +353,94 @@ console.log('=== СКРИПТ ЗАГРУЖЕН ===');
 
 // Переменная для отслеживания режима просмотра
 let showHiddenMaterials = false;
+// ---------------- ГРУППЫ МАТЕРИАЛОВ ----------------
+async function loadGroups() {
+  try {
+    const res = await fetch('/supply/api/supply/groups');
+    if (!res.ok) return;
+    const groups = await res.json();
+    const list = document.getElementById('groupsList');
+    if (!list) return;
+    list.innerHTML = '';
+    if (!Array.isArray(groups) || groups.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'text-muted';
+      empty.textContent = 'Группы не созданы';
+      list.appendChild(empty);
+      return;
+    }
+    groups.forEach(g => {
+      const a = document.createElement('a');
+      a.href = 'javascript:void(0)';
+      a.className = 'list-group-item list-group-item-action';
+      a.textContent = g.name;
+      a.onclick = () => openGroup(g);
+      list.appendChild(a);
+    });
+  } catch (e) { console.error(e); }
+}
+
+function closeGroup() {
+  const panel = document.getElementById('groupItems');
+  if (panel) panel.style.display = 'none';
+}
+
+async function openGroup(group) {
+  document.getElementById('groupTitle').textContent = group.name;
+  const panel = document.getElementById('groupItems');
+  panel.style.display = 'block';
+  panel.dataset.groupId = group.id;
+  await reloadGroupItems(group.id);
+}
+
+async function reloadGroupItems(groupId) {
+  try {
+    const res = await fetch(`/supply/api/supply/groups/${groupId}/items`);
+    const items = await res.json();
+    const list = document.getElementById('groupItemsList');
+    list.innerHTML = '';
+    if (!Array.isArray(items) || items.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'text-muted';
+      empty.textContent = 'В группе пока нет материалов';
+      list.appendChild(empty);
+      return;
+    }
+    items.forEach(i => {
+      const row = document.createElement('div');
+      row.className = 'list-group-item d-flex justify-content-between align-items-center';
+      row.innerHTML = `<span>${i.material_id}</span>` +
+        `{% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}` +
+        `<button class="btn btn-sm btn-outline-danger" onclick="removeFromGroup('${i.material_id}')">Убрать</button>` +
+        `{% endif %}`;
+      list.appendChild(row);
+    });
+  } catch (e) { console.error(e); }
+}
+
+async function addToGroup() {
+  const groupPanel = document.getElementById('groupItems');
+  const groupId = groupPanel.dataset.groupId;
+  const materialId = document.getElementById('addMaterialId').value.trim();
+  if (!materialId) return;
+  try {
+    const res = await fetch(`/supply/api/supply/groups/${groupId}/items`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({material_id: materialId})});
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || 'Ошибка'); return; }
+    document.getElementById('addMaterialId').value='';
+    reloadGroupItems(groupId);
+  } catch (e) { console.error(e); }
+}
+
+async function removeFromGroup(materialId) {
+  const groupId = document.getElementById('groupItems').dataset.groupId;
+  try {
+    const res = await fetch(`/supply/api/supply/groups/${groupId}/items`, {method:'DELETE', headers:{'Content-Type':'application/json'}, body: JSON.stringify({material_id: materialId})});
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || 'Ошибка'); return; }
+    reloadGroupItems(groupId);
+  } catch (e) { console.error(e); }
+}
 
 // Загрузка материалов в таблицу
 async function loadMaterials() {
@@ -1412,6 +1530,9 @@ document.addEventListener('DOMContentLoaded', function() {
       }, 500); // Задержка 500мс для избежания частых запросов
     });
   }
+
+  // Инициализация списка групп (доступно всем ролям на просмотр)
+  loadGroups();
 });
 </script>
 
