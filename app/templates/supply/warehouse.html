@@ -354,6 +354,26 @@ console.log('=== СКРИПТ ЗАГРУЖЕН ===');
 // Переменная для отслеживания режима просмотра
 let showHiddenMaterials = false;
 // ---------------- ГРУППЫ МАТЕРИАЛОВ ----------------
+async function submitCreateGroup() {
+  const nameEl = document.getElementById('groupNameInput');
+  const descEl = document.getElementById('groupDescriptionInput');
+  const name = (nameEl?.value || '').trim();
+  const description = (descEl?.value || '').trim();
+  if (!name) { alert('Введите название группы'); return; }
+  try {
+    const res = await fetch('/supply/api/supply/groups', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, description }) });
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || 'Ошибка'); return; }
+    const modalEl = document.getElementById('createGroupModal');
+    if (modalEl) {
+      const m = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+      m.hide();
+    }
+    if (nameEl) nameEl.value = '';
+    if (descEl) descEl.value = '';
+    loadGroups();
+  } catch (e) { console.error(e); alert('Ошибка связи с сервером'); }
+}
 async function loadGroups() {
   try {
     const res = await fetch('/supply/api/supply/groups');
