@@ -30,13 +30,22 @@
     
     <!-- Мета-теги для PWA -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="СтройКомплекс">
     <meta name="application-name" content="СтройКомплекс">
     <meta name="msapplication-TileColor" content="#007bff">
     <meta name="theme-color" content="#007bff">
+    
+    <!-- Fullscreen mobile meta tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    
+    <!-- iOS specific meta tags for fullscreen -->
+    <meta name="apple-touch-fullscreen" content="yes">
     <link href="/static/css/sidebars.css" rel="stylesheet">
     <link href="/static/css/mobile.css" rel="stylesheet">
+    <link href="/static/css/fullscreen-mobile.css" rel="stylesheet">
 
     <style>
         .bd-placeholder-img {
@@ -724,28 +733,38 @@
     </div> <!--SIDEBAR ПЛАШКА-->
     <div class="divider vertical-rule"></div>
     
-    <!-- Мобильный хедер -->
+    <!-- Мобильная структура -->
     {% if is_mobile %}
-    <div class="mobile-header d-md-none">
-        <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-        <h1>{% block mobile_title %}{{ gettext('СтройКомплекс') }}{% endblock %}</h1>
-        <div></div> <!-- Пустой div для выравнивания -->
+    <div class="mobile-app">
+        <!-- Мобильный хедер -->
+        <div class="mobile-header d-md-none">
+            <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <h1>{% block mobile_title %}{{ gettext('СтройКомплекс') }}{% endblock %}</h1>
+            <div></div> <!-- Пустой div для выравнивания -->
+        </div>
+        
+        <!-- Мобильный контент -->
+        <div class="mobile-content flex-grow-1 p-4">
+            {% block content %}{% endblock %}
+        </div>
+        
+        <!-- Оверлей для мобильного меню -->
+        <div class="mobile-overlay" id="mobileOverlay"></div>
     </div>
-    
-    <!-- Оверлей для мобильного меню -->
-    <div class="mobile-overlay" id="mobileOverlay"></div>
-    {% endif %}
-    
+    {% else %}
+    <!-- Десктопная структура -->
     <div class="flex-grow-1 p-4">
         {% block content %}{% endblock %}
     </div>
+    {% endif %}
 </main>
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/sidebars.js"></script>
+<script src="/static/js/fullscreen-mobile.js"></script>
 
 <!-- Мобильное меню JavaScript -->
 {% if is_mobile %}
