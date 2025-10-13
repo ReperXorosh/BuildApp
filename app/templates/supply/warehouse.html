@@ -457,7 +457,6 @@ function closeGroup() {
 }
 
 async function openGroup(group) {
-  document.getElementById('groupTitle').textContent = group.name;
   const panel = document.getElementById('groupItems');
   panel.style.display = 'block';
   panel.dataset.groupId = group.id;
