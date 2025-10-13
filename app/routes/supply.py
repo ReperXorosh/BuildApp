@@ -46,7 +46,7 @@ def has_warehouse_read_access():
     # разрешаем все роли из is_supplier_or_admin + прораб
     return any(k in role for k in ['снабжен', 'пто', 'ген', 'зам', 'прораб'])
 
-@supply.route('/supply')
+@supply.route('/')
 @login_required
 def supply_dashboard():
     """Главная страница системы снабжения"""
