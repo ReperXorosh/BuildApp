@@ -668,7 +668,7 @@
        </li>
        {% endif %}
        
-       {% if current_user.role in ['Снабженец', 'Инженер ПТО', 'Ген.Директор'] %}
+      {% if current_user.role in ['Снабженец', 'Инженер ПТО', 'Зам. директор', 'Ген. директор', 'Ген.Директор'] %}
        <li>
            <a href="{{ url_for('supply.supply_dashboard') }}"
               class="nav-link {{ 'active' if active_page == 'supply' else 'link-body-emphasis' }}">
