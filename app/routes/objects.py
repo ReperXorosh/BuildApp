@@ -127,8 +127,8 @@ def inject_gettext():
 @cache.cached(timeout=30, query_string=True)
 def object_list():
     """Список всех объектов"""
-    # Ограничиваем доступ для роли Снабженец: перенаправляем на Снабжение
-    if getattr(current_user, 'role', None) == 'Снабженец':
+    # Ограничиваем доступ для всех кроме Инженер ПТО: перенаправляем на Снабжение
+    if getattr(current_user, 'role', None) != 'Инженер ПТО':
         return redirect(url_for('supply.supply_dashboard'))
     # Пагинация и выбор только нужных полей для ускорения ответа
     from sqlalchemy.orm import load_only

@@ -141,12 +141,12 @@ def sign_in():
     # Если пользователь уже аутентифицирован (включая remember-cookie), сразу в приложение
     from flask_login import current_user
     if current_user.is_authenticated:
-        # Для снабженца главной страницей делаем Снабжение
+        # Для всех ролей, кроме Инженер ПТО, главная страница — Снабжение
         try:
-            if getattr(current_user, 'role', None) == 'Снабженец':
+            if getattr(current_user, 'role', None) != 'Инженер ПТО':
                 return redirect(url_for('supply.supply_dashboard'))
         except Exception:
-            pass
+            return redirect(url_for('supply.supply_dashboard'))
         return redirect(url_for('objects.object_list'))
     # Определяем, нужно ли использовать мобильный шаблон
     from ..utils.mobile_detection import is_mobile_device
@@ -991,7 +991,7 @@ def view_user_profile(user_id):
 @login_required
 def reports():
     # Проверяем, что пользователь не является снабженцем
-    if current_user.role == 'Снабженец':
+    if current_user.role != 'Инженер ПТО':
         flash('У вас нет прав для просмотра отчётов', 'error')
         return redirect(url_for('objects.object_list'))
     

@@ -579,7 +579,7 @@
         </a>
         <hr>
         <ul class="nav nav-pills flex-column mb-auto">
-            {% if current_user.role != 'Снабженец' %}
+            {% if current_user.role == 'Инженер ПТО' %}
             <li class="nav-item">
                 <a href="{{ url_for('objects.object_list') }}"
                    class="nav-link {{ 'active' if active_page == 'object-list' else 'link-body-emphasis' }}"
@@ -591,7 +591,7 @@
                 </a>
             </li>
             {% endif %}
-            {% if current_user.role != 'Снабженец' %}
+            {% if current_user.role == 'Инженер ПТО' %}
             <li class="nav-item">
                 <a href="{{ url_for('objects.planned_works_overview') }}"
                    class="nav-link {{ 'active' if active_page == 'planned-works' else 'link-body-emphasis' }}">
@@ -610,7 +610,7 @@
                          <!--                        {{ gettext('Календарь') }}-->
             <!--                    </a>-->
             <!--                </li>-->
-            {% if current_user.role != 'Снабженец' %}
+            {% if current_user.role == 'Инженер ПТО' %}
             <li>
                 <a href="{{ url_for('main.calendar') }}"
                    class="nav-link {{ 'active' if active_page == 'calendar' else 'link-body-emphasis' }}">
@@ -621,7 +621,7 @@
                 </a>
             </li>
             {% endif %}
-            {% if current_user.role != 'Снабженец' %}
+            {% if current_user.role == 'Инженер ПТО' %}
             <li>
                 <a href="{{ url_for('main.others') }}"
                    class="nav-link {{ 'active' if active_page == 'others' else 'link-body-emphasis' }}">
