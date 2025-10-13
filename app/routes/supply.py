@@ -10,6 +10,8 @@ from app.models.supply import (
     UserMaterialAllocation,
     SupplyRequest,
     SupplyRequestItem,
+    MaterialGroup,
+    MaterialGroupItem,
 )
 from app.models.users import Users
 from app.models.activity_log import ActivityLog
@@ -551,6 +553,57 @@ def api_materials():
     
     materials = Material.query.filter_by(is_active=True).all()
     return jsonify([material.to_dict() for material in materials])
+
+@supply.route('/api/supply/groups', methods=['GET', 'POST'])
+@login_required
+def api_groups():
+    """Список групп / создание группы."""
+    if not is_supplier_or_admin():
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    if request.method == 'GET':
+        groups = MaterialGroup.query.order_by(MaterialGroup.name).all()
+        return jsonify([g.to_dict() for g in groups])
+    data = request.get_json() or {}
+    name = (data.get('name') or '').strip()
+    description = (data.get('description') or '').strip() or None
+    if not name:
+        return jsonify({'error': 'Название обязательно'}), 400
+    if MaterialGroup.query.filter(db.func.lower(MaterialGroup.name) == name.lower()).first():
+        return jsonify({'error': 'Группа уже существует'}), 409
+    group = MaterialGroup(name=name, description=description, created_by=current_user.userid)
+    db.session.add(group)
+    db.session.commit()
+    return jsonify(group.to_dict()), 201
+
+@supply.route('/api/supply/groups/<uuid:group_id>/items', methods=['GET', 'POST', 'DELETE'])
+@login_required
+def api_group_items(group_id):
+    if not is_supplier_or_admin():
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    group = MaterialGroup.query.get_or_404(group_id)
+    if request.method == 'GET':
+        items = MaterialGroupItem.query.filter_by(group_id=group.id).all()
+        return jsonify([i.to_dict() for i in items])
+    data = request.get_json() or {}
+    material_id = data.get('material_id')
+    if request.method == 'POST':
+        if not material_id:
+            return jsonify({'error': 'material_id обязателен'}), 400
+        if MaterialGroupItem.query.filter_by(group_id=group.id, material_id=material_id).first():
+            return jsonify({'error': 'Материал уже в группе'}), 409
+        link = MaterialGroupItem(group_id=group.id, material_id=material_id)
+        db.session.add(link)
+        db.session.commit()
+        return jsonify(link.to_dict()), 201
+    # DELETE
+    if not material_id:
+        return jsonify({'error': 'material_id обязателен'}), 400
+    link = MaterialGroupItem.query.filter_by(group_id=group.id, material_id=material_id).first()
+    if not link:
+        return jsonify({'error': 'Связь не найдена'}), 404
+    db.session.delete(link)
+    db.session.commit()
+    return jsonify({'success': True})
 
 @supply.route('/api/supply/materials/all', methods=['GET'])
 @login_required

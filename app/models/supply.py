@@ -272,3 +272,48 @@ class SupplyRequestItem(db.Model):
             'unit': self.unit,
             'note': self.note,
         }
+
+
+class MaterialGroup(db.Model):
+    """Группа материалов для логического объединения позиций склада."""
+    __tablename__ = 'material_groups'
+
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = db.Column(db.String(120), nullable=False, unique=True)
+    description = db.Column(db.Text, nullable=True)
+    created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'), nullable=False)
+    created_at = db.Column(db.DateTime, default=get_moscow_now, nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'created_by': self.created_by,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+class MaterialGroupItem(db.Model):
+    """Связь материал <-> группа."""
+    __tablename__ = 'material_group_items'
+
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    group_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('material_groups.id'), nullable=False)
+    material_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('materials.id'), nullable=False)
+    added_at = db.Column(db.DateTime, default=get_moscow_now, nullable=False)
+
+    group = db.relationship('MaterialGroup', backref='items')
+    material = db.relationship('Material')
+
+    __table_args__ = (
+        db.UniqueConstraint('group_id', 'material_id', name='uq_group_material'),
+    )
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'group_id': self.group_id,
+            'material_id': self.material_id,
+            'added_at': self.added_at.isoformat() if self.added_at else None,
+        }
