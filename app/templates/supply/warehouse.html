@@ -148,10 +148,6 @@
                         <!-- группы загружаются через JS -->
                     </div>
                     <div id="groupItems" style="display:none;">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6 class="mb-0" id="groupTitle">Состав группы</h6>
-                            <button class="btn btn-sm btn-outline-secondary" onclick="closeGroup()">Закрыть</button>
-                        </div>
                         <div id="groupItemsList" class="list-group"></div>
                     </div>
                 </div>
@@ -437,7 +433,7 @@ async function loadGroups() {
       a.href = 'javascript:void(0)';
       a.className = 'list-group-item list-group-item-action';
       a.textContent = g.name;
-      a.onclick = () => openGroup(g);
+      a.onclick = () => toggleGroup(g);
       list.appendChild(a);
     });
   } catch (e) { console.error(e); }
@@ -454,6 +450,18 @@ async function openGroup(group) {
   panel.style.display = 'block';
   panel.dataset.groupId = group.id;
   await reloadGroupItems(group.id);
+}
+
+function toggleGroup(group) {
+  const panel = document.getElementById('groupItems');
+  // Если уже открыт этот же groupId — свернём панель
+  if (panel.style.display !== 'none' && panel.dataset.groupId === String(group.id)) {
+    panel.style.display = 'none';
+    panel.dataset.groupId = '';
+    return;
+  }
+  // Иначе откроем выбранную группу
+  openGroup(group);
 }
 
 async function reloadGroupItems(groupId) {
