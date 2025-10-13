@@ -378,21 +378,34 @@ let groupsCache = [];
 let materialsInGroups = new Set();
 // ---------------- ГРУППЫ МАТЕРИАЛОВ ----------------
 async function refreshMaterialsInGroups() {
+  // Не блокируем UI: ограничиваем таймаутом и выполняем запросы параллельно
+  const withTimeout = (p, ms = 5000) => Promise.race([
+    p,
+    new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))
+  ]);
   try {
-    const resGroups = await fetch('/supply/api/supply/groups');
+    const resGroups = await withTimeout(fetch('/supply/api/supply/groups'));
     const groups = await resGroups.json();
-    const agg = new Set();
-    if (Array.isArray(groups)) {
-      for (const g of groups) {
-        try {
-          const resItems = await fetch(`/supply/api/supply/groups/${g.id}/items`);
-          const items = await resItems.json();
-          if (Array.isArray(items)) items.forEach(it => agg.add(it.material_id));
-        } catch {}
-      }
+    if (!Array.isArray(groups) || groups.length === 0) {
+      materialsInGroups = new Set();
+      return;
     }
+    const itemPromises = groups.map(g =>
+      withTimeout(fetch(`/supply/api/supply/groups/${g.id}/items`).then(r => r.json()).catch(() => []), 5000)
+        .catch(() => [])
+    );
+    const results = await Promise.allSettled(itemPromises);
+    const agg = new Set();
+    results.forEach(r => {
+      if (r.status === 'fulfilled' && Array.isArray(r.value)) {
+        r.value.forEach(it => it && it.material_id && agg.add(it.material_id));
+      }
+    });
     materialsInGroups = agg;
-  } catch { materialsInGroups = new Set(); }
+  } catch (e) {
+    console.warn('refreshMaterialsInGroups failed', e);
+    materialsInGroups = new Set();
+  }
 }
 async function submitCreateGroup() {
   const nameEl = document.getElementById('groupNameInput');
