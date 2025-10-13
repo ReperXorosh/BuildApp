@@ -73,7 +73,7 @@
                         <span class="d-none d-sm-inline">История</span>
                         <span class="d-inline d-sm-none">История</span>
                     </a>
-                    {% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}
+                    {% if current_user.role == 'Инженер ПТО' %}
                     <button type="button" class="btn btn-outline-primary btn-sm" id="toggleHiddenMaterials" title="Показать/скрыть удаленные материалы">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-1" style="vertical-align: middle;">
                             <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -380,6 +380,23 @@ let materialsCache = [];
 // Материалы, которые уже состоят в каких-либо группах (для скрытия кнопки "+")
 let materialsInGroups = new Set();
 // ---------------- ГРУППЫ МАТЕРИАЛОВ ----------------
+async function refreshMaterialsInGroups() {
+  try {
+    const resGroups = await fetch('/supply/api/supply/groups');
+    const groups = await resGroups.json();
+    const agg = new Set();
+    if (Array.isArray(groups)) {
+      for (const g of groups) {
+        try {
+          const resItems = await fetch(`/supply/api/supply/groups/${g.id}/items`);
+          const items = await resItems.json();
+          if (Array.isArray(items)) items.forEach(it => agg.add(it.material_id));
+        } catch {}
+      }
+    }
+    materialsInGroups = agg;
+  } catch { materialsInGroups = new Set(); }
+}
 async function submitCreateGroup() {
   const nameEl = document.getElementById('groupNameInput');
   const descEl = document.getElementById('groupDescriptionInput');
@@ -444,17 +461,7 @@ async function reloadGroupItems(groupId) {
     const res = await fetch(`/supply/api/supply/groups/${groupId}/items`);
     const items = await res.json();
     // Обновляем множество материалов в группах (по всем группам)
-    try {
-      const all = await (await fetch('/supply/api/supply/groups')).json();
-      const agg = new Set();
-      for (const g of all) {
-        try {
-          const it = await (await fetch(`/supply/api/supply/groups/${g.id}/items`)).json();
-          it.forEach(x => agg.add(x.material_id));
-        } catch {}
-      }
-      materialsInGroups = agg;
-    } catch { materialsInGroups = new Set(); }
+    await refreshMaterialsInGroups();
     const list = document.getElementById('groupItemsList');
     list.innerHTML = '';
     if (!Array.isArray(items) || items.length === 0) {
@@ -469,7 +476,7 @@ async function reloadGroupItems(groupId) {
       row.className = 'list-group-item d-flex justify-content-between align-items-center';
       const mat = (materialsCache || []).find(m => m.id === i.material_id);
       const label = mat ? mat.name : i.material_id;
-      row.innerHTML = `<span>${label}</span>` +
+      row.innerHTML = `<span class="group-item-link" onclick="viewMaterial('${i.material_id}')" style="cursor:pointer;">${label}</span>` +
         `{% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}` +
         `<button class="btn btn-sm btn-outline-danger" onclick="removeFromGroup('${i.material_id}')">Убрать</button>` +
         `{% endif %}`;
@@ -1621,7 +1628,8 @@ function hideReceiptExistsInfo() {
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
   console.log('=== DOM ЗАГРУЖЕН, НАЧИНАЕМ ИНИЦИАЛИЗАЦИЮ ===');
-  loadMaterials();
+  // Сначала получаем, какие материалы уже состоят в группах, чтобы корректно скрывать плюс
+  refreshMaterialsInGroups().then(loadMaterials).catch(loadMaterials);
   setupQuantityValidation();
   
   // Поиск
