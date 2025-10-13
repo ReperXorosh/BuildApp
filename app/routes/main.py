@@ -141,6 +141,12 @@ def sign_in():
     # Если пользователь уже аутентифицирован (включая remember-cookie), сразу в приложение
     from flask_login import current_user
     if current_user.is_authenticated:
+        # Для снабженца главной страницей делаем Снабжение
+        try:
+            if getattr(current_user, 'role', None) == 'Снабженец':
+                return redirect(url_for('supply.supply_dashboard'))
+        except Exception:
+            pass
         return redirect(url_for('objects.object_list'))
     # Определяем, нужно ли использовать мобильный шаблон
     from ..utils.mobile_detection import is_mobile_device
