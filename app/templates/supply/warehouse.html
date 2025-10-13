@@ -535,13 +535,29 @@ async function loadMaterials() {
     const sep = url.includes('?') ? '&' : '?';
     url = `${url}${sep}_=${Date.now()}`; // cache-busting
     const response = await fetch(url, { cache: 'no-store' });
-    const materials = await response.json();
+    let materials = await response.json();
     materialsCache = Array.isArray(materials) ? materials : [];
     console.log('=== МАТЕРИАЛЫ ЗАГРУЖЕНЫ ===', materials);
     
     const tbody = document.getElementById('materials-table');
     tbody.innerHTML = '';
     
+    // Если вдруг получили пусто при режиме активных, попробуем подстраховаться и запросить "все"
+    if ((!Array.isArray(materials) || materials.length === 0) && !showHiddenMaterials) {
+      try {
+        let urlAll = '{{ url_for("supply.api_materials_all") }}';
+        const sepAll = urlAll.includes('?') ? '&' : '?';
+        urlAll = `${urlAll}${sepAll}_=${Date.now()}`;
+        const resAll = await fetch(urlAll, { cache: 'no-store' });
+        if (resAll.ok) {
+          const dataAll = await resAll.json();
+          if (Array.isArray(dataAll) && dataAll.length > 0) {
+            materials = dataAll.filter(m => m.is_active !== false);
+          }
+        }
+      } catch (e) { console.warn('Fallback load all failed', e); }
+    }
+
     materials.forEach(material => {
       const row = document.createElement('tr');
       row.setAttribute('data-material-id', material.id);
@@ -664,8 +680,7 @@ async function loadMaterials() {
       {% endif %}
       tbody.appendChild(row);
     });
-    // Применим текущий фильтр после отрисовки
-    filterMaterials();
+    // Не применяем авто-фильтр, чтобы не спрятать строки при пустом поле
   } catch (error) {
     console.error('Ошибка загрузки материалов:', error);
   }
