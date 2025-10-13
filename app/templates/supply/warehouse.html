@@ -377,6 +377,8 @@ console.log('=== СКРИПТ ЗАГРУЖЕН ===');
 // Переменная для отслеживания режима просмотра
 let showHiddenMaterials = false;
 let materialsCache = [];
+// Материалы, которые уже состоят в каких-либо группах (для скрытия кнопки "+")
+let materialsInGroups = new Set();
 // ---------------- ГРУППЫ МАТЕРИАЛОВ ----------------
 async function submitCreateGroup() {
   const nameEl = document.getElementById('groupNameInput');
