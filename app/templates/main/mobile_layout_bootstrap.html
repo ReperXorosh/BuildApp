@@ -43,6 +43,11 @@
     <!-- iOS specific meta tags for fullscreen -->
     <meta name="apple-touch-fullscreen" content="yes">
     
+    <!-- Дополнительные мета-теги для iPhone 16 Pro и новых устройств -->
+    <meta name="apple-mobile-web-app-orientations" content="portrait">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
     <!-- Критический CSS для мобильных (inline для быстрой загрузки) -->
     <style>
         /* Мобильный хедер */
@@ -1395,8 +1400,13 @@
             
             // Принудительное полноэкранное отображение
             try {
+                console.log('=== НАЧИНАЕМ АГРЕССИВНОЕ СКРЫТИЕ UI БРАУЗЕРА ===');
+                console.log('User Agent:', navigator.userAgent);
+                console.log('Standalone mode:', window.navigator.standalone);
+                
                 // Агрессивное скрытие UI браузера
                 const hideBrowserUI = () => {
+                    console.log('=== ВЫЗЫВАЕМ hideBrowserUI ===');
                     // Принудительно устанавливаем высоту
                     document.documentElement.style.height = '100vh';
                     document.documentElement.style.height = '100dvh';
@@ -1412,6 +1422,9 @@
                         console.log('PWA режим - полноэкранный');
                     } else {
                         // Обычный браузер - пытаемся скрыть UI
+                        console.log('Обычный браузер - скрываем UI');
+                        
+                        // Агрессивное скрытие UI для iPhone 16 Pro
                         window.scrollTo(0, 1);
                         setTimeout(() => window.scrollTo(0, 0), 100);
                         
@@ -1430,11 +1443,36 @@
                             window.scrollTo(0, 1);
                             setTimeout(() => window.scrollTo(0, 0), 50);
                         }, 1000);
+                        
+                        // Дополнительные попытки для iPhone 16 Pro
+                        setTimeout(() => {
+                            window.scrollTo(0, 1);
+                            setTimeout(() => window.scrollTo(0, 0), 50);
+                        }, 1500);
+                        
+                        setTimeout(() => {
+                            window.scrollTo(0, 1);
+                            setTimeout(() => window.scrollTo(0, 0), 50);
+                        }, 2000);
+                        
+                        // Принудительное скрытие через изменение размера окна
+                        setTimeout(() => {
+                            window.scrollTo(0, 1);
+                            window.scrollTo(0, 0);
+                        }, 2500);
                     }
                 };
                 
                 // Вызываем сразу
                 hideBrowserUI();
+                
+                // Специальная техника для iPhone 16 Pro - принудительное скрытие через viewport
+                setTimeout(() => {
+                    const viewport = document.querySelector('meta[name="viewport"]');
+                    if (viewport) {
+                        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+                    }
+                }, 100);
                 
                 // Вызываем при изменении ориентации
                 window.addEventListener('orientationchange', () => {
@@ -1445,10 +1483,13 @@
                     setTimeout(hideBrowserUI, 100);
                 });
                 
-                // Дополнительные вызовы
+                // Дополнительные вызовы для iPhone 16 Pro
                 setTimeout(hideBrowserUI, 1000);
                 setTimeout(hideBrowserUI, 2000);
                 setTimeout(hideBrowserUI, 3000);
+                setTimeout(hideBrowserUI, 4000);
+                setTimeout(hideBrowserUI, 5000);
+                setTimeout(hideBrowserUI, 6000);
                 
                 // Предотвращаем зум при двойном тапе
                 let lastTouchEnd = 0;
@@ -1469,6 +1510,11 @@
                 document.addEventListener('touchstart', hideBrowserUI, { passive: true });
                 document.addEventListener('touchend', hideBrowserUI, { passive: true });
                 document.addEventListener('scroll', hideBrowserUI, { passive: true });
+                document.addEventListener('click', hideBrowserUI, { passive: true });
+                document.addEventListener('mousedown', hideBrowserUI, { passive: true });
+                document.addEventListener('mouseup', hideBrowserUI, { passive: true });
+                document.addEventListener('focus', hideBrowserUI, { passive: true });
+                document.addEventListener('blur', hideBrowserUI, { passive: true });
                 
             } catch(e) {
                 console.warn('Ошибка при скрытии UI браузера:', e);

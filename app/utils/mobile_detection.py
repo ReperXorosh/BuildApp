@@ -11,8 +11,12 @@ def is_mobile_device():
     """
     user_agent = request.headers.get('User-Agent', '').lower()
     
-    # Дополнительная проверка для Safari на iOS
+    # Дополнительная проверка для Safari на iOS (включая новые iPhone)
     if 'safari' in user_agent and ('iphone' in user_agent or 'ipad' in user_agent or 'ipod' in user_agent):
+        return True
+    
+    # Проверка для новых iPhone (iPhone 16 Pro и другие)
+    if 'iphone' in user_agent or 'mobile' in user_agent:
         return True
     
     # Паттерны для мобильных устройств
