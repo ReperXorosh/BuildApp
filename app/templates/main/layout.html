@@ -633,8 +633,8 @@
             </li>
             {% endif %}
              
-             <!-- Отчёты - доступны всем ролям кроме снабженца -->
-             {% if current_user.role != 'Снабженец' %}
+            <!-- Отчёты - доступны только роли Инженер ПТО -->
+            {% if current_user.role == 'Инженер ПТО' %}
              <li>
                  <a href="{{ url_for('main.reports') }}"
                     class="nav-link {{ 'active' if active_page == 'reports' else 'link-body-emphasis' }}">
@@ -645,7 +645,7 @@
                  </a>
              </li>
              {% endif %}
-                    {% if current_user.role in ['Инженер ПТО', 'Ген.Директор'] %}
+                   {% if current_user.role == 'Инженер ПТО' %}
        <li>
            <a href="{{ url_for('main.users') }}"
               class="nav-link {{ 'active' if active_page == 'users' else 'link-body-emphasis' }}">
