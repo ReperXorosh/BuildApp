@@ -50,7 +50,9 @@ def has_warehouse_read_access():
 @login_required
 def supply_dashboard():
     """Главная страница системы снабжения"""
-    if not is_supplier_or_admin():
+    # Разрешаем просмотр дашборда всем с правом чтения склада,
+    # чтобы избежать редирект-петли с /objects
+    if not has_warehouse_read_access():
         flash('У вас нет прав для доступа к системе снабжения', 'error')
         return redirect(url_for('objects.object_list'))
     
