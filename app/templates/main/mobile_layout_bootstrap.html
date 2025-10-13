@@ -201,6 +201,41 @@
     <link href="/static/css/mobile.css" rel="stylesheet">
     <link href="/static/css/fullscreen-mobile.css" rel="stylesheet">
     
+    <!-- Переопределяем стили для полноэкранного режима -->
+    <style>
+        /* Принудительное полноэкранное отображение - переопределяем все остальные стили */
+        @media (max-width: 768px) {
+            html, body {
+                height: 100vh !important;
+                height: 100dvh !important;
+                overflow: hidden !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                position: fixed !important;
+                width: 100% !important;
+            }
+            
+            .mobile-app {
+                height: 100vh !important;
+                height: 100dvh !important;
+                display: flex !important;
+                flex-direction: column !important;
+                overflow: hidden !important;
+                position: relative !important;
+            }
+            
+            .mobile-content {
+                flex: 1 !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                scroll-behavior: smooth !important;
+                overscroll-behavior: contain !important;
+                height: calc(100vh - 60px) !important;
+                height: calc(100dvh - 60px) !important;
+            }
+        }
+    </style>
+    
     <style>
         /* Все стили из десктопного layout */
         .bd-placeholder-img {
@@ -1360,21 +1395,60 @@
             
             // Принудительное полноэкранное отображение
             try {
-                // Скрываем адресную строку на iOS Safari
-                if (window.navigator.standalone !== undefined) {
-                    // PWA режим
+                // Агрессивное скрытие UI браузера
+                const hideBrowserUI = () => {
+                    // Принудительно устанавливаем высоту
+                    document.documentElement.style.height = '100vh';
+                    document.documentElement.style.height = '100dvh';
                     document.body.style.height = '100vh';
                     document.body.style.height = '100dvh';
-                } else {
-                    // Обычный браузер - пытаемся скрыть UI
-                    const hideUI = () => {
+                    document.body.style.overflow = 'hidden';
+                    document.body.style.position = 'fixed';
+                    document.body.style.width = '100%';
+                    
+                    // Скрываем адресную строку на iOS Safari
+                    if (window.navigator.standalone !== undefined) {
+                        // PWA режим - уже полноэкранный
+                        console.log('PWA режим - полноэкранный');
+                    } else {
+                        // Обычный браузер - пытаемся скрыть UI
                         window.scrollTo(0, 1);
                         setTimeout(() => window.scrollTo(0, 0), 100);
-                    };
-                    hideUI();
-                    window.addEventListener('orientationchange', hideUI);
-                    window.addEventListener('resize', hideUI);
-                }
+                        
+                        // Дополнительные попытки
+                        setTimeout(() => {
+                            window.scrollTo(0, 1);
+                            setTimeout(() => window.scrollTo(0, 0), 50);
+                        }, 200);
+                        
+                        setTimeout(() => {
+                            window.scrollTo(0, 1);
+                            setTimeout(() => window.scrollTo(0, 0), 50);
+                        }, 500);
+                        
+                        setTimeout(() => {
+                            window.scrollTo(0, 1);
+                            setTimeout(() => window.scrollTo(0, 0), 50);
+                        }, 1000);
+                    }
+                };
+                
+                // Вызываем сразу
+                hideBrowserUI();
+                
+                // Вызываем при изменении ориентации
+                window.addEventListener('orientationchange', () => {
+                    setTimeout(hideBrowserUI, 500);
+                });
+                
+                window.addEventListener('resize', () => {
+                    setTimeout(hideBrowserUI, 100);
+                });
+                
+                // Дополнительные вызовы
+                setTimeout(hideBrowserUI, 1000);
+                setTimeout(hideBrowserUI, 2000);
+                setTimeout(hideBrowserUI, 3000);
                 
                 // Предотвращаем зум при двойном тапе
                 let lastTouchEnd = 0;
@@ -1391,7 +1465,14 @@
                     e.preventDefault();
                 });
                 
-            } catch(_) {}
+                // Принудительно скрываем UI при любом взаимодействии
+                document.addEventListener('touchstart', hideBrowserUI, { passive: true });
+                document.addEventListener('touchend', hideBrowserUI, { passive: true });
+                document.addEventListener('scroll', hideBrowserUI, { passive: true });
+                
+            } catch(e) {
+                console.warn('Ошибка при скрытии UI браузера:', e);
+            }
         });
 
         // Лёгкая PJAX-навигация: подменяем контент <main> без перезагрузки

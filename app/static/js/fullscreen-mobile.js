@@ -8,7 +8,16 @@
     
     // Проверяем, что мы на мобильном устройстве
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (!isMobile) return;
+    const isMobileScreen = window.innerWidth <= 768;
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    
+    // Применяем полноэкранный режим если это мобильное устройство ИЛИ маленький экран ИЛИ touch устройство
+    if (!isMobile && !isMobileScreen && !isTouchDevice) {
+        console.log('Не мобильное устройство, пропускаем полноэкранный режим');
+        return;
+    }
+    
+    console.log('Мобильное устройство обнаружено:', { isMobile, isMobileScreen, isTouchDevice });
     
     // Функция для скрытия UI браузера
     function hideBrowserUI() {

@@ -11,6 +11,10 @@ def is_mobile_device():
     """
     user_agent = request.headers.get('User-Agent', '').lower()
     
+    # Дополнительная проверка для Safari на iOS
+    if 'safari' in user_agent and ('iphone' in user_agent or 'ipad' in user_agent or 'ipod' in user_agent):
+        return True
+    
     # Паттерны для мобильных устройств
     mobile_patterns = [
         r'android',

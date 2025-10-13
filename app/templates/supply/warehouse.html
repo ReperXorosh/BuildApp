@@ -367,6 +367,11 @@
     </div>
 </div>
 
+<!-- Определяем права пользователя для управления материалами -->
+<script>
+window.userCanManageMaterials = /*{% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}*/true/*{% else %}false{% endif %}*/;
+</script>
+
 <script>
 console.log('=== СКРИПТ ЗАГРУЖЕН ===');
 
@@ -606,6 +611,10 @@ async function submitAddMaterialToGroup() {
 // Загрузка материалов в таблицу
 async function loadMaterials() {
   console.log('=== НАЧИНАЕМ ЗАГРУЗКУ МАТЕРИАЛОВ ===');
+  
+  // Определяем права пользователя для управления материалами
+  const userCanManageMaterials = window.userCanManageMaterials || false;
+  
   try {
     const url = showHiddenMaterials ? '{{ url_for("supply.api_materials_all") }}' : '{{ url_for("supply.api_materials") }}';
     const response = await fetch(url);
@@ -709,9 +718,8 @@ async function loadMaterials() {
           `;
         }
       }
-      {% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}
-      // Плюс "добавить в группу" если материал не в группе
-      if (!materialsInGroups.has(material.id)) {
+      // Плюс "добавить в группу" если материал не в группе (только для определенных ролей)
+      if (userCanManageMaterials && !materialsInGroups.has(material.id)) {
         actionsHtml += `
           <button class="btn btn-sm btn-outline-success ms-1 action-button" title="Добавить в группу" onclick="event.stopPropagation(); event.stopImmediatePropagation(); openAddToGroupModal('${material.id}')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -719,7 +727,6 @@ async function loadMaterials() {
             </svg>
           </button>`;
       }
-      {% endif %}
       
       row.innerHTML = `
         <td>
@@ -735,19 +742,17 @@ async function loadMaterials() {
         <td class="text-center">${material.current_quantity || 0}</td>
         <td class="text-center">${material.min_quantity || 0}</td>
         <td>${statusBadge}</td>
-        {% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}
-        <td>${actionsHtml}</td>
-        {% endif %}
+        ${userCanManageMaterials ? `<td>${actionsHtml}</td>` : ''}
       `;
       
       
-      // Вставляем собранные действия
-      {% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}
-      const cells = row.querySelectorAll('td');
-      if (cells && cells.length) {
-        cells[cells.length - 1].innerHTML = actionsHtml;
+      // Вставляем собранные действия (только для определенных ролей)
+      if (userCanManageMaterials) {
+        const cells = row.querySelectorAll('td');
+        if (cells && cells.length) {
+          cells[cells.length - 1].innerHTML = actionsHtml;
+        }
       }
-      {% endif %}
       tbody.appendChild(row);
     });
     // Применяем фильтр только если в поле есть текст
