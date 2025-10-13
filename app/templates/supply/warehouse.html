@@ -446,7 +446,7 @@ async function loadGroups() {
       const gid = item.dataset.groupId;
       const g = (groupsCache || []).find(x => String(x.id) === String(gid));
       console.log('GROUP CLICK', gid, g);
-      if (g) toggleGroup(g);
+      if (g) toggleGroup(g, item);
     };
   } catch (e) { console.error(e); }
 }
@@ -456,39 +456,38 @@ function closeGroup() {
   if (panel) panel.style.display = 'none';
 }
 
-async function openGroup(group) {
-  const panel = document.getElementById('groupItems');
-  panel.style.display = 'block';
-  panel.dataset.groupId = group.id;
-  await reloadGroupItems(group.id);
+async function openGroup(container, group) {
+  container.dataset.groupId = group.id;
+  await reloadGroupItemsInto(container, group.id);
 }
 
-function toggleGroup(group) {
-  const panel = document.getElementById('groupItems');
-  // Если уже открыт этот же groupId — свернём панель
-  if (panel.style.display !== 'none' && panel.dataset.groupId === String(group.id)) {
-    panel.style.display = 'none';
-    panel.dataset.groupId = '';
+function toggleGroup(group, anchorEl) {
+  const next = anchorEl.nextElementSibling;
+  if (next && next.classList.contains('group-items')) {
+    next.remove();
     return;
   }
-  // Иначе откроем выбранную группу
+  document.querySelectorAll('#groupsList .group-items').forEach(el => el.remove());
+  const container = document.createElement('div');
+  container.className = 'group-items';
+  container.innerHTML = '<div class="py-2 text-muted">Загрузка...</div>';
+  anchorEl.after(container);
   console.log('TOGGLE -> OPEN', group);
-  openGroup(group);
+  openGroupInto(container, group);
 }
 
-async function reloadGroupItems(groupId) {
+async function reloadGroupItemsInto(container, groupId) {
   try {
     const res = await fetch(`/supply/api/supply/groups/${groupId}/items`);
     const items = await res.json();
     // Обновляем множество материалов в группах (по всем группам)
     await refreshMaterialsInGroups();
-    const list = document.getElementById('groupItemsList');
-    list.innerHTML = '';
+    container.innerHTML = '';
     if (!Array.isArray(items) || items.length === 0) {
       const empty = document.createElement('div');
-      empty.className = 'text-muted';
+      empty.className = 'text-muted py-2';
       empty.textContent = 'В группе пока нет материалов';
-      list.appendChild(empty);
+      container.appendChild(empty);
       return;
     }
     items.forEach(i => {
@@ -500,7 +499,7 @@ async function reloadGroupItems(groupId) {
         `{% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}` +
         `<button class="btn btn-sm btn-outline-danger" onclick="removeFromGroup('${i.material_id}')">Убрать</button>` +
         `{% endif %}`;
-      list.appendChild(row);
+      container.appendChild(row);
     });
   } catch (e) { console.error(e); }
 }
