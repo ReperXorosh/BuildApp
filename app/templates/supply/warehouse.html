@@ -117,7 +117,6 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>Название</th>
-                                    <th class="text-center">ID</th>
                                     <th class="text-center">Ед. изм.</th>
                                     <th class="text-center">Количество</th>
                                     <th class="text-center">Мин. запас</th>
@@ -153,10 +152,6 @@
                             <h6 class="mb-0" id="groupTitle">Состав группы</h6>
                             <button class="btn btn-sm btn-outline-secondary" onclick="closeGroup()">Закрыть</button>
                         </div>
-                        <div class="input-group mb-2">
-                            <input id="addMaterialId" class="form-control" placeholder="ID материала для добавления">
-                            <button class="btn btn-outline-primary" onclick="addToGroup()">Добавить</button>
-                        </div>
                         <div id="groupItemsList" class="list-group"></div>
                     </div>
                 </div>
@@ -165,6 +160,33 @@
         {% endif %}
     </div>
 </div>
+
+{% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}
+<!-- Модалка добавления позиции в группу -->
+<div class="modal fade" id="addToGroupModal" tabindex="-1" aria-labelledby="addToGroupModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addToGroupModalLabel">Добавить в группу</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="addToGroupMaterialId">
+        <div class="mb-3">
+          <label class="form-label">Группа <span class="text-danger">*</span></label>
+          <select id="addToGroupSelect" class="form-select">
+            <option value="">Выберите группу...</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        <button type="button" class="btn btn-primary" onclick="submitAddMaterialToGroup()">Добавить</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 
 <!-- Модалка создания группы -->
 {% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}
@@ -419,6 +441,18 @@ async function reloadGroupItems(groupId) {
   try {
     const res = await fetch(`/supply/api/supply/groups/${groupId}/items`);
     const items = await res.json();
+    // Обновляем множество материалов в группах (по всем группам)
+    try {
+      const all = await (await fetch('/supply/api/supply/groups')).json();
+      const agg = new Set();
+      for (const g of all) {
+        try {
+          const it = await (await fetch(`/supply/api/supply/groups/${g.id}/items`)).json();
+          it.forEach(x => agg.add(x.material_id));
+        } catch {}
+      }
+      materialsInGroups = agg;
+    } catch { materialsInGroups = new Set(); }
     const list = document.getElementById('groupItemsList');
     list.innerHTML = '';
     if (!Array.isArray(items) || items.length === 0) {
@@ -440,19 +474,7 @@ async function reloadGroupItems(groupId) {
   } catch (e) { console.error(e); }
 }
 
-async function addToGroup() {
-  const groupPanel = document.getElementById('groupItems');
-  const groupId = groupPanel.dataset.groupId;
-  const materialId = document.getElementById('addMaterialId').value.trim();
-  if (!materialId) return;
-  try {
-    const res = await fetch(`/supply/api/supply/groups/${groupId}/items`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({material_id: materialId})});
-    const data = await res.json();
-    if (!res.ok) { alert(data.error || 'Ошибка'); return; }
-    document.getElementById('addMaterialId').value='';
-    reloadGroupItems(groupId);
-  } catch (e) { console.error(e); }
-}
+// Удалили функцию добавления по ID — панель групп теперь только для просмотра
 
 async function removeFromGroup(materialId) {
   const groupId = document.getElementById('groupItems').dataset.groupId;
@@ -462,6 +484,45 @@ async function removeFromGroup(materialId) {
     if (!res.ok) { alert(data.error || 'Ошибка'); return; }
     reloadGroupItems(groupId);
   } catch (e) { console.error(e); }
+}
+
+// Открыть модалку добавления в группу
+function openAddToGroupModal(materialId) {
+  const sel = document.getElementById('addToGroupSelect');
+  const hid = document.getElementById('addToGroupMaterialId');
+  if (hid) hid.value = materialId;
+  if (sel) {
+    sel.innerHTML = '<option value="">Загрузка...</option>';
+    fetch('/supply/api/supply/groups').then(r => r.json()).then(groups => {
+      sel.innerHTML = '<option value="">Выберите группу...</option>';
+      groups.forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g.id;
+        opt.textContent = g.name;
+        sel.appendChild(opt);
+      });
+    }).catch(() => { sel.innerHTML = '<option value="">Ошибка загрузки групп</option>'; });
+  }
+  const el = document.getElementById('addToGroupModal');
+  if (el) (bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el)).show();
+}
+
+// Подтвердить добавление материала в выбранную группу
+async function submitAddMaterialToGroup() {
+  const materialId = document.getElementById('addToGroupMaterialId').value;
+  const groupId = document.getElementById('addToGroupSelect').value;
+  if (!groupId) { alert('Выберите группу'); return; }
+  try {
+    const res = await fetch(`/supply/api/supply/groups/${groupId}/items`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({material_id: materialId})});
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || 'Ошибка'); return; }
+    // Обновить множество, скрыть плюс для этой строки, перезагрузить состав группы
+    materialsInGroups.add(materialId);
+    loadMaterials();
+    reloadGroupItems(groupId);
+    const el = document.getElementById('addToGroupModal');
+    if (el) (bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el)).hide();
+  } catch (e) { console.error(e); alert('Ошибка связи с сервером'); }
 }
 
 // Загрузка материалов в таблицу
@@ -558,8 +619,18 @@ async function loadMaterials() {
           `;
         }
       }
+      {% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}
+      // Плюс "добавить в группу" если материал не в группе
+      if (!materialsInGroups.has(material.id)) {
+        actionsHtml += `
+          <button class="btn btn-sm btn-outline-success ms-1 action-button" title="Добавить в группу" onclick="event.stopPropagation(); event.stopImmediatePropagation(); openAddToGroupModal('${material.id}')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>`;
+      }
+      {% endif %}
       
-      const shortId = (material.id || '').toString().substring(0,8);
       row.innerHTML = `
         <td>
           <span class="material-name-clickable" 
@@ -569,12 +640,6 @@ async function loadMaterials() {
                 style="cursor: pointer; color: #0d6efd; text-decoration: underline;">
             ${material.name}
           </span>
-        </td>
-        <td class="text-center">
-          <code class="small">${shortId}</code>
-          <button class="btn btn-link btn-sm p-0 ms-1 align-baseline" title="Скопировать полный ID" onclick="copyMaterialId('${material.id}')">
-            <i class="bi bi-clipboard"></i>
-          </button>
         </td>
         <td class="text-center">${material.unit}</td>
         <td class="text-center">${material.current_quantity || 0}</td>
@@ -586,6 +651,10 @@ async function loadMaterials() {
       `;
       
       
+      // Вставляем собранные действия
+      {% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}
+      row.querySelector('td:last-child').innerHTML = actionsHtml;
+      {% endif %}
       tbody.appendChild(row);
     });
   } catch (error) {
