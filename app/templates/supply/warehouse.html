@@ -448,7 +448,10 @@ async function loadGroups() {
       const a = document.createElement('a');
       a.href = 'javascript:void(0)';
       a.className = 'list-group-item list-group-item-action';
-      a.textContent = g.name;
+    a.innerHTML = `<span>${g.name}</span>` +
+      `{% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}` +
+      `<button class="btn btn-sm btn-outline-danger float-end" title="Удалить группу" onclick="event.stopPropagation(); deleteGroup('${g.id}')">×</button>` +
+      `{% endif %}`;
       a.dataset.groupId = g.id;
       list.appendChild(a);
     });
@@ -518,6 +521,28 @@ async function reloadGroupItemsInto(container, groupId) {
   } catch (e) {
     console.error(e);
     container.innerHTML = '<div class="py-2 text-danger">Ошибка загрузки состава группы</div>';
+  }
+}
+
+// Удаление группы
+async function deleteGroup(groupId) {
+  if (!groupId) return;
+  if (!confirm('Удалить группу и все связи? Действие необратимо для связей (материалы останутся на складе).')) return;
+  try {
+    const res = await fetch(`/supply/api/supply/groups/${groupId}`, { method: 'DELETE' });
+    let data = {};
+    try { data = await res.json(); } catch {}
+    if (!res.ok) { alert((data && data.error) || 'Ошибка удаления группы'); return; }
+    // Обновляем список групп и множество материалов в группах
+    await loadGroups();
+    await refreshMaterialsInGroups();
+    // Если был открыт аккордеон этой группы — закроем его
+    document.querySelectorAll('#groupsList .group-items').forEach(el => el.remove());
+    // Обновим таблицу материалов, чтобы пересчитать иконку "+"
+    loadMaterials();
+  } catch (e) {
+    console.error(e);
+    alert('Ошибка связи с сервером');
   }
 }
 

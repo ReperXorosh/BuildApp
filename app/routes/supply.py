@@ -575,6 +575,36 @@ def api_groups():
     db.session.commit()
     return jsonify(group.to_dict()), 201
 
+@supply.route('/api/supply/groups/<uuid:group_id>', methods=['DELETE'])
+@login_required
+def api_groups_delete(group_id):
+    """Удаление группы с каскадным удалением её элементов (только Снабженец/Инженер ПТО)."""
+    if not is_supplier_or_admin():
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    group = MaterialGroup.query.get(group_id)
+    if not group:
+        return jsonify({'error': 'Группа не найдена'}), 404
+    try:
+        # Логируем действие
+        ActivityLog.log_action(
+            user_id=current_user.userid,
+            user_login=current_user.login,
+            action="Удаление группы материалов",
+            description=f"Удалена группа '{group.name}' и все её элементы",
+            ip_address=request.remote_addr,
+            page_url=request.url,
+            method=request.method
+        )
+
+        # Удаляем элементы группы, затем саму группу
+        MaterialGroupItem.query.filter_by(group_id=group.id).delete()
+        db.session.delete(group)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Ошибка удаления группы: {str(e)}'}), 500
+
 @supply.route('/api/supply/groups/<uuid:group_id>/items', methods=['GET', 'POST', 'DELETE'])
 @login_required
 def api_group_items(group_id):
