@@ -1242,6 +1242,9 @@ def api_list_movements():
                 creator = Users.query.get(mat.created_by)
                 if creator:
                     creator_name = f"{creator.secondname or ''} {creator.firstname or ''}".strip() or creator.login
+            else:
+                # Для старых материалов без created_by
+                creator_name = 'Система (старая запись)'
             
             result.append({
                 'id': str(mat.id),
