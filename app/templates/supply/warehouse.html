@@ -506,15 +506,6 @@ async function reloadGroupItemsInto(container, groupId) {
     // Обновляем множество материалов в группах (по всем группам)
     await refreshMaterialsInGroups();
     container.innerHTML = '';
-    // Поиск по элементам группы (первая строка в аккордеоне)
-    const searchWrap = document.createElement('div');
-    searchWrap.className = 'mb-2';
-    const searchInput = document.createElement('input');
-    searchInput.type = 'text';
-    searchInput.className = 'form-control';
-    searchInput.placeholder = 'Поиск по материалам в группе...';
-    searchWrap.appendChild(searchInput);
-    container.appendChild(searchWrap);
     // Контейнер списка
     const listEl = document.createElement('div');
     listEl.className = 'list-group';
@@ -536,31 +527,9 @@ async function reloadGroupItemsInto(container, groupId) {
         `<button class=\"btn btn-sm btn-outline-danger\" onclick=\"removeFromGroup('${i.material_id}','${groupId}')\">Убрать</button>` +
         `{% endif %}`;
       listEl.appendChild(row);
-      // После вставки берём фактический текст для надёжного поиска
-      const text = (row.querySelector('.group-item-link')?.textContent || '').toLowerCase();
-      row.dataset.label = text;
+      // dataset.label использовался для поиска, временно не нужен
     });
-    // Фильтрация по вводу
-    searchInput.addEventListener('input', function() {
-      const q = (this.value || '').trim().toLowerCase();
-      const rows = listEl.querySelectorAll('.group-item-row');
-      let visible = 0;
-      rows.forEach(r => {
-        const ok = !q || (r.dataset.label || '').includes(q);
-        r.style.display = ok ? '' : 'none';
-        if (ok) visible++;
-      });
-      // Если нет совпадений — показываем информер
-      let emptyEl = listEl.querySelector('.group-empty');
-      if (!emptyEl) {
-        emptyEl = document.createElement('div');
-        emptyEl.className = 'text-muted py-2 group-empty';
-        emptyEl.textContent = 'Ничего не найдено';
-        emptyEl.style.display = 'none';
-        listEl.appendChild(emptyEl);
-      }
-      emptyEl.style.display = (visible === 0) ? '' : 'none';
-    });
+    // Поиск временно отключён по запросу — без обработчиков
   } catch (e) {
     console.error(e);
     container.innerHTML = '<div class="py-2 text-danger">Ошибка загрузки состава группы</div>';
