@@ -17,6 +17,7 @@ class Material(db.Model):
     supplier = db.Column(db.String(200), nullable=True)
     price_per_unit = db.Column(db.Float, nullable=True)
     is_active = db.Column(db.Boolean, default=True, nullable=False)  # для мягкого удаления
+    created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'), nullable=True)
     created_at = db.Column(db.DateTime, default=get_moscow_now, nullable=False)
     updated_at = db.Column(db.DateTime, default=get_moscow_now, onupdate=get_moscow_now)
     
@@ -31,6 +32,7 @@ class Material(db.Model):
             'supplier': self.supplier,
             'price_per_unit': self.price_per_unit,
             'is_active': self.is_active,
+            'created_by': self.created_by,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }

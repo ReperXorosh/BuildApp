@@ -509,6 +509,9 @@ async function reloadGroupItemsInto(container, groupId) {
     // Контейнер списка
     const listEl = document.createElement('div');
     listEl.className = 'list-group';
+    // Убираем закругления у контейнера аккордеона
+    listEl.style.borderRadius = '0';
+    listEl.style.borderTop = 'none';
     container.appendChild(listEl);
     if (!Array.isArray(items) || items.length === 0) {
       const empty = document.createElement('div');
@@ -520,6 +523,9 @@ async function reloadGroupItemsInto(container, groupId) {
     items.forEach(i => {
       const row = document.createElement('div');
       row.className = 'list-group-item d-flex justify-content-between align-items-center group-item-row';
+      // Убираем закругления у элементов списка
+      row.style.borderRadius = '0';
+      row.style.borderTop = 'none';
       const mat = (materialsCache || []).find(m => m.id === i.material_id);
       const label = mat ? mat.name : i.material_id;
       row.innerHTML = `<span class=\"group-item-link\" onclick=\"viewMaterial('${i.material_id}')\" style=\"cursor:pointer;\">${label}</span>` +

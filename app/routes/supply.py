@@ -830,6 +830,7 @@ def api_materials_create():
             min_quantity=float(data.get('min_quantity') or 0.0),
             supplier=data.get('supplier'),
             price_per_unit=float(data.get('price_per_unit') or 0.0) if data.get('price_per_unit') is not None else None,
+            created_by=current_user.userid,
         )
         db.session.add(material)
         db.session.commit()
@@ -1235,18 +1236,25 @@ def api_list_movements():
             )
             if duplicate:
                 continue
+            # Получаем информацию о создателе материала
+            creator_name = 'Не указан'
+            if hasattr(mat, 'created_by') and mat.created_by:
+                creator = Users.query.get(mat.created_by)
+                if creator:
+                    creator_name = f"{creator.secondname or ''} {creator.firstname or ''}".strip() or creator.login
+            
             result.append({
                 'id': str(mat.id),
                 'material_id': mat.id,
                 'material_name': mat.name,
                 'from_user_id': None,
                 'to_user_id': None,
-                'quantity': 0,
+                'quantity': mat.current_quantity or 0,  # Показываем текущее количество
                 'movement_type': 'creation',
-                'note': 'Создание материала',
-                'created_by': None,
+                'note': f'Создание материала (начальное количество: {mat.current_quantity or 0} {mat.unit or "шт"})',
+                'created_by': getattr(mat, 'created_by', None),
                 'created_at': mat.created_at.isoformat() if mat.created_at else None,
-                'to_user_name': 'Не указан',
+                'to_user_name': creator_name,
                 'attachments': []
             })
         # Сортируем совмещённый список по дате убыв.
@@ -1690,7 +1698,8 @@ def api_create_receipt():
                 unit=unit,
                 current_quantity=quantity,
                 min_quantity=0,
-                description='Поступление на склад'
+                description='Поступление на склад',
+                created_by=current_user.userid
             )
             db.session.add(material)
             db.session.flush()  # Получаем ID
