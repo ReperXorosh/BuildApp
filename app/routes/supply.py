@@ -1223,6 +1223,40 @@ def api_list_movements():
         
         result.append(movement_dict)
     
+    # Добавляем в историю создания материалов как отдельные записи (если не ведётся WarehouseMovement для создания)
+    try:
+        recent_materials = Material.query.order_by(Material.created_at.desc()).limit(200).all()
+        for mat in recent_materials:
+            # Если по материалу уже есть движение с той же датой создания типа 'add'/'creation', дубликат не добавляем
+            # (простая проверка по material_id и близкой дате)
+            duplicate = any(
+                (m.get('material_id') == mat.id and m.get('movement_type') in ('add', 'creation', 'create'))
+                for m in result
+            )
+            if duplicate:
+                continue
+            result.append({
+                'id': str(mat.id),
+                'material_id': mat.id,
+                'material_name': mat.name,
+                'from_user_id': None,
+                'to_user_id': None,
+                'quantity': 0,
+                'movement_type': 'creation',
+                'note': 'Создание материала',
+                'created_by': None,
+                'created_at': mat.created_at.isoformat() if mat.created_at else None,
+                'to_user_name': 'Не указан',
+                'attachments': []
+            })
+        # Сортируем совмещённый список по дате убыв.
+        result.sort(key=lambda x: x.get('created_at') or '', reverse=True)
+        # Обрезаем до 200 записей
+        result = result[:200]
+    except Exception:
+        # В случае ошибки не блокируем историю движений
+        pass
+
     return jsonify(result)
 
 @supply.route('/api/supply/allocations', methods=['GET'])
