@@ -9,15 +9,15 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/static/img/apple-touch-icon.svg",
+      "src": "/static/img/logo.jpg",
       "sizes": "180x180",
-      "type": "image/svg+xml",
+      "type": "image/jpeg",
       "purpose": "any maskable"
     },
     {
-      "src": "/static/img/favicon.svg",
-      "sizes": "32x32",
-      "type": "image/svg+xml"
+      "src": "/static/img/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
     }
   ]
 }
