@@ -2,7 +2,7 @@
 <html lang="ru" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <title>{% block title %}СтройКомплекс{% endblock %}</title>
     
     <!-- МГНОВЕННОЕ применение темы до загрузки CSS, чтобы не было вспышки светлой темы -->
@@ -24,6 +24,7 @@
     <!-- Apple Touch Icon -->
     <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.svg" sizes="180x180">
     <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+    <link rel="manifest" href="/static/img/manifest.json">
     
     <!-- Preload критических ресурсов -->
     <link rel="preload" href="/static/css/bootstrap.min.css" as="style">
@@ -32,21 +33,9 @@
     <!-- PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="СтройКомплекс">
     <meta name="theme-color" content="#007bff">
-    
-    <!-- Fullscreen mobile meta tags -->
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="msapplication-tap-highlight" content="no">
-    
-    <!-- iOS specific meta tags for fullscreen -->
-    <meta name="apple-touch-fullscreen" content="yes">
-    
-    <!-- Дополнительные мета-теги для iPhone 16 Pro и новых устройств -->
-    <meta name="apple-mobile-web-app-orientations" content="portrait">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <!-- Критический CSS для мобильных (inline для быстрой загрузки) -->
     <style>
@@ -59,12 +48,8 @@
             position: sticky;
             top: 0;
             z-index: 1000;
-            width: 100vw;
             left: 0;
             right: 0;
-            /* Добавляем отступ для safe area */
-            padding-top: calc(16px + env(safe-area-inset-top, 0px));
-            padding-top: calc(16px + constant(safe-area-inset-top, 0px));
         }
         .mobile-header-content {
             display: flex;
@@ -110,7 +95,7 @@
         /* Мобильная навигация */
         .mobile-nav {
             position: fixed;
-            bottom: 0;
+            bottom: env(safe-area-inset-bottom, 0px);
             left: 0;
             right: 0;
             background: var(--bs-body-bg);
@@ -122,9 +107,6 @@
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
             min-height: 80px;
             will-change: transform;
-            /* Добавляем отступ для safe area */
-            padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
-            padding-bottom: calc(8px + constant(safe-area-inset-bottom, 0px));
         }
         .mobile-nav-item {
             display: flex;
@@ -155,7 +137,7 @@
             /* padding-bottom выставляется скриптом по высоте нижней панели */
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
-            height: calc(100vh - 60px);
+            /* убираем жесткую высоту, чтобы не прыгало при скрытии UI браузера */
         }
         /* Кнопки */
         .mobile-btn {
@@ -204,42 +186,6 @@
     <!-- Desktop CSS (сохраняем все стили) -->
     <link href="/static/css/sidebars.css" rel="stylesheet">
     <link href="/static/css/mobile.css" rel="stylesheet">
-    <link href="/static/css/fullscreen-mobile.css" rel="stylesheet">
-    
-    <!-- Переопределяем стили для полноэкранного режима -->
-    <style>
-        /* Принудительное полноэкранное отображение - переопределяем все остальные стили */
-        @media (max-width: 768px) {
-            html, body {
-                height: 100vh !important;
-                height: 100dvh !important;
-                overflow: hidden !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                position: fixed !important;
-                width: 100% !important;
-            }
-            
-            .mobile-app {
-                height: 100vh !important;
-                height: 100dvh !important;
-                display: flex !important;
-                flex-direction: column !important;
-                overflow: hidden !important;
-                position: relative !important;
-            }
-            
-            .mobile-content {
-                flex: 1 !important;
-                overflow-y: auto !important;
-                -webkit-overflow-scrolling: touch !important;
-                scroll-behavior: smooth !important;
-                overscroll-behavior: contain !important;
-                height: calc(100vh - 60px) !important;
-                height: calc(100dvh - 60px) !important;
-            }
-        }
-    </style>
     
     <style>
         /* Все стили из десктопного layout */
@@ -329,28 +275,13 @@
             overflow-y: auto !important;
             height: auto !important;
             min-height: 100vh !important;
-            /* Полноэкранное отображение */
-            height: 100vh;
-            height: 100dvh; /* Dynamic viewport height для мобильных */
-            overflow: hidden;
-        }
-        
-        /* Скрытие нативных элементов браузера */
-        body {
-            -webkit-user-select: none;
-            -webkit-touch-callout: none;
-            -webkit-tap-highlight-color: transparent;
-            /* Предотвращаем зум при двойном тапе */
-            touch-action: manipulation;
         }
         
         /* Мобильный контейнер - используем стандартные Bootstrap классы */
         .mobile-app {
-            height: 100vh;
-            height: 100dvh; /* Dynamic viewport height для мобильных */
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
         }
         
         /* Мобильный хедер - унифицированный голубой цвет */
@@ -472,14 +403,10 @@
         .mobile-content {
             flex: 1;
             padding: 16px;
-            padding-bottom: 140px; /* Увеличенный отступ для нижней навигации */
+            padding-bottom: 100px; /* базовый отступ; далее уточняется через JS по фактической высоте панели */
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
-            height: calc(100vh - 60px); /* Высота экрана минус хедер */
-            height: calc(100dvh - 60px); /* Dynamic viewport height для мобильных */
-            /* Улучшенный скроллинг */
-            scroll-behavior: smooth;
-            overscroll-behavior: contain;
+            /* удалена жесткая высота для стабильности на iOS */
         }
 
         /* Нижняя панель всегда закреплена; отступ контента регулируем JS */
@@ -561,12 +488,12 @@
         /* Мобильная навигация */
         .mobile-nav {
             position: fixed;
-            bottom: 0;
+            bottom: env(safe-area-inset-bottom, 0px);
             left: 0;
             right: 0;
             background: var(--bs-body-bg);
             border-top: 1px solid var(--bs-border-color);
-            padding: 12px 0 8px 0; /* Увеличенный отступ сверху */
+            padding: 12px 0 calc(8px + env(safe-area-inset-bottom, 0px)) 0;
             z-index: 1000;
             display: flex;
             justify-content: space-around;
@@ -1026,7 +953,6 @@
             </button>
         </div>
         <nav class="mobile-menu-nav">
-            {% if current_user.role == 'Инженер ПТО' %}
             <a href="{{ url_for('objects.object_list') }}" class="mobile-menu-item {{ 'active' if active_page == 'objects' else '' }}">
                 {{ gettext('Список объектов') }}
             </a>
@@ -1036,13 +962,12 @@
             <a href="{{ url_for('objects.planned_works_overview') }}" class="mobile-menu-item {{ 'active' if active_page == 'planned_works' else '' }}">
                 {{ gettext('Запланированные работы') }}
             </a>
-            {% endif %}
             {% if current_user.role == 'Инженер ПТО' %}
             <a href="{{ url_for('activity_log.view_activity_log') }}" class="mobile-menu-item {{ 'active' if active_page == 'activity_log' else '' }}">
                 {{ gettext('Журнал действий') }}
             </a>
             {% endif %}
-            {% if current_user.role == 'Инженер ПТО' %}
+            {% if current_user.role in ['Инженер ПТО', 'Ген.Директор'] %}
             <a href="{{ url_for('main.users') }}" class="mobile-menu-item {{ 'active' if active_page == 'users' else '' }}">
                 {{ gettext('Пользователи') }}
             </a>
@@ -1118,9 +1043,6 @@
     
     <!-- Bootstrap JS -->
     <script src="/static/js/bootstrap.bundle.min.js" defer></script>
-    
-    <!-- Fullscreen mobile JS -->
-    <script src="/static/js/fullscreen-mobile.js" defer></script>
     
     <!-- Prefetch ссылок и Мобильное меню JavaScript -->
     <script defer>
@@ -1397,128 +1319,7 @@
                 window.addEventListener('resize', applyBottomPadding);
                 window.addEventListener('orientationchange', applyBottomPadding);
             } catch(_) {}
-            
-            // Принудительное полноэкранное отображение
-            try {
-                console.log('=== НАЧИНАЕМ АГРЕССИВНОЕ СКРЫТИЕ UI БРАУЗЕРА ===');
-                console.log('User Agent:', navigator.userAgent);
-                console.log('Standalone mode:', window.navigator.standalone);
-                
-                // Агрессивное скрытие UI браузера
-                const hideBrowserUI = () => {
-                    console.log('=== ВЫЗЫВАЕМ hideBrowserUI ===');
-                    // Принудительно устанавливаем высоту
-                    document.documentElement.style.height = '100vh';
-                    document.documentElement.style.height = '100dvh';
-                    document.body.style.height = '100vh';
-                    document.body.style.height = '100dvh';
-                    document.body.style.overflow = 'hidden';
-                    document.body.style.position = 'fixed';
-                    document.body.style.width = '100%';
-                    
-                    // Скрываем адресную строку на iOS Safari
-                    if (window.navigator.standalone !== undefined) {
-                        // PWA режим - уже полноэкранный
-                        console.log('PWA режим - полноэкранный');
-                    } else {
-                        // Обычный браузер - пытаемся скрыть UI
-                        console.log('Обычный браузер - скрываем UI');
-                        
-                        // Агрессивное скрытие UI для iPhone 16 Pro
-                        window.scrollTo(0, 1);
-                        setTimeout(() => window.scrollTo(0, 0), 100);
-                        
-                        // Дополнительные попытки
-                        setTimeout(() => {
-                            window.scrollTo(0, 1);
-                            setTimeout(() => window.scrollTo(0, 0), 50);
-                        }, 200);
-                        
-                        setTimeout(() => {
-                            window.scrollTo(0, 1);
-                            setTimeout(() => window.scrollTo(0, 0), 50);
-                        }, 500);
-                        
-                        setTimeout(() => {
-                            window.scrollTo(0, 1);
-                            setTimeout(() => window.scrollTo(0, 0), 50);
-                        }, 1000);
-                        
-                        // Дополнительные попытки для iPhone 16 Pro
-                        setTimeout(() => {
-                            window.scrollTo(0, 1);
-                            setTimeout(() => window.scrollTo(0, 0), 50);
-                        }, 1500);
-                        
-                        setTimeout(() => {
-                            window.scrollTo(0, 1);
-                            setTimeout(() => window.scrollTo(0, 0), 50);
-                        }, 2000);
-                        
-                        // Принудительное скрытие через изменение размера окна
-                        setTimeout(() => {
-                            window.scrollTo(0, 1);
-                            window.scrollTo(0, 0);
-                        }, 2500);
-                    }
-                };
-                
-                // Вызываем сразу
-                hideBrowserUI();
-                
-                // Специальная техника для iPhone 16 Pro - принудительное скрытие через viewport
-                setTimeout(() => {
-                    const viewport = document.querySelector('meta[name="viewport"]');
-                    if (viewport) {
-                        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
-                    }
-                }, 100);
-                
-                // Вызываем при изменении ориентации
-                window.addEventListener('orientationchange', () => {
-                    setTimeout(hideBrowserUI, 500);
-                });
-                
-                window.addEventListener('resize', () => {
-                    setTimeout(hideBrowserUI, 100);
-                });
-                
-                // Дополнительные вызовы для iPhone 16 Pro
-                setTimeout(hideBrowserUI, 1000);
-                setTimeout(hideBrowserUI, 2000);
-                setTimeout(hideBrowserUI, 3000);
-                setTimeout(hideBrowserUI, 4000);
-                setTimeout(hideBrowserUI, 5000);
-                setTimeout(hideBrowserUI, 6000);
-                
-                // Предотвращаем зум при двойном тапе
-                let lastTouchEnd = 0;
-                document.addEventListener('touchend', function (event) {
-                    const now = (new Date()).getTime();
-                    if (now - lastTouchEnd <= 300) {
-                        event.preventDefault();
-                    }
-                    lastTouchEnd = now;
-                }, false);
-                
-                // Предотвращаем контекстное меню
-                document.addEventListener('contextmenu', function(e) {
-                    e.preventDefault();
-                });
-                
-                // Принудительно скрываем UI при любом взаимодействии
-                document.addEventListener('touchstart', hideBrowserUI, { passive: true });
-                document.addEventListener('touchend', hideBrowserUI, { passive: true });
-                document.addEventListener('scroll', hideBrowserUI, { passive: true });
-                document.addEventListener('click', hideBrowserUI, { passive: true });
-                document.addEventListener('mousedown', hideBrowserUI, { passive: true });
-                document.addEventListener('mouseup', hideBrowserUI, { passive: true });
-                document.addEventListener('focus', hideBrowserUI, { passive: true });
-                document.addEventListener('blur', hideBrowserUI, { passive: true });
-                
-            } catch(e) {
-                console.warn('Ошибка при скрытии UI браузера:', e);
-            }
+            // Отменена особая логика фиксации нижней панели — поведение по умолчанию
         });
 
         // Лёгкая PJAX-навигация: подменяем контент <main> без перезагрузки
