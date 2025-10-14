@@ -10,7 +10,7 @@
         <div class="col-12">
             <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center mb-4" 
                  data-user-role="{{ current_user.role }}" 
-                 data-can-delete="{% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}true{% else %}false{% endif %}">
+                 data-can-delete="{% if current_user.role == 'Инженер ПТО' %}true{% else %}false{% endif %}">
                 
                 <!-- Заголовок -->
                 <div class="mb-3 mb-lg-0">
@@ -284,10 +284,10 @@
                         </div>
                         <div class="col-6">
                             <label class="form-label">Материал <span class="text-danger">*</span></label>
-                            <!-- Поиск внутри выпадающего списка через datalist -->
-                            <input class="form-control" id="material_picker" list="materials_list" placeholder="Начните вводить название..." onchange="onMaterialPicked()" oninput="onMaterialTyped()">
-                            <datalist id="materials_list"></datalist>
-                            <input type="hidden" name="material_id" id="material_id">
+                            <select class="form-select" name="material_id" id="material_id" required onchange="onMaterialChange()">
+                                <option value="">Сначала выберите тип операции</option>
+                            </select>
+                            <input type="text" class="form-control mt-2" id="material_search" placeholder="Поиск по материалу..." oninput="onMaterialSearchInput()" style="display:none;">
                         </div>
                         <div class="col-6">
                             <label class="form-label">Количество <span class="text-danger">*</span></label>
@@ -616,7 +616,11 @@ async function submitAddMaterialToGroup() {
     // Обновить множество, скрыть плюс для этой строки, перезагрузить состав группы
     materialsInGroups.add(materialId);
     loadMaterials();
-    reloadGroupItems(groupId);
+    // Перезагружаем раскрытую группу, если она открыта
+    try {
+      const container = document.querySelector(`#groupsList .group-items[data-group-id="${groupId}"]`) || document.querySelector('#groupsList .group-items');
+      if (container) { await reloadGroupItemsInto(container, groupId); }
+    } catch (_) {}
     const el = document.getElementById('addToGroupModal');
     if (el) (bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el)).hide();
   } catch (e) { console.error(e); alert('Ошибка связи с сервером'); }
@@ -672,8 +676,8 @@ async function loadMaterials() {
         statusBadge = '<span class="badge bg-success">В наличии</span>';
       }
       
-      // Определяем, может ли пользователь удалять материалы (только админы)
-      const canDelete = document.querySelector('[data-can-delete]').getAttribute('data-can-delete') === 'true';
+      // Определяем, может ли пользователь удалять материалы (только Инженер ПТО)
+      const canDelete = document.querySelector('[data-can-delete]')?.getAttribute('data-can-delete') === 'true';
       
       let actionsHtml = `
         <button class="btn btn-sm btn-outline-primary action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); editMaterial('${material.id}'); return false;" title="Редактировать" data-no-pjax>
@@ -876,10 +880,9 @@ async function loadMaterialsForMovementType(movementType) {
       materials = await response.json();
     }
     
-    const datalist = document.getElementById('materials_list');
-    const picker = document.getElementById('material_picker');
-    const hiddenId = document.getElementById('material_id');
-    if (datalist) datalist.innerHTML = '';
+    const select = document.getElementById('material_id');
+    const search = document.getElementById('material_search');
+    select.innerHTML = '<option value="">Выберите материал</option>';
     
     // сохраним для локального поиска
     window._movementMaterials = materials.map(m => ({
@@ -889,25 +892,21 @@ async function loadMaterialsForMovementType(movementType) {
       current_quantity: m.current_quantity,
       total_allocated: m.total_allocated
     }));
-    // заполним datalist
-    if (datalist) {
-      window._movementMaterials.forEach(m => {
-        const opt = document.createElement('option');
-        if (movementType === 'move' || movementType === 'writeoff') {
-          opt.value = `${m.name} (${m.current_quantity || 0} ${m.unit})`;
-        } else if (movementType === 'return') {
-          opt.value = `${m.name} (у пользователей: ${m.total_allocated || 0} ${m.unit})`;
-        } else {
-          opt.value = m.name;
-        }
-        opt.dataset.id = m.id;
-        datalist.appendChild(opt);
-      });
-    }
-    if (picker) picker.value = '';
-    if (hiddenId) hiddenId.value = '';
+    // показать поле поиска
+    if (search) search.style.display = '';
+    window._movementMaterials.forEach(material => {
+      const option = document.createElement('option');
+      option.value = material.id;
+      if (movementType === 'move' || movementType === 'writeoff') {
+        option.textContent = `${material.name} (${material.current_quantity || 0} ${material.unit})`;
+      } else if (movementType === 'return') {
+        option.textContent = `${material.name} (у пользователей: ${material.total_allocated || 0} ${material.unit})`;
+      }
+      select.appendChild(option);
+    });
   } catch (error) {
     console.error('Ошибка загрузки материалов:', error);
+    document.getElementById('material_id').innerHTML = '<option value="">Ошибка загрузки материалов</option>';
   }
 }
 
@@ -973,27 +972,7 @@ async function onMaterialChange() {
   await loadUsersForMovement(movementType, materialId);
 }
 
-// Обработка выбора/ввода в аккордеоне-пикере
-function onMaterialPicked() {
-  const picker = document.getElementById('material_picker');
-  const hiddenId = document.getElementById('material_id');
-  const value = picker?.value || '';
-  const list = Array.isArray(window._movementMaterials) ? window._movementMaterials : [];
-  // ищем по началу имени (до первой скобки)
-  const plain = value.split('(')[0].trim().toLowerCase();
-  const match = list.find(m => (m.name || '').toLowerCase() === plain);
-  hiddenId.value = match ? match.id : '';
-  // триггерим дальнейшую логику
-  onMaterialChange();
-}
-
-function onMaterialTyped() {
-  const picker = document.getElementById('material_picker');
-  const hiddenId = document.getElementById('material_id');
-  if (picker && hiddenId && picker.value.length === 0) {
-    hiddenId.value = '';
-  }
-}
+// Удаляем обработчики для datalist (возврат к прошлому стилю)
 
 // Загрузка пользователей для движения
 async function loadUsersForMovement(movementType, materialId) {
