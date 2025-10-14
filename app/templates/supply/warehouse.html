@@ -136,14 +136,14 @@
         </div>
         {% if True %}
         <div class="col-12 col-lg-4">
-            <div class="card h-100">
+            <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Группы</h5>
                     {% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}
                     <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#createGroupModal">Новая группа</button>
                     {% endif %}
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="max-height: 70vh; overflow:auto;">
                     <div id="groupsList" class="list-group mb-3">
                         <!-- группы загружаются через JS -->
                     </div>
@@ -287,6 +287,7 @@
                             <select class="form-select" name="material_id" id="material_id" required onchange="onMaterialChange()">
                                 <option value="">Сначала выберите тип операции</option>
                             </select>
+                            <input type="text" class="form-control mt-2" id="material_search" placeholder="Поиск по материалу..." oninput="onMaterialSearchInput()" style="display:none;">
                         </div>
                         <div class="col-6">
                             <label class="form-label">Количество <span class="text-danger">*</span></label>
@@ -863,8 +864,13 @@ async function loadMaterialsForMovementType(movementType) {
     }
     
     const select = document.getElementById('material_id');
+    const search = document.getElementById('material_search');
     select.innerHTML = '<option value="">Выберите материал</option>';
     
+    // сохраним для локального поиска
+    window._movementMaterials = materials;
+    // показать поле поиска
+    if (search) search.style.display = '';
     materials.forEach(material => {
       const option = document.createElement('option');
       option.value = material.id;
@@ -945,6 +951,32 @@ async function onMaterialChange() {
   
   // Загружаем пользователей в зависимости от типа операции и материала
   await loadUsersForMovement(movementType, materialId);
+}
+
+// Локальный поиск по списку материалов в модалке перемещения
+function onMaterialSearchInput() {
+  const input = document.getElementById('material_search');
+  const select = document.getElementById('material_id');
+  if (!input || !select) return;
+  const q = (input.value || '').toLowerCase();
+  const all = Array.isArray(window._movementMaterials) ? window._movementMaterials : [];
+  // Текущий тип операции, чтобы формировать подписи так же, как при загрузке
+  const movementType = document.getElementById('movement_type')?.value || 'move';
+  select.innerHTML = '<option value="">Выберите материал</option>';
+  all
+    .filter(m => !q || (m.name || '').toLowerCase().includes(q))
+    .forEach(material => {
+      const option = document.createElement('option');
+      option.value = material.id;
+      if (movementType === 'move' || movementType === 'writeoff') {
+        option.textContent = `${material.name} (${material.current_quantity || 0} ${material.unit})`;
+      } else if (movementType === 'return') {
+        option.textContent = `${material.name} (у пользователей: ${material.total_allocated || 0} ${material.unit})`;
+      } else {
+        option.textContent = material.name;
+      }
+      select.appendChild(option);
+    });
 }
 
 // Загрузка пользователей для движения
