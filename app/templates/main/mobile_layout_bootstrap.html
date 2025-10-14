@@ -50,6 +50,8 @@
             left: 0;
             right: 0;
             z-index: 1100;
+            min-height: calc(64px + env(safe-area-inset-top, 0px));
+            min-height: calc(64px + constant(safe-area-inset-top, 0px));
         }
         .mobile-header-content {
             display: flex;
@@ -325,8 +327,9 @@
         }
         /* Отступы шапки: 16px + safe area, без лишнего резерва */
         .mobile-header {
-            padding-top: calc(16px + env(safe-area-inset-top, 0px));
-            padding-top: calc(16px + constant(safe-area-inset-top, 0px));
+            padding-top: calc(20px + env(safe-area-inset-top, 0px));
+            padding-top: calc(20px + constant(safe-area-inset-top, 0px));
+            padding-bottom: 12px;
             padding-right: calc(16px + env(safe-area-inset-right, 0px));
             padding-right: calc(16px + constant(safe-area-inset-right, 0px)); /* iOS < 13 */
             padding-left: calc(16px + env(safe-area-inset-left, 0px));
@@ -406,8 +409,8 @@
             flex: 1;
             padding: 16px;
             /* учитываем фиксированную шапку + safe-area сверху */
-            padding-top: calc(64px + env(safe-area-inset-top, 0px));
-            padding-top: calc(64px + constant(safe-area-inset-top, 0px));
+            padding-top: calc(88px + env(safe-area-inset-top, 0px));
+            padding-top: calc(88px + constant(safe-area-inset-top, 0px));
             padding-bottom: 100px; /* базовый отступ; далее уточняется через JS по фактической высоте панели */
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
@@ -492,7 +495,7 @@
         /* Мобильная навигация */
         .mobile-nav {
             position: fixed;
-            bottom: env(safe-area-inset-bottom, 0px);
+            bottom: 0;
             left: 0;
             right: 0;
             background: var(--bs-body-bg);
