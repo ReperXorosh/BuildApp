@@ -506,23 +506,46 @@ async function reloadGroupItemsInto(container, groupId) {
     // Обновляем множество материалов в группах (по всем группам)
     await refreshMaterialsInGroups();
     container.innerHTML = '';
+    // Поиск по элементам группы (первая строка в аккордеоне)
+    const searchWrap = document.createElement('div');
+    searchWrap.className = 'mb-2';
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.className = 'form-control';
+    searchInput.placeholder = 'Поиск по материалам в группе...';
+    searchWrap.appendChild(searchInput);
+    container.appendChild(searchWrap);
+    // Контейнер списка
+    const listEl = document.createElement('div');
+    listEl.className = 'list-group';
+    container.appendChild(listEl);
     if (!Array.isArray(items) || items.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'text-muted py-2';
       empty.textContent = 'В группе пока нет материалов';
-      container.appendChild(empty);
+      listEl.appendChild(empty);
       return;
     }
     items.forEach(i => {
       const row = document.createElement('div');
-      row.className = 'list-group-item d-flex justify-content-between align-items-center';
+      row.className = 'list-group-item d-flex justify-content-between align-items-center group-item-row';
       const mat = (materialsCache || []).find(m => m.id === i.material_id);
       const label = mat ? mat.name : i.material_id;
+      row.dataset.label = (label || '').toString().toLowerCase();
       row.innerHTML = `<span class=\"group-item-link\" onclick=\"viewMaterial('${i.material_id}')\" style=\"cursor:pointer;\">${label}</span>` +
         `{% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}` +
         `<button class=\"btn btn-sm btn-outline-danger\" onclick=\"removeFromGroup('${i.material_id}','${groupId}')\">Убрать</button>` +
         `{% endif %}`;
-      container.appendChild(row);
+      listEl.appendChild(row);
+    });
+    // Фильтрация по вводу
+    searchInput.addEventListener('input', function() {
+      const q = (this.value || '').toLowerCase();
+      const rows = listEl.querySelectorAll('.group-item-row');
+      rows.forEach(r => {
+        const ok = !q || (r.dataset.label || '').includes(q);
+        r.style.display = ok ? '' : 'none';
+      });
     });
   } catch (e) {
     console.error(e);
