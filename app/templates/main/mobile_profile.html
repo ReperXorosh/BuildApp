@@ -160,26 +160,24 @@
             </div>
 
 
-            <!-- Дополнительные действия -->
+            {% if current_user.role == 'Инженер ПТО' %}
+            <!-- Дополнительные действия (только для админа) -->
             <div class="card shadow-sm mb-3">
                 <div class="card-body">
                     <h5 class="card-title mb-3">Дополнительные действия</h5>
                     <div class="d-flex gap-2 flex-wrap">
-                        {% if current_user.role in ['Инженер ПТО', 'Ген.Директор'] %}
                         <a href="{{ url_for('main.users') }}" class="btn btn-outline-primary flex-fill">
                             <i class="bi bi-people me-2"></i>
                             Управление пользователями
                         </a>
-                        {% endif %}
-                        {% if current_user.role == 'Инженер ПТО' %}
                         <a href="{{ url_for('activity_log.view_activity_log') }}" class="btn btn-outline-secondary flex-fill">
                             <i class="bi bi-journal-text me-2"></i>
                             Журнал действий
                         </a>
-                        {% endif %}
                     </div>
                 </div>
             </div>
+            {% endif %}
 
         </div>
 
