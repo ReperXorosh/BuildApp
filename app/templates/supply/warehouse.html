@@ -284,10 +284,10 @@
                         </div>
                         <div class="col-6">
                             <label class="form-label">Материал <span class="text-danger">*</span></label>
-                            <select class="form-select" name="material_id" id="material_id" required onchange="onMaterialChange()">
-                                <option value="">Сначала выберите тип операции</option>
-                            </select>
-                            <input type="text" class="form-control mt-2" id="material_search" placeholder="Поиск по материалу..." oninput="onMaterialSearchInput()" style="display:none;">
+                            <!-- Поиск внутри выпадающего списка через datalist -->
+                            <input class="form-control" id="material_picker" list="materials_list" placeholder="Начните вводить название..." onchange="onMaterialPicked()" oninput="onMaterialTyped()">
+                            <datalist id="materials_list"></datalist>
+                            <input type="hidden" name="material_id" id="material_id">
                         </div>
                         <div class="col-6">
                             <label class="form-label">Количество <span class="text-danger">*</span></label>
@@ -597,9 +597,22 @@ async function submitAddMaterialToGroup() {
   const groupId = document.getElementById('addToGroupSelect').value;
   if (!groupId) { alert('Выберите группу'); return; }
   try {
-    const res = await fetch(`/supply/api/supply/groups/${groupId}/items`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({material_id: materialId})});
-    const data = await res.json();
-    if (!res.ok) { alert(data.error || 'Ошибка'); return; }
+    const res = await fetch(`/supply/api/supply/groups/${groupId}/items`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({material_id: materialId})
+    });
+    // Сервер может вернуть 204 No Content — обрабатываем безопасно
+    let data = null;
+    try {
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        data = await res.json();
+      } else {
+        await res.text();
+      }
+    } catch (_) { /* ignore parse errors for empty body */ }
+    if (!res.ok) { alert((data && data.error) || 'Ошибка'); return; }
     // Обновить множество, скрыть плюс для этой строки, перезагрузить состав группы
     materialsInGroups.add(materialId);
     loadMaterials();
@@ -863,31 +876,38 @@ async function loadMaterialsForMovementType(movementType) {
       materials = await response.json();
     }
     
-    const select = document.getElementById('material_id');
-    const search = document.getElementById('material_search');
-    select.innerHTML = '<option value="">Выберите материал</option>';
+    const datalist = document.getElementById('materials_list');
+    const picker = document.getElementById('material_picker');
+    const hiddenId = document.getElementById('material_id');
+    if (datalist) datalist.innerHTML = '';
     
     // сохраним для локального поиска
-    window._movementMaterials = materials;
-    // показать поле поиска
-    if (search) search.style.display = '';
-    materials.forEach(material => {
-      const option = document.createElement('option');
-      option.value = material.id;
-      
-      if (movementType === 'move' || movementType === 'writeoff') {
-        // Для выдачи и списания показываем доступное количество на складе
-        option.textContent = `${material.name} (${material.current_quantity || 0} ${material.unit})`;
-      } else if (movementType === 'return') {
-        // Для возврата показываем общее количество у пользователей
-        option.textContent = `${material.name} (у пользователей: ${material.total_allocated || 0} ${material.unit})`;
-      }
-      
-      select.appendChild(option);
-    });
+    window._movementMaterials = materials.map(m => ({
+      id: m.id,
+      name: m.name,
+      unit: m.unit,
+      current_quantity: m.current_quantity,
+      total_allocated: m.total_allocated
+    }));
+    // заполним datalist
+    if (datalist) {
+      window._movementMaterials.forEach(m => {
+        const opt = document.createElement('option');
+        if (movementType === 'move' || movementType === 'writeoff') {
+          opt.value = `${m.name} (${m.current_quantity || 0} ${m.unit})`;
+        } else if (movementType === 'return') {
+          opt.value = `${m.name} (у пользователей: ${m.total_allocated || 0} ${m.unit})`;
+        } else {
+          opt.value = m.name;
+        }
+        opt.dataset.id = m.id;
+        datalist.appendChild(opt);
+      });
+    }
+    if (picker) picker.value = '';
+    if (hiddenId) hiddenId.value = '';
   } catch (error) {
     console.error('Ошибка загрузки материалов:', error);
-    document.getElementById('material_id').innerHTML = '<option value="">Ошибка загрузки материалов</option>';
   }
 }
 
@@ -953,30 +973,26 @@ async function onMaterialChange() {
   await loadUsersForMovement(movementType, materialId);
 }
 
-// Локальный поиск по списку материалов в модалке перемещения
-function onMaterialSearchInput() {
-  const input = document.getElementById('material_search');
-  const select = document.getElementById('material_id');
-  if (!input || !select) return;
-  const q = (input.value || '').toLowerCase();
-  const all = Array.isArray(window._movementMaterials) ? window._movementMaterials : [];
-  // Текущий тип операции, чтобы формировать подписи так же, как при загрузке
-  const movementType = document.getElementById('movement_type')?.value || 'move';
-  select.innerHTML = '<option value="">Выберите материал</option>';
-  all
-    .filter(m => !q || (m.name || '').toLowerCase().includes(q))
-    .forEach(material => {
-      const option = document.createElement('option');
-      option.value = material.id;
-      if (movementType === 'move' || movementType === 'writeoff') {
-        option.textContent = `${material.name} (${material.current_quantity || 0} ${material.unit})`;
-      } else if (movementType === 'return') {
-        option.textContent = `${material.name} (у пользователей: ${material.total_allocated || 0} ${material.unit})`;
-      } else {
-        option.textContent = material.name;
-      }
-      select.appendChild(option);
-    });
+// Обработка выбора/ввода в аккордеоне-пикере
+function onMaterialPicked() {
+  const picker = document.getElementById('material_picker');
+  const hiddenId = document.getElementById('material_id');
+  const value = picker?.value || '';
+  const list = Array.isArray(window._movementMaterials) ? window._movementMaterials : [];
+  // ищем по началу имени (до первой скобки)
+  const plain = value.split('(')[0].trim().toLowerCase();
+  const match = list.find(m => (m.name || '').toLowerCase() === plain);
+  hiddenId.value = match ? match.id : '';
+  // триггерим дальнейшую логику
+  onMaterialChange();
+}
+
+function onMaterialTyped() {
+  const picker = document.getElementById('material_picker');
+  const hiddenId = document.getElementById('material_id');
+  if (picker && hiddenId && picker.value.length === 0) {
+    hiddenId.value = '';
+  }
 }
 
 // Загрузка пользователей для движения
