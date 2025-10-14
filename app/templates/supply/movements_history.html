@@ -136,7 +136,7 @@ function displayMovements(movements) {
     
     // Определяем тип движения
     let typeBadge = '';
-    switch(movement.movement_type) {
+  switch(movement.movement_type) {
       case 'add':
         typeBadge = '<span class="badge bg-info">Поступление</span>';
         break;
@@ -152,7 +152,8 @@ function displayMovements(movements) {
       case 'replenishment':
         typeBadge = '<span class="badge bg-info">Пополнение</span>';
         break;
-      case 'creation':
+    case 'creation':
+    case 'create':
         typeBadge = '<span class="badge bg-warning">Создание</span>';
         break;
       default:
