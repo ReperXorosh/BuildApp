@@ -284,10 +284,11 @@
                         </div>
                         <div class="col-6">
                             <label class="form-label">Материал <span class="text-danger">*</span></label>
+                            <!-- Поиск перенесён внутрь того же блока и идёт первой строкой -->
+                            <input type="text" class="form-control mb-2" id="material_search" placeholder="Поиск по материалу..." oninput="onMaterialSearchInput()" style="display:none;">
                             <select class="form-select" name="material_id" id="material_id" required onchange="onMaterialChange()">
                                 <option value="">Сначала выберите тип операции</option>
                             </select>
-                            <input type="text" class="form-control mt-2" id="material_search" placeholder="Поиск по материалу..." oninput="onMaterialSearchInput()" style="display:none;">
                         </div>
                         <div class="col-6">
                             <label class="form-label">Количество <span class="text-danger">*</span></label>
