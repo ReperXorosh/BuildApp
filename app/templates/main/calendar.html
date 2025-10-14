@@ -372,7 +372,8 @@
     });
 
     // Получаем список активных дат из сервера
-    const activeDates = {{ active_dates | tojson }};
+    // eslint-disable-next-line
+    const activeDates = {% if active_dates %}{{ active_dates | tojson | safe }}{% else %}[]{% endif %};
     
     // Функция для проверки, является ли дата активной
     function isDateActive(year, month, day) {
