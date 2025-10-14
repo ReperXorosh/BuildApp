@@ -284,11 +284,10 @@
                         </div>
                         <div class="col-6">
                             <label class="form-label">Материал <span class="text-danger">*</span></label>
-                            <!-- Поиск перенесён внутрь того же блока и идёт первой строкой -->
-                            <input type="text" class="form-control mb-2" id="material_search" placeholder="Поиск по материалу..." oninput="onMaterialSearchInput()" style="display:none;">
-                            <select class="form-select" name="material_id" id="material_id" required onchange="onMaterialChange()">
-                                <option value="">Сначала выберите тип операции</option>
-                            </select>
+                            <!-- Сам "аккордеон" выступает поиском: input с datalist стилизован под select -->
+                            <input class="form-select" id="material_picker" list="materials_list" placeholder="Начните вводить название..." onchange="onMaterialPicked()" oninput="onMaterialTyped()">
+                            <datalist id="materials_list"></datalist>
+                            <input type="hidden" name="material_id" id="material_id">
                         </div>
                         <div class="col-6">
                             <label class="form-label">Количество <span class="text-danger">*</span></label>
@@ -881,9 +880,10 @@ async function loadMaterialsForMovementType(movementType) {
       materials = await response.json();
     }
     
-    const select = document.getElementById('material_id');
-    const search = document.getElementById('material_search');
-    select.innerHTML = '<option value="">Выберите материал</option>';
+    const datalist = document.getElementById('materials_list');
+    const picker = document.getElementById('material_picker');
+    const hiddenId = document.getElementById('material_id');
+    if (datalist) datalist.innerHTML = '';
     
     // сохраним для локального поиска
     window._movementMaterials = materials.map(m => ({
@@ -893,21 +893,25 @@ async function loadMaterialsForMovementType(movementType) {
       current_quantity: m.current_quantity,
       total_allocated: m.total_allocated
     }));
-    // показать поле поиска
-    if (search) search.style.display = '';
-    window._movementMaterials.forEach(material => {
-      const option = document.createElement('option');
-      option.value = material.id;
-      if (movementType === 'move' || movementType === 'writeoff') {
-        option.textContent = `${material.name} (${material.current_quantity || 0} ${material.unit})`;
-      } else if (movementType === 'return') {
-        option.textContent = `${material.name} (у пользователей: ${material.total_allocated || 0} ${material.unit})`;
-      }
-      select.appendChild(option);
-    });
+    // заполним datalist вариантами для автодополнения
+    if (datalist) {
+      window._movementMaterials.forEach(m => {
+        const opt = document.createElement('option');
+        if (movementType === 'move' || movementType === 'writeoff') {
+          opt.value = `${m.name} (${m.current_quantity || 0} ${m.unit})`;
+        } else if (movementType === 'return') {
+          opt.value = `${m.name} (у пользователей: ${m.total_allocated || 0} ${m.unit})`;
+        } else {
+          opt.value = m.name;
+        }
+        opt.dataset.id = m.id;
+        datalist.appendChild(opt);
+      });
+    }
+    if (picker) picker.value = '';
+    if (hiddenId) hiddenId.value = '';
   } catch (error) {
     console.error('Ошибка загрузки материалов:', error);
-    document.getElementById('material_id').innerHTML = '<option value="">Ошибка загрузки материалов</option>';
   }
 }
 
@@ -973,7 +977,22 @@ async function onMaterialChange() {
   await loadUsersForMovement(movementType, materialId);
 }
 
-// Удаляем обработчики для datalist (возврат к прошлому стилю)
+// Обработка выбора/ввода в "аккордеоне-поиске"
+function onMaterialPicked() {
+  const picker = document.getElementById('material_picker');
+  const hiddenId = document.getElementById('material_id');
+  const list = Array.isArray(window._movementMaterials) ? window._movementMaterials : [];
+  const value = (picker?.value || '').split('(')[0].trim().toLowerCase();
+  const match = list.find(m => (m.name || '').toLowerCase() === value);
+  hiddenId.value = match ? match.id : '';
+  onMaterialChange();
+}
+
+function onMaterialTyped() {
+  const picker = document.getElementById('material_picker');
+  const hiddenId = document.getElementById('material_id');
+  if (picker && hiddenId && picker.value.length === 0) hiddenId.value = '';
+}
 
 // Загрузка пользователей для движения
 async function loadUsersForMovement(movementType, materialId) {
