@@ -57,6 +57,7 @@
                 <div class="card-body">
                     <h5 class="card-title mb-3">Личная информация</h5>
 
+                    {% if current_user.role == 'Инженер ПТО' %}
                     <form method="post" enctype="multipart/form-data">
                         <div class="row g-3">
                             <div class="col-md-4">
@@ -113,6 +114,45 @@
                             <a class="btn btn-outline-secondary" href="{{ url_for('main.profile') }}">Отменить</a>
                         </div>
                     </form>
+                    {% endif %}
+                    {% if current_user.role != 'Инженер ПТО' %}
+                    <!-- Read-only блок для обычных пользователей -->
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Фамилия</label>
+                            <input type="text" class="form-control" value="{{ current_user.secondname or '' }}" disabled>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Имя</label>
+                            <input type="text" class="form-control" value="{{ current_user.firstname or '' }}" disabled>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Отчество</label>
+                            <input type="text" class="form-control" value="{{ current_user.thirdname or '' }}" disabled>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Телефон</label>
+                            <input type="text" class="form-control" value="{{ current_user.phonenumber or '' }}" disabled>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Роль</label>
+                            <input type="text" class="form-control" value="{{ current_user.role or '' }}" disabled>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Дата регистрации</label>
+                            <input type="text" class="form-control" value="{{ current_user.registerdate | moscow_time_short if current_user.registerdate else '—' }}" disabled>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Логин</label>
+                            <input type="text" class="form-control" value="{{ current_user.login }}" disabled>
+                        </div>
+                        <!-- ID скрыт для не-админов -->
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
