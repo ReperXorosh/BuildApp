@@ -1238,7 +1238,7 @@ def api_list_movements():
                 continue
             # Получаем информацию о создателе материала
             creator_name = 'Не указан'
-            if hasattr(mat, 'created_by') and mat.created_by:
+            if mat.created_by:
                 creator = Users.query.get(mat.created_by)
                 if creator:
                     creator_name = f"{creator.secondname or ''} {creator.firstname or ''}".strip() or creator.login
@@ -1252,7 +1252,7 @@ def api_list_movements():
                 'quantity': mat.current_quantity or 0,  # Показываем текущее количество
                 'movement_type': 'creation',
                 'note': f'Создание материала (начальное количество: {mat.current_quantity or 0} {mat.unit or "шт"})',
-                'created_by': getattr(mat, 'created_by', None),
+                'created_by': mat.created_by,
                 'created_at': mat.created_at.isoformat() if mat.created_at else None,
                 'to_user_name': creator_name,
                 'attachments': []
