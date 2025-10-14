@@ -292,12 +292,11 @@
             color: white;
             padding: 16px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
+            position: fixed; /* унифицируем: фиксированная шапка */
             top: 0;
-            z-index: 1000;
-            width: 100vw; /* растягиваем хедер на всю ширину окна */
             left: 0;
             right: 0;
+            z-index: 1000;
         }
         /* Заливка области статус-бара, чтобы не было разреза при pull-to-refresh */
         .mobile-statusbar-fill {
@@ -408,10 +407,10 @@
         .mobile-content {
             flex: 1;
             padding: 16px;
-            /* учитываем фиксированную шапку + safe-area сверху */
-            padding-top: calc(80px + env(safe-area-inset-top, 0px));
-            padding-top: calc(80px + constant(safe-area-inset-top, 0px));
-            padding-bottom: 100px; /* базовый отступ; далее уточняется через JS по фактической высоте панели */
+            /* уменьшаем лишний зазор под шапкой */
+            padding-top: calc(64px + env(safe-area-inset-top, 0px));
+            padding-top: calc(64px + constant(safe-area-inset-top, 0px));
+            padding-bottom: 100px; /* далее уточняется через JS по фактической высоте панели */
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
@@ -500,7 +499,7 @@
             right: 0;
             background: var(--bs-body-bg);
             border-top: 1px solid var(--bs-border-color);
-            padding: 12px 0 env(safe-area-inset-bottom, 0px) 0; /* вплотную к safe-area */
+            padding: 12px 0 max(0px, calc(env(safe-area-inset-bottom, 0px) - 2px)) 0; /* ещё ближе к нижнему краю */
             margin-bottom: 0;
             z-index: 1000;
             display: flex;
