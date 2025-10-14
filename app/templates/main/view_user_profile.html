@@ -213,6 +213,7 @@
                                 {% endif %}
                             </p>
                         </div>
+                        {% if current_user.role == 'Инженер ПТО' and user.userid != current_user.userid %}
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Журнал действий</label>
                             <p class="form-control-plaintext">
@@ -225,6 +226,7 @@
                                 </a>
                             </p>
                         </div>
+                        {% endif %}
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Последний вход</label>
                             <p class="form-control-plaintext">

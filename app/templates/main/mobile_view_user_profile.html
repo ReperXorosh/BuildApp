@@ -176,6 +176,7 @@
                         {% endif %}
                     </p>
                 </div>
+                {% if current_user.role == 'Инженер ПТО' and user.userid != current_user.userid %}
                 <div class="col-6">
                     <label class="form-label fw-bold small">Журнал действий</label>
                     <p class="form-control-plaintext small">
@@ -186,6 +187,7 @@
                         </a>
                     </p>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
