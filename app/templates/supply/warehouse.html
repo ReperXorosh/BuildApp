@@ -531,21 +531,35 @@ async function reloadGroupItemsInto(container, groupId) {
       row.className = 'list-group-item d-flex justify-content-between align-items-center group-item-row';
       const mat = (materialsCache || []).find(m => m.id === i.material_id);
       const label = mat ? mat.name : i.material_id;
-      row.dataset.label = (label || '').toString().toLowerCase();
       row.innerHTML = `<span class=\"group-item-link\" onclick=\"viewMaterial('${i.material_id}')\" style=\"cursor:pointer;\">${label}</span>` +
         `{% if current_user.role in ['Инженер ПТО', 'Снабженец'] %}` +
         `<button class=\"btn btn-sm btn-outline-danger\" onclick=\"removeFromGroup('${i.material_id}','${groupId}')\">Убрать</button>` +
         `{% endif %}`;
       listEl.appendChild(row);
+      // После вставки берём фактический текст для надёжного поиска
+      const text = (row.querySelector('.group-item-link')?.textContent || '').toLowerCase();
+      row.dataset.label = text;
     });
     // Фильтрация по вводу
     searchInput.addEventListener('input', function() {
-      const q = (this.value || '').toLowerCase();
+      const q = (this.value || '').trim().toLowerCase();
       const rows = listEl.querySelectorAll('.group-item-row');
+      let visible = 0;
       rows.forEach(r => {
         const ok = !q || (r.dataset.label || '').includes(q);
         r.style.display = ok ? '' : 'none';
+        if (ok) visible++;
       });
+      // Если нет совпадений — показываем информер
+      let emptyEl = listEl.querySelector('.group-empty');
+      if (!emptyEl) {
+        emptyEl = document.createElement('div');
+        emptyEl.className = 'text-muted py-2 group-empty';
+        emptyEl.textContent = 'Ничего не найдено';
+        emptyEl.style.display = 'none';
+        listEl.appendChild(emptyEl);
+      }
+      emptyEl.style.display = (visible === 0) ? '' : 'none';
     });
   } catch (e) {
     console.error(e);
