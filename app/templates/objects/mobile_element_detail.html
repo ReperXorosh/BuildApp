@@ -26,32 +26,26 @@
             <span class="text-muted">Статус</span>
             <span class="badge bg-secondary">{{ element.status or '—' }}</span>
         </div>
-        <div class="mt-2">
-            <div class="text-muted mb-1">Примечания</div>
-            <div>{{ element.notes or '—' }}</div>
-        </div>
-    {# Попытка извлечь прикреплённый файл из заметок #}
+    {% set _notes_lines = (element.notes or '').split('\n') %}
+    {% set _filtered = [] %}
     {% set file_url = None %}
-    {% for line in (element.notes or '').split('\n') %}
-      {% if 'Файл:' in line %}
-        {% set file_url = line|replace('Файл:', '')|trim %}
+    {% for _l in _notes_lines %}
+      {% if 'Файл:' in _l %}
+        {% set file_url = _l|replace('Файл:', '')|trim %}
+      {% else %}
+        {% set _ = _filtered.append(_l) %}
       {% endif %}
     {% endfor %}
+    <div class="mt-2">
+        <div class="text-muted mb-1">Примечания</div>
+        <div>{{ _filtered|join('\n')|replace('\n','<br>')|safe if _filtered else '—' }}</div>
+    </div>
     {% if file_url %}
     <div class="mt-3">
-        <div class="text-muted mb-1">Файл</div>
-        {% set lower = file_url|lower %}
-        {% if lower.endswith('.png') or lower.endswith('.jpg') or lower.endswith('.jpeg') or lower.endswith('.webp') %}
-            <a href="{{ file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary w-100 mb-2">Открыть в новой вкладке</a>
-            <img src="{{ file_url }}" alt="Вложение" style="width:100%; height:auto; border-radius:12px;">
-        {% elif lower.endswith('.pdf') %}
-            <a href="{{ file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary w-100 mb-2">Открыть PDF</a>
-            <div style="width:100%; aspect-ratio: 16/9; border:1px solid var(--bs-border-color); border-radius:12px; overflow:hidden;">
-                <iframe src="{{ file_url }}" title="PDF" style="border:0; width:100%; height:100%;"></iframe>
-            </div>
-        {% else %}
-            <a href="{{ file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary w-100">Скачать/открыть файл</a>
-        {% endif %}
+        <a href="{{ file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary w-100">
+            <svg class="bi me-1" width="16" height="16" aria-hidden="true"><use href="#file-earmark-text"></use></svg>
+            Просмотреть файл
+        </a>
     </div>
     {% endif %}
     </div>

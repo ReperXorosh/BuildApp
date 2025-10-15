@@ -11,7 +11,12 @@
         <dt class="col-sm-3">Статус</dt>
         <dd class="col-sm-9">{{ element.status or '—' }}</dd>
         <dt class="col-sm-3">Заметки</dt>
-        <dd class="col-sm-9">{{ element.notes or '—' }}</dd>
+        {% set _notes_lines = (element.notes or '').split('\n') %}
+        {% set _filtered = [] %}
+        {% for _l in _notes_lines %}
+          {% if 'Файл:' not in _l %}{% set _ = _filtered.append(_l) %}{% endif %}
+        {% endfor %}
+        <dd class="col-sm-9">{{ _filtered|join('\n')|replace('\n','<br>')|safe if _filtered else '—' }}</dd>
         {# Попытка извлечь прикреплённый файл из заметок вида: "Файл: /static/uploads/elements/<name>" #}
         {% set file_url = None %}
         {% for line in (element.notes or '').split('\n') %}
@@ -22,20 +27,10 @@
         {% if file_url %}
           <dt class="col-sm-3">Файл</dt>
           <dd class="col-sm-9">
-            {% set lower = file_url|lower %}
-            {% if lower.endswith('.png') or lower.endswith('.jpg') or lower.endswith('.jpeg') or lower.endswith('.webp') %}
-              <a href="{{ file_url }}" target="_blank" class="d-inline-block mb-2">Открыть в новой вкладке</a>
-              <div class="border rounded p-2" style="max-width: 600px;">
-                <img src="{{ file_url }}" alt="Вложение" style="max-width:100%; height:auto;">
-              </div>
-            {% elif lower.endswith('.pdf') %}
-              <a href="{{ file_url }}" target="_blank" class="d-inline-block mb-2">Открыть PDF в новой вкладке</a>
-              <div class="ratio ratio-16x9 border rounded">
-                <iframe src="{{ file_url }}" title="PDF" style="border:0;"></iframe>
-              </div>
-            {% else %}
-              <a href="{{ file_url }}" target="_blank">Скачать/открыть файл</a>
-            {% endif %}
+            <a href="{{ file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Просмотреть файл">
+              <svg class="bi me-1" width="16" height="16" aria-hidden="true"><use href="#file-earmark-text"></use></svg>
+              Просмотреть
+            </a>
           </dd>
         {% endif %}
       </dl>
