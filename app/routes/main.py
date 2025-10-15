@@ -306,6 +306,15 @@ def calendar():
     for (checklist_date,) in checklist_dates:
         if checklist_date:
             active_dates.add(checklist_date.strftime('%Y-%m-%d'))
+    # Даты ежедневных отчётов (старой таблицы Reports)
+    try:
+        from ..models.reports import Reports as LegacyReports
+        legacy_dates = db.session.query(db.func.date(LegacyReports.created_at)).distinct().all()
+        for (ld,) in legacy_dates:
+            if ld:
+                active_dates.add(ld.strftime('%Y-%m-%d'))
+    except Exception:
+        pass
     
     # Логируем просмотр страницы календаря
     ActivityLog.log_action(
@@ -326,6 +335,11 @@ def calendar_date_detail(date):
     try:
         from datetime import datetime
         from ..models.objects import Object, Report, PlannedWork, Support, Trench, Checklist, ChecklistItem
+        # Попробуем подключить старую модель отчётов, если она используется
+        try:
+            from ..models.reports import Reports as LegacyReports
+        except Exception:
+            LegacyReports = None
         from ..models.users import Users
         
         # Обновляем статус просроченных работ
@@ -344,11 +358,26 @@ def calendar_date_detail(date):
         objects_data = []
         
         for obj in all_objects:
-            # Отчёты за эту дату
-            reports = Report.query.filter(
-                Report.object_id == obj.id,
-                Report.report_date == report_date
-            ).all()
+            # Отчёты за эту дату (поддержка обеих моделей)
+            reports = []
+            try:
+                reports = Report.query.filter(
+                    Report.object_id == obj.id,
+                    Report.report_date == report_date
+                ).all()
+            except Exception:
+                reports = []
+            if (not reports) and LegacyReports is not None:
+                legacy = LegacyReports.query.filter(
+                    LegacyReports.objectid == obj.id,
+                    db.func.date(LegacyReports.created_at) == report_date
+                ).all()
+                # Нормализуем поля под шаблон
+                for r in legacy:
+                    r.title = getattr(r, 'comment', 'Ежедневный отчёт')
+                    r.report_number = ''
+                    r.status = getattr(r, 'status', '')
+                reports = legacy or reports
             
             # Запланированные работы на эту дату
             planned_works = PlannedWork.query.filter(
