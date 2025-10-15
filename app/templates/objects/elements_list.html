@@ -70,7 +70,14 @@
                                                     <tbody>
                                                         {% for zdf in object.zdfs %}
                                                         <tr class="clickable-element" data-url="{{ url_for('objects.element_detail', object_id=object.id, element_type='zdf', element_id=zdf.id) }}">
-                                                            <td class="fw-semibold">{% if zdf.zdf_name %}{{ zdf.zdf_name }}{% else %}ЗДФ{% endif %}</td>
+                                                            <td class="fw-semibold d-flex align-items-center justify-content-between">
+                                                                <span>{% if zdf.zdf_name %}{{ zdf.zdf_name }}{% else %}ЗДФ{% endif %}</span>
+                                                                {% if current_user.role == 'Инженер ПТО' %}
+                                                                <button class="btn btn-sm btn-outline-danger ms-2 delete-element-btn" data-type="zdf" data-id="{{ zdf.id }}" title="Удалить элемент" onclick="event.stopPropagation();">
+                                                                    <svg class="bi" width="16" height="16" aria-hidden="true"><use href="#trash"></use></svg>
+                                                                </button>
+                                                                {% endif %}
+                                                            </td>
                                                             <td>
                                                                 {% if zdf.status %}
                                                                 <span class="badge bg-secondary">{{ zdf.status }}</span>
@@ -138,7 +145,14 @@
                                                     <tbody>
                                                         {% for bracket in object.brackets %}
                                                         <tr class="clickable-element" data-url="{{ url_for('objects.element_detail', object_id=object.id, element_type='bracket', element_id=bracket.id) }}">
-                                                            <td class="fw-semibold">{% if bracket.bracket_name %}{{ bracket.bracket_name }}{% else %}Кронштейн{% endif %}</td>
+                                                            <td class="fw-semibold d-flex align-items-center justify-content-between">
+                                                                <span>{% if bracket.bracket_name %}{{ bracket.bracket_name }}{% else %}Кронштейн{% endif %}</span>
+                                                                {% if current_user.role == 'Инженер ПТО' %}
+                                                                <button class="btn btn-sm btn-outline-danger ms-2 delete-element-btn" data-type="bracket" data-id="{{ bracket.id }}" title="Удалить элемент" onclick="event.stopPropagation();">
+                                                                    <svg class="bi" width="16" height="16" aria-hidden="true"><use href="#trash"></use></svg>
+                                                                </button>
+                                                                {% endif %}
+                                                            </td>
                                                             <td>
                                                                 {% if bracket.status %}
                                                                 <span class="badge bg-secondary">{{ bracket.status }}</span>
@@ -206,7 +220,14 @@
                                                     <tbody>
                                                         {% for luminaire in object.luminaires %}
                                                         <tr class="clickable-element" data-url="{{ url_for('objects.element_detail', object_id=object.id, element_type='luminaire', element_id=luminaire.id) }}">
-                                                            <td class="fw-semibold">{% if luminaire.luminaire_name %}{{ luminaire.luminaire_name }}{% else %}Светильник{% endif %}</td>
+                                                            <td class="fw-semibold d-flex align-items-center justify-content-between">
+                                                                <span>{% if luminaire.luminaire_name %}{{ luminaire.luminaire_name }}{% else %}Светильник{% endif %}</span>
+                                                                {% if current_user.role == 'Инженер ПТО' %}
+                                                                <button class="btn btn-sm btn-outline-danger ms-2 delete-element-btn" data-type="luminaire" data-id="{{ luminaire.id }}" title="Удалить элемент" onclick="event.stopPropagation();">
+                                                                    <svg class="bi" width="16" height="16" aria-hidden="true"><use href="#trash"></use></svg>
+                                                                </button>
+                                                                {% endif %}
+                                                            </td>
                                                             <td>
                                                                 {% if luminaire.status %}
                                                                 <span class="badge bg-secondary">{{ luminaire.status }}</span>
@@ -291,6 +312,31 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = url;
       }
     });
+  });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const root = document.querySelector('.card');
+  if (!root) return;
+  root.addEventListener('click', async function(e) {
+    const btn = e.target.closest('.delete-element-btn');
+    if (!btn) return;
+    const elementType = btn.dataset.type;
+    const elementId = btn.dataset.id;
+    if (!elementType || !elementId) return;
+    if (!confirm('Удалить элемент безвозвратно?')) return;
+    btn.disabled = true;
+    try {
+      const res = await fetch(`${window.location.pathname.replace(/\/$/, '')}/../api/objects/${'{{ object.id }}'}/elements/${elementType}/${elementId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Удаление не удалось');
+      // Перезагружаем страницу списка
+      window.location.reload();
+    } catch (err) {
+      alert('Ошибка: ' + (err.message || 'удаление не удалось'));
+    } finally {
+      btn.disabled = false;
+    }
   });
 });
 </script>

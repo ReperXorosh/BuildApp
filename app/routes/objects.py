@@ -786,6 +786,31 @@ def element_detail(object_id, element_type, element_id):
     template = 'objects/mobile_element_detail.html' if is_mobile else 'objects/element_detail.html'
     return render_template(template, object=obj, element=element, element_type=title)
 
+# Удаление элемента (для Инженер ПТО)
+@objects_bp.route('/api/objects/<uuid:object_id>/elements/<string:element_type>/<uuid:element_id>', methods=['DELETE'])
+@login_required
+def api_delete_element(object_id, element_type, element_id):
+    if current_user.role != 'Инженер ПТО':
+        return jsonify({'error': 'forbidden'}), 403
+
+    obj = Object.query.get_or_404(object_id)
+    et = (element_type or '').lower()
+    if et == 'zdf':
+        element = ZDF.query.get_or_404(element_id)
+    elif et == 'bracket':
+        element = Bracket.query.get_or_404(element_id)
+    elif et == 'luminaire':
+        element = Luminaire.query.get_or_404(element_id)
+    else:
+        return jsonify({'error': 'unknown type'}), 400
+
+    if element.object_id != obj.id:
+        return jsonify({'error': 'not found'}), 404
+
+    db.session.delete(element)
+    db.session.commit()
+    return jsonify({'status': 'ok'}), 200
+
 @objects_bp.route('/<uuid:object_id>/supports/<uuid:support_id>/confirm-installation', methods=['GET', 'POST'])
 @login_required
 def confirm_support_installation(object_id, support_id):
