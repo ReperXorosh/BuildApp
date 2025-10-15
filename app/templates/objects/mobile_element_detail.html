@@ -30,6 +30,30 @@
             <div class="text-muted mb-1">Примечания</div>
             <div>{{ element.notes or '—' }}</div>
         </div>
+    {# Попытка извлечь прикреплённый файл из заметок #}
+    {% set file_url = None %}
+    {% for line in (element.notes or '').split('\n') %}
+      {% if 'Файл:' in line %}
+        {% set file_url = line|replace('Файл:', '')|trim %}
+      {% endif %}
+    {% endfor %}
+    {% if file_url %}
+    <div class="mt-3">
+        <div class="text-muted mb-1">Файл</div>
+        {% set lower = file_url|lower %}
+        {% if lower.endswith('.png') or lower.endswith('.jpg') or lower.endswith('.jpeg') or lower.endswith('.webp') %}
+            <a href="{{ file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary w-100 mb-2">Открыть в новой вкладке</a>
+            <img src="{{ file_url }}" alt="Вложение" style="width:100%; height:auto; border-radius:12px;">
+        {% elif lower.endswith('.pdf') %}
+            <a href="{{ file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary w-100 mb-2">Открыть PDF</a>
+            <div style="width:100%; aspect-ratio: 16/9; border:1px solid var(--bs-border-color); border-radius:12px; overflow:hidden;">
+                <iframe src="{{ file_url }}" title="PDF" style="border:0; width:100%; height:100%;"></iframe>
+            </div>
+        {% else %}
+            <a href="{{ file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary w-100">Скачать/открыть файл</a>
+        {% endif %}
+    </div>
+    {% endif %}
     </div>
     <div class="mt-3 d-flex" style="gap:8px;">
         <a href="{{ url_for('objects.elements_list', object_id=object.id) }}" class="btn btn-outline-secondary w-100">К элементам</a>

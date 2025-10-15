@@ -12,6 +12,32 @@
         <dd class="col-sm-9">{{ element.status or '—' }}</dd>
         <dt class="col-sm-3">Заметки</dt>
         <dd class="col-sm-9">{{ element.notes or '—' }}</dd>
+        {# Попытка извлечь прикреплённый файл из заметок вида: "Файл: /static/uploads/elements/<name>" #}
+        {% set file_url = None %}
+        {% for line in (element.notes or '').split('\n') %}
+          {% if 'Файл:' in line %}
+            {% set file_url = line|replace('Файл:', '')|trim %}
+          {% endif %}
+        {% endfor %}
+        {% if file_url %}
+          <dt class="col-sm-3">Файл</dt>
+          <dd class="col-sm-9">
+            {% set lower = file_url|lower %}
+            {% if lower.endswith('.png') or lower.endswith('.jpg') or lower.endswith('.jpeg') or lower.endswith('.webp') %}
+              <a href="{{ file_url }}" target="_blank" class="d-inline-block mb-2">Открыть в новой вкладке</a>
+              <div class="border rounded p-2" style="max-width: 600px;">
+                <img src="{{ file_url }}" alt="Вложение" style="max-width:100%; height:auto;">
+              </div>
+            {% elif lower.endswith('.pdf') %}
+              <a href="{{ file_url }}" target="_blank" class="d-inline-block mb-2">Открыть PDF в новой вкладке</a>
+              <div class="ratio ratio-16x9 border rounded">
+                <iframe src="{{ file_url }}" title="PDF" style="border:0;"></iframe>
+              </div>
+            {% else %}
+              <a href="{{ file_url }}" target="_blank">Скачать/открыть файл</a>
+            {% endif %}
+          </dd>
+        {% endif %}
       </dl>
     </div>
   </div>
