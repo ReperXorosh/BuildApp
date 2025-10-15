@@ -319,6 +319,7 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
   const root = document.querySelector('.card');
   if (!root) return;
+  const apiBase = `/objects/api/objects/{{ object.id }}/elements/`;
   root.addEventListener('click', async function(e) {
     const btn = e.target.closest('.delete-element-btn');
     if (!btn) return;
@@ -328,7 +329,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!confirm('Удалить элемент безвозвратно?')) return;
     btn.disabled = true;
     try {
-      const res = await fetch(`${window.location.pathname.replace(/\/$/, '')}/../api/objects/${'{{ object.id }}'}/elements/${elementType}/${elementId}`, { method: 'DELETE' });
+      const res = await fetch(`${apiBase}${elementType}/${elementId}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Удаление не удалось');
       // Перезагружаем страницу списка
       window.location.reload();
