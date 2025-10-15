@@ -85,6 +85,8 @@
                                                                 {% for _l in _notes_lines %}
                                                                   {% if 'Файл:' in _l %}
                                                                     {% set _file_url = _l|replace('Файл:', '')|trim %}
+                                                                  {% elif '/static/uploads/elements/' in _l %}
+                                                                    {% set _file_url = _l|trim %}
                                                                   {% else %}
                                                                     {% set _ = _filtered.append(_l) %}
                                                                   {% endif %}
@@ -151,6 +153,8 @@
                                                                 {% for _l in _notes_lines %}
                                                                   {% if 'Файл:' in _l %}
                                                                     {% set _file_url = _l|replace('Файл:', '')|trim %}
+                                                                  {% elif '/static/uploads/elements/' in _l %}
+                                                                    {% set _file_url = _l|trim %}
                                                                   {% else %}
                                                                     {% set _ = _filtered.append(_l) %}
                                                                   {% endif %}
@@ -217,6 +221,8 @@
                                                                 {% for _l in _notes_lines %}
                                                                   {% if 'Файл:' in _l %}
                                                                     {% set _file_url = _l|replace('Файл:', '')|trim %}
+                                                                  {% elif '/static/uploads/elements/' in _l %}
+                                                                    {% set _file_url = _l|trim %}
                                                                   {% else %}
                                                                     {% set _ = _filtered.append(_l) %}
                                                                   {% endif %}
