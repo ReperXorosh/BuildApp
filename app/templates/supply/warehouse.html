@@ -764,7 +764,7 @@ async function loadMaterials() {
                 data-material-id="${material.id}"
                 onclick="viewMaterial('${material.id}')" 
                 title="Нажмите для просмотра подробной информации"
-                style="cursor: pointer; color: #0d6efd; text-decoration: underline;">
+                style="cursor: pointer;">
             ${material.name}
           </span>
         </td>
@@ -1803,8 +1803,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <style>
 .material-name-clickable:hover {
-  color: #0a58ca !important;
-  text-decoration: underline !important;
+  color: inherit !important;
+  text-decoration: none !important;
 }
 
 
