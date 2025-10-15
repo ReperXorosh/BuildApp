@@ -320,13 +320,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const root = document.querySelector('.card');
   if (!root) return;
   const apiBase = `/objects/api/objects/{{ object.id }}/elements/`;
-  root.addEventListener('mousedown', function(e){
-    const btn = e.target.closest('.delete-element-btn');
-    if (btn) e.stopPropagation();
-  }, true);
+  // Перехватываем клик на стадии захвата, чтобы не сработал обработчик строки
   root.addEventListener('click', async function(e) {
     const btn = e.target.closest('.delete-element-btn');
     if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
     const elementType = btn.dataset.type;
     const elementId = btn.dataset.id;
     if (!elementType || !elementId) return;
@@ -334,15 +333,17 @@ document.addEventListener('DOMContentLoaded', function() {
     btn.disabled = true;
     try {
       const res = await fetch(`${apiBase}${elementType}/${elementId}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Удаление не удалось');
-      // Перезагружаем страницу списка
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Удаление не удалось');
+      }
       window.location.reload();
     } catch (err) {
       alert('Ошибка: ' + (err.message || 'удаление не удалось'));
     } finally {
       btn.disabled = false;
     }
-  });
+  }, true);
 });
 </script>
 {% endblock %}
