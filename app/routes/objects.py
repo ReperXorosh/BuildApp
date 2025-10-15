@@ -644,6 +644,10 @@ def add_element(object_id):
                 # URL для доступа из браузера
                 file_url = f"/static/uploads/elements/{safe_name}"
         
+        # Если приложен файл — добавим его URL в заметки (для UI-отображения кнопки просмотра)
+        if file_url:
+            notes = f"{(notes + '\n') if notes else ''}Файл: {file_url}"
+
         if not element_type:
             flash('Тип элемента обязателен для заполнения', 'error')
             return render_template('objects/mobile_add_element.html' if is_mobile else 'objects/add_element.html', object=obj)
