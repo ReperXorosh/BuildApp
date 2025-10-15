@@ -73,7 +73,7 @@
                                                             <td class="fw-semibold d-flex align-items-center justify-content-between">
                                                                 <span>{% if zdf.zdf_name %}{{ zdf.zdf_name }}{% else %}ЗДФ{% endif %}</span>
                                                                 {% if current_user.role == 'Инженер ПТО' %}
-                                                                <button class="btn btn-sm btn-outline-danger ms-2 delete-element-btn" data-type="zdf" data-id="{{ zdf.id }}" title="Удалить элемент" onclick="event.stopPropagation();">
+                                                                <button type="button" class="btn btn-sm btn-outline-danger ms-2 delete-element-btn" data-type="zdf" data-id="{{ zdf.id }}" title="Удалить элемент">
                                                                     <svg class="bi" width="16" height="16" aria-hidden="true"><use href="#trash"></use></svg>
                                                                 </button>
                                                                 {% endif %}
@@ -148,7 +148,7 @@
                                                             <td class="fw-semibold d-flex align-items-center justify-content-between">
                                                                 <span>{% if bracket.bracket_name %}{{ bracket.bracket_name }}{% else %}Кронштейн{% endif %}</span>
                                                                 {% if current_user.role == 'Инженер ПТО' %}
-                                                                <button class="btn btn-sm btn-outline-danger ms-2 delete-element-btn" data-type="bracket" data-id="{{ bracket.id }}" title="Удалить элемент" onclick="event.stopPropagation();">
+                                                                <button type="button" class="btn btn-sm btn-outline-danger ms-2 delete-element-btn" data-type="bracket" data-id="{{ bracket.id }}" title="Удалить элемент">
                                                                     <svg class="bi" width="16" height="16" aria-hidden="true"><use href="#trash"></use></svg>
                                                                 </button>
                                                                 {% endif %}
@@ -223,7 +223,7 @@
                                                             <td class="fw-semibold d-flex align-items-center justify-content-between">
                                                                 <span>{% if luminaire.luminaire_name %}{{ luminaire.luminaire_name }}{% else %}Светильник{% endif %}</span>
                                                                 {% if current_user.role == 'Инженер ПТО' %}
-                                                                <button class="btn btn-sm btn-outline-danger ms-2 delete-element-btn" data-type="luminaire" data-id="{{ luminaire.id }}" title="Удалить элемент" onclick="event.stopPropagation();">
+                                                                <button type="button" class="btn btn-sm btn-outline-danger ms-2 delete-element-btn" data-type="luminaire" data-id="{{ luminaire.id }}" title="Удалить элемент">
                                                                     <svg class="bi" width="16" height="16" aria-hidden="true"><use href="#trash"></use></svg>
                                                                 </button>
                                                                 {% endif %}
@@ -320,6 +320,10 @@ document.addEventListener('DOMContentLoaded', function() {
   const root = document.querySelector('.card');
   if (!root) return;
   const apiBase = `/objects/api/objects/{{ object.id }}/elements/`;
+  root.addEventListener('mousedown', function(e){
+    const btn = e.target.closest('.delete-element-btn');
+    if (btn) e.stopPropagation();
+  }, true);
   root.addEventListener('click', async function(e) {
     const btn = e.target.closest('.delete-element-btn');
     if (!btn) return;
