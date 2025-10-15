@@ -38,7 +38,12 @@
     {% endfor %}
     <div class="mt-2">
         <div class="text-muted mb-1">Примечания</div>
-        <div>{{ _filtered|join('\n')|replace('\n','<br>')|safe if _filtered else '—' }}</div>
+        {% set _trimmed = [] %}
+        {% for _l in _filtered %}
+          {% set _t = _l|trim %}
+          {% if _t %}{% set _ = _trimmed.append(_t) %}{% endif %}
+        {% endfor %}
+        <div>{{ (_trimmed|length > 0) and (_trimmed|join('\n')|replace('\n','<br>')|safe) or '—' }}</div>
     </div>
     {% if file_url %}
     <div class="mt-3">

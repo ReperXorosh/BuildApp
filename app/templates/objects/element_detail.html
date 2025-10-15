@@ -14,9 +14,10 @@
         {% set _notes_lines = (element.notes or '').split('\n') %}
         {% set _filtered = [] %}
         {% for _l in _notes_lines %}
-          {% if 'Файл:' not in _l %}{% set _ = _filtered.append(_l) %}{% endif %}
+          {% set _t = _l|trim %}
+          {% if _t and ('Файл:' not in _t) %}{% set _ = _filtered.append(_t) %}{% endif %}
         {% endfor %}
-        <dd class="col-sm-9">{{ _filtered|join('\n')|replace('\n','<br>')|safe if _filtered else '—' }}</dd>
+        <dd class="col-sm-9">{{ (_filtered|length > 0) and (_filtered|join('\n')|replace('\n','<br>')|safe) or '—' }}</dd>
         {# Попытка извлечь прикреплённый файл из заметок вида: "Файл: /static/uploads/elements/<name>" #}
         {% set file_url = None %}
         {% for line in (element.notes or '').split('\n') %}

@@ -78,7 +78,27 @@
                                                                 <span class="text-muted">-</span>
                                                                 {% endif %}
                                                             </td>
-                                                            <td>{{ zdf.notes or '-' }}</td>
+                                                            <td>
+                                                                {% set _notes_lines = (zdf.notes or '').split('\n') %}
+                                                                {% set _filtered = [] %}
+                                                                {% set _file_url = None %}
+                                                                {% for _l in _notes_lines %}
+                                                                  {% if 'Файл:' in _l %}
+                                                                    {% set _file_url = _l|replace('Файл:', '')|trim %}
+                                                                  {% else %}
+                                                                    {% set _ = _filtered.append(_l) %}
+                                                                  {% endif %}
+                                                                {% endfor %}
+                                                                <div class="text-truncate" style="max-width:420px;">{{ _filtered|join('\n')|replace('\n','<br>')|safe if _filtered else '—' }}</div>
+                                                                {% if _file_url %}
+                                                                  <div class="mt-1">
+                                                                    <a href="{{ _file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Просмотреть файл">
+                                                                      <svg class="bi me-1" width="16" height="16" aria-hidden="true"><use href="#file-earmark-text"></use></svg>
+                                                                      Просмотреть
+                                                                    </a>
+                                                                  </div>
+                                                                {% endif %}
+                                                            </td>
                                                         </tr>
                                                         {% endfor %}
                                                     </tbody>
@@ -124,7 +144,27 @@
                                                                 <span class="text-muted">-</span>
                                                                 {% endif %}
                                                             </td>
-                                                            <td>{{ bracket.notes or '-' }}</td>
+                                                            <td>
+                                                                {% set _notes_lines = (bracket.notes or '').split('\n') %}
+                                                                {% set _filtered = [] %}
+                                                                {% set _file_url = None %}
+                                                                {% for _l in _notes_lines %}
+                                                                  {% if 'Файл:' in _l %}
+                                                                    {% set _file_url = _l|replace('Файл:', '')|trim %}
+                                                                  {% else %}
+                                                                    {% set _ = _filtered.append(_l) %}
+                                                                  {% endif %}
+                                                                {% endfor %}
+                                                                <div class="text-truncate" style="max-width:420px;">{{ _filtered|join('\n')|replace('\n','<br>')|safe if _filtered else '—' }}</div>
+                                                                {% if _file_url %}
+                                                                  <div class="mt-1">
+                                                                    <a href="{{ _file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Просмотреть файл">
+                                                                      <svg class="bi me-1" width="16" height="16" aria-hidden="true"><use href="#file-earmark-text"></use></svg>
+                                                                      Просмотреть
+                                                                    </a>
+                                                                  </div>
+                                                                {% endif %}
+                                                            </td>
                                                         </tr>
                                                         {% endfor %}
                                                     </tbody>
@@ -170,7 +210,27 @@
                                                                 <span class="text-muted">-</span>
                                                                 {% endif %}
                                                             </td>
-                                                            <td>{{ luminaire.notes or '-' }}</td>
+                                                            <td>
+                                                                {% set _notes_lines = (luminaire.notes or '').split('\n') %}
+                                                                {% set _filtered = [] %}
+                                                                {% set _file_url = None %}
+                                                                {% for _l in _notes_lines %}
+                                                                  {% if 'Файл:' in _l %}
+                                                                    {% set _file_url = _l|replace('Файл:', '')|trim %}
+                                                                  {% else %}
+                                                                    {% set _ = _filtered.append(_l) %}
+                                                                  {% endif %}
+                                                                {% endfor %}
+                                                                <div class="text-truncate" style="max-width:420px;">{{ _filtered|join('\n')|replace('\n','<br>')|safe if _filtered else '—' }}</div>
+                                                                {% if _file_url %}
+                                                                  <div class="mt-1">
+                                                                    <a href="{{ _file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Просмотреть файл">
+                                                                      <svg class="bi me-1" width="16" height="16" aria-hidden="true"><use href="#file-earmark-text"></use></svg>
+                                                                      Просмотреть
+                                                                    </a>
+                                                                  </div>
+                                                                {% endif %}
+                                                            </td>
                                                         </tr>
                                                         {% endfor %}
                                                     </tbody>
