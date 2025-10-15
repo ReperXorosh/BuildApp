@@ -90,12 +90,13 @@
                                                                 {% set _filtered = [] %}
                                                                 {% set _file_url = None %}
                                                                 {% for _l in _notes_lines %}
-                                                                  {% if 'Файл:' in _l %}
-                                                                    {% set _file_url = _l|replace('Файл:', '')|trim %}
-                                                                  {% elif '/static/uploads/elements/' in _l %}
+                                                                  {% set _t = _l|trim %}
+                                                                  {% if _t.startswith('Файл:') %}
+                                                                    {% set _file_url = _t[5:]|trim %}
+                                                                  {% elif _t.startswith('/static/uploads/elements/') %}
                                                                     {% set _file_url = _l|trim %}
                                                                   {% else %}
-                                                                    {% set _ = _filtered.append(_l) %}
+                                                                    {% if _t %}{% set _ = _filtered.append(_t) %}{% endif %}
                                                                   {% endif %}
                                                                 {% endfor %}
                                                                 <div class="text-truncate" style="max-width:420px;">{{ _filtered|join('\n')|replace('\n','<br>')|safe if _filtered else '—' }}</div>
@@ -165,12 +166,13 @@
                                                                 {% set _filtered = [] %}
                                                                 {% set _file_url = None %}
                                                                 {% for _l in _notes_lines %}
-                                                                  {% if 'Файл:' in _l %}
-                                                                    {% set _file_url = _l|replace('Файл:', '')|trim %}
-                                                                  {% elif '/static/uploads/elements/' in _l %}
+                                                                  {% set _t = _l|trim %}
+                                                                  {% if _t.startswith('Файл:') %}
+                                                                    {% set _file_url = _t[5:]|trim %}
+                                                                  {% elif _t.startswith('/static/uploads/elements/') %}
                                                                     {% set _file_url = _l|trim %}
                                                                   {% else %}
-                                                                    {% set _ = _filtered.append(_l) %}
+                                                                    {% if _t %}{% set _ = _filtered.append(_t) %}{% endif %}
                                                                   {% endif %}
                                                                 {% endfor %}
                                                                 <div class="text-truncate" style="max-width:420px;">{{ _filtered|join('\n')|replace('\n','<br>')|safe if _filtered else '—' }}</div>
@@ -240,12 +242,13 @@
                                                                 {% set _filtered = [] %}
                                                                 {% set _file_url = None %}
                                                                 {% for _l in _notes_lines %}
-                                                                  {% if 'Файл:' in _l %}
-                                                                    {% set _file_url = _l|replace('Файл:', '')|trim %}
-                                                                  {% elif '/static/uploads/elements/' in _l %}
+                                                                  {% set _t = _l|trim %}
+                                                                  {% if _t.startswith('Файл:') %}
+                                                                    {% set _file_url = _t[5:]|trim %}
+                                                                  {% elif _t.startswith('/static/uploads/elements/') %}
                                                                     {% set _file_url = _l|trim %}
                                                                   {% else %}
-                                                                    {% set _ = _filtered.append(_l) %}
+                                                                    {% if _t %}{% set _ = _filtered.append(_t) %}{% endif %}
                                                                   {% endif %}
                                                                 {% endfor %}
                                                                 <div class="text-truncate" style="max-width:420px;">{{ _filtered|join('\n')|replace('\n','<br>')|safe if _filtered else '—' }}</div>
