@@ -32,7 +32,7 @@
                    required>
         </div>
 
-        <div class="mobile-form-group mobile-form-group-files" style="height: 200px; position: relative; z-index: 5; overflow-y: auto;">
+        <div class="mobile-form-group mobile-form-group-files">
             <label class="mobile-form-label">Файлы (фото/документы) *</label>
             
             <!-- Скрытый input для файлов -->
@@ -61,7 +61,7 @@
                 <div id="required-files-info"></div>
                 <br><strong>Совет:</strong> Удерживайте Ctrl (Cmd на Mac) для выбора нескольких файлов одновременно.
             </div>
-            <div id="selected-files-list" class="mt-2" style="max-height: 100px; overflow-y: auto;"></div>
+            <div id="selected-files-list" class="mt-2"></div>
         </div>
 
         <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
@@ -542,34 +542,26 @@ document.addEventListener('DOMContentLoaded', function() {
     transition: none !important;
 }
 
-/* Стабилизация контейнера файлов */
-.mobile-form-group[style*="height: 200px"] {
-    position: relative;
-    z-index: 5;
-    height: 200px !important;
-    overflow-y: auto;
-}
-
-/* Фиксация списка выбранных файлов */
-#selected-files-list {
-    max-height: 100px;
-    overflow-y: auto;
-    position: relative;
-}
-
-/* Выравнивание полей формы в мобильной версии */
+/* Компактные поля в мобильной версии */
 .mobile-form-group {
-    display: flex;
-    flex-direction: column;
     margin-bottom: 1rem;
 }
 
 .mobile-form-label {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
 }
 
 .mobile-form-control {
-    flex: 1;
+    height: 2.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.mobile-form-control-lg {
+    height: 2.75rem;
+    padding: 0.625rem 0.875rem;
 }
 </style>
 {% endblock %}
