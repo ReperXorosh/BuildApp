@@ -41,8 +41,7 @@
                    id="files" 
                    class="d-none" 
                    multiple 
-                   accept="image/*,.pdf,.doc,.docx"
-                   required>
+                   accept="image/*,.pdf,.doc,.docx">
             
             <!-- Кнопки для выбора файлов -->
             <div class="d-flex gap-2 mb-2">
@@ -279,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (selectedFiles.length < requiredFiles) {
-            alert(`Необходимо прикрепить минимум ${requiredFiles} файл(ов) для ${lengthValue} метров`);
+            alert(`Необходимо прикрепить минимум ${requiredFiles} файл(ов) для ${lengthValue} метров. Сейчас выбрано: ${selectedFiles.length} файл(ов)`);
             return false;
         }
         
