@@ -5,6 +5,20 @@
 
 {% block content %}
 <div class="container-fluid py-3" style="margin-top: 80px;">
+    <style>
+    /* Лёгкая анимация карточки ежедневного отчёта */
+    .daily-report-card {
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        border: 1px solid rgba(108, 117, 125, 0.3);
+        border-radius: 0.375rem;
+    }
+    .daily-report-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+        border-color: rgba(108, 117, 125, 0.5);
+    }
+    .daily-report-card:active { transform: translateY(-1px); box-shadow: 0 6px 12px rgba(0,0,0,0.2); }
+    </style>
     <div class="row">
         <div class="col-12">
             <div class="mb-4">
@@ -123,7 +137,7 @@
                                 {% for report in reports %}
                                 <div class="col-md-6 col-lg-4">
                                     <a href="{{ url_for('main.object_report_by_date', object_id=object_obj.id, date=date_key) }}" class="text-decoration-none">
-                                        <div class="card border-info" style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                                        <div class="card daily-report-card" style="cursor: pointer;">
                                             <div class="card-body py-2">
                                                 <div class="d-flex align-items-center justify-content-between">
                                                     <div class="d-flex align-items-center">
