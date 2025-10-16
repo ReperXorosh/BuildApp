@@ -264,7 +264,7 @@ def format_phone_for_display(phone_number):
 @login_required
 def calendar():
     from datetime import datetime, date
-    from ..models.objects import Object, Report, PlannedWork, Support, Trench, ChecklistItem
+    from ..models.objects import Object, Report, PlannedWork, Support, Trench, ChecklistItem, DailyReport
     
     # Обновляем статус просроченных работ
     PlannedWork.update_overdue_works()
@@ -280,6 +280,14 @@ def calendar():
     for (report_date,) in reports_dates:
         if report_date:
             active_dates.add(report_date.strftime('%Y-%m-%d'))
+    # Даты с ежедневными отчётами
+    try:
+        daily_dates = db.session.query(db.func.date(DailyReport.report_date)).distinct().all()
+        for (d,) in daily_dates:
+            if d:
+                active_dates.add(d.strftime('%Y-%m-%d'))
+    except Exception:
+        pass
     
     # Даты с запланированными работами
     planned_works_dates = db.session.query(db.func.date(PlannedWork.planned_date)).distinct().all()
@@ -334,7 +342,7 @@ def calendar_date_detail(date):
     """Детальная информация по выбранной дате"""
     try:
         from datetime import datetime
-        from ..models.objects import Object, Report, PlannedWork, Support, Trench, Checklist, ChecklistItem
+        from ..models.objects import Object, Report, PlannedWork, Support, Trench, Checklist, ChecklistItem, DailyReport
         # Попробуем подключить старую модель отчётов, если она используется
         try:
             from ..models.reports import Reports as LegacyReports
@@ -378,6 +386,19 @@ def calendar_date_detail(date):
                     r.report_number = ''
                     r.status = getattr(r, 'status', '')
                 reports = legacy or reports
+
+            # Подтягиваем ежедневный отчёт как отдельный элемент в блок "Отчёты"
+            try:
+                daily = DailyReport.query.filter_by(object_id=obj.id, report_date=report_date).all()
+            except Exception:
+                daily = []
+            for d in daily:
+                reports.append(type('DailyStub', (), {
+                    'title': 'Ежедневный отчёт',
+                    'report_number': '',
+                    'status': getattr(d, 'approval_status', getattr(d, 'status', '')),
+                    'created_by': None
+                }))
             
             # Запланированные работы на эту дату
             planned_works = PlannedWork.query.filter(
