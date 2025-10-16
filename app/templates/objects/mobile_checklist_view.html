@@ -35,7 +35,7 @@
         {% for item in checklist.items %}
         <div class="list-group-item{% if item.is_completed %} completed{% endif %}" id="item-{{ item.id }}" style="border-top-width:1px !important;">
             <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="fw-semibold">{{ loop.index }}. {{ item.item_text }}</span>
+                <span>{{ loop.index }}. {{ item.item_text }}</span>
                 {% if item.is_completed %}<span class="badge bg-success">Выполнено</span>{% endif %}
             </div>
             <div class="d-flex justify-content-between align-items-center">
