@@ -9,7 +9,27 @@
         <dt class="col-sm-3">Название</dt>
         <dd class="col-sm-9">{{ element.zdf_name or element.bracket_name or element.luminaire_name or '—' }}</dd>
         <dt class="col-sm-3">Статус</dt>
-        <dd class="col-sm-9">{{ element.status or '—' }}</dd>
+        <dd class="col-sm-9">
+          {% if element.status %}
+          {% set status_translation = {
+              'pending': 'Ожидает',
+              'in_progress': 'В работе',
+              'completed': 'Завершено',
+              'cancelled': 'Отменено',
+              'active': 'Активно',
+              'inactive': 'Неактивно',
+              'installed': 'Установлено',
+              'not_installed': 'Не установлено',
+              'working': 'Работает',
+              'broken': 'Сломано',
+              'maintenance': 'Обслуживание',
+              'planned': 'Запланировано'
+          } %}
+          {{ status_translation.get(element.status.lower(), element.status) }}
+          {% else %}
+          —
+          {% endif %}
+        </dd>
         <dt class="col-sm-3">Заметки</dt>
         {% set _notes_lines = (element.notes or '').split('\n') %}
         {% set _filtered = [] %}
