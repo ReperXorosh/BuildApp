@@ -59,11 +59,26 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="files" class="form-label">
+                                    <label class="form-label">
                                         <i class="bi bi-camera me-1"></i>
                                         Файлы (фото/документы) *
                                     </label>
-                                    <input type="file" class="form-control" id="files" name="files" multiple accept="image/*,.pdf,.doc,.docx" required>
+                                    
+                                    <!-- Скрытый input для файлов -->
+                                    <input type="file" class="form-control d-none" id="files" name="files" multiple accept="image/*,.pdf,.doc,.docx" required>
+                                    
+                                    <!-- Кнопки для выбора файлов -->
+                                    <div class="d-flex gap-2 mb-2">
+                                        <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('files').click()">
+                                            <i class="bi bi-plus-circle me-1"></i>
+                                            Выбрать файлы
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="clearAllFiles()">
+                                            <i class="bi bi-trash me-1"></i>
+                                            Очистить все
+                                        </button>
+                                    </div>
+                                    
                                     <div class="form-text">
                                         <strong>Требование:</strong> минимум 1 файл на каждые 20 метров. 
                                         <span id="required-files-info"></span>
@@ -114,35 +129,67 @@ document.addEventListener('DOMContentLoaded', function() {
         requiredFilesInfo.textContent = `Для ${length}м требуется минимум ${requiredFiles} файл(ов)`;
     }
     
+    // Массив для хранения выбранных файлов
+    let selectedFiles = [];
+    
     // Функция для отображения выбранных файлов
     function updateSelectedFilesList() {
-        const files = filesInput.files;
         const filesList = document.getElementById('selected-files-list');
         
-        if (files.length === 0) {
+        if (selectedFiles.length === 0) {
             filesList.innerHTML = '';
             return;
         }
         
         let html = '<div class="alert alert-info"><strong>Выбранные файлы:</strong><ul class="mb-0 mt-2">';
-        for (let i = 0; i < files.length; i++) {
-            html += `<li>${files[i].name} (${(files[i].size / 1024 / 1024).toFixed(2)} МБ)</li>`;
+        for (let i = 0; i < selectedFiles.length; i++) {
+            html += `<li class="d-flex justify-content-between align-items-center">
+                        <span>${selectedFiles[i].name} (${(selectedFiles[i].size / 1024 / 1024).toFixed(2)} МБ)</span>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile(${i})">
+                            <i class="bi bi-x"></i>
+                        </button>
+                     </li>`;
         }
         html += '</ul></div>';
         
         filesList.innerHTML = html;
     }
     
+    // Функция для добавления файлов
+    function addFiles(newFiles) {
+        for (let i = 0; i < newFiles.length; i++) {
+            selectedFiles.push(newFiles[i]);
+        }
+        updateSelectedFilesList();
+    }
+    
+    // Функция для удаления файла
+    function removeFile(index) {
+        selectedFiles.splice(index, 1);
+        updateSelectedFilesList();
+    }
+    
+    // Функция для очистки всех файлов
+    function clearAllFiles() {
+        selectedFiles = [];
+        filesInput.value = '';
+        updateSelectedFilesList();
+    }
+    
     // Обновляем информацию при изменении длины
     lengthInput.addEventListener('input', updateRequiredFilesInfo);
     
     // Обновляем список файлов при выборе
-    filesInput.addEventListener('change', updateSelectedFilesList);
+    filesInput.addEventListener('change', function() {
+        const newFiles = Array.from(this.files);
+        addFiles(newFiles);
+        // Очищаем input для возможности повторного выбора
+        this.value = '';
+    });
     
     // Валидация при отправке формы
     form.addEventListener('submit', function(e) {
         const length = parseFloat(lengthInput.value);
-        const files = filesInput.files;
         const requiredFiles = Math.max(1, Math.ceil(length / 20));
         
         if (length <= 0) {
@@ -152,12 +199,16 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        if (files.length < requiredFiles) {
+        if (selectedFiles.length < requiredFiles) {
             e.preventDefault();
             alert(`Необходимо прикрепить минимум ${requiredFiles} файл(ов) для ${length} метров`);
-            filesInput.focus();
             return;
         }
+        
+        // Создаем DataTransfer для передачи файлов в input
+        const dataTransfer = new DataTransfer();
+        selectedFiles.forEach(file => dataTransfer.items.add(file));
+        filesInput.files = dataTransfer.files;
     });
     
     // Устанавливаем сегодняшнюю дату по умолчанию
