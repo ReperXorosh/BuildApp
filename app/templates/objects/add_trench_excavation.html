@@ -266,18 +266,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Валидация при отправке формы
     form.addEventListener('submit', function(e) {
-        e.preventDefault(); // Всегда предотвращаем стандартную отправку
-        
         const length = parseFloat(lengthInput.value);
         const requiredFiles = Math.max(1, Math.ceil(length / 20));
         
         if (isNaN(length) || length <= 0) {
+            e.preventDefault();
             alert('Длина должна быть больше 0');
             lengthInput.focus();
             return;
         }
         
         if (selectedFiles.length < requiredFiles) {
+            e.preventDefault();
             alert(`Необходимо прикрепить минимум ${requiredFiles} файл(ов) для ${length} метров`);
             return;
         }
@@ -287,9 +287,8 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedFiles.forEach(file => dataTransfer.items.add(file));
         filesInput.files = dataTransfer.files;
         
-        // Если валидация прошла успешно, отправляем форму
+        // Если валидация прошла успешно, форма отправится естественным образом
         console.log('Отправляем форму с', selectedFiles.length, 'файлами');
-        form.submit();
     });
     
     // Устанавливаем сегодняшнюю дату по умолчанию
