@@ -50,11 +50,13 @@
         padding: 1rem;
         margin-bottom: 1rem;
         transition: all 0.2s ease;
+        cursor: default;
     }
     
     .checklist-item:hover {
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         border-color: var(--bs-primary);
+        transform: translateY(-2px);
     }
     
     .checklist-item.completed {
@@ -77,11 +79,17 @@
         font-weight: normal !important;
         color: var(--bs-body-color) !important;
         text-decoration: none !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease;
     }
     
     .item-text-clickable:hover {
         color: var(--bs-body-color) !important;
         text-decoration: none !important;
+        background-color: var(--bs-light);
+        border-radius: 4px;
+        padding: 2px 4px;
+        margin: -2px -4px;
     }
     
     .unit-badge, .quantity-badge {
