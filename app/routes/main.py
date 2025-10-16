@@ -1350,6 +1350,16 @@ def object_report_by_date(object_id, date):
             object_id=object_id, 
             report_date=report_date
         ).order_by(Report.created_at).all()
+
+        # Подтягиваем ежедневные отчёты за эту дату
+        try:
+            from ..models.objects import DailyReport
+            daily_reports = DailyReport.query.filter_by(
+                object_id=object_id,
+                report_date=report_date
+            ).all()
+        except Exception:
+            daily_reports = []
         
         # Загружаем информацию о создателях отчётов
         from ..models.users import Users
@@ -1373,7 +1383,8 @@ def object_report_by_date(object_id, date):
         return render_template('main/object_report_by_date.html', 
                              object_obj=object_obj,
                              date=report_date,
-                             reports=reports)
+                             reports=reports,
+                             daily_reports=daily_reports)
     
     except ValueError:
         flash('Неверный формат даты', 'error')
