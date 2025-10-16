@@ -44,7 +44,9 @@
             <div class="form-text">
                 <strong>Требование:</strong> минимум 1 файл на каждые 20 метров.
                 <div id="required-files-info"></div>
+                <br><strong>Совет:</strong> Удерживайте Ctrl (Cmd на Mac) для выбора нескольких файлов одновременно.
             </div>
+            <div id="selected-files-list" class="mt-2"></div>
         </div>
 
         <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
@@ -88,8 +90,30 @@ document.addEventListener('DOMContentLoaded', function() {
         requiredFilesInfo.textContent = `Для ${lengthValue}м требуется минимум ${requiredFiles} файл(ов)`;
     }
     
+    // Функция для отображения выбранных файлов
+    function updateSelectedFilesList() {
+        const filesList = document.getElementById('selected-files-list');
+        const selectedFiles = files.files;
+        
+        if (selectedFiles.length === 0) {
+            filesList.innerHTML = '';
+            return;
+        }
+        
+        let html = '<div class="alert alert-info"><strong>Выбранные файлы:</strong><ul class="mb-0 mt-2">';
+        for (let i = 0; i < selectedFiles.length; i++) {
+            html += `<li>${selectedFiles[i].name} (${(selectedFiles[i].size / 1024 / 1024).toFixed(2)} МБ)</li>`;
+        }
+        html += '</ul></div>';
+        
+        filesList.innerHTML = html;
+    }
+    
     // Обновляем информацию при изменении длины
     length.addEventListener('input', updateRequiredFilesInfo);
+    
+    // Обновляем список файлов при выборе
+    files.addEventListener('change', updateSelectedFilesList);
     
     // Обработчик «Назад» с предупреждением
     function confirmLeaveIfDirty(action){
