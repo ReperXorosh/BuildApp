@@ -292,15 +292,20 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     form.addEventListener('submit', function(e) {
+        e.preventDefault(); // Всегда предотвращаем стандартную отправку
+        
         trimField(notes);
         if (!validateForm()) { 
-            e.preventDefault(); 
             return false; 
         }
         
         submitBtn.disabled = true;
         const original = submitBtn.innerHTML;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Сохранение...';
+        
+        // Если валидация прошла успешно, отправляем форму
+        console.log('Отправляем мобильную форму с', selectedFiles.length, 'файлами');
+        form.submit();
         
         setTimeout(() => { 
             submitBtn.disabled = false; 
