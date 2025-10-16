@@ -297,10 +297,27 @@
 }
 
 .object-card {
-    border: none;
+    border: 1px solid rgba(108, 117, 125, 0.3);
+    background: var(--bs-body-bg);
+    border-radius: 0.375rem;
+    box-shadow: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .object-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    border-color: rgba(108, 117, 125, 0.5);
+}
+
+[data-bs-theme="dark"] .object-card {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: var(--bs-dark);
+}
+
+[data-bs-theme="dark"] .object-card:hover {
+    box-shadow: 0 6px 16px rgba(0,0,0,0.45);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 </style>
 
