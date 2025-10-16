@@ -21,7 +21,7 @@
     {% if trenches %}
     <div class="mobile-cards-container">
         {% for trench in trenches %}
-        <div class="mobile-card clickable-card" data-url="{{ url_for('objects.trench_detail', object_id=object.id, trench_id=trench.id) }}">
+                <div class="mobile-card">
             <div class="mobile-card-header">
                 <div class="mobile-card-title">
                     <i class="bi bi-tools me-2"></i>
@@ -80,7 +80,7 @@
             
             <div class="mobile-card-footer">
                 <a href="{{ url_for('objects.add_trench_excavation', object_id=object.id, trench_id=trench.id) }}" 
-                   class="mobile-btn mobile-btn-primary w-100" data-ignore-card-click="true">
+                   class="mobile-btn mobile-btn-primary w-100">
                     <i class="bi bi-plus-lg me-2"></i>
                     Добавить запись о копке
                 </a>
