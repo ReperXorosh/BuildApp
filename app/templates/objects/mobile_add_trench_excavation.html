@@ -11,7 +11,7 @@
     </div>
 
     <form method="POST" enctype="multipart/form-data" id="add-excavation-form" novalidate>
-        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0; min-height: 80px;">
             <label class="mobile-form-label" for="length">Длина выкопанного участка (м) *</label>
             <input type="number" 
                    step="0.01" 
@@ -32,7 +32,7 @@
                    required>
         </div>
 
-        <div class="mobile-form-group mobile-form-group-files">
+        <div class="mobile-form-group mobile-form-group-files" style="min-height: 120px;">
             <label class="mobile-form-label">Файлы (фото/документы) *</label>
             
             <!-- Скрытый input для файлов -->
@@ -56,7 +56,7 @@
                 </button>
             </div>
             
-            <div class="form-text">
+            <div class="form-text" style="min-height: 40px;">
                 <strong>Требование:</strong> минимум 1 файл на каждые 20 метров.
                 <div id="required-files-info"></div>
                 <br><strong>Совет:</strong> Удерживайте Ctrl (Cmd на Mac) для выбора нескольких файлов одновременно.
@@ -121,8 +121,8 @@ document.addEventListener('DOMContentLoaded', function() {
         for (let i = 0; i < selectedFiles.length; i++) {
             html += `<li class="d-flex justify-content-between align-items-center">
                         <span>${selectedFiles[i].name} (${(selectedFiles[i].size / 1024 / 1024).toFixed(2)} МБ)</span>
-                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile(${i})">
-                            <i class="bi bi-x"></i>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile(${i})" title="Удалить файл">
+                            <svg class="bi" width="16" height="16" aria-hidden="true"><use xlink:href="#trash"></use></svg>
                         </button>
                      </li>`;
         }
@@ -131,12 +131,83 @@ document.addEventListener('DOMContentLoaded', function() {
         filesList.innerHTML = html;
     }
     
-    // Функция для добавления файлов
-    function addFiles(newFiles) {
-        for (let i = 0; i < newFiles.length; i++) {
-            selectedFiles.push(newFiles[i]);
+    // Функция для проверки дубликатов файлов
+    function isDuplicateFile(newFile) {
+        return selectedFiles.some(existingFile => 
+            existingFile.name === newFile.name && 
+            existingFile.size === newFile.size &&
+            existingFile.lastModified === newFile.lastModified
+        );
+    }
+    
+    // Функция для проверки дубликатов изображений по содержимому (асинхронная)
+    async function checkImageDuplicates(newFile) {
+        if (!newFile.type.startsWith('image/')) {
+            return false;
         }
+        
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const newImageData = e.target.result;
+                
+                // Проверяем каждое существующее изображение
+                for (let existingFile of selectedFiles) {
+                    if (existingFile.type.startsWith('image/')) {
+                        const existingReader = new FileReader();
+                        existingReader.onload = function(e2) {
+                            if (e2.target.result === newImageData) {
+                                resolve(true);
+                                return;
+                            }
+                        };
+                        existingReader.readAsDataURL(existingFile);
+                    }
+                }
+                resolve(false);
+            };
+            reader.readAsDataURL(newFile);
+        });
+    }
+    
+    // Функция для добавления файлов
+    async function addFiles(newFiles) {
+        let addedCount = 0;
+        let duplicateCount = 0;
+        
+        for (let i = 0; i < newFiles.length; i++) {
+            const newFile = newFiles[i];
+            
+            // Проверяем базовые дубликаты (имя, размер, дата изменения)
+            if (isDuplicateFile(newFile)) {
+                duplicateCount++;
+                continue;
+            }
+            
+            // Для изображений проверяем содержимое
+            if (newFile.type.startsWith('image/')) {
+                const isImageDuplicate = await checkImageDuplicates(newFile);
+                if (isImageDuplicate) {
+                    duplicateCount++;
+                    continue;
+                }
+            }
+            
+            // Если файл не дубликат, добавляем его
+            selectedFiles.push(newFile);
+            addedCount++;
+        }
+        
         updateSelectedFilesList();
+        
+        // Показываем уведомление о дубликатах
+        if (duplicateCount > 0) {
+            alert(`Пропущено ${duplicateCount} дубликат(ов) файлов. Одинаковые файлы не добавляются повторно.`);
+        }
+        
+        if (addedCount > 0) {
+            console.log(`Добавлено ${addedCount} новых файл(ов)`);
+        }
     }
     
     // Функция для удаления файла
