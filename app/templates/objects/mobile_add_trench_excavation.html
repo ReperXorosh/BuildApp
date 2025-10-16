@@ -11,7 +11,7 @@
     </div>
 
     <form method="POST" enctype="multipart/form-data" id="add-excavation-form" novalidate>
-        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0; min-height: 80px; position: relative; z-index: 10;">
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label" for="length">Длина выкопанного участка (м) *</label>
             <input type="number" 
                    step="0.01" 
@@ -542,20 +542,6 @@ document.addEventListener('DOMContentLoaded', function() {
     transition: none !important;
 }
 
-/* Предотвращение смещения при динамическом контенте */
-#length {
-    position: relative;
-    z-index: 10;
-}
-
-.form-text {
-    position: relative;
-    z-index: 1;
-    min-height: 40px;
-    max-height: 60px;
-    overflow: hidden;
-}
-
 /* Стабилизация контейнера файлов */
 .mobile-form-group[style*="height: 200px"] {
     position: relative;
@@ -564,18 +550,26 @@ document.addEventListener('DOMContentLoaded', function() {
     overflow-y: auto;
 }
 
-/* Фиксация позиции поля длины */
-.mobile-form-group[style*="min-height: 80px"] {
-    position: relative;
-    z-index: 10;
-    isolation: isolate;
-}
-
 /* Фиксация списка выбранных файлов */
 #selected-files-list {
     max-height: 100px;
     overflow-y: auto;
     position: relative;
+}
+
+/* Выравнивание полей формы в мобильной версии */
+.mobile-form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+}
+
+.mobile-form-label {
+    margin-bottom: 0.5rem;
+}
+
+.mobile-form-control {
+    flex: 1;
 }
 </style>
 {% endblock %}
