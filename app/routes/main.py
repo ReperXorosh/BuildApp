@@ -1240,8 +1240,15 @@ def reports_by_date(date):
         from datetime import datetime
         report_date = datetime.strptime(date, '%Y-%m-%d').date()
         
-        # Получаем отчёты за эту дату с информацией о создателях
+        # Получаем отчёты за эту дату с информацией о создателях (ручные)
         reports = Report.query.filter_by(report_date=report_date).all()
+
+        # Получаем ежедневные отчёты за эту дату
+        try:
+            from ..models.objects import DailyReport
+            daily_reports = DailyReport.query.filter_by(report_date=report_date).all()
+        except Exception:
+            daily_reports = []
         
         # Загружаем информацию о создателях отчётов
         from ..models.users import Users
@@ -1251,16 +1258,38 @@ def reports_by_date(date):
             else:
                 report.creator = None
         
-        # Группируем объекты с отчётами
+        # Группируем объекты с отчётами (ручные + ежедневные как отдельные элементы)
         objects_with_reports = {}
         for report in reports:
             object_obj = report.object
             if object_obj.id not in objects_with_reports:
                 objects_with_reports[object_obj.id] = {
                     'object': object_obj,
-                    'reports': []
+                    'reports': [],
+                    'daily_reports': []
                 }
             objects_with_reports[object_obj.id]['reports'].append(report)
+
+        for d in daily_reports:
+            try:
+                object_obj = d.object
+            except Exception:
+                # Совместимость, если объект связан иначе
+                object_obj = getattr(d, 'object_obj', None) or getattr(d, 'obj', None)
+            if not object_obj:
+                continue
+            if object_obj.id not in objects_with_reports:
+                objects_with_reports[object_obj.id] = {
+                    'object': object_obj,
+                    'reports': [],
+                    'daily_reports': []
+                }
+            # Приводим к лёгкому виду для шаблона
+            objects_with_reports[object_obj.id]['daily_reports'].append({
+                'title': 'Ежедневный отчёт',
+                'status': getattr(d, 'approval_status', getattr(d, 'status', '')),
+                'report_date': d.report_date
+            })
         
         # Логируем просмотр отчётов по дате
         ActivityLog.log_action(

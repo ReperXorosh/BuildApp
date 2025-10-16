@@ -71,6 +71,13 @@
                         </div>
                         <div class="col-md-3">
                             <div class="text-center">
+                                {% set total_daily = objects_with_reports.values() | map(attribute='daily_reports') | map('length') | sum %}
+                                <h4 class="text-info">{{ total_daily }}</h4>
+                                <small class="text-muted">Ежедневных отчётов</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
                                 {% set approved_reports = namespace(count=0) %}
                                 {% for data in objects_with_reports.values() %}
                                     {% for report in data.reports %}
@@ -151,37 +158,49 @@
                                                         </svg>
                                                         <h6 class="card-title mb-0">{{ report.title }}</h6>
                                                     </div>
-                                                    
                                                     <p class="card-text small text-muted mb-2">
                                                         <strong>Тип:</strong> {{ report.report_type or 'Не указан' }}
                                                     </p>
                                                     <p class="card-text small text-muted mb-2">
                                                         <strong>Создал:</strong> 
                                                         {% if report.creator %}
-                                                            <a href="{{ url_for('main.view_user_profile', user_id=report.creator.userid) }}" 
-                                                               class="text-primary text-decoration-none fw-bold">
-                                                                {{ report.creator.login }}
-                                                            </a>
+                                                            <a href="{{ url_for('main.view_user_profile', user_id=report.creator.userid) }}" class="text-primary text-decoration-none fw-bold">{{ report.creator.login }}</a>
                                                         {% else %}
                                                             <span class="text-muted">Не указан</span>
                                                         {% endif %}
                                                     </p>
-                                                    
                                                     {% if report.content %}
-                                                    <p class="card-text small">
-                                                        {{ report.content[:150] }}{% if report.content|length > 150 %}...{% endif %}
-                                                    </p>
+                                                    <p class="card-text small">{{ report.content[:150] }}{% if report.content|length > 150 %}...{% endif %}</p>
                                                     {% endif %}
-                                                    
                                                     <div class="d-flex justify-content-between align-items-center">
-                                                        <span class="badge bg-{{ 'success' if report.status == 'approved' else 'warning' if report.status == 'submitted' else 'secondary' }}">
-                                                            {{ report.status }}
-                                                        </span>
-                                                        <a href="{{ url_for('main.object_report_by_date', object_id=data.object.id, date=date | moscow_date | replace('.', '-')) }}" 
-                                                           class="btn btn-outline-info btn-sm">
-                                                            <svg class="bi me-1" width="14" height="14" fill="currentColor">
-                                                                <use xlink:href="#eye"></use>
-                                                            </svg>
+                                                        <span class="badge bg-{{ 'success' if report.status == 'approved' else 'warning' if report.status == 'submitted' else 'secondary' }}">{{ report.status }}</span>
+                                                        <a href="{{ url_for('main.object_report_by_date', object_id=data.object.id, date=date.strftime('%Y-%m-%d')) }}" class="btn btn-outline-info btn-sm">
+                                                            <svg class="bi me-1" width="14" height="14" fill="currentColor"><use xlink:href="#eye"></use></svg>
+                                                            Просмотр
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+
+                                        {% for d in data.daily_reports %}
+                                        <div class="col-md-6 col-lg-4">
+                                            <div class="card h-100 border-success">
+                                                <div class="card-body">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <svg class="bi me-2 text-success" width="20" height="20" fill="currentColor">
+                                                            <use xlink:href="#calendar-check"></use>
+                                                        </svg>
+                                                        <h6 class="card-title mb-0">Ежедневный отчёт</h6>
+                                                    </div>
+                                                    <p class="card-text small text-muted mb-2">
+                                                        <strong>Дата:</strong> {{ d.report_date | moscow_date }}
+                                                    </p>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span class="badge bg-{{ 'success' if d.status == 'approved' else 'secondary' }}">{{ d.status or '—' }}</span>
+                                                        <a href="{{ url_for('main.object_report_by_date', object_id=data.object.id, date=date.strftime('%Y-%m-%d')) }}" class="btn btn-outline-success btn-sm">
+                                                            <svg class="bi me-1" width="14" height="14" fill="currentColor"><use xlink:href="#eye"></use></svg>
                                                             Просмотр
                                                         </a>
                                                     </div>
