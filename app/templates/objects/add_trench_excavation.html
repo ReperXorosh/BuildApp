@@ -38,7 +38,7 @@
                             <form method="POST" enctype="multipart/form-data" id="addExcavationForm">
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <div class="mb-3" style="min-height: 80px;">
+                                        <div class="mb-3" style="min-height: 80px; position: relative;">
                                             <label for="length" class="form-label">
                                                 <i class="bi bi-arrows-horizontal me-1"></i>
                                                 Длина выкопанного участка (м) *
@@ -240,12 +240,18 @@ document.addEventListener('DOMContentLoaded', function() {
         updateSelectedFilesList();
     }
     
+    // Делаем функцию глобальной
+    window.removeFile = removeFile;
+    
     // Функция для очистки всех файлов
     function clearAllFiles() {
         selectedFiles = [];
         filesInput.value = '';
         updateSelectedFilesList();
     }
+    
+    // Делаем функцию глобальной
+    window.clearAllFiles = clearAllFiles;
     
     // Обновляем информацию при изменении длины
     lengthInput.addEventListener('input', updateRequiredFilesInfo);
@@ -287,4 +293,32 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('excavation_date').value = today;
 });
 </script>
+
+<style>
+    /* Стабилизация полей формы */
+    .mb-3 {
+        transition: none !important;
+    }
+    
+    .form-control {
+        transition: none !important;
+    }
+    
+    /* Предотвращение смещения при динамическом контенте */
+    #length {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .form-text {
+        position: relative;
+        z-index: 0;
+        min-height: 40px;
+    }
+    
+    /* Стабилизация контейнера файлов */
+    .mb-3[style*="min-height: 120px"] {
+        position: relative;
+    }
+</style>
 {% endblock %}

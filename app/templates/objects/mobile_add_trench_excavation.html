@@ -11,7 +11,7 @@
     </div>
 
     <form method="POST" enctype="multipart/form-data" id="add-excavation-form" novalidate>
-        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0; min-height: 80px;">
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0; min-height: 80px; position: relative;">
             <label class="mobile-form-label" for="length">Длина выкопанного участка (м) *</label>
             <input type="number" 
                    step="0.01" 
@@ -216,12 +216,18 @@ document.addEventListener('DOMContentLoaded', function() {
         updateSelectedFilesList();
     }
     
+    // Делаем функцию глобальной
+    window.removeFile = removeFile;
+    
     // Функция для очистки всех файлов
     function clearAllFiles() {
         selectedFiles = [];
         files.value = '';
         updateSelectedFilesList();
     }
+    
+    // Делаем функцию глобальной
+    window.clearAllFiles = clearAllFiles;
     
     // Обновляем информацию при изменении длины
     length.addEventListener('input', updateRequiredFilesInfo);
@@ -520,6 +526,32 @@ document.addEventListener('DOMContentLoaded', function() {
     .mobile-form-group-files {
         margin-bottom: 16px;
     }
+}
+
+/* Стабилизация полей формы */
+.mobile-form-group {
+    transition: none !important;
+}
+
+.mobile-form-control {
+    transition: none !important;
+}
+
+/* Предотвращение смещения при динамическом контенте */
+#length {
+    position: relative;
+    z-index: 1;
+}
+
+.form-text {
+    position: relative;
+    z-index: 0;
+    min-height: 40px;
+}
+
+/* Стабилизация контейнера файлов */
+.mobile-form-group[style*="min-height: 120px"] {
+    position: relative;
 }
 </style>
 {% endblock %}
