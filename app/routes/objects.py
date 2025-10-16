@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort, send_file
+from io import BytesIO
 from flask_login import login_required, current_user
 from app.extensions import db, cache
-from app.models.objects import Object, Support, Trench, TrenchExcavation, TrenchFile, Report, Checklist, ChecklistItem, PlannedWork, WorkExecution, WorkComparison, ZDF, Bracket, Luminaire, DailyReport
+from app.models.objects import Object, Support, Trench, TrenchExcavation, TrenchFile, Report, Checklist, ChecklistItem, PlannedWork, WorkExecution, WorkComparison, ZDF, Bracket, Luminaire, DailyReport, ElementAttachment
 from app.models.activity_log import ActivityLog
 from datetime import datetime
 import uuid
@@ -476,6 +477,46 @@ def elements_list(object_id):
     obj.brackets = brackets_list
     obj.luminaires = luminaires_list
     
+    # Получаем файлы для всех элементов
+    zdf_ids = [zdf.id for zdf in zdf_list]
+    bracket_ids = [bracket.id for bracket in brackets_list]
+    luminaire_ids = [luminaire.id for luminaire in luminaires_list]
+    
+    # Загружаем файлы для каждого типа элементов
+    zdf_attachments = {}
+    bracket_attachments = {}
+    luminaire_attachments = {}
+    
+    if zdf_ids:
+        zdf_files = ElementAttachment.query.filter(
+            ElementAttachment.element_type == 'zdf',
+            ElementAttachment.element_id.in_(zdf_ids)
+        ).all()
+        for file in zdf_files:
+            if file.element_id not in zdf_attachments:
+                zdf_attachments[file.element_id] = []
+            zdf_attachments[file.element_id].append(file)
+    
+    if bracket_ids:
+        bracket_files = ElementAttachment.query.filter(
+            ElementAttachment.element_type == 'bracket',
+            ElementAttachment.element_id.in_(bracket_ids)
+        ).all()
+        for file in bracket_files:
+            if file.element_id not in bracket_attachments:
+                bracket_attachments[file.element_id] = []
+            bracket_attachments[file.element_id].append(file)
+    
+    if luminaire_ids:
+        luminaire_files = ElementAttachment.query.filter(
+            ElementAttachment.element_type == 'luminaire',
+            ElementAttachment.element_id.in_(luminaire_ids)
+        ).all()
+        for file in luminaire_files:
+            if file.element_id not in luminaire_attachments:
+                luminaire_attachments[file.element_id] = []
+            luminaire_attachments[file.element_id].append(file)
+    
     # Логирование активности
     from ..models.activity_log import ActivityLog
     ActivityLog.log_action(
@@ -490,9 +531,17 @@ def elements_list(object_id):
     
     from ..utils.mobile_detection import is_mobile_device
     if is_mobile_device():
-        return render_template('objects/mobile_elements_list.html', object=obj)
+        return render_template('objects/mobile_elements_list.html', 
+                             object=obj, 
+                             zdf_attachments=zdf_attachments,
+                             bracket_attachments=bracket_attachments,
+                             luminaire_attachments=luminaire_attachments)
     else:
-        return render_template('objects/elements_list.html', object=obj)
+        return render_template('objects/elements_list.html', 
+                             object=obj,
+                             zdf_attachments=zdf_attachments,
+                             bracket_attachments=bracket_attachments,
+                             luminaire_attachments=luminaire_attachments)
 
 # Маршруты для опор
 @objects_bp.route('/<uuid:object_id>/supports')
@@ -785,10 +834,16 @@ def element_detail(object_id, element_type, element_id):
         method=request.method
     )
 
+    # Получаем файлы элемента
+    attachments = ElementAttachment.query.filter_by(
+        element_type=element_type,
+        element_id=element_id
+    ).order_by(ElementAttachment.uploaded_at.desc()).all()
+    
     from ..utils.mobile_detection import is_mobile_device
     is_mobile = is_mobile_device() or (request.args.get('mobile') == '1')
     template = 'objects/mobile_element_detail.html' if is_mobile else 'objects/element_detail.html'
-    return render_template(template, object=obj, element=element, element_type=title)
+    return render_template(template, object=obj, element=element, element_type=title, attachments=attachments)
 
 # Удаление элемента (для Инженер ПТО)
 @objects_bp.route('/api/objects/<uuid:object_id>/elements/<string:element_type>/<uuid:element_id>', methods=['DELETE'])
@@ -2462,6 +2517,146 @@ def delete_object(object_id):
         db.session.rollback()
         return jsonify({'success': False, 'error': f'Ошибка при удалении объекта: {str(e)}'})
 
-# Отладочная информация будет добавлена позже в приложении
+# API endpoints для работы с файлами элементов
+
+@objects_bp.route('/<uuid:object_id>/elements/<element_type>/<uuid:element_id>/attachments', methods=['POST'])
+@login_required
+def upload_element_attachment(object_id, element_type, element_id):
+    """Загрузка файла для элемента"""
+    if not is_pto_engineer(current_user):
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    
+    # Проверяем, что элемент существует
+    element = None
+    if element_type == 'zdf':
+        element = ZDF.query.filter_by(id=element_id, object_id=object_id).first()
+    elif element_type == 'bracket':
+        element = Bracket.query.filter_by(id=element_id, object_id=object_id).first()
+    elif element_type == 'luminaire':
+        element = Luminaire.query.filter_by(id=element_id, object_id=object_id).first()
+    
+    if not element:
+        return jsonify({'error': 'Элемент не найден'}), 404
+    
+    if 'file' not in request.files:
+        return jsonify({'error': 'Файл не выбран'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'Файл не выбран'}), 400
+    
+    try:
+        # Читаем данные файла
+        file_data = file.read()
+        file.seek(0)  # Возвращаем указатель в начало
+        
+        # Создаем запись о файле
+        attachment = ElementAttachment(
+            element_type=element_type,
+            element_id=element_id,
+            filename=secure_filename(file.filename),
+            original_filename=file.filename,
+            content_type=file.content_type,
+            data=file_data,
+            size_bytes=len(file_data),
+            uploaded_by=current_user.userid
+        )
+        
+        db.session.add(attachment)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'attachment_id': attachment.id,
+            'filename': attachment.original_filename,
+            'size_bytes': attachment.size_bytes
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Ошибка загрузки файла: {str(e)}'}), 500
+
+@objects_bp.route('/<uuid:object_id>/elements/<element_type>/<uuid:element_id>/attachments/<uuid:attachment_id>/view', methods=['GET'])
+@login_required
+def view_element_attachment(object_id, element_type, element_id, attachment_id):
+    """Просмотр файла элемента в браузере"""
+    attachment = ElementAttachment.query.filter_by(
+        id=attachment_id,
+        element_type=element_type,
+        element_id=element_id
+    ).first()
+    
+    if not attachment:
+        return jsonify({'error': 'Файл не найден'}), 404
+    
+    # Определяем, можно ли отобразить файл в браузере
+    viewable_types = [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+        'application/pdf',
+        'text/plain', 'text/html', 'text/css', 'text/javascript',
+        'application/json', 'application/xml', 'text/xml'
+    ]
+    
+    if attachment.content_type in viewable_types:
+        # Отправляем файл для просмотра в браузере
+        return send_file(
+            BytesIO(attachment.data), 
+            mimetype=attachment.content_type or 'application/octet-stream', 
+            as_attachment=False
+        )
+    else:
+        # Принудительно скачиваем файл
+        return send_file(
+            BytesIO(attachment.data), 
+            mimetype=attachment.content_type or 'application/octet-stream', 
+            as_attachment=True, 
+            download_name=attachment.original_filename
+        )
+
+@objects_bp.route('/<uuid:object_id>/elements/<element_type>/<uuid:element_id>/attachments/<uuid:attachment_id>/download', methods=['GET'])
+@login_required
+def download_element_attachment(object_id, element_type, element_id, attachment_id):
+    """Скачивание файла элемента"""
+    attachment = ElementAttachment.query.filter_by(
+        id=attachment_id,
+        element_type=element_type,
+        element_id=element_id
+    ).first()
+    
+    if not attachment:
+        return jsonify({'error': 'Файл не найден'}), 404
+    
+    return send_file(
+        BytesIO(attachment.data), 
+        mimetype=attachment.content_type or 'application/octet-stream', 
+        as_attachment=True, 
+        download_name=attachment.original_filename
+    )
+
+@objects_bp.route('/<uuid:object_id>/elements/<element_type>/<uuid:element_id>/attachments/<uuid:attachment_id>', methods=['DELETE'])
+@login_required
+def delete_element_attachment(object_id, element_type, element_id, attachment_id):
+    """Удаление файла элемента"""
+    if not is_pto_engineer(current_user):
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    
+    attachment = ElementAttachment.query.filter_by(
+        id=attachment_id,
+        element_type=element_type,
+        element_id=element_id
+    ).first()
+    
+    if not attachment:
+        return jsonify({'error': 'Файл не найден'}), 404
+    
+    try:
+        db.session.delete(attachment)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Файл удалён'})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Ошибка удаления файла: {str(e)}'}), 500
 
 

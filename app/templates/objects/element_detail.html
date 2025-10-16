@@ -25,13 +25,19 @@
             {% set file_url = line|replace('Файл:', '')|trim %}
           {% endif %}
         {% endfor %}
-        {% if file_url %}
-          <dt class="col-sm-3">Файл</dt>
+        {% if attachments %}
+          <dt class="col-sm-3">Файлы</dt>
           <dd class="col-sm-9">
-            <a href="{{ file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Просмотреть файл">
-              <svg class="bi me-1" width="16" height="16" aria-hidden="true"><use xlink:href="#file-earmark-text"></use></svg>
-              Просмотреть
-            </a>
+            {% for attachment in attachments %}
+            <div class="mb-2">
+              <a href="{{ url_for('objects.view_element_attachment', object_id=object.id, element_type=element_type.lower(), element_id=element.id, attachment_id=attachment.id) }}" 
+                 target="_blank" class="btn btn-sm btn-outline-secondary me-2" title="Просмотреть файл">
+                <svg class="bi me-1" width="16" height="16" aria-hidden="true"><use xlink:href="#file-earmark-text"></use></svg>
+                {{ attachment.original_filename }}
+              </a>
+              <small class="text-muted">({{ attachment.size_bytes // 1024 }} КБ)</small>
+            </div>
+            {% endfor %}
           </dd>
         {% endif %}
       </dl>

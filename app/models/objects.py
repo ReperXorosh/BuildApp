@@ -528,6 +528,40 @@ class Luminaire(db.Model):
     # Связь с запланированной работой
     planned_work = db.relationship('PlannedWork', backref='luminaires', lazy=True)
 
+class ElementAttachment(db.Model):
+    """Модель для файлов-вложений элементов (ZDF, Bracket, Luminaire)"""
+    __tablename__ = 'element_attachments'
+    
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    element_type = db.Column(db.String(20), nullable=False)  # 'zdf', 'bracket', 'luminaire'
+    element_id = db.Column(db.UUID(as_uuid=True), nullable=False)  # ID элемента
+    filename = db.Column(db.String(255), nullable=False)
+    original_filename = db.Column(db.String(255), nullable=False)
+    content_type = db.Column(db.String(127), nullable=True)
+    data = db.Column(db.LargeBinary, nullable=False)
+    size_bytes = db.Column(db.Integer, nullable=False)
+    uploaded_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'), nullable=False)
+    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Связь с пользователем
+    uploader = db.relationship('Users', backref='uploaded_element_attachments')
+    
+    def to_dict(self, include_data: bool = False):
+        payload = {
+            'id': self.id,
+            'element_type': self.element_type,
+            'element_id': self.element_id,
+            'filename': self.filename,
+            'original_filename': self.original_filename,
+            'content_type': self.content_type,
+            'size_bytes': self.size_bytes,
+            'uploaded_by': self.uploaded_by,
+            'uploaded_at': self.uploaded_at.isoformat() if self.uploaded_at else None,
+        }
+        if include_data:
+            payload['data'] = self.data
+        return payload
+
 class DailyReport(db.Model):
     """Модель ежедневного отчёта"""
     __tablename__ = 'daily_reports'

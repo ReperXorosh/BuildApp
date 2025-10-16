@@ -88,24 +88,22 @@
                                                             <td>
                                                                 {% set _notes_lines = (zdf.notes or '').split('\n') %}
                                                                 {% set _filtered = [] %}
-                                                                {% set _file_url = None %}
                                                                 {% for _l in _notes_lines %}
                                                                   {% set _t = _l|trim %}
-                                                                  {% if _t.startswith('Файл:') %}
-                                                                    {% set _file_url = _t[5:]|trim %}
-                                                                  {% elif _t.startswith('/static/uploads/elements/') %}
-                                                                    {% set _file_url = _l|trim %}
-                                                                  {% else %}
-                                                                    {% if _t %}{% set _ = _filtered.append(_t) %}{% endif %}
+                                                                  {% if _t and not _t.startswith('Файл:') and not _t.startswith('/static/uploads/elements/') %}
+                                                                    {% set _ = _filtered.append(_t) %}
                                                                   {% endif %}
                                                                 {% endfor %}
                                                                 <div class="text-truncate" style="max-width:420px;">{{ _filtered|join('\n')|replace('\n','<br>')|safe if _filtered else '—' }}</div>
-                                                                {% if _file_url %}
+                                                                {% if zdf_attachments.get(zdf.id) %}
                                                                   <div class="mt-1">
-                                                                    <a href="{{ _file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Просмотреть файл">
+                                                                    {% for attachment in zdf_attachments[zdf.id] %}
+                                                                    <a href="{{ url_for('objects.view_element_attachment', object_id=object.id, element_type='zdf', element_id=zdf.id, attachment_id=attachment.id) }}" 
+                                                                       target="_blank" class="btn btn-sm btn-outline-secondary me-1" title="Просмотреть файл">
                                                                       <svg class="bi me-1" width="16" height="16" aria-hidden="true"><use xlink:href="#file-earmark-text"></use></svg>
-                                                                      Просмотреть
+                                                                      {{ attachment.original_filename }}
                                                                     </a>
+                                                                    {% endfor %}
                                                                   </div>
                                                                 {% endif %}
                                                             </td>
@@ -164,24 +162,22 @@
                                                             <td>
                                                                 {% set _notes_lines = (bracket.notes or '').split('\n') %}
                                                                 {% set _filtered = [] %}
-                                                                {% set _file_url = None %}
                                                                 {% for _l in _notes_lines %}
                                                                   {% set _t = _l|trim %}
-                                                                  {% if _t.startswith('Файл:') %}
-                                                                    {% set _file_url = _t[5:]|trim %}
-                                                                  {% elif _t.startswith('/static/uploads/elements/') %}
-                                                                    {% set _file_url = _l|trim %}
-                                                                  {% else %}
-                                                                    {% if _t %}{% set _ = _filtered.append(_t) %}{% endif %}
+                                                                  {% if _t and not _t.startswith('Файл:') and not _t.startswith('/static/uploads/elements/') %}
+                                                                    {% set _ = _filtered.append(_t) %}
                                                                   {% endif %}
                                                                 {% endfor %}
                                                                 <div class="text-truncate" style="max-width:420px;">{{ _filtered|join('\n')|replace('\n','<br>')|safe if _filtered else '—' }}</div>
-                                                                {% if _file_url %}
+                                                                {% if bracket_attachments.get(bracket.id) %}
                                                                   <div class="mt-1">
-                                                                    <a href="{{ _file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Просмотреть файл">
+                                                                    {% for attachment in bracket_attachments[bracket.id] %}
+                                                                    <a href="{{ url_for('objects.view_element_attachment', object_id=object.id, element_type='bracket', element_id=bracket.id, attachment_id=attachment.id) }}" 
+                                                                       target="_blank" class="btn btn-sm btn-outline-secondary me-1" title="Просмотреть файл">
                                                                       <svg class="bi me-1" width="16" height="16" aria-hidden="true"><use xlink:href="#file-earmark-text"></use></svg>
-                                                                      Просмотреть
+                                                                      {{ attachment.original_filename }}
                                                                     </a>
+                                                                    {% endfor %}
                                                                   </div>
                                                                 {% endif %}
                                                             </td>
@@ -240,24 +236,22 @@
                                                             <td>
                                                                 {% set _notes_lines = (luminaire.notes or '').split('\n') %}
                                                                 {% set _filtered = [] %}
-                                                                {% set _file_url = None %}
                                                                 {% for _l in _notes_lines %}
                                                                   {% set _t = _l|trim %}
-                                                                  {% if _t.startswith('Файл:') %}
-                                                                    {% set _file_url = _t[5:]|trim %}
-                                                                  {% elif _t.startswith('/static/uploads/elements/') %}
-                                                                    {% set _file_url = _l|trim %}
-                                                                  {% else %}
-                                                                    {% if _t %}{% set _ = _filtered.append(_t) %}{% endif %}
+                                                                  {% if _t and not _t.startswith('Файл:') and not _t.startswith('/static/uploads/elements/') %}
+                                                                    {% set _ = _filtered.append(_t) %}
                                                                   {% endif %}
                                                                 {% endfor %}
                                                                 <div class="text-truncate" style="max-width:420px;">{{ _filtered|join('\n')|replace('\n','<br>')|safe if _filtered else '—' }}</div>
-                                                                {% if _file_url %}
+                                                                {% if luminaire_attachments.get(luminaire.id) %}
                                                                   <div class="mt-1">
-                                                                    <a href="{{ _file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Просмотреть файл">
+                                                                    {% for attachment in luminaire_attachments[luminaire.id] %}
+                                                                    <a href="{{ url_for('objects.view_element_attachment', object_id=object.id, element_type='luminaire', element_id=luminaire.id, attachment_id=attachment.id) }}" 
+                                                                       target="_blank" class="btn btn-sm btn-outline-secondary me-1" title="Просмотреть файл">
                                                                       <svg class="bi me-1" width="16" height="16" aria-hidden="true"><use xlink:href="#file-earmark-text"></use></svg>
-                                                                      Просмотреть
+                                                                      {{ attachment.original_filename }}
                                                                     </a>
+                                                                    {% endfor %}
                                                                   </div>
                                                                 {% endif %}
                                                             </td>
