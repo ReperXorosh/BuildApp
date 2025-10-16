@@ -994,6 +994,81 @@ def trenches_list(object_id):
     else:
         return render_template('objects/trenches_list.html', object=obj, trenches=trenches)
 
+@objects_bp.route('/<uuid:object_id>/trenches/<uuid:trench_id>')
+@login_required
+def trench_detail(object_id, trench_id):
+    """Детальная информация о траншее"""
+    obj = Object.query.get_or_404(object_id)
+    trench = Trench.query.filter_by(id=trench_id, object_id=object_id).first_or_404()
+    
+    # Получаем историю копки
+    excavations = TrenchExcavation.query.filter_by(trench_id=trench_id).order_by(TrenchExcavation.excavation_date.desc()).all()
+    
+    # Получаем все файлы траншеи
+    trench_files = TrenchFile.query.filter_by(trench_id=trench_id).order_by(TrenchFile.created_at.desc()).all()
+    
+    # Статистика
+    trench.total_excavated = trench.get_total_excavated_length()
+    trench.files_count = trench.get_files_count()
+    trench.required_files = trench.get_required_files_count()
+    
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр траншеи",
+        description=f"Пользователь {current_user.login} просмотрел траншею объекта '{obj.name}'",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    from ..utils.mobile_detection import is_mobile_device
+    if is_mobile_device():
+        return render_template('objects/mobile_trench_detail.html', object=obj, trench=trench, excavations=excavations, trench_files=trench_files)
+    else:
+        return render_template('objects/trench_detail.html', object=obj, trench=trench, excavations=excavations, trench_files=trench_files)
+
+@objects_bp.route('/<uuid:object_id>/trenches/<uuid:trench_id>/files/<uuid:file_id>')
+@login_required
+def view_trench_file(object_id, trench_id, file_id):
+    """Просмотр файла траншеи"""
+    obj = Object.query.get_or_404(object_id)
+    trench = Trench.query.filter_by(id=trench_id, object_id=object_id).first_or_404()
+    file = TrenchFile.query.filter_by(id=file_id, trench_id=trench_id).first_or_404()
+    
+    # Проверяем, можно ли просматривать файл в браузере
+    viewable_types = ['image/', 'text/', 'application/pdf']
+    if any(file.content_type.startswith(t) for t in viewable_types):
+        return send_file(
+            BytesIO(file.data),
+            mimetype=file.content_type,
+            as_attachment=False,
+            download_name=file.original_filename
+        )
+    else:
+        # Если файл нельзя просматривать, скачиваем его
+        return send_file(
+            BytesIO(file.data),
+            mimetype=file.content_type,
+            as_attachment=True,
+            download_name=file.original_filename
+        )
+
+@objects_bp.route('/<uuid:object_id>/trenches/<uuid:trench_id>/files/<uuid:file_id>/download')
+@login_required
+def download_trench_file(object_id, trench_id, file_id):
+    """Скачивание файла траншеи"""
+    obj = Object.query.get_or_404(object_id)
+    trench = Trench.query.filter_by(id=trench_id, object_id=object_id).first_or_404()
+    file = TrenchFile.query.filter_by(id=file_id, trench_id=trench_id).first_or_404()
+    
+    return send_file(
+        BytesIO(file.data),
+        mimetype=file.content_type,
+        as_attachment=True,
+        download_name=file.original_filename
+    )
+
 @objects_bp.route('/<uuid:object_id>/trenches/add', methods=['GET', 'POST'])
 @login_required
 def add_trench(object_id):

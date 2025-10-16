@@ -1,0 +1,265 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'objects' %}
+
+{% block title %}Траншея - {{ object.name }}{% endblock %}
+{% block mobile_title %}Траншея{% endblock %}
+{% block mobile_header_actions %}
+<a class="mobile-header-btn" href="{{ url_for('objects.add_trench_excavation', object_id=object.id, trench_id=trench.id) }}" title="Добавить запись о копке" role="button" aria-label="Добавить запись о копке">
+    <svg fill="currentColor" viewBox="0 0 16 16">
+        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+    </svg>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="mobile-content">
+    <div class="mobile-header-info">
+        <h2 class="mobile-page-title">{{ object.name }}</h2>
+        <p class="mobile-page-subtitle">Траншея #{{ trench.id|string|slice(0, 8) }}</p>
+    </div>
+
+    <!-- Информация о траншее -->
+    <div class="mobile-card">
+        <div class="mobile-card-header">
+            <div class="mobile-card-title">
+                <i class="bi bi-info-circle me-2"></i>
+                Информация о траншее
+            </div>
+        </div>
+        <div class="mobile-card-body">
+            <div class="mobile-info-row">
+                <span class="mobile-info-label">Общий метраж:</span>
+                <span class="mobile-info-value">
+                    {% if trench.total_length %}
+                    <span class="badge bg-primary">{{ trench.total_length }}м</span>
+                    {% else %}
+                    <span class="text-muted">Не указан</span>
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="mobile-info-row">
+                <span class="mobile-info-label">Выкопано:</span>
+                <span class="mobile-info-value">
+                    <span class="badge bg-info">{{ trench.total_excavated }}м</span>
+                    {% if trench.total_length %}
+                    <small class="text-muted">
+                        ({{ (trench.total_excavated / trench.total_length * 100)|round(1) }}%)
+                    </small>
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="mobile-info-row">
+                <span class="mobile-info-label">Статус:</span>
+                <span class="mobile-info-value">
+                    <span class="badge bg-{{ 'success' if trench.status == 'completed' else 'warning' if trench.status == 'in_progress' else 'secondary' }}">
+                        {{ 'Завершено' if trench.status == 'completed' else 'В работе' if trench.status == 'in_progress' else 'Запланировано' }}
+                    </span>
+                </span>
+            </div>
+            
+            <div class="mobile-info-row">
+                <span class="mobile-info-label">Файлы:</span>
+                <span class="mobile-info-value">
+                    <span class="badge bg-{{ 'success' if trench.files_count >= trench.required_files else 'warning' }}">
+                        {{ trench.files_count }}/{{ trench.required_files }}
+                    </span>
+                    {% if trench.files_count < trench.required_files %}
+                    <small class="text-warning d-block">Недостаточно файлов</small>
+                    {% endif %}
+                </span>
+            </div>
+            
+            {% if trench.notes %}
+            <div class="mobile-info-row">
+                <span class="mobile-info-label">Примечания:</span>
+                <span class="mobile-info-value">{{ trench.notes }}</span>
+            </div>
+            {% endif %}
+            
+            <div class="mobile-info-row">
+                <span class="mobile-info-label">Создано:</span>
+                <span class="mobile-info-value">{{ trench.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Файлы траншеи -->
+    <div class="mobile-card">
+        <div class="mobile-card-header">
+            <div class="mobile-card-title">
+                <i class="bi bi-files me-2"></i>
+                Файлы траншеи
+            </div>
+        </div>
+        <div class="mobile-card-body">
+            {% if trench_files %}
+            <div class="mobile-list">
+                {% for file in trench_files %}
+                <div class="mobile-list-item">
+                    <div class="mobile-list-item-content">
+                        <div class="mobile-list-item-title">
+                            <i class="bi bi-file-earmark me-2"></i>
+                            {{ file.original_filename }}
+                        </div>
+                        <div class="mobile-list-item-subtitle">
+                            {{ file.created_at.strftime('%d.%m.%Y %H:%M') }}
+                        </div>
+                    </div>
+                    <div class="mobile-list-item-actions">
+                        <a href="{{ url_for('objects.view_trench_file', object_id=object.id, trench_id=trench.id, file_id=file.id) }}" 
+                           class="mobile-btn mobile-btn-sm mobile-btn-outline-primary" title="Просмотр">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ url_for('objects.download_trench_file', object_id=object.id, trench_id=trench.id, file_id=file.id) }}" 
+                           class="mobile-btn mobile-btn-sm mobile-btn-outline-success" title="Скачать">
+                            <i class="bi bi-download"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-3">Файлы не найдены</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- История копки -->
+    <div class="mobile-card">
+        <div class="mobile-card-header">
+            <div class="mobile-card-title">
+                <i class="bi bi-clock-history me-2"></i>
+                История копки
+            </div>
+        </div>
+        <div class="mobile-card-body">
+            {% if excavations %}
+            <div class="mobile-timeline">
+                {% for excavation in excavations %}
+                <div class="mobile-timeline-item">
+                    <div class="mobile-timeline-marker"></div>
+                    <div class="mobile-timeline-content">
+                        <div class="mobile-timeline-header">
+                            <h6 class="mobile-timeline-title">
+                                <i class="bi bi-calendar me-1"></i>
+                                {{ excavation.excavation_date.strftime('%d.%m.%Y') }}
+                            </h6>
+                            <small class="text-muted">{{ excavation.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
+                        </div>
+                        <div class="mobile-timeline-body">
+                            <p class="mb-2">
+                                <strong>Длина:</strong> {{ excavation.length }}м
+                            </p>
+                            {% if excavation.notes %}
+                            <p class="mb-2">
+                                <strong>Примечания:</strong> {{ excavation.notes }}
+                            </p>
+                            {% endif %}
+                            {% if excavation.files %}
+                            <div class="mt-2">
+                                <strong>Файлы:</strong>
+                                <div class="mobile-file-list">
+                                    {% for file in excavation.files %}
+                                    <a href="{{ url_for('objects.view_trench_file', object_id=object.id, trench_id=trench.id, file_id=file.id) }}" 
+                                       class="mobile-file-item">
+                                        <i class="bi bi-file-earmark me-1"></i>
+                                        {{ file.original_filename }}
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-3">История копки пуста</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.mobile-timeline {
+    position: relative;
+    padding-left: 20px;
+}
+
+.mobile-timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.mobile-timeline-marker {
+    position: absolute;
+    left: -15px;
+    top: 8px;
+    width: 8px;
+    height: 8px;
+    background-color: var(--bs-primary);
+    border-radius: 50%;
+    border: 2px solid var(--bs-body-bg);
+}
+
+.mobile-timeline-content {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.mobile-timeline-header {
+    display: flex;
+    justify-content: between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.mobile-timeline-title {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.mobile-timeline-body {
+    font-size: 0.85rem;
+}
+
+.mobile-file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.mobile-file-item {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    background: var(--bs-primary-bg-subtle);
+    border: 1px solid var(--bs-primary-border-subtle);
+    border-radius: 4px;
+    color: var(--bs-primary-text-emphasis);
+    text-decoration: none;
+    font-size: 0.8rem;
+}
+
+.mobile-file-item:hover {
+    background: var(--bs-primary);
+    color: white;
+}
+
+.mobile-timeline::before {
+    content: '';
+    position: absolute;
+    left: -11px;
+    top: 15px;
+    bottom: 0;
+    width: 2px;
+    background-color: var(--bs-border-color);
+}
+</style>
+{% endblock %}
