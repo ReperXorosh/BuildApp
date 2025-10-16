@@ -45,7 +45,7 @@
     <!-- Статистика по дате -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card">
+            <div class="card stats-summary">
                 <div class="card-body">
                     <div class="row text-center">
                         <div class="col-md-2">
@@ -94,10 +94,7 @@
                                 <i class="bi bi-building me-2"></i>
                                 {{ data.object.name }}
                             </h5>
-                            <span class="badge bg-primary">
-                                <i class="bi bi-arrow-right me-1"></i>
-                                Подробнее
-                            </span>
+                            
                         </div>
                     </div>
                 <div class="card-body">
@@ -106,13 +103,13 @@
                         <div class="col-6">
                             <div class="d-flex align-items-center">
                                 <i class="bi bi-file-earmark-text text-success me-2"></i>
-                                <span class="badge bg-success">{{ data.total_reports }} отчётов</span>
+                                <span class="text-muted">{{ data.total_reports }} отчётов</span>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="d-flex align-items-center">
                                 <i class="bi bi-calendar-check text-info me-2"></i>
-                                <span class="badge bg-info">{{ data.total_planned_works + data.total_supports_created + data.total_trenches_created }} работ</span>
+                                <span class="text-muted">{{ data.total_planned_works + data.total_supports_created + data.total_trenches_created }} работ</span>
                             </div>
                         </div>
                     </div>
@@ -319,6 +316,19 @@
     box-shadow: 0 6px 16px rgba(0,0,0,0.45);
     border-color: rgba(255, 255, 255, 0.2);
 }
+
+/* Растянуть блок статистики на всю ширину карточки */
+.stats-summary .card-body {
+    padding: 0;
+}
+.stats-summary .row {
+    margin: 0;
+}
+.stats-summary .col-md-2 {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+}
+.stats-summary .border-end { height: 100%; display: flex; flex-direction: column; justify-content: center; }
 </style>
 
 <script>
