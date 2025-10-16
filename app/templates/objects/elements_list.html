@@ -80,7 +80,20 @@
                                                             </td>
                                                             <td>
                                                                 {% if zdf.status %}
-                                                                <span class="badge bg-secondary">{{ zdf.status }}</span>
+                                                                {% set status_translation = {
+                                                                    'pending': 'Ожидает',
+                                                                    'in_progress': 'В работе',
+                                                                    'completed': 'Завершено',
+                                                                    'cancelled': 'Отменено',
+                                                                    'active': 'Активно',
+                                                                    'inactive': 'Неактивно',
+                                                                    'installed': 'Установлено',
+                                                                    'not_installed': 'Не установлено',
+                                                                    'working': 'Работает',
+                                                                    'broken': 'Сломано',
+                                                                    'maintenance': 'Обслуживание'
+                                                                } %}
+                                                                <span class="badge bg-secondary">{{ status_translation.get(zdf.status.lower(), zdf.status) }}</span>
                                                                 {% else %}
                                                                 <span class="text-muted">-</span>
                                                                 {% endif %}
@@ -176,7 +189,20 @@
                                                             </td>
                                                             <td>
                                                                 {% if bracket.status %}
-                                                                <span class="badge bg-secondary">{{ bracket.status }}</span>
+                                                                {% set status_translation = {
+                                                                    'pending': 'Ожидает',
+                                                                    'in_progress': 'В работе',
+                                                                    'completed': 'Завершено',
+                                                                    'cancelled': 'Отменено',
+                                                                    'active': 'Активно',
+                                                                    'inactive': 'Неактивно',
+                                                                    'installed': 'Установлено',
+                                                                    'not_installed': 'Не установлено',
+                                                                    'working': 'Работает',
+                                                                    'broken': 'Сломано',
+                                                                    'maintenance': 'Обслуживание'
+                                                                } %}
+                                                                <span class="badge bg-secondary">{{ status_translation.get(bracket.status.lower(), bracket.status) }}</span>
                                                                 {% else %}
                                                                 <span class="text-muted">-</span>
                                                                 {% endif %}
@@ -272,7 +298,20 @@
                                                             </td>
                                                             <td>
                                                                 {% if luminaire.status %}
-                                                                <span class="badge bg-secondary">{{ luminaire.status }}</span>
+                                                                {% set status_translation = {
+                                                                    'pending': 'Ожидает',
+                                                                    'in_progress': 'В работе',
+                                                                    'completed': 'Завершено',
+                                                                    'cancelled': 'Отменено',
+                                                                    'active': 'Активно',
+                                                                    'inactive': 'Неактивно',
+                                                                    'installed': 'Установлено',
+                                                                    'not_installed': 'Не установлено',
+                                                                    'working': 'Работает',
+                                                                    'broken': 'Сломано',
+                                                                    'maintenance': 'Обслуживание'
+                                                                } %}
+                                                                <span class="badge bg-secondary">{{ status_translation.get(luminaire.status.lower(), luminaire.status) }}</span>
                                                                 {% else %}
                                                                 <span class="text-muted">-</span>
                                                                 {% endif %}
