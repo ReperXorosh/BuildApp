@@ -72,7 +72,7 @@
                         <div class="row g-3">
                             {% for object in objects %}
                             <div class="col-md-6 col-lg-4">
-                                <div class="card h-100 border-primary interactive-card" data-href="{{ url_for('main.object_reports', object_id=object.id) }}" role="button" tabindex="0">
+                                <div class="card h-100 interactive-card" data-href="{{ url_for('main.object_reports', object_id=object.id) }}" role="button" tabindex="0">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center mb-2">
                                             <h6 class="card-title mb-0">{{ object.name }}</h6>
