@@ -123,22 +123,15 @@
                                 {% for report in reports %}
                                 <div class="col-md-6 col-lg-4">
                                     <a href="{{ url_for('main.object_report_by_date', object_id=object_obj.id, date=date_key) }}" class="text-decoration-none">
-                                        <div class="card h-100 border-info" style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
-                                            <div class="card-body">
-                                                <div class="d-flex align-items-center mb-2">
-                                                    <svg class="bi me-2 text-info" width="20" height="20" fill="currentColor">
-                                                        <use xlink:href="#file-earmark-text"></use>
-                                                    </svg>
-                                                    <h6 class="card-title mb-0">{{ report.title }}</h6>
-                                                </div>
-                                                
-                                                {% if report.content %}
-                                                <p class="card-text small">
-                                                    {{ report.content[:150] }}{% if report.content|length > 150 %}...{% endif %}
-                                                </p>
-                                                {% endif %}
-                                                
-                                                <div class="d-flex justify-content-end">
+                                        <div class="card border-info" style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                                            <div class="card-body py-2">
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <div class="d-flex align-items-center">
+                                                        <svg class="bi me-2 text-info" width="18" height="18" fill="currentColor">
+                                                            <use xlink:href="#file-earmark-text"></use>
+                                                        </svg>
+                                                        <h6 class="card-title mb-0">{{ report.title }}</h6>
+                                                    </div>
                                                     <span class="badge bg-{{ 'success' if report.status == 'approved' else 'warning' if report.status == 'submitted' else 'secondary' }}">
                                                         {% if report.status == 'approved' %}
                                                             Одобрен
