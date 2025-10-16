@@ -444,6 +444,7 @@ def object_detail(object_id):
 @cache.cached(timeout=60, query_string=True)
 def elements_list(object_id):
     """Список элементов объекта (ЗДФ, кронштейны, светильники)"""
+    print(f"DEBUG elements_list: Loading elements for object {object_id}")
     obj = Object.query.get_or_404(object_id)
     
     # Загружаем элементы объекта узкой выборкой полей для ускорения
@@ -696,6 +697,10 @@ def add_element(object_id):
         # Если приложен файл — добавим его URL в заметки (для UI-отображения кнопки просмотра)
         if file_url:
             notes = f"{(notes + '\n') if notes else ''}Файл: {file_url}"
+            print(f"DEBUG add_element: Added file URL to notes: {file_url}")
+            print(f"DEBUG add_element: Final notes: {notes}")
+        else:
+            print(f"DEBUG add_element: No file URL to add to notes")
 
         if not element_type:
             flash('Тип элемента обязателен для заполнения', 'error')

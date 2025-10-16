@@ -3,6 +3,42 @@
 
 {% block title %}Склад{% endblock %}
 
+{% block extra_css %}
+<style>
+/* Адаптивные кнопки действий в таблице склада */
+.action-button {
+  min-width: 32px;
+  height: 32px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* На маленьких экранах кнопки располагаются в квадрат */
+@media (max-width: 768px) {
+  .d-flex.flex-wrap.gap-1 {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+  }
+  
+  .action-button {
+    min-width: 28px;
+    height: 28px;
+    padding: 2px;
+  }
+}
+
+/* На очень маленьких экранах - одна колонка */
+@media (max-width: 480px) {
+  .d-flex.flex-wrap.gap-1 {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid" style="margin-top: 80px;">
     <!-- Заголовок с кнопками -->
@@ -692,19 +728,20 @@ async function loadMaterials() {
       const canDelete = document.querySelector('[data-can-delete]')?.getAttribute('data-can-delete') === 'true';
       
       let actionsHtml = `
-        <button class="btn btn-sm btn-outline-primary action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); editMaterial('${material.id}'); return false;" title="Редактировать" data-no-pjax>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M18.5 2.50023C18.8978 2.10297 19.4374 1.8789 20 1.8789C20.5626 1.8789 21.1022 2.10297 21.5 2.50023C21.8978 2.89749 22.1219 3.43708 22.1219 4.00023C22.1219 4.56338 21.8978 5.10297 21.5 5.50023L12 15.0002L8 16.0002L9 12.0002L18.5 2.50023Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
+        <div class="d-flex flex-wrap gap-1">
+          <button class="btn btn-sm btn-outline-primary action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); editMaterial('${material.id}'); return false;" title="Редактировать" data-no-pjax>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M18.5 2.50023C18.8978 2.10297 19.4374 1.8789 20 1.8789C20.5626 1.8789 21.1022 2.10297 21.5 2.50023C21.8978 2.89749 22.1219 3.43708 22.1219 4.00023C22.1219 4.56338 21.8978 5.10297 21.5 5.50023L12 15.0002L8 16.0002L9 12.0002L18.5 2.50023Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
       `;
       
       if (canDelete) {
         if (material.is_active) {
           // Кнопка скрытия для активных материалов
           actionsHtml += `
-            <button class="btn btn-sm btn-outline-warning ms-1 action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); deleteMaterial('${material.id}'); return false;" title="Скрыть материал" data-no-pjax>
+            <button class="btn btn-sm btn-outline-warning action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); deleteMaterial('${material.id}'); return false;" title="Скрыть материал" data-no-pjax>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -714,7 +751,7 @@ async function loadMaterials() {
           
           // Кнопка полного удаления для активных материалов (только для админов)
           actionsHtml += `
-            <button class="btn btn-sm btn-outline-danger ms-1 action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); hardDeleteMaterial('${material.id}'); return false;" title="Полное удаление (необратимо)" data-no-pjax>
+            <button class="btn btn-sm btn-outline-danger action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); hardDeleteMaterial('${material.id}'); return false;" title="Полное удаление (необратимо)" data-no-pjax>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -726,7 +763,7 @@ async function loadMaterials() {
         } else {
           // Кнопка восстановления для скрытых материалов
           actionsHtml += `
-            <button class="btn btn-sm btn-outline-success ms-1 action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); restoreMaterial('${material.id}'); return false;" title="Восстановить" data-no-pjax>
+            <button class="btn btn-sm btn-outline-success action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); restoreMaterial('${material.id}'); return false;" title="Восстановить" data-no-pjax>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -737,7 +774,7 @@ async function loadMaterials() {
           
           // Кнопка полного удаления для скрытых материалов (только для админов)
           actionsHtml += `
-            <button class="btn btn-sm btn-outline-danger ms-1 action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); hardDeleteMaterial('${material.id}'); return false;" title="Полное удаление (необратимо)" data-no-pjax>
+            <button class="btn btn-sm btn-outline-danger action-button" onclick="event.stopPropagation(); event.stopImmediatePropagation(); hardDeleteMaterial('${material.id}'); return false;" title="Полное удаление (необратимо)" data-no-pjax>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -751,12 +788,15 @@ async function loadMaterials() {
       // Плюс "добавить в группу" если материал не в группе (только для определенных ролей)
       if (userCanManageMaterials && !materialsInGroups.has(material.id)) {
         actionsHtml += `
-          <button class="btn btn-sm btn-outline-success ms-1 action-button" title="Добавить в группу" onclick="event.stopPropagation(); event.stopImmediatePropagation(); openAddToGroupModal('${material.id}')">
+          <button class="btn btn-sm btn-outline-success action-button" title="Добавить в группу" onclick="event.stopPropagation(); event.stopImmediatePropagation(); openAddToGroupModal('${material.id}')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>`;
       }
+      
+      // Закрываем div-контейнер для кнопок
+      actionsHtml += `</div>`;
       
       row.innerHTML = `
         <td>
