@@ -1197,7 +1197,7 @@ def add_trench_excavation(object_id, trench_id):
                     original_filename=filename,
                     file_path=file_path,
                     file_size=os.path.getsize(file_path),
-                    mime_type=file.content_type,
+                    mime_type=file.mime_type,
                     created_by=current_user.userid
                 )
                 
@@ -2635,7 +2635,7 @@ def upload_element_attachment(object_id, element_type, element_id):
             element_id=element_id,
             filename=secure_filename(file.filename),
             original_filename=file.filename,
-            content_type=file.content_type,
+            content_type=file.mime_type,
             data=file_data,
             size_bytes=len(file_data),
             uploaded_by=current_user.userid
