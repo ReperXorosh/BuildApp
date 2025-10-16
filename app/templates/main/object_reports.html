@@ -41,8 +41,8 @@
                     </div>
                     <div>
                         <a href="{{ url_for('main.reports_calendar') }}" class="btn btn-outline-primary">
-                            <svg class="bi me-1 align-text-bottom" width="18" height="18" fill="currentColor">
-                                <use xlink:href="#calendar3"></use>
+                            <svg class="bi me-1" width="16" height="16" fill="currentColor">
+                                <use xlink:href="#calendar-date"></use>
                             </svg>
                             Календарь
                         </a>
@@ -111,8 +111,8 @@
                         <div class="mb-4">
                             <div class="d-flex align-items-center mb-3">
                                 <h6 class="mb-0 me-3">
-                                    <svg class="bi me-2 align-text-bottom text-primary" width="18" height="18" fill="currentColor">
-                                        <use xlink:href="#calendar3"></use>
+                                    <svg class="bi me-2 text-primary" width="18" height="18" fill="currentColor">
+                                        <use xlink:href="#calendar-date"></use>
                                     </svg>
                                     {% set p = date_key.split('-') %}{{ p[2] }}.{{ p[1] }}.{{ p[0][2:] }}
                                 </h6>
