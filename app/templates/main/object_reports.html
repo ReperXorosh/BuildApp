@@ -136,7 +136,7 @@
                             <div class="row g-3">
                                 {% for report in reports %}
                                 <div class="col-md-6 col-lg-4">
-                                    <a href="{{ url_for('main.object_report_by_date', object_id=object_obj.id, date=date_key) }}" class="text-decoration-none">
+                                    <a href="{{ url_for('objects.daily_report_view', object_id=object_obj.id, date=date_key) }}" class="text-decoration-none">
                                         <div class="card daily-report-card" style="cursor: pointer;">
                                             <div class="card-body py-2">
                                                 <div class="d-flex align-items-center justify-content-between">
