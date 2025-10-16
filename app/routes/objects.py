@@ -1038,18 +1038,18 @@ def view_trench_file(object_id, trench_id, file_id):
     
     # Проверяем, можно ли просматривать файл в браузере
     viewable_types = ['image/', 'text/', 'application/pdf']
-    if any(file.content_type.startswith(t) for t in viewable_types):
+    if any(file.mime_type.startswith(t) for t in viewable_types):
         return send_file(
-            BytesIO(file.data),
-            mimetype=file.content_type,
+            file.file_path,
+            mimetype=file.mime_type,
             as_attachment=False,
             download_name=file.original_filename
         )
     else:
         # Если файл нельзя просматривать, скачиваем его
         return send_file(
-            BytesIO(file.data),
-            mimetype=file.content_type,
+            file.file_path,
+            mimetype=file.mime_type,
             as_attachment=True,
             download_name=file.original_filename
         )
@@ -1063,8 +1063,8 @@ def download_trench_file(object_id, trench_id, file_id):
     file = TrenchFile.query.filter_by(id=file_id, trench_id=trench_id).first_or_404()
     
     return send_file(
-        BytesIO(file.data),
-        mimetype=file.content_type,
+        file.file_path,
+        mimetype=file.mime_type,
         as_attachment=True,
         download_name=file.original_filename
     )
@@ -1231,7 +1231,6 @@ def download_trench_file(object_id, trench_id, file_id):
     trench = Trench.query.filter_by(id=trench_id, object_id=object_id).first_or_404()
     trench_file = TrenchFile.query.filter_by(id=file_id, trench_id=trench_id).first_or_404()
     
-    from flask import send_file
     import os
     
     if os.path.exists(trench_file.file_path):
