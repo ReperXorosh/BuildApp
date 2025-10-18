@@ -58,6 +58,20 @@
                                     <input type="text" class="form-control" id="element_name" name="element_name">
                                 </div>
 
+                                <div class="mb-3">
+                                    <label for="support_id" class="form-label">
+                                        <i class="bi bi-pin-angle me-1"></i>
+                                        Привязать к опоре (необязательно)
+                                    </label>
+                                    <select class="form-select" id="support_id" name="support_id">
+                                        <option value="">Выберите опору (необязательно)</option>
+                                        {% for support in supports %}
+                                        <option value="{{ support.id }}">{{ support.support_number }} - {{ support.support_type or 'Без названия' }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">Элемент можно привязать к конкретной опоре или оставить без привязки</div>
+                                </div>
+
                                 <div class="alert alert-info">
                                     <i class="bi bi-info-circle me-2"></i>
                                     <strong>Информация:</strong> Элемент будет создан со статусом "Запланировано". 
