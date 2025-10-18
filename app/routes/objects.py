@@ -677,6 +677,12 @@ def add_element(object_id):
         element_name = request.form.get('element_name', '').strip()
         notes = request.form.get('notes', '').strip()
         support_id = request.form.get('support_id', '').strip()
+        
+        # Отладочная информация
+        print(f"DEBUG add_element: element_type = {element_type}")
+        print(f"DEBUG add_element: element_name = {element_name}")
+        print(f"DEBUG add_element: support_id = {support_id}")
+        print(f"DEBUG add_element: support_id is None or empty = {not support_id}")
         file_url = None
         # Обработка вложения
         if 'attachment' in request.files:
@@ -723,6 +729,7 @@ def add_element(object_id):
                 created_by=current_user.userid
             )
             element_type_name = 'ЗДФ'
+            print(f"DEBUG add_element: Created ZDF with support_id = {new_element.support_id}")
         elif element_type == 'bracket':
             new_element = Bracket(
                 id=str(uuid.uuid4()),
@@ -735,6 +742,7 @@ def add_element(object_id):
                 created_by=current_user.userid
             )
             element_type_name = 'Кронштейн'
+            print(f"DEBUG add_element: Created Bracket with support_id = {new_element.support_id}")
         elif element_type == 'luminaire':
             new_element = Luminaire(
                 id=str(uuid.uuid4()),
@@ -747,6 +755,7 @@ def add_element(object_id):
                 created_by=current_user.userid
             )
             element_type_name = 'Светильник'
+            print(f"DEBUG add_element: Created Luminaire with support_id = {new_element.support_id}")
         else:
             flash('Неверный тип элемента', 'error')
             return render_template('objects/mobile_add_element.html' if is_mobile else 'objects/add_element.html', object=obj, supports=supports)
@@ -758,6 +767,10 @@ def add_element(object_id):
         new_element.notes = notes
         db.session.add(new_element)
         db.session.commit()
+        
+        # Отладочная информация после сохранения
+        print(f"DEBUG add_element: Element saved with ID = {new_element.id}")
+        print(f"DEBUG add_element: Element support_id after save = {new_element.support_id}")
         
         ActivityLog.log_action(
             user_id=current_user.userid,
@@ -789,6 +802,28 @@ def support_detail(object_id, support_id):
     zdf_elements = ZDF.query.filter_by(support_id=support_id).order_by(ZDF.zdf_name.asc()).all()
     bracket_elements = Bracket.query.filter_by(support_id=support_id).order_by(Bracket.bracket_name.asc()).all()
     luminaire_elements = Luminaire.query.filter_by(support_id=support_id).order_by(Luminaire.luminaire_name.asc()).all()
+    
+    # Отладочная информация
+    print(f"DEBUG support_detail: support_id = {support_id}")
+    print(f"DEBUG support_detail: zdf_elements count = {len(zdf_elements)}")
+    print(f"DEBUG support_detail: bracket_elements count = {len(bracket_elements)}")
+    print(f"DEBUG support_detail: luminaire_elements count = {len(luminaire_elements)}")
+    
+    # Проверяем все элементы объекта для отладки
+    all_zdf = ZDF.query.filter_by(object_id=object_id).all()
+    all_brackets = Bracket.query.filter_by(object_id=object_id).all()
+    all_luminaires = Luminaire.query.filter_by(object_id=object_id).all()
+    print(f"DEBUG support_detail: Total ZDF in object = {len(all_zdf)}")
+    print(f"DEBUG support_detail: Total Brackets in object = {len(all_brackets)}")
+    print(f"DEBUG support_detail: Total Luminaires in object = {len(all_luminaires)}")
+    
+    # Проверяем, какие элементы не привязаны к опорам
+    unassigned_zdf = [z for z in all_zdf if z.support_id is None]
+    unassigned_brackets = [b for b in all_brackets if b.support_id is None]
+    unassigned_luminaires = [l for l in all_luminaires if l.support_id is None]
+    print(f"DEBUG support_detail: Unassigned ZDF = {len(unassigned_zdf)}")
+    print(f"DEBUG support_detail: Unassigned Brackets = {len(unassigned_brackets)}")
+    print(f"DEBUG support_detail: Unassigned Luminaires = {len(unassigned_luminaires)}")
     
     # Вычисляем прогресс опоры на основе выполненных элементов
     total_elements = len(zdf_elements) + len(bracket_elements) + len(luminaire_elements)
@@ -993,6 +1028,47 @@ def assign_element_to_support(object_id, element_type, element_id):
         'success': True,
         'support_id': element.support_id,
         'support_number': support.support_number if support_id else None
+    })
+
+# Быстрая привязка всех непривязанных элементов к опоре
+@objects_bp.route('/<uuid:object_id>/supports/<uuid:support_id>/assign-all-elements', methods=['POST'])
+@login_required
+def assign_all_elements_to_support(object_id, support_id):
+    """Привязка всех непривязанных элементов объекта к опоре"""
+    obj = Object.query.get_or_404(object_id)
+    support = Support.query.get_or_404(support_id)
+    
+    if support.object_id != object_id:
+        return jsonify({'error': 'Опора не принадлежит данному объекту'}), 404
+    
+    # Получаем все непривязанные элементы
+    unassigned_zdf = ZDF.query.filter_by(object_id=object_id, support_id=None).all()
+    unassigned_brackets = Bracket.query.filter_by(object_id=object_id, support_id=None).all()
+    unassigned_luminaires = Luminaire.query.filter_by(object_id=object_id, support_id=None).all()
+    
+    # Привязываем все элементы к опоре
+    assigned_count = 0
+    for element in unassigned_zdf + unassigned_brackets + unassigned_luminaires:
+        element.support_id = support_id
+        assigned_count += 1
+    
+    db.session.commit()
+    
+    # Логируем действие
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Массовая привязка элементов к опоре",
+        description=f"Пользователь {current_user.login} привязал {assigned_count} элементов к опоре {support.support_number}",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return jsonify({
+        'success': True,
+        'assigned_count': assigned_count,
+        'message': f'Привязано {assigned_count} элементов к опоре {support.support_number}'
     })
 
 # Удаление элемента (для Инженер ПТО)

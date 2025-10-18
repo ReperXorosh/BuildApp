@@ -276,8 +276,12 @@
                                 <p class="mt-2">К этой опоре пока не привязаны элементы</p>
                                 <div class="mt-3">
                                     <a href="{{ url_for('objects.elements_list', object_id=object.id) }}" class="btn btn-outline-primary">
+                                        <i class="bi bi-list me-1"></i>
+                                        Все элементы
+                                    </a>
+                                    <a href="{{ url_for('objects.add_element', object_id=object.id) }}" class="btn btn-primary">
                                         <i class="bi bi-plus-circle me-1"></i>
-                                        Добавить элементы
+                                        Добавить элемент
                                     </a>
                                 </div>
                             </div>
@@ -329,6 +333,10 @@
                                     <i class="bi bi-plus-circle me-1"></i>
                                     Добавить элемент
                                 </a>
+                                <button type="button" class="btn btn-warning" onclick="assignAllElements()">
+                                    <i class="bi bi-link-45deg me-1"></i>
+                                    Привязать все элементы
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -379,6 +387,33 @@ function updateElementStatus(elementType, elementId, newStatus) {
     .catch(error => {
         console.error('Error:', error);
         alert('Ошибка при обновлении статуса');
+    });
+}
+
+function assignAllElements() {
+    if (!confirm('Вы уверены, что хотите привязать все непривязанные элементы к этой опоре?')) {
+        return;
+    }
+    
+    fetch(`/objects/{{ object.id }}/supports/{{ support.id }}/assign-all-elements`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            // Обновляем страницу для отображения изменений
+            location.reload();
+        } else {
+            alert('Ошибка при привязке элементов: ' + (data.error || 'Неизвестная ошибка'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Ошибка при привязке элементов');
     });
 }
 </script>
