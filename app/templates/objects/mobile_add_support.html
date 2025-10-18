@@ -5,6 +5,22 @@
 {% block mobile_title %}Новая опора{% endblock %}
 
 {% block content %}
+<style>
+.accordion-item {
+    margin-bottom: 4px !important;
+}
+.accordion-button {
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+}
+.accordion-body {
+    padding: 4px 16px !important;
+}
+.accordion-body p {
+    margin-bottom: 2px !important;
+    font-size: 13px !important;
+}
+</style>
 <div class="mobile-card add-object-card">
     <div class="mobile-card-title text-center">Добавить опору</div>
 
@@ -44,9 +60,9 @@
                         </button>
                     </h2>
                     <div id="collapseZdf" class="accordion-collapse collapse" aria-labelledby="headingZdf" data-bs-parent="#supportElementsAccordion">
-                        <div class="accordion-body" style="padding: 8px 16px;">
+                        <div class="accordion-body">
                             {% for zdf in zdf_list %}
-                            <div class="d-flex align-items-start mobile-mb-1" style="margin-bottom: 8px;">
+                            <div class="d-flex align-items-start mobile-mb-1">
                                 <div class="d-flex align-items-center me-2" onclick="event.stopPropagation()">
                                     <input type="radio" name="selected_zdf_id" value="{{ zdf.id }}" id="zdf-{{ zdf.id }}" style="width: 14px; height: 14px; margin-right: 6px;">
                                     <label for="zdf-{{ zdf.id }}" style="font-size: 12px; margin: 0; cursor: pointer;">
@@ -72,9 +88,9 @@
                         </button>
                     </h2>
                     <div id="collapseBr" class="accordion-collapse collapse" aria-labelledby="headingBr" data-bs-parent="#supportElementsAccordion">
-                        <div class="accordion-body" style="padding: 8px 16px;">
+                        <div class="accordion-body">
                             {% for bracket in brackets_list %}
-                            <div class="d-flex align-items-start mobile-mb-1" style="margin-bottom: 8px;">
+                            <div class="d-flex align-items-start mobile-mb-1">
                                 <div class="d-flex align-items-center me-2" onclick="event.stopPropagation()">
                                     <input type="radio" name="selected_bracket_id" value="{{ bracket.id }}" id="bracket-{{ bracket.id }}" style="width: 14px; height: 14px; margin-right: 6px;">
                                     <label for="bracket-{{ bracket.id }}" style="font-size: 12px; margin: 0; cursor: pointer;">
@@ -100,9 +116,9 @@
                         </button>
                     </h2>
                     <div id="collapseLum" class="accordion-collapse collapse" aria-labelledby="headingLum" data-bs-parent="#supportElementsAccordion">
-                        <div class="accordion-body" style="padding: 8px 16px;">
+                        <div class="accordion-body">
                             {% for luminaire in luminaires_list %}
-                            <div class="d-flex align-items-start mobile-mb-1" style="margin-bottom: 8px;">
+                            <div class="d-flex align-items-start mobile-mb-1">
                                 <div class="d-flex align-items-center me-2" onclick="event.stopPropagation()">
                                     <input type="checkbox" name="selected_luminaire_ids" value="{{ luminaire.id }}" id="luminaire-{{ luminaire.id }}" style="width: 14px; height: 14px; margin-right: 6px;">
                                     <label for="luminaire-{{ luminaire.id }}" style="font-size: 12px; margin: 0; cursor: pointer;">
