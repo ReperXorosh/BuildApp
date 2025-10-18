@@ -114,10 +114,10 @@
                                                             </button>
                                                         </h2>
                                                         <div id="zdf-collapse-{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#zdfAccordion">
-                                                            <div class="accordion-body">
-                                                                <p class="mb-1"><strong>Номер:</strong> {{ zdf.zdf_number }}</p>
-                                                                {% if zdf.zdf_name %}<p class="mb-1"><strong>Название:</strong> {{ zdf.zdf_name }}</p>{% endif %}
-                                                                {% if zdf.notes %}<p class="mb-0"><strong>Примечания:</strong> {{ zdf.notes }}</p>{% endif %}
+                                                            <div class="accordion-body" style="padding: 8px 16px;">
+                                                                <p class="mb-1" style="margin-bottom: 4px;"><strong>Номер:</strong> {{ zdf.zdf_number }}</p>
+                                                                {% if zdf.zdf_name %}<p class="mb-1" style="margin-bottom: 4px;"><strong>Название:</strong> {{ zdf.zdf_name }}</p>{% endif %}
+                                                                {% if zdf.notes %}<p class="mb-0" style="margin-bottom: 0;"><strong>Примечания:</strong> {{ zdf.notes }}</p>{% endif %}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -154,10 +154,10 @@
                                                             </button>
                                                         </h2>
                                                         <div id="bracket-collapse-{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#bracketAccordion">
-                                                            <div class="accordion-body">
-                                                                <p class="mb-1"><strong>Номер:</strong> {{ bracket.bracket_number }}</p>
-                                                                {% if bracket.bracket_name %}<p class="mb-1"><strong>Название:</strong> {{ bracket.bracket_name }}</p>{% endif %}
-                                                                {% if bracket.notes %}<p class="mb-0"><strong>Примечания:</strong> {{ bracket.notes }}</p>{% endif %}
+                                                            <div class="accordion-body" style="padding: 8px 16px;">
+                                                                <p class="mb-1" style="margin-bottom: 4px;"><strong>Номер:</strong> {{ bracket.bracket_number }}</p>
+                                                                {% if bracket.bracket_name %}<p class="mb-1" style="margin-bottom: 4px;"><strong>Название:</strong> {{ bracket.bracket_name }}</p>{% endif %}
+                                                                {% if bracket.notes %}<p class="mb-0" style="margin-bottom: 0;"><strong>Примечания:</strong> {{ bracket.notes }}</p>{% endif %}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -194,10 +194,10 @@
                                                             </button>
                                                         </h2>
                                                         <div id="luminaire-collapse-{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#luminaireAccordion">
-                                                            <div class="accordion-body">
-                                                                <p class="mb-1"><strong>Номер:</strong> {{ luminaire.luminaire_number }}</p>
-                                                                {% if luminaire.luminaire_name %}<p class="mb-1"><strong>Название:</strong> {{ luminaire.luminaire_name }}</p>{% endif %}
-                                                                {% if luminaire.notes %}<p class="mb-0"><strong>Примечания:</strong> {{ luminaire.notes }}</p>{% endif %}
+                                                            <div class="accordion-body" style="padding: 8px 16px;">
+                                                                <p class="mb-1" style="margin-bottom: 4px;"><strong>Номер:</strong> {{ luminaire.luminaire_number }}</p>
+                                                                {% if luminaire.luminaire_name %}<p class="mb-1" style="margin-bottom: 4px;"><strong>Название:</strong> {{ luminaire.luminaire_name }}</p>{% endif %}
+                                                                {% if luminaire.notes %}<p class="mb-0" style="margin-bottom: 0;"><strong>Примечания:</strong> {{ luminaire.notes }}</p>{% endif %}
                                                             </div>
                                                         </div>
                                                     </div>
