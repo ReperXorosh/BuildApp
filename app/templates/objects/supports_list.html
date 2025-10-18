@@ -106,7 +106,7 @@
                                     <td>
                                         <div class="item-actions">
                                             <a href="{{ url_for('objects.support_detail', object_id=object.id, support_id=support.id) }}" 
-                                               class="btn btn-outline-primary" title="Просмотр деталей">
+                                               class="btn btn-sm btn-outline-primary" title="Просмотр деталей">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                     <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                                     <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -114,7 +114,7 @@
                                             </a>
                                             {% if support.planned_work %}
                                             <a href="{{ url_for('objects.planned_works_list', object_id=object.id) }}" 
-                                               class="btn btn-outline-info" title="Запланированные работы">
+                                               class="btn btn-sm btn-outline-info" title="Запланированные работы">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                     <path d="M8 2V5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                                     <path d="M16 2V5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -126,7 +126,7 @@
                                             {% endif %}
                                             {% if support.status != 'completed' %}
                                             <a href="{{ url_for('objects.confirm_support_installation', object_id=object.id, support_id=support.id) }}" 
-                                               class="btn btn-outline-success" title="Подтвердить установку">
+                                               class="btn btn-sm btn-outline-success" title="Подтвердить установку">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                     <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                                 </svg>
