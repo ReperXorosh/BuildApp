@@ -123,13 +123,9 @@
                                         <div class="card border-{{ 'success' if zdf.status == 'completed' else 'warning' if zdf.status == 'in_progress' else 'secondary' }}">
                                             <div class="card-body py-2">
                                                 <div class="d-flex justify-content-between align-items-center">
-                                                    <div>
+                                                    <div class="d-flex align-items-center">
                                                         <strong>{{ zdf.zdf_name or zdf.zdf_number }}</strong>
-                                                        <br>
-                                                        <small class="text-muted">{{ zdf.zdf_number }}</small>
-                                                    </div>
-                                                    <div class="text-end">
-                                                        <span class="badge bg-{{ 'success' if zdf.status == 'completed' else 'warning' if zdf.status == 'in_progress' else 'secondary' }}">
+                                                        <span class="badge bg-{{ 'success' if zdf.status == 'completed' else 'warning' if zdf.status == 'in_progress' else 'secondary' }} ms-2">
                                                             {% if zdf.status == 'completed' %}
                                                                 Установлен
                                                             {% elif zdf.status == 'in_progress' %}
@@ -138,20 +134,19 @@
                                                                 Запланирован
                                                             {% endif %}
                                                         </span>
-                                                        <br>
-                                                        <div class="d-flex flex-wrap gap-1 mt-1">
-                                                            <a href="{{ url_for('objects.element_detail', object_id=object.id, element_type='zdf', element_id=zdf.id) }}"
-                                                               class="btn btn-sm btn-outline-primary">
-                                                                <i class="bi bi-eye"></i>
-                                                            </a>
-                                                            {% if zdf.status != 'completed' %}
-                                                            <button type="button" class="btn btn-sm btn-success" 
-                                                                    onclick="updateElementStatus('zdf', '{{ zdf.id }}', 'completed')"
-                                                                    title="Отметить как установленный">
-                                                                <i class="bi bi-check-circle"></i>
-                                                            </button>
-                                                            {% endif %}
-                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex flex-wrap gap-1">
+                                                        <a href="{{ url_for('objects.element_detail', object_id=object.id, element_type='zdf', element_id=zdf.id) }}"
+                                                           class="btn btn-sm btn-outline-primary">
+                                                            <i class="bi bi-eye"></i>
+                                                        </a>
+                                                        {% if zdf.status != 'completed' %}
+                                                        <button type="button" class="btn btn-sm btn-success" 
+                                                                onclick="updateElementStatus('zdf', '{{ zdf.id }}', 'completed')"
+                                                                title="Отметить как установленный">
+                                                            <i class="bi bi-check-circle"></i>
+                                                        </button>
+                                                        {% endif %}
                                                     </div>
                                                 </div>
                                             </div>
@@ -175,13 +170,9 @@
                                         <div class="card border-{{ 'success' if bracket.status == 'completed' else 'warning' if bracket.status == 'in_progress' else 'secondary' }}">
                                             <div class="card-body py-2">
                                                 <div class="d-flex justify-content-between align-items-center">
-                                                    <div>
+                                                    <div class="d-flex align-items-center">
                                                         <strong>{{ bracket.bracket_name or bracket.bracket_number }}</strong>
-                                                        <br>
-                                                        <small class="text-muted">{{ bracket.bracket_number }}</small>
-                                                    </div>
-                                                    <div class="text-end">
-                                                        <span class="badge bg-{{ 'success' if bracket.status == 'completed' else 'warning' if bracket.status == 'in_progress' else 'secondary' }}">
+                                                        <span class="badge bg-{{ 'success' if bracket.status == 'completed' else 'warning' if bracket.status == 'in_progress' else 'secondary' }} ms-2">
                                                             {% if bracket.status == 'completed' %}
                                                                 Установлен
                                                             {% elif bracket.status == 'in_progress' %}
@@ -190,20 +181,19 @@
                                                                 Запланирован
                                                             {% endif %}
                                                         </span>
-                                                        <br>
-                                                        <div class="d-flex flex-wrap gap-1 mt-1">
-                                                            <a href="{{ url_for('objects.element_detail', object_id=object.id, element_type='bracket', element_id=bracket.id) }}"
-                                                               class="btn btn-sm btn-outline-primary">
-                                                                <i class="bi bi-eye"></i>
-                                                            </a>
-                                                            {% if bracket.status != 'completed' %}
-                                                            <button type="button" class="btn btn-sm btn-success" 
-                                                                    onclick="updateElementStatus('bracket', '{{ bracket.id }}', 'completed')"
-                                                                    title="Отметить как установленный">
-                                                                <i class="bi bi-check-circle"></i>
-                                                            </button>
-                                                            {% endif %}
-                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex flex-wrap gap-1">
+                                                        <a href="{{ url_for('objects.element_detail', object_id=object.id, element_type='bracket', element_id=bracket.id) }}"
+                                                           class="btn btn-sm btn-outline-primary">
+                                                            <i class="bi bi-eye"></i>
+                                                        </a>
+                                                        {% if bracket.status != 'completed' %}
+                                                        <button type="button" class="btn btn-sm btn-success" 
+                                                                onclick="updateElementStatus('bracket', '{{ bracket.id }}', 'completed')"
+                                                                title="Отметить как установленный">
+                                                            <i class="bi bi-check-circle"></i>
+                                                        </button>
+                                                        {% endif %}
                                                     </div>
                                                 </div>
                                             </div>
@@ -227,13 +217,9 @@
                                         <div class="card border-{{ 'success' if luminaire.status == 'completed' else 'warning' if luminaire.status == 'in_progress' else 'secondary' }}">
                                             <div class="card-body py-2">
                                                 <div class="d-flex justify-content-between align-items-center">
-                                                    <div>
+                                                    <div class="d-flex align-items-center">
                                                         <strong>{{ luminaire.luminaire_name or luminaire.luminaire_number }}</strong>
-                                                        <br>
-                                                        <small class="text-muted">{{ luminaire.luminaire_number }}</small>
-                                                    </div>
-                                                    <div class="text-end">
-                                                        <span class="badge bg-{{ 'success' if luminaire.status == 'completed' else 'warning' if luminaire.status == 'in_progress' else 'secondary' }}">
+                                                        <span class="badge bg-{{ 'success' if luminaire.status == 'completed' else 'warning' if luminaire.status == 'in_progress' else 'secondary' }} ms-2">
                                                             {% if luminaire.status == 'completed' %}
                                                                 Установлен
                                                             {% elif luminaire.status == 'in_progress' %}
@@ -242,20 +228,19 @@
                                                                 Запланирован
                                                             {% endif %}
                                                         </span>
-                                                        <br>
-                                                        <div class="d-flex flex-wrap gap-1 mt-1">
-                                                            <a href="{{ url_for('objects.element_detail', object_id=object.id, element_type='luminaire', element_id=luminaire.id) }}"
-                                                               class="btn btn-sm btn-outline-primary">
-                                                                <i class="bi bi-eye"></i>
-                                                            </a>
-                                                            {% if luminaire.status != 'completed' %}
-                                                            <button type="button" class="btn btn-sm btn-success" 
-                                                                    onclick="updateElementStatus('luminaire', '{{ luminaire.id }}', 'completed')"
-                                                                    title="Отметить как установленный">
-                                                                <i class="bi bi-check-circle"></i>
-                                                            </button>
-                                                            {% endif %}
-                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex flex-wrap gap-1">
+                                                        <a href="{{ url_for('objects.element_detail', object_id=object.id, element_type='luminaire', element_id=luminaire.id) }}"
+                                                           class="btn btn-sm btn-outline-primary">
+                                                            <i class="bi bi-eye"></i>
+                                                        </a>
+                                                        {% if luminaire.status != 'completed' %}
+                                                        <button type="button" class="btn btn-sm btn-success" 
+                                                                onclick="updateElementStatus('luminaire', '{{ luminaire.id }}', 'completed')"
+                                                                title="Отметить как установленный">
+                                                            <i class="bi bi-check-circle"></i>
+                                                        </button>
+                                                        {% endif %}
                                                     </div>
                                                 </div>
                                             </div>
