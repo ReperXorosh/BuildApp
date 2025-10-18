@@ -333,10 +333,6 @@
                                     <i class="bi bi-plus-circle me-1"></i>
                                     Добавить элемент
                                 </a>
-                                <button type="button" class="btn btn-warning" onclick="assignAllElements()">
-                                    <i class="bi bi-link-45deg me-1"></i>
-                                    Привязать все элементы
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -390,31 +386,5 @@ function updateElementStatus(elementType, elementId, newStatus) {
     });
 }
 
-function assignAllElements() {
-    if (!confirm('Вы уверены, что хотите привязать все непривязанные элементы к этой опоре?')) {
-        return;
-    }
-    
-    fetch(`/objects/{{ object.id }}/supports/{{ support.id }}/assign-all-elements`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            // Обновляем страницу для отображения изменений
-            location.reload();
-        } else {
-            alert('Ошибка при привязке элементов: ' + (data.error || 'Неизвестная ошибка'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Ошибка при привязке элементов');
-    });
-}
 </script>
 {% endblock %}

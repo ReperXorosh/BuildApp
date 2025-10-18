@@ -599,6 +599,11 @@ def add_support(object_id):
         support_type = request.form.get('support_type', '').strip()
         notes = request.form.get('notes', '').strip()
         
+        # Получаем выбранные элементы
+        selected_zdf_id = request.form.get('selected_zdf_id', '').strip()
+        selected_bracket_id = request.form.get('selected_bracket_id', '').strip()
+        selected_luminaire_ids = request.form.getlist('selected_luminaire_ids')  # Может быть несколько светильников
+        
         if not support_number:
             flash('Номер опоры обязателен для заполнения', 'error')
             return render_template('objects/mobile_add_support.html' if is_mobile else 'objects/add_support.html', object=obj, zdf_list=zdf_list, brackets_list=brackets_list, luminaires_list=luminaires_list)
@@ -638,6 +643,26 @@ def add_support(object_id):
         
         # Связываем опору с запланированной работой
         new_support.planned_work_id = planned_work.id
+        
+        # Привязываем выбранные элементы к опоре
+        if selected_zdf_id:
+            zdf = ZDF.query.get(selected_zdf_id)
+            if zdf and zdf.object_id == object_id:
+                zdf.support_id = new_support.id
+                print(f"DEBUG add_support: Linked ZDF {zdf.zdf_name} to support {support_number}")
+        
+        if selected_bracket_id:
+            bracket = Bracket.query.get(selected_bracket_id)
+            if bracket and bracket.object_id == object_id:
+                bracket.support_id = new_support.id
+                print(f"DEBUG add_support: Linked Bracket {bracket.bracket_name} to support {support_number}")
+        
+        for luminaire_id in selected_luminaire_ids:
+            if luminaire_id:
+                luminaire = Luminaire.query.get(luminaire_id)
+                if luminaire and luminaire.object_id == object_id:
+                    luminaire.support_id = new_support.id
+                    print(f"DEBUG add_support: Linked Luminaire {luminaire.luminaire_name} to support {support_number}")
         
         db.session.commit()
         
@@ -1028,47 +1053,6 @@ def assign_element_to_support(object_id, element_type, element_id):
         'success': True,
         'support_id': element.support_id,
         'support_number': support.support_number if support_id else None
-    })
-
-# Быстрая привязка всех непривязанных элементов к опоре
-@objects_bp.route('/<uuid:object_id>/supports/<uuid:support_id>/assign-all-elements', methods=['POST'])
-@login_required
-def assign_all_elements_to_support(object_id, support_id):
-    """Привязка всех непривязанных элементов объекта к опоре"""
-    obj = Object.query.get_or_404(object_id)
-    support = Support.query.get_or_404(support_id)
-    
-    if support.object_id != object_id:
-        return jsonify({'error': 'Опора не принадлежит данному объекту'}), 404
-    
-    # Получаем все непривязанные элементы
-    unassigned_zdf = ZDF.query.filter_by(object_id=object_id, support_id=None).all()
-    unassigned_brackets = Bracket.query.filter_by(object_id=object_id, support_id=None).all()
-    unassigned_luminaires = Luminaire.query.filter_by(object_id=object_id, support_id=None).all()
-    
-    # Привязываем все элементы к опоре
-    assigned_count = 0
-    for element in unassigned_zdf + unassigned_brackets + unassigned_luminaires:
-        element.support_id = support_id
-        assigned_count += 1
-    
-    db.session.commit()
-    
-    # Логируем действие
-    ActivityLog.log_action(
-        user_id=current_user.userid,
-        user_login=current_user.login,
-        action="Массовая привязка элементов к опоре",
-        description=f"Пользователь {current_user.login} привязал {assigned_count} элементов к опоре {support.support_number}",
-        ip_address=request.remote_addr,
-        page_url=request.url,
-        method=request.method
-    )
-    
-    return jsonify({
-        'success': True,
-        'assigned_count': assigned_count,
-        'message': f'Привязано {assigned_count} элементов к опоре {support.support_number}'
     })
 
 # Удаление элемента (для Инженер ПТО)
