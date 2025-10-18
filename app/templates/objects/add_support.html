@@ -101,8 +101,8 @@
                                                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#zdf-collapse-{{ loop.index }}">
                                                                 <div class="d-flex align-items-center w-100">
                                                                     <div class="d-flex align-items-center me-3" onclick="event.stopPropagation()">
-                                                                        <input type="radio" class="form-check-input me-2" name="selected_zdf_id" value="{{ zdf.id }}" id="zdf-{{ zdf.id }}" style="width: 16px; height: 16px;">
-                                                                        <label for="zdf-{{ zdf.id }}" class="form-check-label mb-0 small">
+                                                                        <input type="radio" name="selected_zdf_id" value="{{ zdf.id }}" id="zdf-{{ zdf.id }}" style="width: 14px; height: 14px; margin-right: 6px;">
+                                                                        <label for="zdf-{{ zdf.id }}" style="font-size: 12px; margin: 0; cursor: pointer;">
                                                                             Выбрать
                                                                         </label>
                                                                     </div>
@@ -141,8 +141,8 @@
                                                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bracket-collapse-{{ loop.index }}">
                                                                 <div class="d-flex align-items-center w-100">
                                                                     <div class="d-flex align-items-center me-3" onclick="event.stopPropagation()">
-                                                                        <input type="radio" class="form-check-input me-2" name="selected_bracket_id" value="{{ bracket.id }}" id="bracket-{{ bracket.id }}" style="width: 16px; height: 16px;">
-                                                                        <label for="bracket-{{ bracket.id }}" class="form-check-label mb-0 small">
+                                                                        <input type="radio" name="selected_bracket_id" value="{{ bracket.id }}" id="bracket-{{ bracket.id }}" style="width: 14px; height: 14px; margin-right: 6px;">
+                                                                        <label for="bracket-{{ bracket.id }}" style="font-size: 12px; margin: 0; cursor: pointer;">
                                                                             Выбрать
                                                                         </label>
                                                                     </div>
@@ -181,8 +181,8 @@
                                                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#luminaire-collapse-{{ loop.index }}">
                                                                 <div class="d-flex align-items-center w-100">
                                                                     <div class="d-flex align-items-center me-3" onclick="event.stopPropagation()">
-                                                                        <input type="checkbox" class="form-check-input me-2" name="selected_luminaire_ids" value="{{ luminaire.id }}" id="luminaire-{{ luminaire.id }}" style="width: 16px; height: 16px;">
-                                                                        <label for="luminaire-{{ luminaire.id }}" class="form-check-label mb-0 small">
+                                                                        <input type="checkbox" name="selected_luminaire_ids" value="{{ luminaire.id }}" id="luminaire-{{ luminaire.id }}" style="width: 14px; height: 14px; margin-right: 6px;">
+                                                                        <label for="luminaire-{{ luminaire.id }}" style="font-size: 12px; margin: 0; cursor: pointer;">
                                                                             Выбрать
                                                                         </label>
                                                                     </div>
