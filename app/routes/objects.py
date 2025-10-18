@@ -1127,6 +1127,10 @@ def delete_support(object_id, support_id):
         db.session.delete(action)
         print(f"DEBUG: Deleted activity log: {action.action}")
     
+    # Сохраняем данные для логирования перед удалением
+    support_number = support.support_number
+    support_status = support.status
+    
     # Удаляем опору
     db.session.delete(support)
     db.session.commit()
@@ -1136,7 +1140,7 @@ def delete_support(object_id, support_id):
         user_id=current_user.userid,
         user_login=current_user.login,
         action="Удаление опоры",
-        description=f"Пользователь {current_user.login} полностью удалил опору {support.support_number} (статус: {support.status}). Удалено: {len(zdf_elements) + len(bracket_elements) + len(luminaire_elements)} элементов, {len(support_related_actions)} записей в истории, файлы установки",
+        description=f"Пользователь {current_user.login} полностью удалил опору {support_number} (статус: {support_status}). Удалено: {len(zdf_elements) + len(bracket_elements) + len(luminaire_elements)} элементов, {len(support_related_actions)} записей в истории, файлы установки",
         ip_address=request.remote_addr,
         page_url=request.url,
         method=request.method
