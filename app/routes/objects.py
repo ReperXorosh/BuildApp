@@ -947,6 +947,7 @@ def element_detail(object_id, element_type, element_id):
 @login_required
 def update_element_status(object_id, element_type, element_id):
     """Обновление статуса элемента (ЗДФ, Кронштейн, Светильник)"""
+    print(f"DEBUG update_element_status: Called with object_id={object_id}, element_type={element_type}, element_id={element_id}")
     obj = Object.query.get_or_404(object_id)
     element_type = (element_type or '').lower()
     

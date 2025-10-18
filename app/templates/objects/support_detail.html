@@ -362,7 +362,7 @@ function updateElementStatus(elementType, elementId, newStatus) {
         return;
     }
     
-    fetch(`/objects/{{ object.id }}/elements/${elementType}/${elementId}/status`, {
+    fetch(`/api/objects/{{ object.id }}/elements/${elementType}/${elementId}/status`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -371,8 +371,15 @@ function updateElementStatus(elementType, elementId, newStatus) {
             status: newStatus
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log('Response data:', data);
         if (data.success) {
             // Обновляем страницу для отображения изменений
             location.reload();
@@ -382,7 +389,7 @@ function updateElementStatus(elementType, elementId, newStatus) {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Ошибка при обновлении статуса');
+        alert('Ошибка при обновлении статуса: ' + error.message);
     });
 }
 
