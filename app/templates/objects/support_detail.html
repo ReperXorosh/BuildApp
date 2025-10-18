@@ -139,10 +139,10 @@
                                                             {% endif %}
                                                         </span>
                                                         <br>
-                                                        <div class="btn-group mt-1" role="group">
+                                                        <div class="d-flex flex-wrap gap-1 mt-1">
                                                             <a href="{{ url_for('objects.element_detail', object_id=object.id, element_type='zdf', element_id=zdf.id) }}"
                                                                class="btn btn-sm btn-outline-primary">
-                                                                <i class="bi bi-eye me-1"></i>
+                                                                <i class="bi bi-eye"></i>
                                                             </a>
                                                             {% if zdf.status != 'completed' %}
                                                             <button type="button" class="btn btn-sm btn-success" 
@@ -191,10 +191,10 @@
                                                             {% endif %}
                                                         </span>
                                                         <br>
-                                                        <div class="btn-group mt-1" role="group">
+                                                        <div class="d-flex flex-wrap gap-1 mt-1">
                                                             <a href="{{ url_for('objects.element_detail', object_id=object.id, element_type='bracket', element_id=bracket.id) }}"
                                                                class="btn btn-sm btn-outline-primary">
-                                                                <i class="bi bi-eye me-1"></i>
+                                                                <i class="bi bi-eye"></i>
                                                             </a>
                                                             {% if bracket.status != 'completed' %}
                                                             <button type="button" class="btn btn-sm btn-success" 
@@ -243,10 +243,10 @@
                                                             {% endif %}
                                                         </span>
                                                         <br>
-                                                        <div class="btn-group mt-1" role="group">
+                                                        <div class="d-flex flex-wrap gap-1 mt-1">
                                                             <a href="{{ url_for('objects.element_detail', object_id=object.id, element_type='luminaire', element_id=luminaire.id) }}"
                                                                class="btn btn-sm btn-outline-primary">
-                                                                <i class="bi bi-eye me-1"></i>
+                                                                <i class="bi bi-eye"></i>
                                                             </a>
                                                             {% if luminaire.status != 'completed' %}
                                                             <button type="button" class="btn btn-sm btn-success" 
