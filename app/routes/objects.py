@@ -1070,6 +1070,74 @@ def install_element_with_file(object_id, element_type, element_id):
         'installation_date': element.installation_date.isoformat()
     })
 
+# Удаление опоры (для админа)
+@objects_bp.route('/<uuid:object_id>/supports/<uuid:support_id>', methods=['DELETE'])
+@login_required
+def delete_support(object_id, support_id):
+    """Удаление опоры (только для админа)"""
+    obj = Object.query.get_or_404(object_id)
+    support = Support.query.get_or_404(support_id)
+    
+    if support.object_id != object_id:
+        return jsonify({'error': 'Опора не принадлежит данному объекту'}), 404
+    
+    # Проверяем права доступа - только админ может удалять опоры
+    if current_user.role not in ['Инженер ПТО', 'Ген.Директор']:
+        return jsonify({'error': 'У вас нет прав для удаления опор'}), 403
+    
+    # Проверяем, что опора не установлена
+    if support.status == 'completed':
+        return jsonify({'error': 'Нельзя удалить установленную опору'}), 400
+    
+    # Удаляем связанные элементы (отвязываем их от опоры)
+    from ..models.objects import ZDF, Bracket, Luminaire
+    
+    zdf_elements = ZDF.query.filter_by(support_id=support_id).all()
+    bracket_elements = Bracket.query.filter_by(support_id=support_id).all()
+    luminaire_elements = Luminaire.query.filter_by(support_id=support_id).all()
+    
+    for zdf in zdf_elements:
+        zdf.support_id = None
+        print(f"DEBUG: Unlinked ZDF {zdf.zdf_name or zdf.zdf_number} from support")
+    
+    for bracket in bracket_elements:
+        bracket.support_id = None
+        print(f"DEBUG: Unlinked Bracket {bracket.bracket_name or bracket.bracket_number} from support")
+    
+    for luminaire in luminaire_elements:
+        luminaire.support_id = None
+        print(f"DEBUG: Unlinked Luminaire {luminaire.luminaire_name or luminaire.luminaire_number} from support")
+    
+    # Удаляем запланированную работу, если она есть
+    if support.planned_work:
+        db.session.delete(support.planned_work)
+        print(f"DEBUG: Deleted planned work for support {support.support_number}")
+    
+    # Удаляем файлы установки, если они есть
+    if support.installation_file_path:
+        import os
+        file_path = os.path.join('app', 'static', support.installation_file_path)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            print(f"DEBUG: Deleted installation file: {file_path}")
+    
+    # Удаляем опору
+    db.session.delete(support)
+    db.session.commit()
+    
+    # Логируем действие
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Удаление опоры",
+        description=f"Пользователь {current_user.login} удалил опору {support.support_number} и отвязал {len(zdf_elements) + len(bracket_elements) + len(luminaire_elements)} элементов",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return jsonify({'success': True, 'message': 'Опора успешно удалена'})
+
 # Привязка элемента к опоре
 @objects_bp.route('/api/objects/<uuid:object_id>/elements/<string:element_type>/<uuid:element_id>/assign-support', methods=['PUT'])
 @login_required
