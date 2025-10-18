@@ -2,6 +2,42 @@
 
 {% block title %}Опора - {{ object.name }}{% endblock %}
 
+{% block extra_head %}
+<style>
+    .item-actions {
+        display: flex;
+        gap: 0.25rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .item-actions .btn {
+        min-width: 36px;
+        height: 36px;
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .item-actions .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(0,0,0,0,0.15);
+    }
+    
+    .item-actions .btn svg {
+        transition: all 0.2s ease;
+    }
+    
+    .item-actions .btn:hover svg {
+        transform: scale(1.1);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid" style="margin-top: 80px;">
     <div class="row">
@@ -93,7 +129,7 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="btn-group btn-group-sm">
+                                        <div class="item-actions">
                                             <a href="{{ url_for('objects.support_detail', object_id=object.id, support_id=support.id) }}" 
                                                class="btn btn-outline-primary" title="Просмотр деталей">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -163,7 +199,7 @@
 
 <script>
 function deleteSupport(supportId, supportNumber) {
-    if (confirm(`Вы уверены, что хотите удалить опору ${supportNumber}? Это действие нельзя отменить.`)) {
+    if (confirm(`Вы уверены, что хотите удалить опору ${supportNumber}? Это действие нельзя отменить. Будут удалены все связанные элементы, файлы и действия.`)) {
         fetch(`/objects/{{ object.id }}/supports/${supportId}`, {
             method: 'DELETE',
             headers: {

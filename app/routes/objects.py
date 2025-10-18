@@ -1085,10 +1085,6 @@ def delete_support(object_id, support_id):
     if current_user.role not in ['Инженер ПТО', 'Ген.Директор']:
         return jsonify({'error': 'У вас нет прав для удаления опор'}), 403
     
-    # Проверяем, что опора не установлена
-    if support.status == 'completed':
-        return jsonify({'error': 'Нельзя удалить установленную опору'}), 400
-    
     # Удаляем связанные элементы (отвязываем их от опоры)
     from ..models.objects import ZDF, Bracket, Luminaire
     
@@ -1121,6 +1117,16 @@ def delete_support(object_id, support_id):
             os.remove(file_path)
             print(f"DEBUG: Deleted installation file: {file_path}")
     
+    # Удаляем все связанные действия из ActivityLog
+    from ..models.activity_log import ActivityLog
+    support_related_actions = ActivityLog.query.filter(
+        ActivityLog.description.contains(f"опора {support.support_number}")
+    ).all()
+    
+    for action in support_related_actions:
+        db.session.delete(action)
+        print(f"DEBUG: Deleted activity log: {action.action}")
+    
     # Удаляем опору
     db.session.delete(support)
     db.session.commit()
@@ -1130,7 +1136,7 @@ def delete_support(object_id, support_id):
         user_id=current_user.userid,
         user_login=current_user.login,
         action="Удаление опоры",
-        description=f"Пользователь {current_user.login} удалил опору {support.support_number} и отвязал {len(zdf_elements) + len(bracket_elements) + len(luminaire_elements)} элементов",
+        description=f"Пользователь {current_user.login} полностью удалил опору {support.support_number} (статус: {support.status}). Удалено: {len(zdf_elements) + len(bracket_elements) + len(luminaire_elements)} элементов, {len(support_related_actions)} записей в истории, файлы установки",
         ip_address=request.remote_addr,
         page_url=request.url,
         method=request.method
