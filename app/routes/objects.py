@@ -1106,6 +1106,14 @@ def delete_support(object_id, support_id):
     
     # Удаляем запланированную работу, если она есть
     if support.planned_work:
+        # Сначала удаляем связанные записи в work_comparisons
+        from ..models.objects import WorkComparison
+        work_comparisons = WorkComparison.query.filter_by(planned_work_id=support.planned_work.id).all()
+        for comparison in work_comparisons:
+            db.session.delete(comparison)
+            print(f"DEBUG: Deleted work comparison {comparison.id}")
+        
+        # Теперь удаляем planned_work
         db.session.delete(support.planned_work)
         print(f"DEBUG: Deleted planned work for support {support.support_number}")
     
