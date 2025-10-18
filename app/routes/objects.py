@@ -999,6 +999,77 @@ def update_element_status(object_id, element_type, element_id):
         'installation_date': element.installation_date.isoformat() if element.installation_date else None
     })
 
+@objects_bp.route('/<uuid:object_id>/elements/<string:element_type>/<uuid:element_id>/install', methods=['POST'])
+@login_required
+def install_element_with_file(object_id, element_type, element_id):
+    """Установка элемента с обязательным файлом"""
+    obj = Object.query.get_or_404(object_id)
+    element_type = (element_type or '').lower()
+    
+    # Получаем элемент
+    element = None
+    if element_type == 'zdf':
+        element = ZDF.query.get_or_404(element_id)
+    elif element_type == 'bracket':
+        element = Bracket.query.get_or_404(element_id)
+    elif element_type == 'luminaire':
+        element = Luminaire.query.get_or_404(element_id)
+    else:
+        return jsonify({'error': 'Неверный тип элемента'}), 400
+    
+    if element.object_id != object_id:
+        return jsonify({'error': 'Элемент не принадлежит данному объекту'}), 404
+    
+    # Проверяем наличие файла
+    if 'installation_file' not in request.files or request.files['installation_file'].filename == '':
+        return jsonify({'error': 'Необходимо прикрепить файл установки'}), 400
+    
+    # Обрабатываем файл
+    installation_file = request.files['installation_file']
+    if installation_file and installation_file.filename:
+        from werkzeug.utils import secure_filename
+        import os
+        
+        # Создаем папку для файлов элемента, если её нет
+        element_files_dir = os.path.join('app', 'static', 'uploads', 'elements', str(element_id))
+        os.makedirs(element_files_dir, exist_ok=True)
+        
+        # Сохраняем файл
+        filename = secure_filename(installation_file.filename)
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"{timestamp}_{filename}"
+        file_path = os.path.join(element_files_dir, filename)
+        installation_file.save(file_path)
+        
+        # Сохраняем путь к файлу в базе данных
+        element.installation_file_path = f"uploads/elements/{element_id}/{filename}"
+        print(f"DEBUG: Saved element installation file: {element.installation_file_path}")
+    
+    # Обновляем статус элемента
+    element.status = 'completed'
+    element.installation_date = datetime.now().date()
+    element.updated_at = datetime.utcnow()
+    
+    db.session.commit()
+    
+    # Логируем действие
+    element_type_name = {'zdf': 'ЗДФ', 'bracket': 'Кронштейн', 'luminaire': 'Светильник'}[element_type]
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action=f"Установка {element_type_name}",
+        description=f"Пользователь {current_user.login} установил {element_type_name} с прикрепленным файлом",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return jsonify({
+        'success': True,
+        'status': 'completed',
+        'installation_date': element.installation_date.isoformat()
+    })
+
 # Привязка элемента к опоре
 @objects_bp.route('/api/objects/<uuid:object_id>/elements/<string:element_type>/<uuid:element_id>/assign-support', methods=['PUT'])
 @login_required
@@ -1124,6 +1195,69 @@ def confirm_support_installation(object_id, support_id):
             else:
                 return render_template('objects/confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
         
+        # Проверяем наличие файла установки опоры
+        if 'support_installation_file' not in request.files or request.files['support_installation_file'].filename == '':
+            flash('Необходимо прикрепить файл установки опоры', 'error')
+            from ..utils.mobile_detection import is_mobile_device
+            mobile_param = request.args.get('mobile') == '1'
+            device_mobile = is_mobile_device()
+            is_mobile = mobile_param or device_mobile
+            if is_mobile:
+                return render_template('objects/mobile_confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
+            else:
+                return render_template('objects/confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
+        
+        # Проверяем, что все элементы установлены
+        from ..models.objects import ZDF, Bracket, Luminaire
+        zdf_elements = ZDF.query.filter_by(support_id=support_id).all()
+        bracket_elements = Bracket.query.filter_by(support_id=support_id).all()
+        luminaire_elements = Luminaire.query.filter_by(support_id=support_id).all()
+        
+        uninstalled_elements = []
+        for zdf in zdf_elements:
+            if zdf.status != 'completed':
+                uninstalled_elements.append(f"ЗДФ {zdf.zdf_name or zdf.zdf_number}")
+        
+        for bracket in bracket_elements:
+            if bracket.status != 'completed':
+                uninstalled_elements.append(f"Кронштейн {bracket.bracket_name or bracket.bracket_number}")
+        
+        for luminaire in luminaire_elements:
+            if luminaire.status != 'completed':
+                uninstalled_elements.append(f"Светильник {luminaire.luminaire_name or luminaire.luminaire_number}")
+        
+        if uninstalled_elements:
+            flash(f'Нельзя установить опору, пока не установлены элементы: {", ".join(uninstalled_elements)}', 'error')
+            from ..utils.mobile_detection import is_mobile_device
+            mobile_param = request.args.get('mobile') == '1'
+            device_mobile = is_mobile_device()
+            is_mobile = mobile_param or device_mobile
+            if is_mobile:
+                return render_template('objects/mobile_confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
+            else:
+                return render_template('objects/confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
+        
+        # Обрабатываем файл установки опоры
+        support_file = request.files['support_installation_file']
+        if support_file and support_file.filename:
+            from werkzeug.utils import secure_filename
+            import os
+            
+            # Создаем папку для файлов опоры, если её нет
+            support_files_dir = os.path.join('app', 'static', 'uploads', 'supports', str(support_id))
+            os.makedirs(support_files_dir, exist_ok=True)
+            
+            # Сохраняем файл
+            filename = secure_filename(support_file.filename)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"{timestamp}_{filename}"
+            file_path = os.path.join(support_files_dir, filename)
+            support_file.save(file_path)
+            
+            # Сохраняем путь к файлу в базе данных
+            support.installation_file_path = f"uploads/supports/{support_id}/{filename}"
+            print(f"DEBUG: Saved support installation file: {support.installation_file_path}")
+        
         # Обновляем статус опоры
         support.status = 'completed'
         support.installation_date = installation_date
@@ -1132,19 +1266,64 @@ def confirm_support_installation(object_id, support_id):
             support.notes += f'\nПримечания по установке: {installation_notes}'
         support.updated_at = datetime.utcnow()
         
+        # Автоматически устанавливаем все связанные элементы
+        from ..models.objects import ZDF, Bracket, Luminaire
+        
+        # Получаем все элементы, связанные с опорой
+        zdf_elements = ZDF.query.filter_by(support_id=support_id).all()
+        bracket_elements = Bracket.query.filter_by(support_id=support_id).all()
+        luminaire_elements = Luminaire.query.filter_by(support_id=support_id).all()
+        
+        # Устанавливаем все элементы
+        for zdf in zdf_elements:
+            if zdf.status != 'completed':
+                zdf.status = 'completed'
+                zdf.installation_date = installation_date
+                zdf.updated_at = datetime.utcnow()
+                print(f"DEBUG: Auto-installed ZDF {zdf.zdf_name or zdf.zdf_number}")
+        
+        for bracket in bracket_elements:
+            if bracket.status != 'completed':
+                bracket.status = 'completed'
+                bracket.installation_date = installation_date
+                bracket.updated_at = datetime.utcnow()
+                print(f"DEBUG: Auto-installed Bracket {bracket.bracket_name or bracket.bracket_number}")
+        
+        for luminaire in luminaire_elements:
+            if luminaire.status != 'completed':
+                luminaire.status = 'completed'
+                luminaire.installation_date = installation_date
+                luminaire.updated_at = datetime.utcnow()
+                print(f"DEBUG: Auto-installed Luminaire {luminaire.luminaire_name or luminaire.luminaire_number}")
+        
         db.session.commit()
+        
+        # Подсчитываем количество установленных элементов
+        total_elements = len(zdf_elements) + len(bracket_elements) + len(luminaire_elements)
+        elements_info = []
+        if zdf_elements:
+            elements_info.append(f"ЗДФ: {len(zdf_elements)}")
+        if bracket_elements:
+            elements_info.append(f"Кронштейны: {len(bracket_elements)}")
+        if luminaire_elements:
+            elements_info.append(f"Светильники: {len(luminaire_elements)}")
+        
+        elements_text = f" и автоматически установил {total_elements} элементов ({', '.join(elements_info)})" if total_elements > 0 else ""
         
         ActivityLog.log_action(
             user_id=current_user.userid,
             user_login=current_user.login,
             action="Подтверждение установки опоры",
-            description=f"Пользователь {current_user.login} подтвердил установку опоры {support.support_number}",
+            description=f"Пользователь {current_user.login} подтвердил установку опоры {support.support_number}{elements_text}",
             ip_address=request.remote_addr,
             page_url=request.url,
             method=request.method
         )
         
-        flash('Установка опоры успешно подтверждена', 'success')
+        if total_elements > 0:
+            flash(f'Установка опоры успешно подтверждена. Автоматически установлено {total_elements} элементов.', 'success')
+        else:
+            flash('Установка опоры успешно подтверждена', 'success')
         # Сохраняем параметр mobile при редиректе
         mobile_param = request.args.get('mobile') == '1'
         if mobile_param:

@@ -50,6 +50,7 @@ class Support(db.Model):
     installation_date = db.Column(db.Date)
     status = db.Column(db.String(50), default='planned')  # planned, in_progress, completed
     notes = db.Column(db.Text)
+    installation_file_path = db.Column(db.String(500))  # путь к файлу установки
     planned_work_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('planned_works.id'))  # связь с запланированной работой
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -483,6 +484,7 @@ class ZDF(db.Model):
     installation_date = db.Column(db.Date)
     status = db.Column(db.String(50), default='planned')  # planned, in_progress, completed
     notes = db.Column(db.Text)
+    installation_file_path = db.Column(db.String(500))  # путь к файлу установки
     planned_work_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('planned_works.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -505,6 +507,7 @@ class Bracket(db.Model):
     installation_date = db.Column(db.Date)
     status = db.Column(db.String(50), default='planned')  # planned, in_progress, completed
     notes = db.Column(db.Text)
+    installation_file_path = db.Column(db.String(500))  # путь к файлу установки
     planned_work_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('planned_works.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -527,6 +530,7 @@ class Luminaire(db.Model):
     installation_date = db.Column(db.Date)
     status = db.Column(db.String(50), default='planned')  # planned, in_progress, completed
     notes = db.Column(db.Text)
+    installation_file_path = db.Column(db.String(500))  # путь к файлу установки
     planned_work_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('planned_works.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
