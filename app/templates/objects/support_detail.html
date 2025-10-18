@@ -362,7 +362,7 @@ function updateElementStatus(elementType, elementId, newStatus) {
         return;
     }
     
-    fetch(`/api/objects/{{ object.id }}/elements/${elementType}/${elementId}/status`, {
+    fetch(`/objects/api/objects/{{ object.id }}/elements/${elementType}/${elementId}/status`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
