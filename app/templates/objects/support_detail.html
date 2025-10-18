@@ -140,15 +140,15 @@
                                                         </span>
                                                         <br>
                                                         <div class="btn-group mt-1" role="group">
-                                                            <a href="{{ url_for('objects.element_detail', object_id=object.id, element_type='zdf', element_id=zdf.id) }}" 
+                                                            <a href="{{ url_for('objects.element_detail', object_id=object.id, element_type='zdf', element_id=zdf.id) }}"
                                                                class="btn btn-sm btn-outline-primary">
-                                                                <i class="bi bi-eye"></i>
+                                                                <i class="bi bi-eye me-1"></i>
                                                             </a>
                                                             {% if zdf.status != 'completed' %}
                                                             <button type="button" class="btn btn-sm btn-success" 
                                                                     onclick="updateElementStatus('zdf', '{{ zdf.id }}', 'completed')"
                                                                     title="Отметить как установленный">
-                                                                <i class="bi bi-check"></i>
+                                                                <i class="bi bi-check-lg"></i>
                                                             </button>
                                                             {% endif %}
                                                         </div>
@@ -192,15 +192,15 @@
                                                         </span>
                                                         <br>
                                                         <div class="btn-group mt-1" role="group">
-                                                            <a href="{{ url_for('objects.element_detail', object_id=object.id, element_type='bracket', element_id=bracket.id) }}" 
+                                                            <a href="{{ url_for('objects.element_detail', object_id=object.id, element_type='bracket', element_id=bracket.id) }}"
                                                                class="btn btn-sm btn-outline-primary">
-                                                                <i class="bi bi-eye"></i>
+                                                                <i class="bi bi-eye me-1"></i>
                                                             </a>
                                                             {% if bracket.status != 'completed' %}
                                                             <button type="button" class="btn btn-sm btn-success" 
                                                                     onclick="updateElementStatus('bracket', '{{ bracket.id }}', 'completed')"
                                                                     title="Отметить как установленный">
-                                                                <i class="bi bi-check"></i>
+                                                                <i class="bi bi-check-lg"></i>
                                                             </button>
                                                             {% endif %}
                                                         </div>
@@ -244,15 +244,15 @@
                                                         </span>
                                                         <br>
                                                         <div class="btn-group mt-1" role="group">
-                                                            <a href="{{ url_for('objects.element_detail', object_id=object.id, element_type='luminaire', element_id=luminaire.id) }}" 
+                                                            <a href="{{ url_for('objects.element_detail', object_id=object.id, element_type='luminaire', element_id=luminaire.id) }}"
                                                                class="btn btn-sm btn-outline-primary">
-                                                                <i class="bi bi-eye"></i>
+                                                                <i class="bi bi-eye me-1"></i>
                                                             </a>
                                                             {% if luminaire.status != 'completed' %}
                                                             <button type="button" class="btn btn-sm btn-success" 
                                                                     onclick="updateElementStatus('luminaire', '{{ luminaire.id }}', 'completed')"
                                                                     title="Отметить как установленный">
-                                                                <i class="bi bi-check"></i>
+                                                                <i class="bi bi-check-lg"></i>
                                                             </button>
                                                             {% endif %}
                                                         </div>
