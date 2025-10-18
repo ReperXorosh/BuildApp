@@ -47,13 +47,16 @@
                         <div class="accordion-body">
                             {% for zdf in zdf_list %}
                             <div class="d-flex align-items-start mobile-mb-1">
-                                <input type="radio" class="form-check-input me-2" name="selected_zdf_id" value="{{ zdf.id }}" id="zdf-{{ zdf.id }}">
-                                <label for="zdf-{{ zdf.id }}" class="form-check-label">
-                                    <div>
-                                        <div>{% if zdf.zdf_name %}<strong>{{ zdf.zdf_name }}</strong>{% else %}<strong>ЗДФ</strong>{% endif %}</div>
-                                        {% if zdf.notes %}<div class="text-muted small">{{ zdf.notes }}</div>{% endif %}
-                                    </div>
-                                </label>
+                                <div class="d-flex align-items-center me-2" onclick="event.stopPropagation()">
+                                    <input type="radio" class="form-check-input me-2" name="selected_zdf_id" value="{{ zdf.id }}" id="zdf-{{ zdf.id }}">
+                                    <label for="zdf-{{ zdf.id }}" class="form-check-label mb-0">
+                                        <strong>Выбрать</strong>
+                                    </label>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div>{% if zdf.zdf_name %}<strong>{{ zdf.zdf_name }}</strong>{% else %}<strong>ЗДФ</strong>{% endif %}</div>
+                                    {% if zdf.notes %}<div class="text-muted small">{{ zdf.notes }}</div>{% endif %}
+                                </div>
                             </div>
                             {% endfor %}
                         </div>
@@ -72,13 +75,16 @@
                         <div class="accordion-body">
                             {% for bracket in brackets_list %}
                             <div class="d-flex align-items-start mobile-mb-1">
-                                <input type="radio" class="form-check-input me-2" name="selected_bracket_id" value="{{ bracket.id }}" id="bracket-{{ bracket.id }}">
-                                <label for="bracket-{{ bracket.id }}" class="form-check-label">
-                                    <div>
-                                        <div>{% if bracket.bracket_name %}<strong>{{ bracket.bracket_name }}</strong>{% else %}<strong>Кронштейн</strong>{% endif %}</div>
-                                        {% if bracket.notes %}<div class="text-muted small">{{ bracket.notes }}</div>{% endif %}
-                                    </div>
-                                </label>
+                                <div class="d-flex align-items-center me-2" onclick="event.stopPropagation()">
+                                    <input type="radio" class="form-check-input me-2" name="selected_bracket_id" value="{{ bracket.id }}" id="bracket-{{ bracket.id }}">
+                                    <label for="bracket-{{ bracket.id }}" class="form-check-label mb-0">
+                                        <strong>Выбрать</strong>
+                                    </label>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div>{% if bracket.bracket_name %}<strong>{{ bracket.bracket_name }}</strong>{% else %}<strong>Кронштейн</strong>{% endif %}</div>
+                                    {% if bracket.notes %}<div class="text-muted small">{{ bracket.notes }}</div>{% endif %}
+                                </div>
                             </div>
                             {% endfor %}
                         </div>
@@ -97,13 +103,16 @@
                         <div class="accordion-body">
                             {% for luminaire in luminaires_list %}
                             <div class="d-flex align-items-start mobile-mb-1">
-                                <input type="checkbox" class="form-check-input me-2" name="selected_luminaire_ids" value="{{ luminaire.id }}" id="luminaire-{{ luminaire.id }}">
-                                <label for="luminaire-{{ luminaire.id }}" class="form-check-label">
-                                    <div>
-                                        <div>{% if luminaire.luminaire_name %}<strong>{{ luminaire.luminaire_name }}</strong>{% else %}<strong>Светильник</strong>{% endif %}</div>
-                                        {% if luminaire.notes %}<div class="text-muted small">{{ luminaire.notes }}</div>{% endif %}
-                                    </div>
-                                </label>
+                                <div class="d-flex align-items-center me-2" onclick="event.stopPropagation()">
+                                    <input type="checkbox" class="form-check-input me-2" name="selected_luminaire_ids" value="{{ luminaire.id }}" id="luminaire-{{ luminaire.id }}">
+                                    <label for="luminaire-{{ luminaire.id }}" class="form-check-label mb-0">
+                                        <strong>Выбрать</strong>
+                                    </label>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div>{% if luminaire.luminaire_name %}<strong>{{ luminaire.luminaire_name }}</strong>{% else %}<strong>Светильник</strong>{% endif %}</div>
+                                    {% if luminaire.notes %}<div class="text-muted small">{{ luminaire.notes }}</div>{% endif %}
+                                </div>
                             </div>
                             {% endfor %}
                         </div>

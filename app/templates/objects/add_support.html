@@ -99,8 +99,14 @@
                                                     <div class="accordion-item">
                                                         <h2 class="accordion-header" id="zdf-heading-{{ loop.index }}">
                                                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#zdf-collapse-{{ loop.index }}">
-                                                                <div class="d-flex align-items-center">
-                                                                    <div>
+                                                                <div class="d-flex align-items-center w-100">
+                                                                    <div class="d-flex align-items-center me-3" onclick="event.stopPropagation()">
+                                                                        <input type="radio" class="form-check-input me-2" name="selected_zdf_id" value="{{ zdf.id }}" id="zdf-{{ zdf.id }}">
+                                                                        <label for="zdf-{{ zdf.id }}" class="form-check-label mb-0">
+                                                                            <strong>Выбрать</strong>
+                                                                        </label>
+                                                                    </div>
+                                                                    <div class="flex-grow-1">
                                                                         <strong>{{ zdf.zdf_number }}</strong>
                                                                         {% if zdf.zdf_name %} - {{ zdf.zdf_name }}{% endif %}
                                                                     </div>
@@ -109,12 +115,6 @@
                                                         </h2>
                                                         <div id="zdf-collapse-{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#zdfAccordion">
                                                             <div class="accordion-body">
-                                                                <div class="d-flex align-items-center mb-2">
-                                                                    <input type="radio" class="form-check-input me-2" name="selected_zdf_id" value="{{ zdf.id }}" id="zdf-{{ zdf.id }}">
-                                                                    <label for="zdf-{{ zdf.id }}" class="form-check-label">
-                                                                        <strong>Выбрать этот ЗДФ</strong>
-                                                                    </label>
-                                                                </div>
                                                                 <p class="mb-1"><strong>Номер:</strong> {{ zdf.zdf_number }}</p>
                                                                 {% if zdf.zdf_name %}<p class="mb-1"><strong>Название:</strong> {{ zdf.zdf_name }}</p>{% endif %}
                                                                 {% if zdf.notes %}<p class="mb-0"><strong>Примечания:</strong> {{ zdf.notes }}</p>{% endif %}
@@ -139,8 +139,14 @@
                                                     <div class="accordion-item">
                                                         <h2 class="accordion-header" id="bracket-heading-{{ loop.index }}">
                                                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bracket-collapse-{{ loop.index }}">
-                                                                <div class="d-flex align-items-center">
-                                                                    <div>
+                                                                <div class="d-flex align-items-center w-100">
+                                                                    <div class="d-flex align-items-center me-3" onclick="event.stopPropagation()">
+                                                                        <input type="radio" class="form-check-input me-2" name="selected_bracket_id" value="{{ bracket.id }}" id="bracket-{{ bracket.id }}">
+                                                                        <label for="bracket-{{ bracket.id }}" class="form-check-label mb-0">
+                                                                            <strong>Выбрать</strong>
+                                                                        </label>
+                                                                    </div>
+                                                                    <div class="flex-grow-1">
                                                                         <strong>{{ bracket.bracket_number }}</strong>
                                                                         {% if bracket.bracket_name %} - {{ bracket.bracket_name }}{% endif %}
                                                                     </div>
@@ -149,12 +155,6 @@
                                                         </h2>
                                                         <div id="bracket-collapse-{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#bracketAccordion">
                                                             <div class="accordion-body">
-                                                                <div class="d-flex align-items-center mb-2">
-                                                                    <input type="radio" class="form-check-input me-2" name="selected_bracket_id" value="{{ bracket.id }}" id="bracket-{{ bracket.id }}">
-                                                                    <label for="bracket-{{ bracket.id }}" class="form-check-label">
-                                                                        <strong>Выбрать этот кронштейн</strong>
-                                                                    </label>
-                                                                </div>
                                                                 <p class="mb-1"><strong>Номер:</strong> {{ bracket.bracket_number }}</p>
                                                                 {% if bracket.bracket_name %}<p class="mb-1"><strong>Название:</strong> {{ bracket.bracket_name }}</p>{% endif %}
                                                                 {% if bracket.notes %}<p class="mb-0"><strong>Примечания:</strong> {{ bracket.notes }}</p>{% endif %}
@@ -179,8 +179,14 @@
                                                     <div class="accordion-item">
                                                         <h2 class="accordion-header" id="luminaire-heading-{{ loop.index }}">
                                                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#luminaire-collapse-{{ loop.index }}">
-                                                                <div class="d-flex align-items-center">
-                                                                    <div>
+                                                                <div class="d-flex align-items-center w-100">
+                                                                    <div class="d-flex align-items-center me-3" onclick="event.stopPropagation()">
+                                                                        <input type="checkbox" class="form-check-input me-2" name="selected_luminaire_ids" value="{{ luminaire.id }}" id="luminaire-{{ luminaire.id }}">
+                                                                        <label for="luminaire-{{ luminaire.id }}" class="form-check-label mb-0">
+                                                                            <strong>Выбрать</strong>
+                                                                        </label>
+                                                                    </div>
+                                                                    <div class="flex-grow-1">
                                                                         <strong>{{ luminaire.luminaire_number }}</strong>
                                                                         {% if luminaire.luminaire_name %} - {{ luminaire.luminaire_name }}{% endif %}
                                                                     </div>
@@ -189,12 +195,6 @@
                                                         </h2>
                                                         <div id="luminaire-collapse-{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#luminaireAccordion">
                                                             <div class="accordion-body">
-                                                                <div class="d-flex align-items-center mb-2">
-                                                                    <input type="checkbox" class="form-check-input me-2" name="selected_luminaire_ids" value="{{ luminaire.id }}" id="luminaire-{{ luminaire.id }}">
-                                                                    <label for="luminaire-{{ luminaire.id }}" class="form-check-label">
-                                                                        <strong>Выбрать этот светильник</strong>
-                                                                    </label>
-                                                                </div>
                                                                 <p class="mb-1"><strong>Номер:</strong> {{ luminaire.luminaire_number }}</p>
                                                                 {% if luminaire.luminaire_name %}<p class="mb-1"><strong>Название:</strong> {{ luminaire.luminaire_name }}</p>{% endif %}
                                                                 {% if luminaire.notes %}<p class="mb-0"><strong>Примечания:</strong> {{ luminaire.notes }}</p>{% endif %}
