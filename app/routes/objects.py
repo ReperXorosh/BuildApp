@@ -604,8 +604,19 @@ def add_support(object_id):
         selected_bracket_id = request.form.get('selected_bracket_id', '').strip()
         selected_luminaire_ids = request.form.getlist('selected_luminaire_ids')  # Может быть несколько светильников
         
+        # Отладочная информация
+        print(f"DEBUG add_support: selected_zdf_id = {selected_zdf_id}")
+        print(f"DEBUG add_support: selected_bracket_id = {selected_bracket_id}")
+        print(f"DEBUG add_support: selected_luminaire_ids = {selected_luminaire_ids}")
+        
         if not support_number:
             flash('Номер опоры обязателен для заполнения', 'error')
+            return render_template('objects/mobile_add_support.html' if is_mobile else 'objects/add_support.html', object=obj, zdf_list=zdf_list, brackets_list=brackets_list, luminaires_list=luminaires_list)
+        
+        # Проверяем уникальность номера опоры
+        existing_support = Support.query.filter_by(support_number=support_number).first()
+        if existing_support:
+            flash(f'Опора с номером "{support_number}" уже существует. Пожалуйста, выберите другой номер.', 'error')
             return render_template('objects/mobile_add_support.html' if is_mobile else 'objects/add_support.html', object=obj, zdf_list=zdf_list, brackets_list=brackets_list, luminaires_list=luminaires_list)
         
         new_support = Support(
@@ -644,25 +655,37 @@ def add_support(object_id):
         # Связываем опору с запланированной работой
         new_support.planned_work_id = planned_work.id
         
-        # Привязываем выбранные элементы к опоре
+        # Привязываем выбранные элементы к опоре и сбрасываем их статус
         if selected_zdf_id:
             zdf = ZDF.query.get(selected_zdf_id)
             if zdf and zdf.object_id == object_id:
                 zdf.support_id = new_support.id
-                print(f"DEBUG add_support: Linked ZDF {zdf.zdf_name} to support {support_number}")
+                # Сбрасываем статус и дату установки при привязке к новой опоре
+                zdf.status = 'planned'
+                zdf.installation_date = None
+                zdf.installation_file_path = None
+                print(f"DEBUG add_support: Linked ZDF {zdf.zdf_name} to support {support_number} and reset status")
         
         if selected_bracket_id:
             bracket = Bracket.query.get(selected_bracket_id)
             if bracket and bracket.object_id == object_id:
                 bracket.support_id = new_support.id
-                print(f"DEBUG add_support: Linked Bracket {bracket.bracket_name} to support {support_number}")
+                # Сбрасываем статус и дату установки при привязке к новой опоре
+                bracket.status = 'planned'
+                bracket.installation_date = None
+                bracket.installation_file_path = None
+                print(f"DEBUG add_support: Linked Bracket {bracket.bracket_name} to support {support_number} and reset status")
         
         for luminaire_id in selected_luminaire_ids:
             if luminaire_id:
                 luminaire = Luminaire.query.get(luminaire_id)
                 if luminaire and luminaire.object_id == object_id:
                     luminaire.support_id = new_support.id
-                    print(f"DEBUG add_support: Linked Luminaire {luminaire.luminaire_name} to support {support_number}")
+                    # Сбрасываем статус и дату установки при привязке к новой опоре
+                    luminaire.status = 'planned'
+                    luminaire.installation_date = None
+                    luminaire.installation_file_path = None
+                    print(f"DEBUG add_support: Linked Luminaire {luminaire.luminaire_name} to support {support_number} and reset status")
         
         db.session.commit()
         
