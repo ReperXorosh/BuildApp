@@ -1127,13 +1127,40 @@ def delete_support(object_id, support_id):
     
     # Удаляем все связанные действия из ActivityLog
     from ..models.activity_log import ActivityLog
+    
+    # Удаляем записи об опоре
     support_related_actions = ActivityLog.query.filter(
         ActivityLog.description.contains(f"опора {support.support_number}")
     ).all()
     
     for action in support_related_actions:
         db.session.delete(action)
-        print(f"DEBUG: Deleted activity log: {action.action}")
+        print(f"DEBUG: Deleted support activity log: {action.action}")
+    
+    # Удаляем записи об установке элементов, которые были связаны с этой опорой
+    for zdf in zdf_elements:
+        zdf_actions = ActivityLog.query.filter(
+            ActivityLog.description.contains(f"ЗДФ {zdf.zdf_name or zdf.zdf_number}")
+        ).all()
+        for action in zdf_actions:
+            db.session.delete(action)
+            print(f"DEBUG: Deleted ZDF activity log: {action.action}")
+    
+    for bracket in bracket_elements:
+        bracket_actions = ActivityLog.query.filter(
+            ActivityLog.description.contains(f"Кронштейн {bracket.bracket_name or bracket.bracket_number}")
+        ).all()
+        for action in bracket_actions:
+            db.session.delete(action)
+            print(f"DEBUG: Deleted Bracket activity log: {action.action}")
+    
+    for luminaire in luminaire_elements:
+        luminaire_actions = ActivityLog.query.filter(
+            ActivityLog.description.contains(f"Светильник {luminaire.luminaire_name or luminaire.luminaire_number}")
+        ).all()
+        for action in luminaire_actions:
+            db.session.delete(action)
+            print(f"DEBUG: Deleted Luminaire activity log: {action.action}")
     
     # Сохраняем данные для логирования перед удалением
     support_number = support.support_number
