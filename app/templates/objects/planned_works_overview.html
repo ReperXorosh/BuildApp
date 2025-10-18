@@ -253,21 +253,18 @@
                                         <div class="row text-center mb-3">
                                             <div class="col-4">
                                                 <div class="text-warning">
-                                                    <i class="bi bi-clock fs-4"></i>
                                                     <div class="small">{{ obj.pending_works_count }}</div>
                                                     <div class="small text-muted">Ожидают</div>
                                                 </div>
                                             </div>
                                             <div class="col-4">
                                                 <div class="text-info">
-                                                    <i class="bi bi-gear fs-4"></i>
                                                     <div class="small">{{ obj.in_progress_works_count }}</div>
                                                     <div class="small text-muted">В работе</div>
                                                 </div>
                                             </div>
                                             <div class="col-4">
                                                 <div class="text-success">
-                                                    <i class="bi bi-check-circle fs-4"></i>
                                                     <div class="small">{{ obj.completed_works_count }}</div>
                                                     <div class="small text-muted">Завершено</div>
                                                 </div>
@@ -276,7 +273,6 @@
                                         {% else %}
                                         <div class="d-flex justify-content-center align-items-center mb-3" style="min-height: 80px;">
                                             <div class="text-success text-center">
-                                                <i class="bi bi-check-circle fs-4"></i>
                                                 <div class="small">Нет запланированных работ</div>
                                             </div>
                                         </div>
