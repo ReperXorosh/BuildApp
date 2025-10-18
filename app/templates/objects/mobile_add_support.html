@@ -16,6 +16,7 @@
                    id="support_number"
                    name="support_number"
                    placeholder="Например: ОП-001"
+                   value="{{ form_data.support_number if form_data else '' }}"
                    inputmode="text"
                    maxlength="40"
                    required>
@@ -29,6 +30,7 @@
                    id="support_type"
                    name="support_type"
                    placeholder="Например: Железобетонная опора, Металлическая стойка"
+                   value="{{ form_data.support_type if form_data else '' }}"
                    maxlength="80">
         </div>
 
@@ -109,7 +111,7 @@
 
         <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label" for="notes">Примечания</label>
-            <textarea class="mobile-form-control" id="notes" name="notes" rows="2" maxlength="500" placeholder="Дополнительная информация об опоре"></textarea>
+            <textarea class="mobile-form-control" id="notes" name="notes" rows="2" maxlength="500" placeholder="Дополнительная информация об опоре">{{ form_data.notes if form_data else '' }}</textarea>
             <div class="small text-muted" id="notes-counter">0 / 500</div>
         </div>
 

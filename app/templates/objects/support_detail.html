@@ -395,14 +395,58 @@ function updateElementStatus(elementType, elementId, newStatus) {
         return;
     }
     
-    fetch(`/objects/api/objects/{{ object.id }}/elements/${elementType}/${elementId}/status`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            status: newStatus
-        })
+    // Создаем модальное окно для загрузки файла
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.innerHTML = `
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Установка элемента</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="installElementForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="installationFile" class="form-label">Файл установки *</label>
+                            <input type="file" class="form-control" id="installationFile" name="installation_file" required accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                            <div class="form-text">Выберите файл, подтверждающий установку элемента</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-success" onclick="submitElementInstallation('${elementType}', '${elementId}')">Установить</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+    
+    // Удаляем модальное окно после закрытия
+    modal.addEventListener('hidden.bs.modal', () => {
+        document.body.removeChild(modal);
+    });
+}
+
+function submitElementInstallation(elementType, elementId) {
+    const form = document.getElementById('installElementForm');
+    const formData = new FormData();
+    const fileInput = document.getElementById('installationFile');
+    
+    if (!fileInput.files[0]) {
+        alert('Пожалуйста, выберите файл установки');
+        return;
+    }
+    
+    formData.append('installation_file', fileInput.files[0]);
+    
+    fetch(`/objects/{{ object.id }}/elements/${elementType}/${elementId}/install`, {
+        method: 'POST',
+        body: formData
     })
     .then(response => {
         console.log('Response status:', response.status);
@@ -414,15 +458,20 @@ function updateElementStatus(elementType, elementId, newStatus) {
     .then(data => {
         console.log('Response data:', data);
         if (data.success) {
+            // Закрываем модальное окно
+            const modal = document.querySelector('.modal');
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            bsModal.hide();
+            
             // Обновляем страницу для отображения изменений
             location.reload();
         } else {
-            alert('Ошибка при обновлении статуса: ' + (data.error || 'Неизвестная ошибка'));
+            alert('Ошибка при установке элемента: ' + (data.error || 'Неизвестная ошибка'));
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Ошибка при обновлении статуса: ' + error.message);
+        alert('Ошибка при установке элемента: ' + error.message);
     });
 }
 

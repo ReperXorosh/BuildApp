@@ -611,13 +611,19 @@ def add_support(object_id):
         
         if not support_number:
             flash('Номер опоры обязателен для заполнения', 'error')
-            return render_template('objects/mobile_add_support.html' if is_mobile else 'objects/add_support.html', object=obj, zdf_list=zdf_list, brackets_list=brackets_list, luminaires_list=luminaires_list)
+            return render_template('objects/mobile_add_support.html' if is_mobile else 'objects/add_support.html', 
+                                 object=obj, zdf_list=zdf_list, brackets_list=brackets_list, luminaires_list=luminaires_list,
+                                 form_data={'support_number': support_number, 'support_type': support_type, 'notes': notes,
+                                          'selected_zdf_id': selected_zdf_id, 'selected_bracket_id': selected_bracket_id, 'selected_luminaire_ids': selected_luminaire_ids})
         
         # Проверяем уникальность номера опоры
         existing_support = Support.query.filter_by(support_number=support_number).first()
         if existing_support:
             flash(f'Опора с номером "{support_number}" уже существует. Пожалуйста, выберите другой номер.', 'error')
-            return render_template('objects/mobile_add_support.html' if is_mobile else 'objects/add_support.html', object=obj, zdf_list=zdf_list, brackets_list=brackets_list, luminaires_list=luminaires_list)
+            return render_template('objects/mobile_add_support.html' if is_mobile else 'objects/add_support.html', 
+                                 object=obj, zdf_list=zdf_list, brackets_list=brackets_list, luminaires_list=luminaires_list,
+                                 form_data={'support_number': support_number, 'support_type': support_type, 'notes': notes,
+                                          'selected_zdf_id': selected_zdf_id, 'selected_bracket_id': selected_bracket_id, 'selected_luminaire_ids': selected_luminaire_ids})
         
         new_support = Support(
             id=str(uuid.uuid4()),

@@ -42,7 +42,7 @@
                                         Номер опоры *
                                     </label>
                                     <input type="text" class="form-control" id="support_number" name="support_number" 
-                                           placeholder="Например: ОП-001" required>
+                                           placeholder="Например: ОП-001" value="{{ form_data.support_number if form_data else '' }}" required>
                                 </div>
 
                                 <div class="mb-3">
@@ -51,7 +51,7 @@
                                         Название опоры
                                     </label>
                                     <input type="text" class="form-control" id="support_type" name="support_type" 
-                                           placeholder="Например: Железобетонная опора, Металлическая стойка">
+                                           placeholder="Например: Железобетонная опора, Металлическая стойка" value="{{ form_data.support_type if form_data else '' }}">
                                 </div>
 
                                 <div class="alert alert-info">
@@ -204,7 +204,7 @@
                                         Примечания
                                     </label>
                                     <textarea class="form-control" id="notes" name="notes" rows="3" 
-                                              placeholder="Дополнительная информация об опоре"></textarea>
+                                              placeholder="Дополнительная информация об опоре">{{ form_data.notes if form_data else '' }}</textarea>
                                 </div>
 
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
