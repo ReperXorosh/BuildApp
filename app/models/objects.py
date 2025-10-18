@@ -477,6 +477,7 @@ class ZDF(db.Model):
     
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)
+    support_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('supports.id'), nullable=True)  # связь с опорой
     zdf_number = db.Column(db.String(50), nullable=False)
     zdf_name = db.Column(db.String(100))  # название ЗДФ
     installation_date = db.Column(db.Date)
@@ -489,6 +490,8 @@ class ZDF(db.Model):
     
     # Связь с запланированной работой
     planned_work = db.relationship('PlannedWork', backref='zdf', lazy=True)
+    # Связь с опорой
+    support = db.relationship('Support', backref='zdf_elements', lazy=True)
 
 class Bracket(db.Model):
     """Модель Кронштейна"""
@@ -496,6 +499,7 @@ class Bracket(db.Model):
     
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)
+    support_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('supports.id'), nullable=True)  # связь с опорой
     bracket_number = db.Column(db.String(50), nullable=False)
     bracket_name = db.Column(db.String(100))  # название кронштейна
     installation_date = db.Column(db.Date)
@@ -508,6 +512,8 @@ class Bracket(db.Model):
     
     # Связь с запланированной работой
     planned_work = db.relationship('PlannedWork', backref='brackets', lazy=True)
+    # Связь с опорой
+    support = db.relationship('Support', backref='bracket_elements', lazy=True)
 
 class Luminaire(db.Model):
     """Модель Светильника"""
@@ -515,6 +521,7 @@ class Luminaire(db.Model):
     
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)
+    support_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('supports.id'), nullable=True)  # связь с опорой
     luminaire_number = db.Column(db.String(50), nullable=False)
     luminaire_name = db.Column(db.String(100))  # название светильника
     installation_date = db.Column(db.Date)
@@ -527,6 +534,8 @@ class Luminaire(db.Model):
     
     # Связь с запланированной работой
     planned_work = db.relationship('PlannedWork', backref='luminaires', lazy=True)
+    # Связь с опорой
+    support = db.relationship('Support', backref='luminaire_elements', lazy=True)
 
 class ElementAttachment(db.Model):
     """Модель для файлов-вложений элементов (ZDF, Bracket, Luminaire)"""

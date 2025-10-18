@@ -777,6 +777,21 @@ def support_detail(object_id, support_id):
     if support.object_id != object_id:
         abort(404)
     
+    # Загружаем элементы опоры
+    from ..models.objects import ZDF, Bracket, Luminaire
+    zdf_elements = ZDF.query.filter_by(support_id=support_id).order_by(ZDF.zdf_name.asc()).all()
+    bracket_elements = Bracket.query.filter_by(support_id=support_id).order_by(Bracket.bracket_name.asc()).all()
+    luminaire_elements = Luminaire.query.filter_by(support_id=support_id).order_by(Luminaire.luminaire_name.asc()).all()
+    
+    # Вычисляем прогресс опоры на основе выполненных элементов
+    total_elements = len(zdf_elements) + len(bracket_elements) + len(luminaire_elements)
+    completed_elements = (
+        len([z for z in zdf_elements if z.status == 'completed']) +
+        len([b for b in bracket_elements if b.status == 'completed']) +
+        len([l for l in luminaire_elements if l.status == 'completed'])
+    )
+    progress_percentage = (completed_elements / total_elements * 100) if total_elements > 0 else 0
+    
     ActivityLog.log_action(
         user_id=current_user.userid,
         user_login=current_user.login,
@@ -798,10 +813,20 @@ def support_detail(object_id, support_id):
     
     if is_mobile:
         print("DEBUG support_detail: Rendering mobile template")
-        return render_template('objects/mobile_support_detail.html', object=obj, support=support)
+        return render_template('objects/mobile_support_detail.html', 
+                             object=obj, support=support,
+                             zdf_elements=zdf_elements,
+                             bracket_elements=bracket_elements,
+                             luminaire_elements=luminaire_elements,
+                             progress_percentage=progress_percentage)
     else:
         print("DEBUG support_detail: Rendering desktop template")
-        return render_template('objects/support_detail.html', object=obj, support=support)
+        return render_template('objects/support_detail.html', 
+                             object=obj, support=support,
+                             zdf_elements=zdf_elements,
+                             bracket_elements=bracket_elements,
+                             luminaire_elements=luminaire_elements,
+                             progress_percentage=progress_percentage)
 # Детальная страница элемента (ЗДФ, Кронштейн, Светильник)
 @objects_bp.route('/<uuid:object_id>/elements/<string:element_type>/<uuid:element_id>')
 @login_required
@@ -849,6 +874,119 @@ def element_detail(object_id, element_type, element_id):
     is_mobile = is_mobile_device() or (request.args.get('mobile') == '1')
     template = 'objects/mobile_element_detail.html' if is_mobile else 'objects/element_detail.html'
     return render_template(template, object=obj, element=element, element_type=title, attachments=attachments)
+
+# Обновление статуса элемента
+@objects_bp.route('/api/objects/<uuid:object_id>/elements/<string:element_type>/<uuid:element_id>/status', methods=['PUT'])
+@login_required
+def update_element_status(object_id, element_type, element_id):
+    """Обновление статуса элемента (ЗДФ, Кронштейн, Светильник)"""
+    obj = Object.query.get_or_404(object_id)
+    element_type = (element_type or '').lower()
+    
+    # Получаем элемент
+    element = None
+    if element_type == 'zdf':
+        element = ZDF.query.get_or_404(element_id)
+    elif element_type == 'bracket':
+        element = Bracket.query.get_or_404(element_id)
+    elif element_type == 'luminaire':
+        element = Luminaire.query.get_or_404(element_id)
+    else:
+        return jsonify({'error': 'Неверный тип элемента'}), 400
+    
+    if element.object_id != object_id:
+        return jsonify({'error': 'Элемент не принадлежит данному объекту'}), 404
+    
+    data = request.get_json(force=True, silent=True) or {}
+    new_status = data.get('status', '').strip()
+    
+    if new_status not in ['planned', 'in_progress', 'completed']:
+        return jsonify({'error': 'Неверный статус'}), 400
+    
+    # Обновляем статус
+    element.status = new_status
+    if new_status == 'completed':
+        element.installation_date = datetime.now().date()
+    elif new_status == 'planned':
+        element.installation_date = None
+    
+    element.updated_at = datetime.utcnow()
+    db.session.commit()
+    
+    # Логируем действие
+    element_type_name = {'zdf': 'ЗДФ', 'bracket': 'Кронштейн', 'luminaire': 'Светильник'}[element_type]
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action=f"Обновление статуса {element_type_name}",
+        description=f"Пользователь {current_user.login} изменил статус {element_type_name} на '{new_status}'",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return jsonify({
+        'success': True,
+        'status': new_status,
+        'installation_date': element.installation_date.isoformat() if element.installation_date else None
+    })
+
+# Привязка элемента к опоре
+@objects_bp.route('/api/objects/<uuid:object_id>/elements/<string:element_type>/<uuid:element_id>/assign-support', methods=['PUT'])
+@login_required
+def assign_element_to_support(object_id, element_type, element_id):
+    """Привязка элемента к опоре"""
+    obj = Object.query.get_or_404(object_id)
+    element_type = (element_type or '').lower()
+    
+    # Получаем элемент
+    element = None
+    if element_type == 'zdf':
+        element = ZDF.query.get_or_404(element_id)
+    elif element_type == 'bracket':
+        element = Bracket.query.get_or_404(element_id)
+    elif element_type == 'luminaire':
+        element = Luminaire.query.get_or_404(element_id)
+    else:
+        return jsonify({'error': 'Неверный тип элемента'}), 400
+    
+    if element.object_id != object_id:
+        return jsonify({'error': 'Элемент не принадлежит данному объекту'}), 404
+    
+    data = request.get_json(force=True, silent=True) or {}
+    support_id = data.get('support_id')
+    
+    if support_id:
+        # Проверяем, что опора существует и принадлежит тому же объекту
+        support = Support.query.get(support_id)
+        if not support or support.object_id != object_id:
+            return jsonify({'error': 'Опора не найдена или не принадлежит данному объекту'}), 404
+        element.support_id = support_id
+    else:
+        # Отвязываем от опоры
+        element.support_id = None
+    
+    element.updated_at = datetime.utcnow()
+    db.session.commit()
+    
+    # Логируем действие
+    element_type_name = {'zdf': 'ЗДФ', 'bracket': 'Кронштейн', 'luminaire': 'Светильник'}[element_type]
+    action_text = f"привязан к опоре {support.support_number}" if support_id else "отвязан от опоры"
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action=f"Привязка {element_type_name} к опоре",
+        description=f"Пользователь {current_user.login} {action_text} {element_type_name}",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return jsonify({
+        'success': True,
+        'support_id': element.support_id,
+        'support_number': support.support_number if support_id else None
+    })
 
 # Удаление элемента (для Инженер ПТО)
 @objects_bp.route('/api/objects/<uuid:object_id>/elements/<string:element_type>/<uuid:element_id>', methods=['DELETE'])
