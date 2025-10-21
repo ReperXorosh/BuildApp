@@ -65,21 +65,14 @@
         {% endfor %}
         <div>{{ (_trimmed|length > 0) and (_trimmed|join('\n')|replace('\n','<br>')|safe) or '—' }}</div>
     </div>
-    {% set _old_file_url = None %}
-    {% for line in (element.notes or '').split('\n') %}
-      {% if 'Файл:' in line %}
-        {% set _old_file_url = line|replace('Файл:', '')|trim %}
-      {% endif %}
-    {% endfor %}
-    
-    {% if attachments or _old_file_url %}
+    {% if attachments or old_file_url %}
     <div class="mt-3">
         <div class="text-muted mb-2">Файлы:</div>
         
         <!-- Старые файлы из notes -->
-        {% if _old_file_url %}
+        {% if old_file_url %}
         <div class="mb-2">
-            <a href="{{ _old_file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary w-100">
+            <a href="{{ old_file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary w-100">
                 <svg class="bi me-1" width="16" height="16" aria-hidden="true"><use xlink:href="#file-earmark-text"></use></svg>
                 Файл
             </a>
