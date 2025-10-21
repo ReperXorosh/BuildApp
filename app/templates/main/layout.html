@@ -655,17 +655,6 @@
                 </a>
             </li>
             {% endif %}
-            {% if current_user.role == 'Инженер ПТО' %}
-            <li class="nav-item">
-                <a href="{{ url_for('objects.planned_works_overview') }}"
-                   class="nav-link {{ 'active' if active_page == 'planned-works' else 'link-body-emphasis' }}">
-                    <svg class="bi pe-none me-2" width="16" height="16" aria-hidden="true">
-                        <use xlink:href="#calendar-check"></use>
-                    </svg>
-                    {{ gettext('Запланированные работы') }}
-                </a>
-            </li>
-            {% endif %}
             <!--                <li>-->
             <!--                    <a href="calendar" class="nav-link {{ 'active' if active_page == 'calendar' else 'link-body-emphasis' }}">-->
             <!--                        <svg class="bi pe-none me-2" width="16" height="16" aria-hidden="true">-->
