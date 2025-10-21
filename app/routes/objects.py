@@ -737,34 +737,43 @@ def add_element(object_id):
         print(f"DEBUG add_element: element_name = {element_name}")
         print(f"DEBUG add_element: support_id = {support_id}")
         print(f"DEBUG add_element: support_id is None or empty = {not support_id}")
-        file_url = None
-        # Обработка вложения
+        # Обработка вложения - используем новую систему ElementAttachment
+        attachment_id = None
         if 'attachment' in request.files:
-            from werkzeug.utils import secure_filename
             file = request.files.get('attachment')
             if file and file.filename:
-                filename = secure_filename(file.filename)
-                # Каталог для элементов
-                import os
-                upload_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'static', 'uploads', 'elements')
-                upload_dir = os.path.normpath(upload_dir)
-                os.makedirs(upload_dir, exist_ok=True)
-                # Уникализируем имя
-                import uuid as _uuid
-                name, ext = os.path.splitext(filename)
-                safe_name = f"{_uuid.uuid4().hex}{ext.lower()}"
-                save_path = os.path.join(upload_dir, safe_name)
-                file.save(save_path)
-                # URL для доступа из браузера
-                file_url = f"/static/uploads/elements/{safe_name}"
-        
-        # Если приложен файл — добавим его URL в заметки (для UI-отображения кнопки просмотра)
-        if file_url:
-            notes = f"{(notes + '\n') if notes else ''}Файл: {file_url}"
-            print(f"DEBUG add_element: Added file URL to notes: {file_url}")
-            print(f"DEBUG add_element: Final notes: {notes}")
-        else:
-            print(f"DEBUG add_element: No file URL to add to notes")
+                print(f"DEBUG add_element: Processing file {file.filename}")
+                try:
+                    # Читаем данные файла
+                    file_data = file.read()
+                    file.seek(0)  # Возвращаем указатель в начало
+                    
+                    # Определяем MIME тип
+                    import mimetypes
+                    content_type, _ = mimetypes.guess_type(file.filename)
+                    if not content_type:
+                        content_type = 'application/octet-stream'
+                    
+                    # Создаем запись в ElementAttachment
+                    from ..models.objects import ElementAttachment
+                    attachment = ElementAttachment(
+                        element_type=element_type,
+                        element_id=None,  # Будет установлен после создания элемента
+                        original_filename=file.filename,
+                        content_type=content_type,
+                        data=file_data,
+                        size_bytes=len(file_data),
+                        uploaded_by=current_user.userid
+                    )
+                    
+                    db.session.add(attachment)
+                    db.session.flush()  # Получаем ID без коммита
+                    attachment_id = attachment.id
+                    print(f"DEBUG add_element: Created attachment with ID {attachment_id}")
+                    
+                except Exception as e:
+                    print(f"DEBUG add_element: Error processing file: {str(e)}")
+                    db.session.rollback()
 
         if not element_type:
             flash('Тип элемента обязателен для заполнения', 'error')
@@ -814,12 +823,17 @@ def add_element(object_id):
             flash('Неверный тип элемента', 'error')
             return render_template('objects/mobile_add_element.html' if is_mobile else 'objects/add_element.html', object=obj, supports=supports)
         
-        # Если есть файл, добавим ссылку в примечания (не теряем введённые заметки)
-        if file_url:
-            attach_note = f"\nФайл: {file_url}"
-            notes = (notes or '') + attach_note
         new_element.notes = notes
         db.session.add(new_element)
+        db.session.flush()  # Получаем ID элемента
+        
+        # Если есть файл, связываем его с элементом
+        if attachment_id:
+            attachment = ElementAttachment.query.get(attachment_id)
+            if attachment:
+                attachment.element_id = new_element.id
+                print(f"DEBUG add_element: Linked attachment {attachment_id} to element {new_element.id}")
+        
         db.session.commit()
         
         # Отладочная информация после сохранения
@@ -966,18 +980,10 @@ def element_detail(object_id, element_type, element_id):
         element_id=element_id
     ).order_by(ElementAttachment.uploaded_at.desc()).all()
     
-    # Проверяем, есть ли старые файлы в заметках
-    old_file_url = None
-    if element.notes:
-        for line in element.notes.split('\n'):
-            if 'Файл:' in line:
-                old_file_url = line.replace('Файл:', '').strip()
-                break
-    
     from ..utils.mobile_detection import is_mobile_device
     is_mobile = is_mobile_device() or (request.args.get('mobile') == '1')
     template = 'objects/mobile_element_detail.html' if is_mobile else 'objects/element_detail.html'
-    return render_template(template, object=obj, element=element, element_type=title, attachments=attachments, old_file_url=old_file_url)
+    return render_template(template, object=obj, element=element, element_type=title, attachments=attachments)
 
 # Обновление статуса элемента
 @objects_bp.route('/api/objects/<uuid:object_id>/elements/<string:element_type>/<uuid:element_id>/status', methods=['PUT'])

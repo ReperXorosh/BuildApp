@@ -38,20 +38,9 @@
           {% if _t and ('Файл:' not in _t) %}{% set _ = _filtered.append(_t) %}{% endif %}
         {% endfor %}
         <dd class="col-sm-9">{{ (_filtered|length > 0) and (_filtered|join('\n')|replace('\n','<br>')|safe) or '—' }}</dd>
-        {% if attachments or old_file_url %}
+        {% if attachments %}
           <dt class="col-sm-3">Файлы</dt>
           <dd class="col-sm-9">
-            <!-- Старые файлы из notes -->
-            {% if old_file_url %}
-            <div class="mb-2">
-              <a href="{{ old_file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary me-2" title="Просмотреть файл">
-                <svg class="bi me-1" width="16" height="16" aria-hidden="true"><use xlink:href="#file-earmark-text"></use></svg>
-                Файл
-              </a>
-            </div>
-            {% endif %}
-            
-            <!-- Новые файлы из ElementAttachment -->
             {% for attachment in attachments %}
             <div class="mb-2">
               <a href="{{ url_for('objects.view_element_attachment', object_id=object.id, element_type=element_type.lower(), element_id=element.id, attachment_id=attachment.id) }}" 
