@@ -64,6 +64,11 @@
     .swipeable-item, .swipeable-content {
         touch-action: pan-y;
     }
+    /* Улучшаем инерционный скролл и изоляцию overscroll (Safari/iOS) */
+    .list-group {
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
+    }
 </style>
 
 {% if objects and objects|length > 0 %}
@@ -114,6 +119,30 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    initSwipeableList();
+});
+
+// Инициализация после возврата из BFCache (iOS Safari) и при повторном показе
+window.addEventListener('pageshow', function(e) {
+    // Если страница восстановлена из bfcache или просто снова показана — реинициализируем
+    initSwipeableList();
+});
+
+// На всякий случай при возврате во вкладку сбрасываем состояние жеста
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+        try { window.__swipeReset && window.__swipeReset(); } catch(_) {}
+    }
+});
+
+function initSwipeableList() {
+    // Защита от повторной инициализации
+    if (document.body.dataset.swipeInitialized === 'true') {
+        // Но всё же сбросим состояние
+        try { window.__swipeReset && window.__swipeReset(); } catch(_) {}
+        return;
+    }
+    document.body.dataset.swipeInitialized = 'true';
     const searchToggle = document.getElementById('searchToggle');
     const searchContainer = document.getElementById('searchContainer');
     const objectSearch = document.getElementById('objectSearch');
@@ -298,6 +327,11 @@ document.addEventListener('DOMContentLoaded', function() {
         isDragging = true;
         isSwipeGesture = false; // Сбрасываем флаг свайпа
         lockedDirection = null;
+
+        // Разрешаем системный жест «назад» от края экрана в iOS: не перехватываем касания у самого левого края
+        if (startX <= 16) {
+            lockedDirection = 'vertical';
+        }
         
         item.classList.add('swiping');
         // НЕ вызываем preventDefault() здесь - позволяем обычным кликам работать
@@ -520,6 +554,9 @@ document.addEventListener('DOMContentLoaded', function() {
         isSwipeGesture = false;
         lockedDirection = null;
     }
+
+    // Делаем функцию доступной для внешнего вызова (pageshow/visibilitychange)
+    window.__swipeReset = reset;
     
     // Обработка кликов
     document.addEventListener('click', function(e) {
@@ -558,7 +595,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
-});
+}
 
 // Функции для действий с объектами
 function deleteObject(objectId, objectName) {
