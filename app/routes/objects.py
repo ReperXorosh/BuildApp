@@ -869,6 +869,12 @@ def add_element(object_id):
         # Отладочная информация после сохранения
         print(f"DEBUG add_element: Element saved with ID = {new_element.id}")
         print(f"DEBUG add_element: Element support_id after save = {new_element.support_id}")
+
+        # Сбрасываем кеш списка элементов, чтобы сразу увидеть кнопку просмотра файла
+        try:
+            cache.delete_memoized(elements_list, object_id)
+        except Exception as _:
+            pass
         
         ActivityLog.log_action(
             user_id=current_user.userid,
