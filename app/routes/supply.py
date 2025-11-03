@@ -7,6 +7,7 @@ from app.models.supply import (
     SupplyOrderItem,
     WarehouseMovement,
     WarehouseAttachment,
+    MaterialAttachment,
     UserMaterialAllocation,
     SupplyRequest,
     SupplyRequestItem,
@@ -747,11 +748,32 @@ def api_materials_check():
 @supply.route('/api/supply/materials', methods=['POST'])
 @login_required
 def api_materials_create():
-    """Создание материала"""
+    """Создание материала.
+    Поддерживает два формата ввода:
+    - JSON (как раньше)
+    - multipart/form-data с полем файла `file` или `preview_file` для превью материала
+    """
     if not is_supplier_or_admin():
         return jsonify({'error': 'Недостаточно прав'}), 403
 
-    data = request.get_json(force=True, silent=True) or {}
+    upload = None
+    if request.content_type and 'multipart/form-data' in request.content_type:
+        # Режим формы: читаем из request.form и request.files
+        form = request.form
+        data = {
+            'name': form.get('name'),
+            'unit': form.get('unit'),
+            'description': form.get('description'),
+            'current_quantity': form.get('current_quantity'),
+            'min_quantity': form.get('min_quantity'),
+            'supplier': form.get('supplier'),
+            'price_per_unit': form.get('price_per_unit'),
+            'addition_reason': form.get('addition_reason'),
+        }
+        upload = request.files.get('preview_file') or request.files.get('file')
+    else:
+        data = request.get_json(force=True, silent=True) or {}
+
     name = (data.get('name') or '').strip()
     unit = (data.get('unit') or '').strip()
     if not name or not unit:
@@ -833,6 +855,25 @@ def api_materials_create():
             created_by=current_user.userid,
         )
         db.session.add(material)
+        db.session.flush()
+
+        # Если в форме был передан файл превью, сохраняем его как вложение к материалу
+        if upload and getattr(upload, 'filename', None):
+            try:
+                data_bytes = upload.read()
+                attach = MaterialAttachment(
+                    material_id=material.id,
+                    filename=secure_filename(upload.filename),
+                    content_type=upload.mimetype,
+                    data=data_bytes,
+                    size_bytes=len(data_bytes),
+                    uploaded_by=current_user.userid,
+                )
+                db.session.add(attach)
+            except Exception as e:
+                db.session.rollback()
+                return jsonify({'error': f'Ошибка сохранения файла превью: {str(e)}'}), 500
+
         db.session.commit()
         return jsonify(material.to_dict()), 201
 
@@ -931,6 +972,22 @@ def api_materials_restore(material_id):
     db.session.commit()
     
     return jsonify({'success': True, 'message': f'Материал "{material_name}" успешно восстановлен'})
+
+
+@supply.route('/api/supply/materials/<uuid:material_id>/attachment', methods=['GET'])
+@login_required
+def api_material_preview(material_id):
+    """Отдать файл-превью материала (если прикреплён)."""
+    attachment = MaterialAttachment.query.filter_by(material_id=material_id).order_by(MaterialAttachment.uploaded_at.desc()).first()
+    if not attachment:
+        return jsonify({'error': 'Файл не найден'}), 404
+    return send_file(
+        BytesIO(attachment.data),
+        mimetype=attachment.content_type or 'application/octet-stream',
+        as_attachment=False,
+        download_name=attachment.filename,
+        conditional=True,
+    )
 
 @supply.route('/api/supply/materials/<uuid:material_id>/hard-delete', methods=['DELETE'])
 @login_required

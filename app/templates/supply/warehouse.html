@@ -287,6 +287,11 @@
                             <textarea class="form-control" name="addition_reason" rows="2" placeholder="Укажите причину пополнения существующего материала..."></textarea>
                             <small class="form-text text-muted">Обязательно укажите причину пополнения существующего материала</small>
                         </div>
+                        <div class="col-12">
+                            <label class="form-label">Файл для просмотра позиции (изображение/документ)</label>
+                            <input type="file" class="form-control" name="preview_file" accept=".jpg,.jpeg,.png,.webp,.pdf">
+                            <small class="form-text text-muted">Опционально: файл будет доступен пользователям для просмотра внешнего вида позиции</small>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -1144,20 +1149,10 @@ async function submitAddMaterial() {
   const form = document.getElementById('form-create-material');
   const formData = new FormData(form);
   
-  const payload = {
-    name: formData.get('name'),
-    unit: formData.get('unit'),
-    description: formData.get('description'),
-    current_quantity: formData.get('current_quantity'),
-    min_quantity: formData.get('min_quantity'),
-    addition_reason: formData.get('addition_reason') || null
-  };
-  
   try {
     const response = await fetch('{{ url_for("supply.api_materials_create") }}', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: formData
     });
     
     if (response.ok) {
