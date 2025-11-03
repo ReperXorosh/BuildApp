@@ -561,7 +561,18 @@ def api_materials():
         return jsonify({'error': 'Недостаточно прав'}), 403
     
     materials = Material.query.filter_by(is_active=True).all()
-    return jsonify([material.to_dict() for material in materials])
+    # определяем материалы с превью-файлами
+    ids_with_preview = set(
+        db.session.query(MaterialAttachment.material_id).distinct().all()
+    )
+    # rows come as list of tuples; normalize to set of UUIDs
+    ids_with_preview = {row[0] for row in ids_with_preview}
+    payload = []
+    for m in materials:
+        d = m.to_dict()
+        d['has_preview'] = m.id in ids_with_preview
+        payload.append(d)
+    return jsonify(payload)
 
 @supply.route('/api/supply/groups', methods=['GET', 'POST'])
 @login_required
@@ -656,7 +667,16 @@ def api_materials_all():
         return jsonify({'error': 'Просмотр скрытых материалов доступен только администраторам'}), 403
     
     materials = Material.query.all()
-    return jsonify([material.to_dict() for material in materials])
+    ids_with_preview = set(
+        db.session.query(MaterialAttachment.material_id).distinct().all()
+    )
+    ids_with_preview = {row[0] for row in ids_with_preview}
+    payload = []
+    for m in materials:
+        d = m.to_dict()
+        d['has_preview'] = m.id in ids_with_preview
+        payload.append(d)
+    return jsonify(payload)
 
 @supply.route('/api/supply/materials/check', methods=['POST'])
 @login_required
