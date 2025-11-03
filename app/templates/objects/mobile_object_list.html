@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Touch события для кнопки
             deleteBtn.addEventListener('touchend', function(e) {
                 e.stopPropagation();
-                e.preventDefault();
+                if (e.cancelable) e.preventDefault();
                 
                 const objectId = this.getAttribute('data-object-id');
                 const objectName = this.getAttribute('data-object-name');
@@ -322,7 +322,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isSwipeGesture && deltaX < 0) {
             const translateX = Math.max(deltaX, -maxSwipe);
             updateTransform(currentItem, translateX);
-            e.preventDefault();
+            if (e.cancelable) e.preventDefault();
         }
     }
     
@@ -351,7 +351,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Блокируем клик только если это был свайп (а не вертикальный скролл)
         if (isSwipeGesture) {
-            e.preventDefault();
+            if (e.cancelable) e.preventDefault();
         }
         
         reset();
@@ -402,7 +402,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isSwipeGesture && deltaX < 0) {
             const translateX = Math.max(deltaX, -maxSwipe);
             updateTransform(currentItem, translateX);
-            e.preventDefault();
+            if (e.cancelable) e.preventDefault();
         }
     }
     
@@ -431,7 +431,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Блокируем клик только если это был свайп
         if (isSwipeGesture) {
-            e.preventDefault();
+            if (e.cancelable) e.preventDefault();
         }
         
         reset();
