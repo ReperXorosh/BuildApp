@@ -69,7 +69,7 @@
                                                     </thead>
                                                     <tbody>
                                                         {% for zdf in object.zdfs %}
-                                                        <tr class="clickable-element" data-url="{{ url_for('objects.element_detail', object_id=object.id, element_type='zdf', element_id=zdf.id) }}">
+                                                        <tr class="clickable-element" data-url="{{ url_for('objects.element_detail', object_id=object.id, element_type='zdf', element_id=zdf.id) }}" data-type="zdf" data-eid="{{ zdf.id }}" data-oid="{{ object.id }}">
                                                             <td class="fw-semibold d-flex align-items-center justify-content-between">
                                                                 <span>{% if zdf.zdf_name %}{{ zdf.zdf_name }}{% else %}ЗДФ{% endif %}</span>
                                                                 {% set atts = zdf_attachments.get(zdf.id) %}
@@ -199,7 +199,7 @@
                                                     </thead>
                                                     <tbody>
                                                         {% for bracket in object.brackets %}
-                                                        <tr class="clickable-element" data-url="{{ url_for('objects.element_detail', object_id=object.id, element_type='bracket', element_id=bracket.id) }}">
+                                                        <tr class="clickable-element" data-url="{{ url_for('objects.element_detail', object_id=object.id, element_type='bracket', element_id=bracket.id) }}" data-type="bracket" data-eid="{{ bracket.id }}" data-oid="{{ object.id }}">
                                                             <td class="fw-semibold d-flex align-items-center justify-content-between">
                                                                 <span>{% if bracket.bracket_name %}{{ bracket.bracket_name }}{% else %}Кронштейн{% endif %}</span>
                                                                 {% set atts = bracket_attachments.get(bracket.id) %}
@@ -329,7 +329,7 @@
                                                     </thead>
                                                     <tbody>
                                                         {% for luminaire in object.luminaires %}
-                                                        <tr class="clickable-element" data-url="{{ url_for('objects.element_detail', object_id=object.id, element_type='luminaire', element_id=luminaire.id) }}">
+                                                        <tr class="clickable-element" data-url="{{ url_for('objects.element_detail', object_id=object.id, element_type='luminaire', element_id=luminaire.id) }}" data-type="luminaire" data-eid="{{ luminaire.id }}" data-oid="{{ object.id }}">
                                                             <td class="fw-semibold d-flex align-items-center justify_content-between">
                                                                 <span>{% if luminaire.luminaire_name %}{{ luminaire.luminaire_name }}{% else %}Светильник{% endif %}</span>
                                                                 {% set atts = luminaire_attachments.get(luminaire.id) %}
@@ -551,6 +551,43 @@ document.addEventListener('DOMContentLoaded', function() {
       btn.disabled = false;
     }
   }, true);
+});
+</script>
+<script>
+// Дорисовываем кнопку просмотра по факту наличия файла (HEAD), как на складе
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    const rows = document.querySelectorAll('tr.clickable-element');
+    rows.forEach(row => {
+      const type = row.getAttribute('data-type');
+      const eid = row.getAttribute('data-eid');
+      const oid = row.getAttribute('data-oid');
+      if (!type || !eid || !oid) return;
+      const url = `/objects/${oid}/elements/${type}/${eid}/attachments/latest/view`;
+      fetch(url, { method: 'HEAD' }).then(res => {
+        if (!res.ok) return;
+        // есть файл — вставляем кнопку слева от корзины
+        const nameCell = row.querySelector('td.fw-semibold');
+        const container = nameCell;
+        if (!container) return;
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-sm btn-outline-secondary ms-2';
+        btn.title = 'Просмотр файла';
+        btn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2H7C5.89543 2 5 2.89543 5 4V20C5 21.1046 5.89543 22 7 22H17C18.1046 22 19 21.1046 19 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="10.5" cy="13.5" r="2.5" stroke="currentColor" stroke-width="2"/>
+            <path d="M12.2 15.2L14.5 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>`;
+        btn.addEventListener('click', function(e){
+          e.preventDefault(); e.stopPropagation();
+          openElementPreviewLatest(type, eid);
+        });
+        container.appendChild(btn);
+      }).catch(()=>{});
+    });
+  } catch(e) { console.warn(e); }
 });
 </script>
 <!-- Модалка предпросмотра файла элемента -->

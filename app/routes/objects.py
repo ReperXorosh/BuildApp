@@ -486,43 +486,53 @@ def elements_list(object_id):
     zdf_attachments = {}
     bracket_attachments = {}
     luminaire_attachments = {}
+    zdf_latest = {}
+    bracket_latest = {}
+    luminaire_latest = {}
     
     zdf_with_files = set()
     bracket_with_files = set()
     luminaire_with_files = set()
 
+    # Надёжно получаем наличие файлов (count>0) и параллельно собираем первые вложения для кнопки
     if zdf_ids:
         zdf_files = ElementAttachment.query.filter(
             ElementAttachment.element_type == 'zdf',
             ElementAttachment.element_id.in_(zdf_ids)
-        ).all()
+        ).order_by(ElementAttachment.uploaded_at.desc()).all()
         for file in zdf_files:
+            zdf_with_files.add(file.element_id)
             if file.element_id not in zdf_attachments:
                 zdf_attachments[file.element_id] = []
             zdf_attachments[file.element_id].append(file)
-            zdf_with_files.add(file.element_id)
-    
+            if file.element_id not in zdf_latest:
+                zdf_latest[file.element_id] = file.id
+
     if bracket_ids:
         bracket_files = ElementAttachment.query.filter(
             ElementAttachment.element_type == 'bracket',
             ElementAttachment.element_id.in_(bracket_ids)
-        ).all()
+        ).order_by(ElementAttachment.uploaded_at.desc()).all()
         for file in bracket_files:
+            bracket_with_files.add(file.element_id)
             if file.element_id not in bracket_attachments:
                 bracket_attachments[file.element_id] = []
             bracket_attachments[file.element_id].append(file)
-            bracket_with_files.add(file.element_id)
-    
+            if file.element_id not in bracket_latest:
+                bracket_latest[file.element_id] = file.id
+
     if luminaire_ids:
         luminaire_files = ElementAttachment.query.filter(
             ElementAttachment.element_type == 'luminaire',
             ElementAttachment.element_id.in_(luminaire_ids)
-        ).all()
+        ).order_by(ElementAttachment.uploaded_at.desc()).all()
         for file in luminaire_files:
+            luminaire_with_files.add(file.element_id)
             if file.element_id not in luminaire_attachments:
                 luminaire_attachments[file.element_id] = []
             luminaire_attachments[file.element_id].append(file)
-            luminaire_with_files.add(file.element_id)
+            if file.element_id not in luminaire_latest:
+                luminaire_latest[file.element_id] = file.id
 
     # Проставляем флаг has_preview на объектах, чтобы шаблон не зависел от типа ключа (UUID/str)
     for z in zdf_list:
@@ -565,7 +575,10 @@ def elements_list(object_id):
                              object=obj,
                              zdf_attachments=zdf_attachments,
                              bracket_attachments=bracket_attachments,
-                             luminaire_attachments=luminaire_attachments)
+                             luminaire_attachments=luminaire_attachments,
+                             zdf_latest=zdf_latest,
+                             bracket_latest=bracket_latest,
+                             luminaire_latest=luminaire_latest)
 
 # Маршруты для опор
 @objects_bp.route('/<uuid:object_id>/supports')
