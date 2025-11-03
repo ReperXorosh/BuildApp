@@ -833,6 +833,12 @@ def add_element(object_id):
             if attachment:
                 attachment.element_id = new_element.id
                 print(f"DEBUG add_element: Linked attachment {attachment_id} to element {new_element.id}")
+                print(f"DEBUG add_element: Attachment element_type = {attachment.element_type}")
+                print(f"DEBUG add_element: Element type = {element_type}")
+            else:
+                print(f"DEBUG add_element: Attachment {attachment_id} not found!")
+        else:
+            print(f"DEBUG add_element: No attachment_id to link")
         
         db.session.commit()
         
@@ -975,10 +981,21 @@ def element_detail(object_id, element_type, element_id):
     )
 
     # Получаем файлы элемента
+    print(f"DEBUG element_detail: Searching for attachments with element_type='{element_type}' and element_id='{element_id}'")
     attachments = ElementAttachment.query.filter_by(
         element_type=element_type,
         element_id=element_id
     ).order_by(ElementAttachment.uploaded_at.desc()).all()
+    
+    print(f"DEBUG element_detail: Found {len(attachments)} attachments for element {element_id}")
+    for attachment in attachments:
+        print(f"DEBUG element_detail: Attachment {attachment.id}: {attachment.original_filename}")
+    
+    # Попробуем найти все файлы для этого элемента без фильтра по типу
+    all_attachments = ElementAttachment.query.filter_by(element_id=element_id).all()
+    print(f"DEBUG element_detail: Total attachments for element_id {element_id}: {len(all_attachments)}")
+    for att in all_attachments:
+        print(f"DEBUG element_detail: Found attachment with element_type='{att.element_type}', element_id='{att.element_id}'")
     
     from ..utils.mobile_detection import is_mobile_device
     is_mobile = is_mobile_device() or (request.args.get('mobile') == '1')

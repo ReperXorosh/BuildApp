@@ -38,6 +38,7 @@
           {% if _t and ('Файл:' not in _t) %}{% set _ = _filtered.append(_t) %}{% endif %}
         {% endfor %}
         <dd class="col-sm-9">{{ (_filtered|length > 0) and (_filtered|join('\n')|replace('\n','<br>')|safe) or '—' }}</dd>
+        <!-- DEBUG: attachments count = {{ attachments|length }} -->
         {% if attachments %}
           <dt class="col-sm-3">Файлы</dt>
           <dd class="col-sm-9">
@@ -45,13 +46,15 @@
             <div class="mb-2">
               <a href="{{ url_for('objects.view_element_attachment', object_id=object.id, element_type=element_type.lower(), element_id=element.id, attachment_id=attachment.id) }}" 
                  target="_blank" class="btn btn-sm btn-outline-secondary me-2" title="Просмотреть файл">
-                <svg class="bi me-1" width="16" height="16" aria-hidden="true"><use xlink:href="#file-earmark-text"></use></svg>
+                <i class="bi bi-file-earmark-text me-1"></i>
                 {{ attachment.original_filename }}
               </a>
               <small class="text-muted">({{ attachment.size_bytes // 1024 }} КБ)</small>
             </div>
             {% endfor %}
           </dd>
+        {% else %}
+          <!-- DEBUG: No attachments found -->
         {% endif %}
       </dl>
     </div>

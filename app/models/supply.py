@@ -302,11 +302,15 @@ class MaterialGroupItem(db.Model):
 
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     group_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('material_groups.id'), nullable=False)
-    material_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('materials.id'), nullable=False)
+    material_id = db.Column(
+        db.UUID(as_uuid=True),
+        db.ForeignKey('materials.id', ondelete='CASCADE'),
+        nullable=False,
+    )
     added_at = db.Column(db.DateTime, default=get_moscow_now, nullable=False)
 
     group = db.relationship('MaterialGroup', backref='items')
-    material = db.relationship('Material')
+    material = db.relationship('Material', passive_deletes=True)
 
     __table_args__ = (
         db.UniqueConstraint('group_id', 'material_id', name='uq_group_material'),

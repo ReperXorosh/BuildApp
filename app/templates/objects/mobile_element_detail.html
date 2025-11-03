@@ -73,7 +73,7 @@
         <div class="mb-2">
             <a href="{{ url_for('objects.view_element_attachment', object_id=object.id, element_type=element_type.lower(), element_id=element.id, attachment_id=attachment.id) }}" 
                target="_blank" class="btn btn-sm btn-outline-secondary w-100">
-                <svg class="bi me-1" width="16" height="16" aria-hidden="true"><use xlink:href="#file-earmark-text"></use></svg>
+                <i class="bi bi-file-earmark-text me-1"></i>
                 {{ attachment.original_filename }}
             </a>
             <small class="text-muted">({{ attachment.size_bytes // 1024 }} КБ)</small>
