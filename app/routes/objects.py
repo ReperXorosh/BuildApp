@@ -441,7 +441,6 @@ def object_detail(object_id):
 
 @objects_bp.route('/<uuid:object_id>/elements')
 @login_required
-@cache.cached(timeout=60, query_string=True)
 def elements_list(object_id):
     """Список элементов объекта (ЗДФ, кронштейны, светильники)"""
     print(f"DEBUG elements_list: Loading elements for object {object_id}")
