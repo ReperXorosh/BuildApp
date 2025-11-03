@@ -488,6 +488,10 @@ def elements_list(object_id):
     bracket_attachments = {}
     luminaire_attachments = {}
     
+    zdf_with_files = set()
+    bracket_with_files = set()
+    luminaire_with_files = set()
+
     if zdf_ids:
         zdf_files = ElementAttachment.query.filter(
             ElementAttachment.element_type == 'zdf',
@@ -497,6 +501,7 @@ def elements_list(object_id):
             if file.element_id not in zdf_attachments:
                 zdf_attachments[file.element_id] = []
             zdf_attachments[file.element_id].append(file)
+            zdf_with_files.add(file.element_id)
     
     if bracket_ids:
         bracket_files = ElementAttachment.query.filter(
@@ -507,6 +512,7 @@ def elements_list(object_id):
             if file.element_id not in bracket_attachments:
                 bracket_attachments[file.element_id] = []
             bracket_attachments[file.element_id].append(file)
+            bracket_with_files.add(file.element_id)
     
     if luminaire_ids:
         luminaire_files = ElementAttachment.query.filter(
@@ -517,6 +523,24 @@ def elements_list(object_id):
             if file.element_id not in luminaire_attachments:
                 luminaire_attachments[file.element_id] = []
             luminaire_attachments[file.element_id].append(file)
+            luminaire_with_files.add(file.element_id)
+
+    # Проставляем флаг has_preview на объектах, чтобы шаблон не зависел от типа ключа (UUID/str)
+    for z in zdf_list:
+        try:
+            z.has_preview = (z.id in zdf_with_files) or (str(z.id) in {str(x) for x in zdf_with_files})
+        except Exception:
+            z.has_preview = False
+    for b in brackets_list:
+        try:
+            b.has_preview = (b.id in bracket_with_files) or (str(b.id) in {str(x) for x in bracket_with_files})
+        except Exception:
+            b.has_preview = False
+    for l in luminaires_list:
+        try:
+            l.has_preview = (l.id in luminaire_with_files) or (str(l.id) in {str(x) for x in luminaire_with_files})
+        except Exception:
+            l.has_preview = False
     
     # Логирование активности
     from ..models.activity_log import ActivityLog
