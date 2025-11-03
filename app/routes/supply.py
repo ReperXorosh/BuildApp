@@ -417,6 +417,8 @@ def material_detail(material_id):
         
         # Получаем информацию о материале
         material = Material.query.get_or_404(material_id)
+        # Превью-файл (если есть)
+        material_preview = MaterialAttachment.query.filter_by(material_id=material_id).order_by(MaterialAttachment.uploaded_at.desc()).first()
         print(f"DEBUG: Материал найден: {material.name}")
         
         # Получаем историю движений по материалу с загрузкой связанных пользователей
@@ -473,7 +475,13 @@ def material_detail(material_id):
         )
         
         print(f"DEBUG: Рендерим шаблон material_detail.html")
-        return render_template('supply/material_detail.html', material=material, movements=all_actions, allocations=allocations)
+        return render_template(
+            'supply/material_detail.html',
+            material=material,
+            movements=all_actions,
+            allocations=allocations,
+            material_preview=material_preview,
+        )
     
     except Exception as e:
         print(f"Ошибка в material_detail: {e}")

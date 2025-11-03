@@ -19,6 +19,12 @@
                     </nav>
                 </div>
                 <div class="btn-group" role="group">
+                    {% if material_preview %}
+                    <a href="{{ url_for('supply.api_material_preview', material_id=material.id) }}" class="btn btn-outline-secondary" target="_blank" title="Посмотреть файл-превью">
+                        <i class="bi bi-eye"></i>
+                        <span class="d-none d-md-inline ms-1">Превью</span>
+                    </a>
+                    {% endif %}
                     <a href="{{ url_for('supply.warehouse_view') }}" class="btn btn-outline-secondary">
                         <i class="bi bi-arrow-left me-1"></i>Назад к складу
                     </a>
