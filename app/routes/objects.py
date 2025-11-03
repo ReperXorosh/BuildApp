@@ -3199,8 +3199,37 @@ def view_element_attachment(object_id, element_type, element_id, attachment_id):
             BytesIO(attachment.data), 
             mimetype=attachment.content_type or 'application/octet-stream', 
             as_attachment=True, 
-            download_name=attachment.original_filename
+            download_name=attachment.original_filename or getattr(attachment, 'filename', None) or 'file'
         )
+
+@objects_bp.route('/<uuid:object_id>/elements/<element_type>/<uuid:element_id>/attachments/latest/view', methods=['GET'])
+@login_required
+def view_element_attachment_latest(object_id, element_type, element_id):
+    """Просмотр последнего (по дате) файла элемента без указания attachment_id"""
+    attachment = ElementAttachment.query.filter_by(
+        element_type=element_type,
+        element_id=element_id
+    ).order_by(ElementAttachment.uploaded_at.desc()).first()
+    if not attachment:
+        return jsonify({'error': 'Файл не найден'}), 404
+    viewable_types = [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+        'application/pdf',
+        'text/plain', 'text/html', 'text/css', 'text/javascript',
+        'application/json', 'application/xml', 'text/xml'
+    ]
+    if attachment.content_type in viewable_types:
+        return send_file(
+            BytesIO(attachment.data),
+            mimetype=attachment.content_type or 'application/octet-stream',
+            as_attachment=False
+        )
+    return send_file(
+        BytesIO(attachment.data),
+        mimetype=attachment.content_type or 'application/octet-stream',
+        as_attachment=True,
+        download_name=attachment.original_filename or getattr(attachment, 'filename', None) or 'file'
+    )
 
 @objects_bp.route('/<uuid:object_id>/elements/<element_type>/<uuid:element_id>/attachments/<uuid:attachment_id>/download', methods=['GET'])
 @login_required
