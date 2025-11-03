@@ -12,7 +12,6 @@
 {% endblock %}
 
 {% block content %}
-<div class="mobile-content">
     <!-- Статистика -->
     <div class="mobile-stats-row">
         <div class="mobile-stat-item">
@@ -42,8 +41,7 @@
                     <span class="quantity-badge quantity-{{ 'danger' if material.current_quantity <= material.min_quantity else 'success' if material.current_quantity > material.min_quantity * 2 else 'warning' }}">
                         {{ material.current_quantity }} {{ material.unit }}
                     </span>
-                </div>
-            </div>
+    </div>
             
             <!-- Дополнительная информация -->
             <div class="mobile-material-details">
