@@ -38,7 +38,20 @@
                                     <div class="fw-semibold">{% if zdf.zdf_name %}{{ zdf.zdf_name }}{% else %}ЗДФ{% endif %}</div>
                                     {% if zdf.notes %}<div class="text-muted small text-truncate" style="max-width:220px;">{{ zdf.notes }}</div>{% endif %}
                                 </div>
-                                {% if zdf.status %}<span class="badge bg-secondary">{{ zdf.status }}</span>{% endif %}
+                                <div class="d-flex align-items-center gap-2">
+                                    {% set atts = zdf_attachments.get(zdf.id) %}
+                                    {% if atts and atts|length %}
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="event.preventDefault(); event.stopPropagation(); openElementPreviewMobile('zdf','{{ zdf.id }}','{{ atts[0].id }}');" title="Просмотр файла">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M14 2H7C5.89543 2 5 2.89543 5 4V20C5 21.1046 5.89543 22 7 22H17C18.1046 22 19 21.1046 19 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                          <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                          <circle cx="10.5" cy="13.5" r="2.5" stroke="currentColor" stroke-width="2"/>
+                                          <path d="M12.2 15.2L14.5 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                    </button>
+                                    {% endif %}
+                                    {% if zdf.status %}<span class="badge bg-secondary">{{ zdf.status }}</span>{% endif %}
+                                </div>
                             </a>
                             {% endfor %}
                     </ul>
@@ -65,7 +78,20 @@
                                     <div class="fw-semibold">{% if bracket.bracket_name %}{{ bracket.bracket_name }}{% else %}Кронштейн{% endif %}</div>
                                     {% if bracket.notes %}<div class="text-muted small text-truncate" style="max-width:220px;">{{ bracket.notes }}</div>{% endif %}
                                 </div>
-                                {% if bracket.status %}<span class="badge bg-secondary">{{ bracket.status }}</span>{% endif %}
+                                <div class="d-flex align-items-center gap-2">
+                                    {% set atts = bracket_attachments.get(bracket.id) %}
+                                    {% if atts and atts|length %}
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="event.preventDefault(); event.stopPropagation(); openElementPreviewMobile('bracket','{{ bracket.id }}','{{ atts[0].id }}');" title="Просмотр файла">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M14 2H7C5.89543 2 5 2.89543 5 4V20C5 21.1046 5.89543 22 7 22H17C18.1046 22 19 21.1046 19 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                          <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                          <circle cx="10.5" cy="13.5" r="2.5" stroke="currentColor" stroke-width="2"/>
+                                          <path d="M12.2 15.2L14.5 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                    </button>
+                                    {% endif %}
+                                    {% if bracket.status %}<span class="badge bg-secondary">{{ bracket.status }}</span>{% endif %}
+                                </div>
                             </a>
                             {% endfor %}
                     </ul>
@@ -92,7 +118,20 @@
                                     <div class="fw-semibold">{% if luminaire.luminaire_name %}{{ luminaire.luminaire_name }}{% else %}Светильник{% endif %}</div>
                                     {% if luminaire.notes %}<div class="text-muted small text-truncate" style="max-width:220px;">{{ luminaire.notes }}</div>{% endif %}
                                 </div>
-                                {% if luminaire.status %}<span class="badge bg-secondary">{{ luminaire.status }}</span>{% endif %}
+                                <div class="d-flex align-items-center gap-2">
+                                    {% set atts = luminaire_attachments.get(luminaire.id) %}
+                                    {% if atts and atts|length %}
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="event.preventDefault(); event.stopPropagation(); openElementPreviewMobile('luminaire','{{ luminaire.id }}','{{ atts[0].id }}');" title="Просмотр файла">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M14 2H7C5.89543 2 5 2.89543 5 4V20C5 21.1046 5.89543 22 7 22H17C18.1046 22 19 21.1046 19 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                          <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                          <circle cx="10.5" cy="13.5" r="2.5" stroke="currentColor" stroke-width="2"/>
+                                          <path d="M12.2 15.2L14.5 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                    </button>
+                                    {% endif %}
+                                    {% if luminaire.status %}<span class="badge bg-secondary">{{ luminaire.status }}</span>{% endif %}
+                                </div>
                             </a>
                             {% endfor %}
                     </ul>
@@ -109,6 +148,29 @@
 <div style="height: 140px"></div>
 
 <script>
+function openElementPreviewMobile(type, elementId, attachmentId) {
+  const urlTemplate = "{{ url_for('objects.view_element_attachment', object_id=object.id, element_type='__TYPE__', element_id='__EID__', attachment_id='__AID__') }}";
+  const url = urlTemplate.replace('__TYPE__', type).replace('__EID__', elementId).replace('__AID__', attachmentId);
+  const modalEl = document.getElementById('elementPreviewModal');
+  const imgEl = document.getElementById('elementPreviewImg');
+  const frameEl = document.getElementById('elementPreviewFrame');
+  const linkEl = document.getElementById('elementPreviewDownload');
+  if (imgEl) { imgEl.style.display = 'none'; imgEl.src = ''; }
+  if (frameEl) { frameEl.style.display = 'none'; frameEl.src = ''; }
+  if (linkEl) { linkEl.style.display = 'none'; linkEl.href = url; }
+  fetch(url, { method: 'HEAD' }).then(res => {
+    if (!res.ok) { window.open(url, '_blank'); return; }
+    const typeH = res.headers.get('content-type') || '';
+    if (typeH.startsWith('image/')) {
+      imgEl.src = url; imgEl.style.display = 'block';
+    } else if (typeH === 'application/pdf') {
+      frameEl.src = url; frameEl.style.display = 'block';
+    } else {
+      linkEl.style.display = 'inline-flex';
+    }
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+  }).catch(() => { window.open(url, '_blank'); });
+}
 document.addEventListener('DOMContentLoaded', function() {
     try {
         const content = document.querySelector('.mobile-content');
@@ -197,4 +259,25 @@ document.addEventListener('DOMContentLoaded', function() {
     padding: 0;
 }
 </style>
+
+<!-- Модалка предпросмотра файла элемента (мобильная, fullscreen) -->
+<div class="modal fade" id="elementPreviewModal" tabindex="-1" aria-labelledby="elementPreviewTitle" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen-sm-down modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="elementPreviewTitle">Просмотр файла</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <img id="elementPreviewImg" alt="Превью" style="display:none; max-width:100%; max-height:80vh; object-fit:contain; margin:0 auto;" />
+        <iframe id="elementPreviewFrame" style="display:none; width:100%; height:80vh; border:none;"></iframe>
+        <div class="p-3 text-center">
+          <a id="elementPreviewDownload" href="#" class="btn btn-outline-primary" style="display:none;" target="_blank">
+            <i class="bi bi-download"></i> Открыть/скачать файл
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
