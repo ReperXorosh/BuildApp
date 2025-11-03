@@ -869,7 +869,8 @@ async function loadMaterials() {
 
 // Просмотр файла-превью материала
 function openMaterialPreview(materialId) {
-  const url = `{{ url_for('supply.api_material_preview', material_id='') }}${materialId}`;
+  const urlTemplate = "{{ url_for('supply.api_material_preview', material_id='__MID__') }}";
+  const url = urlTemplate.replace('__MID__', materialId);
   const modalEl = document.getElementById('materialPreviewModal');
   const titleEl = document.getElementById('materialPreviewTitle');
   const imgEl = document.getElementById('materialPreviewImg');
