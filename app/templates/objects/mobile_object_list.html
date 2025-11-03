@@ -221,10 +221,12 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentY = 0;
     let isDragging = false;
     let currentItem = null;
-    let isSwipeGesture = false;
+    let isSwipeGesture = false; // устаревший флаг — оставляем для совместимости
+    let lockedDirection = null; // null | 'horizontal' | 'vertical'
     const threshold = 80; // финальный порог открытия кнопки
-    const gestureThreshold = 16; // чувствительность распознавания свайпа
-    const directionBias = 1.2; // горизонталь должна превосходить вертикаль
+    const gestureThreshold = 24; // минимальный горизонтальный сдвиг, прежде чем захватывать жест
+    const directionBias = 2.0; // горизонталь должна превосходить вертикаль минимум в 2 раза
+    const verticalLeeway = 10; // допускаем мелкое вертикальное дрожание
     const maxSwipe = 160;
     
     swipeableItems.forEach((item, index) => {
@@ -295,6 +297,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentItem = item;
         isDragging = true;
         isSwipeGesture = false; // Сбрасываем флаг свайпа
+        lockedDirection = null;
         
         item.classList.add('swiping');
         // НЕ вызываем preventDefault() здесь - позволяем обычным кликам работать
@@ -308,20 +311,29 @@ document.addEventListener('DOMContentLoaded', function() {
         const deltaX = currentX - startX;
         const deltaY = currentY - startY;
 
-        // Распознаём жест как свайп только если горизонталь заметно превосходит вертикаль
-        if (!isSwipeGesture && Math.abs(deltaX) > gestureThreshold && Math.abs(Math.abs(deltaX) / Math.max(1, Math.abs(deltaY))) > directionBias) {
-            isSwipeGesture = true;
+        // Определяем направление один раз
+        if (!lockedDirection) {
+            // Вертикальный скролл: доминирует Y и превышает допустимую «дрожь»
+            if (Math.abs(deltaY) > Math.max(verticalLeeway, Math.abs(deltaX))) {
+                lockedDirection = 'vertical';
+            } else if (
+                Math.abs(deltaX) > gestureThreshold &&
+                Math.abs(deltaX) > Math.abs(deltaY) * directionBias
+            ) {
+                lockedDirection = 'horizontal';
+                isSwipeGesture = true; // для обратной совместимости
+            }
         }
 
-        // Если вертикальное движение доминирует — даём нативному скроллу работать
-        if (!isSwipeGesture && Math.abs(deltaY) > Math.abs(deltaX)) {
-            return; // не блокируем скролл
+        if (lockedDirection === 'vertical') {
+            // Даём странице нативно скроллиться
+            return;
         }
 
-        // Лишь при реальном свайпе влево движем контент и блокируем нативные действия
-        if (isSwipeGesture && deltaX < 0) {
+        if (lockedDirection === 'horizontal') {
+            // Лишь при реальном свайпе влево движем контент и блокируем нативные действия
             const translateX = Math.max(deltaX, -maxSwipe);
-            updateTransform(currentItem, translateX);
+            updateTransform(currentItem, translateX < 0 ? translateX : 0);
             if (e.cancelable) e.preventDefault();
         }
     }
@@ -349,8 +361,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 250);
         
-        // Блокируем клик только если это был свайп (а не вертикальный скролл)
-        if (isSwipeGesture) {
+        // Блокируем клик только если это был горизонтальный свайп (а не вертикальный скролл)
+        if (lockedDirection === 'horizontal' || isSwipeGesture) {
             if (e.cancelable) e.preventDefault();
         }
         
@@ -378,6 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentItem = item;
         isDragging = true;
         isSwipeGesture = false; // Сбрасываем флаг свайпа
+        lockedDirection = null;
         
         item.classList.add('swiping');
         // НЕ вызываем preventDefault() здесь - позволяем обычным кликам работать
@@ -391,17 +404,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const deltaX = currentX - startX;
         const deltaY = currentY - startY;
 
-        if (!isSwipeGesture && Math.abs(deltaX) > gestureThreshold && Math.abs(Math.abs(deltaX) / Math.max(1, Math.abs(deltaY))) > directionBias) {
-            isSwipeGesture = true;
+        if (!lockedDirection) {
+            if (Math.abs(deltaY) > Math.max(verticalLeeway, Math.abs(deltaX))) {
+                lockedDirection = 'vertical';
+            } else if (
+                Math.abs(deltaX) > gestureThreshold &&
+                Math.abs(deltaX) > Math.abs(deltaY) * directionBias
+            ) {
+                lockedDirection = 'horizontal';
+                isSwipeGesture = true;
+            }
         }
 
-        if (!isSwipeGesture && Math.abs(deltaY) > Math.abs(deltaX)) {
+        if (lockedDirection === 'vertical') {
             return;
         }
 
-        if (isSwipeGesture && deltaX < 0) {
+        if (lockedDirection === 'horizontal') {
             const translateX = Math.max(deltaX, -maxSwipe);
-            updateTransform(currentItem, translateX);
+            updateTransform(currentItem, translateX < 0 ? translateX : 0);
             if (e.cancelable) e.preventDefault();
         }
     }
@@ -429,8 +450,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 250);
         
-        // Блокируем клик только если это был свайп
-        if (isSwipeGesture) {
+        // Блокируем клик только если это был горизонтальный свайп
+        if (lockedDirection === 'horizontal' || isSwipeGesture) {
             if (e.cancelable) e.preventDefault();
         }
         
@@ -464,10 +485,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const actions = item.querySelector('.swipe-actions');
         
         if (content && actions) {
-            content.style.transform = `translateX(-${maxSwipe}px)`;
+            // Плавно доводим до -maxSwipe
+            content.style.transition = 'transform 180ms ease-out';
+            requestAnimationFrame(() => {
+                content.style.transform = `translateX(-${maxSwipe}px)`;
+            });
             actions.style.opacity = '1';
             actions.style.transform = 'translateX(0)';
             actions.classList.add('show');
+            // Снимаем transition после завершения
+            setTimeout(() => { content.style.transition = ''; }, 200);
         }
     }
     
@@ -476,10 +503,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const actions = item.querySelector('.swipe-actions');
         
         if (content && actions) {
-            content.style.transform = 'translateX(0)';
+            content.style.transition = 'transform 160ms ease-out';
+            requestAnimationFrame(() => {
+                content.style.transform = 'translateX(0)';
+            });
             actions.style.opacity = '0';
             actions.style.transform = 'translateX(100%)';
             actions.classList.remove('show');
+            setTimeout(() => { content.style.transition = ''; }, 180);
         }
     }
     
@@ -487,6 +518,7 @@ document.addEventListener('DOMContentLoaded', function() {
         isDragging = false;
         currentItem = null;
         isSwipeGesture = false;
+        lockedDirection = null;
     }
     
     // Обработка кликов
