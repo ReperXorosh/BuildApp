@@ -252,43 +252,54 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (Math.abs(buttonRect.height - inputHeight) > 0.5) {
                     button.style.height = inputHeight + 'px';
                 }
-                
-                // Выравниваем текст кнопки точно по центру
-                centerButtonText(button);
             });
+            
+            // Выравниваем текст кнопок после установки высоты
+            // Используем небольшую задержку для применения стилей
+            setTimeout(function() {
+                searchButtons.forEach(function(button) {
+                    centerButtonText(button);
+                });
+            }, 10);
         }
     }
     
     // Функция для точного выравнивания текста кнопки по центру
     function centerButtonText(button) {
-        const buttonHeight = button.offsetHeight;
-        const computedStyle = getComputedStyle(button);
-        const paddingTop = parseFloat(computedStyle.paddingTop) || 0;
-        const paddingBottom = parseFloat(computedStyle.paddingBottom) || 0;
-        const lineHeight = parseFloat(computedStyle.lineHeight);
-        
-        // Вычисляем высоту содержимого (без padding)
-        const contentHeight = buttonHeight - paddingTop - paddingBottom;
-        
-        // Если line-height не установлен или больше высоты содержимого, устанавливаем его равным высоте содержимого
-        if (!lineHeight || lineHeight > contentHeight) {
-            button.style.lineHeight = contentHeight + 'px';
-        }
-        
-        // Убеждаемся, что padding сверху и снизу равны для центрирования
-        const totalPadding = paddingTop + paddingBottom;
-        const equalPadding = totalPadding / 2;
-        
-        // Устанавливаем равные отступы сверху и снизу
-        if (Math.abs(paddingTop - paddingBottom) > 0.5) {
-            button.style.paddingTop = equalPadding + 'px';
-            button.style.paddingBottom = equalPadding + 'px';
-        }
-        
-        // Убеждаемся, что текст выровнен по центру
+        // Устанавливаем flexbox для точного центрирования
         button.style.display = 'flex';
         button.style.alignItems = 'center';
         button.style.justifyContent = 'center';
+        button.style.flexDirection = 'row';
+        button.style.flexWrap = 'nowrap';
+        
+        // Получаем текущие стили
+        const computedStyle = getComputedStyle(button);
+        const paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
+        const paddingRight = parseFloat(computedStyle.paddingRight) || 0;
+        
+        // Сохраняем боковые отступы, убираем вертикальные (flexbox сам выровняет)
+        button.style.paddingTop = '0';
+        button.style.paddingBottom = '0';
+        button.style.paddingLeft = paddingLeft + 'px';
+        button.style.paddingRight = paddingRight + 'px';
+        
+        // Убираем line-height, так как flexbox сам выровняет содержимое
+        button.style.lineHeight = '1';
+        
+        // Убеждаемся, что все дочерние элементы выровнены
+        const children = Array.from(button.children);
+        children.forEach(child => {
+            // Убираем margin у дочерних элементов, которые могут влиять на выравнивание
+            if (child.style.marginTop || child.style.marginBottom) {
+                child.style.marginTop = '0';
+                child.style.marginBottom = '0';
+            }
+            // Убираем vertical-align, так как flexbox сам выровняет
+            if (child.style.verticalAlign) {
+                child.style.verticalAlign = 'unset';
+            }
+        });
     }
     
     // Выравниваем при загрузке страницы
