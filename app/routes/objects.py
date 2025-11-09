@@ -1704,6 +1704,7 @@ def add_trench_excavation(object_id, trench_id):
         
         # Сохраняем файлы
         import os
+        import mimetypes
         from werkzeug.utils import secure_filename
         
         upload_folder = os.path.join('app', 'static', 'uploads', 'trenches', str(trench_id))
@@ -1725,7 +1726,7 @@ def add_trench_excavation(object_id, trench_id):
                     original_filename=filename,
                     file_path=file_path,
                     file_size=os.path.getsize(file_path),
-                    mime_type=file.mime_type,
+                    mime_type=mimetypes.guess_type(file.filename)[0] or 'application/octet-stream',
                     created_by=current_user.userid
                 )
                 
@@ -3157,13 +3158,19 @@ def upload_element_attachment(object_id, element_type, element_id):
         file_data = file.read()
         file.seek(0)  # Возвращаем указатель в начало
         
+        # Определяем MIME тип
+        import mimetypes
+        content_type, _ = mimetypes.guess_type(file.filename)
+        if not content_type:
+            content_type = 'application/octet-stream'
+        
         # Создаем запись о файле
         attachment = ElementAttachment(
             element_type=element_type,
             element_id=element_id,
             filename=secure_filename(file.filename),
             original_filename=file.filename,
-            content_type=file.mime_type,
+            content_type=content_type,
             data=file_data,
             size_bytes=len(file_data),
             uploaded_by=current_user.userid
