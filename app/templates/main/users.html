@@ -211,6 +211,66 @@ function confirmDelete(userId, userName) {
         form.submit();
     }
 }
+
+// Точное выравнивание кнопок поиска относительно поля ввода
+document.addEventListener('DOMContentLoaded', function() {
+    function alignSearchButtons() {
+        const searchInput = document.getElementById('search');
+        const searchButtons = document.querySelectorAll('.row.g-3 > .col-md-3 button, .row.g-3 > .col-md-3 a');
+        
+        if (searchInput && searchButtons.length > 0) {
+            // Получаем позицию и размеры поля ввода
+            const inputRect = searchInput.getBoundingClientRect();
+            const inputTop = inputRect.top;
+            const inputHeight = inputRect.height;
+            
+            // Находим общий родительский элемент (row)
+            const row = searchInput.closest('.row');
+            if (!row) return;
+            
+            searchButtons.forEach(function(button) {
+                // Получаем позицию кнопки
+                const buttonRect = button.getBoundingClientRect();
+                const buttonTop = buttonRect.top;
+                
+                // Вычисляем разницу между верхней границей поля ввода и верхней границей кнопки
+                const offset = inputTop - buttonTop;
+                
+                // Применяем отступ для выравнивания верхней границы
+                // Используем data-attribute для хранения исходного отступа
+                if (!button.dataset.originalMarginTop) {
+                    const originalMarginTop = parseFloat(getComputedStyle(button).marginTop) || 0;
+                    button.dataset.originalMarginTop = originalMarginTop;
+                }
+                
+                if (Math.abs(offset) > 0.5) {
+                    const originalMarginTop = parseFloat(button.dataset.originalMarginTop) || 0;
+                    button.style.marginTop = (originalMarginTop + offset) + 'px';
+                }
+                
+                // Выравниваем высоту кнопки с высотой поля ввода
+                if (Math.abs(buttonRect.height - inputHeight) > 0.5) {
+                    button.style.height = inputHeight + 'px';
+                }
+            });
+        }
+    }
+    
+    // Выравниваем при загрузке страницы
+    setTimeout(alignSearchButtons, 50);
+    
+    // Выравниваем при изменении размера окна
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(alignSearchButtons, 100);
+    });
+    
+    // Выравниваем при изменении ориентации устройства
+    window.addEventListener('orientationchange', function() {
+        setTimeout(alignSearchButtons, 200);
+    });
+});
 </script>
 
 <style>
@@ -222,12 +282,10 @@ function confirmDelete(userId, userName) {
         align-items: flex-start;
     }
     
-    /* Точное выравнивание кнопок относительно поля ввода */
-    /* Высота лейбла (1.5rem) + отступ между лейблом и полем (0.5rem) = 2rem */
-    /* Но нужно учесть, что кнопки должны быть на одной высоте с полем ввода */
+    /* Базовый отступ для кнопок (будет скорректирован JavaScript) */
     .row.g-3 > .col-md-3 button,
     .row.g-3 > .col-md-3 a {
-        margin-top: calc(1.5rem + 0.25rem);
+        margin-top: 0;
     }
 }
 </style>
