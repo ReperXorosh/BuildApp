@@ -68,14 +68,16 @@
                     </span>
                 </div>
                 
-                {% if trench.notes %}
                 <div class="mobile-info-row">
                     <span class="mobile-info-label">Примечания:</span>
                     <span class="mobile-info-value">
+                        {% if trench.notes %}
                         <small class="text-muted">{{ trench.notes[:50] }}{% if trench.notes|length > 50 %}...{% endif %}</small>
+                        {% else %}
+                        <small class="text-muted">—</small>
+                        {% endif %}
                     </span>
                 </div>
-                {% endif %}
             </div>
             
             <div class="mobile-card-footer">

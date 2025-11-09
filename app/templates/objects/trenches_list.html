@@ -73,12 +73,14 @@
                                 {% endif %}
                             </div>
                             
-                            {% if trench.notes %}
                             <div class="mb-3">
                                 <strong>Примечания:</strong>
+                                {% if trench.notes %}
                                 <p class="text-muted small mb-0">{{ trench.notes[:100] }}{% if trench.notes|length > 100 %}...{% endif %}</p>
+                                {% else %}
+                                <p class="text-muted small mb-0">—</p>
+                                {% endif %}
                             </div>
-                            {% endif %}
                             
                             <div class="d-grid gap-2">
                             <a href="{{ url_for('objects.add_trench_excavation', object_id=object.id, trench_id=trench.id) }}" 
