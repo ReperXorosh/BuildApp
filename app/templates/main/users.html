@@ -23,7 +23,7 @@
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="GET" action="{{ url_for('main.users') }}">
-                <div class="row g-3 align-items-end">
+                <div class="row g-3">
                     <div class="col-md-6">
                         <label for="search" class="form-label">
                             <svg class="bi me-1" width="16" height="16" fill="currentColor">
@@ -39,8 +39,7 @@
                                placeholder="Введите логин, имя, фамилию или отчество...">
                         <div class="form-text">Поиск по логину, имени, фамилии или отчеству</div>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">&nbsp;</label>
+                    <div class="col-md-3 d-flex align-items-center" style="padding-top: 1.5rem;">
                         <button type="submit" class="btn btn-primary w-100">
                             <svg class="bi me-1" width="16" height="16" fill="currentColor">
                                 <use href="#search"></use>
@@ -48,8 +47,7 @@
                             Найти
                         </button>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">&nbsp;</label>
+                    <div class="col-md-3 d-flex align-items-center" style="padding-top: 1.5rem;">
                         <a href="{{ url_for('main.users') }}" class="btn btn-outline-secondary w-100">
                             <svg class="bi me-1" width="16" height="16" fill="currentColor">
                                 <use href="#x-circle"></use>
