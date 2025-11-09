@@ -1042,7 +1042,7 @@ def element_detail(object_id, element_type, element_id):
     from ..utils.mobile_detection import is_mobile_device
     is_mobile = is_mobile_device() or (request.args.get('mobile') == '1')
     template = 'objects/mobile_element_detail.html' if is_mobile else 'objects/element_detail.html'
-    return render_template(template, object=obj, element=element, element_type=title, attachments=attachments)
+    return render_template(template, object=obj, element=element, element_type=title, element_type_code=element_type, attachments=attachments)
 
 # Обновление статуса элемента
 @objects_bp.route('/api/objects/<uuid:object_id>/elements/<string:element_type>/<uuid:element_id>/status', methods=['PUT'])

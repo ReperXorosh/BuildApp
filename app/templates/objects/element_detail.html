@@ -2,7 +2,14 @@
 {% block title %}Элемент: {{ element_type }}{% endblock %}
 {% block content %}
 <div class="container py-4">
-  <h2 class="mb-3">{{ element_type }}</h2>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="m-0">{{ element_type }}</h2>
+    <a class="btn btn-outline-secondary btn-sm" target="_blank"
+       href="{{ url_for('objects.view_element_attachment_latest', object_id=object.id, element_type=element_type_code, element_id=element.id) }}"
+       title="Просмотреть файл">
+      <i class="bi bi-eye"></i> Просмотр файла
+    </a>
+  </div>
   <div class="card">
     <div class="card-body">
       <dl class="row mb-0">

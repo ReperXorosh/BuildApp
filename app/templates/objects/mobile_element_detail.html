@@ -16,7 +16,14 @@
 </div>
 
 <div class="mobile-card">
-    <div class="mobile-card-title">Информация</div>
+    <div class="d-flex justify-content-between align-items-center">
+        <div class="mobile-card-title m-0">Информация</div>
+        <a class="btn btn-sm btn-outline-secondary" target="_blank"
+           href="{{ url_for('objects.view_element_attachment_latest', object_id=object.id, element_type=element_type_code, element_id=element.id) }}"
+           title="Просмотреть файл">
+            <i class="bi bi-eye"></i>
+        </a>
+    </div>
     <div>
         <div class="d-flex justify-content-between mb-2">
             <span class="text-muted">Название</span>
