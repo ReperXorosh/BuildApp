@@ -12,11 +12,6 @@
 {% endblock %}
 
 {% block content %}
-    <div class="mobile-header-info">
-        <h2 class="mobile-page-title">{{ object.name }}</h2>
-        <p class="mobile-page-subtitle">Детали траншеи</p>
-    </div>
-
     <!-- Общая информация -->
     <div class="mobile-card">
         <div class="mobile-card-header">
@@ -198,25 +193,6 @@
     </div>
 
 <style>
-.mobile-header-info {
-    padding: 16px;
-    background: var(--bs-body-bg);
-    border-bottom: 1px solid var(--bs-border-color);
-}
-
-.mobile-page-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin: 0 0 4px 0;
-    color: var(--bs-body-color);
-}
-
-.mobile-page-subtitle {
-    font-size: 0.9rem;
-    color: var(--bs-secondary-color);
-    margin: 0;
-}
-
 .mobile-section-title {
     padding: 16px;
     font-size: 1.1rem;
@@ -419,6 +395,11 @@
 
 [data-bs-theme="dark"] .mobile-info-label {
     color: var(--bs-light);
+}
+
+/* Отступ сверху для контента, чтобы не перекрывался фиксированной шапкой */
+.mobile-card:first-of-type {
+    margin-top: 16px;
 }
 </style>
 {% endblock %}
