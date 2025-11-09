@@ -233,6 +233,15 @@
     margin: 0;
 }
 
+/* Улучшаем читаемость в шапке карточки */
+.mobile-card-header .mobile-card-title {
+    color: var(--bs-body-color);
+}
+
+.mobile-card-header .badge {
+    font-weight: 600;
+}
+
 .mobile-card-body {
     padding: 16px;
 }
@@ -379,6 +388,19 @@
 
 [data-bs-theme="dark"] .mobile-card-header {
     background: var(--bs-gray-800);
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+[data-bs-theme="dark"] .mobile-card-header .mobile-card-title {
+    color: var(--bs-light) !important;
+}
+
+[data-bs-theme="dark"] .mobile-card-header .badge {
+    color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .mobile-card-header small {
+    color: var(--bs-light) !important;
 }
 
 [data-bs-theme="dark"] .mobile-file-card {
@@ -395,6 +417,14 @@
 
 [data-bs-theme="dark"] .mobile-info-label {
     color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .mobile-info-value {
+    color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .mobile-info-value small {
+    color: var(--bs-secondary) !important;
 }
 
 /* Отступ сверху для контента, чтобы не перекрывался фиксированной шапкой */
