@@ -83,6 +83,12 @@
             </div>
             
             <div class="mobile-card-footer">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <small class="text-muted">
+                        <i class="bi bi-calendar me-1"></i>
+                        Создано: {{ trench.created_at | user_time_short }}
+                    </small>
+                </div>
                 <a href="{{ url_for('objects.add_trench_excavation', object_id=object.id, trench_id=trench.id) }}" 
                    class="mobile-btn mobile-btn-success w-100" onclick="event.stopPropagation();">
                     <i class="bi bi-plus-lg me-2"></i>
