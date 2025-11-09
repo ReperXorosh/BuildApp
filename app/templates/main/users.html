@@ -39,16 +39,16 @@
                                placeholder="Введите логин, имя, фамилию или отчество...">
                         <div class="form-text">Поиск по логину, имени, фамилии или отчеству</div>
                     </div>
-                    <div class="col-md-3 d-flex align-items-center">
-                        <button type="submit" class="btn btn-primary w-100" style="margin-top: 1.5rem;">
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">
                             <svg class="bi me-1" width="16" height="16" fill="currentColor">
                                 <use href="#search"></use>
                             </svg>
                             Найти
                         </button>
                     </div>
-                    <div class="col-md-3 d-flex align-items-center">
-                        <a href="{{ url_for('main.users') }}" class="btn btn-outline-secondary w-100" style="margin-top: 1.5rem;">
+                    <div class="col-md-3">
+                        <a href="{{ url_for('main.users') }}" class="btn btn-outline-secondary w-100">
                             <svg class="bi me-1" width="16" height="16" fill="currentColor">
                                 <use href="#x-circle"></use>
                             </svg>
@@ -212,4 +212,19 @@ function confirmDelete(userId, userName) {
     }
 }
 </script>
+
+<style>
+/* Выравнивание кнопок поиска относительно поля ввода */
+@media (min-width: 768px) {
+    .row.g-3 > .col-md-3 {
+        display: flex;
+        align-items: flex-start;
+    }
+    
+    .row.g-3 > .col-md-3 button,
+    .row.g-3 > .col-md-3 a {
+        margin-top: 1.5rem;
+    }
+}
+</style>
 {% endblock %}
