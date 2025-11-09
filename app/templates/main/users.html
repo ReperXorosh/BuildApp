@@ -252,8 +252,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (Math.abs(buttonRect.height - inputHeight) > 0.5) {
                     button.style.height = inputHeight + 'px';
                 }
+                
+                // Выравниваем текст кнопки точно по центру
+                centerButtonText(button);
             });
         }
+    }
+    
+    // Функция для точного выравнивания текста кнопки по центру
+    function centerButtonText(button) {
+        const buttonHeight = button.offsetHeight;
+        const computedStyle = getComputedStyle(button);
+        const paddingTop = parseFloat(computedStyle.paddingTop) || 0;
+        const paddingBottom = parseFloat(computedStyle.paddingBottom) || 0;
+        const lineHeight = parseFloat(computedStyle.lineHeight);
+        
+        // Вычисляем высоту содержимого (без padding)
+        const contentHeight = buttonHeight - paddingTop - paddingBottom;
+        
+        // Если line-height не установлен или больше высоты содержимого, устанавливаем его равным высоте содержимого
+        if (!lineHeight || lineHeight > contentHeight) {
+            button.style.lineHeight = contentHeight + 'px';
+        }
+        
+        // Убеждаемся, что padding сверху и снизу равны для центрирования
+        const totalPadding = paddingTop + paddingBottom;
+        const equalPadding = totalPadding / 2;
+        
+        // Устанавливаем равные отступы сверху и снизу
+        if (Math.abs(paddingTop - paddingBottom) > 0.5) {
+            button.style.paddingTop = equalPadding + 'px';
+            button.style.paddingBottom = equalPadding + 'px';
+        }
+        
+        // Убеждаемся, что текст выровнен по центру
+        button.style.display = 'flex';
+        button.style.alignItems = 'center';
+        button.style.justifyContent = 'center';
     }
     
     // Выравниваем при загрузке страницы
@@ -286,6 +321,15 @@ document.addEventListener('DOMContentLoaded', function() {
     .row.g-3 > .col-md-3 button,
     .row.g-3 > .col-md-3 a {
         margin-top: 0;
+    }
+    
+    /* Точное выравнивание текста кнопок по центру */
+    .row.g-3 > .col-md-3 button,
+    .row.g-3 > .col-md-3 a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
     }
 }
 </style>
