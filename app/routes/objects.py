@@ -1718,6 +1718,11 @@ def add_trench_excavation(object_id, trench_id):
                 
                 file.save(file_path)
                 
+                # Определяем MIME тип
+                content_type, _ = mimetypes.guess_type(file.filename)
+                if not content_type:
+                    content_type = 'application/octet-stream'
+                
                 trench_file = TrenchFile(
                     id=str(uuid.uuid4()),
                     trench_id=trench_id,
@@ -1726,7 +1731,7 @@ def add_trench_excavation(object_id, trench_id):
                     original_filename=filename,
                     file_path=file_path,
                     file_size=os.path.getsize(file_path),
-                    mime_type=mimetypes.guess_type(file.filename)[0] or 'application/octet-stream',
+                    mime_type=content_type,
                     created_by=current_user.userid
                 )
                 
