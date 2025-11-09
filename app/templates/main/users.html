@@ -216,14 +216,18 @@ function confirmDelete(userId, userName) {
 <style>
 /* Выравнивание кнопок поиска относительно поля ввода */
 @media (min-width: 768px) {
+    /* Выравниваем кнопки относительно поля ввода */
     .row.g-3 > .col-md-3 {
         display: flex;
         align-items: flex-start;
     }
     
+    /* Точное выравнивание кнопок относительно поля ввода */
+    /* Высота лейбла (1.5rem) + отступ между лейблом и полем (0.5rem) = 2rem */
+    /* Но нужно учесть, что кнопки должны быть на одной высоте с полем ввода */
     .row.g-3 > .col-md-3 button,
     .row.g-3 > .col-md-3 a {
-        margin-top: 1.5rem;
+        margin-top: calc(1.5rem + 0.25rem);
     }
 }
 </style>
