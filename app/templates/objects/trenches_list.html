@@ -43,7 +43,7 @@
                                 {{ 'Завершено' if trench.status == 'completed' else 'В работе' if trench.status == 'in_progress' else 'Запланировано' }}
                             </span>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body d-flex flex-column">
                             <div class="mb-3">
                                 <strong>Общий метраж:</strong>
                                 {% if trench.total_length %}
@@ -70,6 +70,8 @@
                                 </span>
                                 {% if trench.files_count < trench.required_files %}
                                 <small class="text-warning d-block">Недостаточно файлов</small>
+                                {% else %}
+                                <small class="d-block" style="visibility: hidden;">Недостаточно файлов</small>
                                 {% endif %}
                             </div>
                             
@@ -82,7 +84,7 @@
                                 {% endif %}
                             </div>
                             
-                            <div class="d-grid gap-2">
+                            <div class="d-grid gap-2 mt-auto">
                             <a href="{{ url_for('objects.add_trench_excavation', object_id=object.id, trench_id=trench.id) }}" 
                                class="btn btn-success btn-sm" data-ignore-card-click="true">
                                     <i class="bi bi-plus-lg me-1"></i>

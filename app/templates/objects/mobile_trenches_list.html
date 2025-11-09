@@ -64,6 +64,8 @@
                         </span>
                         {% if trench.files_count < trench.required_files %}
                         <small class="text-warning d-block">Недостаточно файлов</small>
+                        {% else %}
+                        <small class="d-block" style="visibility: hidden; height: 1.2em;">Недостаточно файлов</small>
                         {% endif %}
                     </span>
                 </div>
