@@ -1707,6 +1707,8 @@ def add_trench_excavation(object_id, trench_id):
         import mimetypes
         from werkzeug.utils import secure_filename
         
+        # Используем путь относительно рабочей директории
+        # Рабочая директория в контейнере - /app, поэтому путь будет /app/app/static/uploads/trenches/...
         upload_folder = os.path.join('app', 'static', 'uploads', 'trenches', str(trench_id))
         os.makedirs(upload_folder, exist_ok=True)
         
@@ -1823,14 +1825,42 @@ def download_trench_file(object_id, trench_id, file_id):
     
     import os
     
-    if os.path.exists(trench_file.file_path):
+    # Нормализуем путь к файлу
+    # В БД может быть сохранен путь вида 'app/static/uploads/trenches/...'
+    # Рабочая директория в контейнере - /app, поэтому нужно убрать 'app/' из начала пути
+    file_path = trench_file.file_path
+    
+    # Если путь начинается с 'app/', убираем его
+    if file_path.startswith('app/'):
+        file_path = file_path[4:]  # Убираем 'app/'
+    
+    # Если путь все еще относительный, делаем его абсолютным относительно рабочей директории
+    if not os.path.isabs(file_path):
+        # Рабочая директория в контейнере - /app
+        file_path = os.path.join('/', 'app', file_path)
+    
+    # Альтернативный вариант: если файл не найден, пробуем найти по имени файла
+    if not os.path.exists(file_path):
+        # Пробуем найти файл по имени в папке траншеи
+        upload_folder = os.path.join('/', 'app', 'app', 'static', 'uploads', 'trenches', str(trench_id))
+        alt_path = os.path.join(upload_folder, trench_file.filename)
+        if os.path.exists(alt_path):
+            file_path = alt_path
+        else:
+            # Пробуем еще один вариант
+            alt_path2 = os.path.join('/', 'app', 'static', 'uploads', 'trenches', str(trench_id), trench_file.filename)
+            if os.path.exists(alt_path2):
+                file_path = alt_path2
+    
+    if os.path.exists(file_path):
         # Для изображений отдаем без скачивания (для просмотра)
         if trench_file.mime_type and trench_file.mime_type.startswith('image/'):
-            return send_file(trench_file.file_path, mimetype=trench_file.mime_type)
+            return send_file(file_path, mimetype=trench_file.mime_type)
         else:
             # Для остальных файлов - скачивание
-            return send_file(trench_file.file_path, as_attachment=True, download_name=trench_file.original_filename)
+            return send_file(file_path, as_attachment=True, download_name=trench_file.original_filename)
     else:
+        current_app.logger.error(f'Файл не найден: {file_path} (оригинальный путь в БД: {trench_file.file_path}, filename: {trench_file.filename})')
         flash('Файл не найден', 'error')
         return redirect(url_for('objects.trenches_list', object_id=object_id))
 
