@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort, send_file
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort, send_file, current_app
 from io import BytesIO
 from flask_login import login_required, current_user
 from app.extensions import db, cache
@@ -1710,32 +1710,39 @@ def add_trench_excavation(object_id, trench_id):
         upload_folder = os.path.join('app', 'static', 'uploads', 'trenches', str(trench_id))
         os.makedirs(upload_folder, exist_ok=True)
         
+        saved_files_count = 0
         for file in files:
             if file and file.filename:
-                filename = secure_filename(file.filename)
-                unique_filename = f"{uuid.uuid4()}_{filename}"
-                file_path = os.path.join(upload_folder, unique_filename)
-                
-                file.save(file_path)
-                
-                # Определяем MIME тип
-                content_type, _ = mimetypes.guess_type(file.filename)
-                if not content_type:
-                    content_type = 'application/octet-stream'
-                
-                trench_file = TrenchFile(
-                    id=str(uuid.uuid4()),
-                    trench_id=trench_id,
-                    excavation_id=excavation.id,
-                    filename=unique_filename,
-                    original_filename=filename,
-                    file_path=file_path,
-                    file_size=os.path.getsize(file_path),
-                    mime_type=content_type,
-                    created_by=current_user.userid
-                )
-                
-                db.session.add(trench_file)
+                try:
+                    filename = secure_filename(file.filename)
+                    unique_filename = f"{uuid.uuid4()}_{filename}"
+                    file_path = os.path.join(upload_folder, unique_filename)
+                    
+                    file.save(file_path)
+                    
+                    # Определяем MIME тип
+                    content_type, _ = mimetypes.guess_type(file.filename)
+                    if not content_type:
+                        content_type = 'application/octet-stream'
+                    
+                    trench_file = TrenchFile(
+                        id=str(uuid.uuid4()),
+                        trench_id=trench_id,
+                        excavation_id=excavation.id,
+                        filename=unique_filename,
+                        original_filename=filename,
+                        file_path=file_path,
+                        file_size=os.path.getsize(file_path),
+                        mime_type=content_type,
+                        created_by=current_user.userid
+                    )
+                    
+                    db.session.add(trench_file)
+                    saved_files_count += 1
+                except Exception as e:
+                    # Логируем ошибку, но продолжаем обработку остальных файлов
+                    current_app.logger.error(f'Ошибка при сохранении файла {file.filename}: {str(e)}')
+                    continue
         
         # Обновляем статус траншеи
         trench.check_completion_status()
@@ -1752,7 +1759,10 @@ def add_trench_excavation(object_id, trench_id):
             method=request.method
         )
         
-        flash(f'Запись о копке {length}м успешно добавлена с {len(files)} файл(ами)', 'success')
+        if saved_files_count < len(files):
+            flash(f'Запись о копке {length}м добавлена. Сохранено {saved_files_count} из {len(files)} файл(ов)', 'warning' if saved_files_count > 0 else 'error')
+        else:
+            flash(f'Запись о копке {length}м успешно добавлена с {saved_files_count} файл(ами)', 'success')
         return redirect(url_for('objects.trenches_list', object_id=object_id))
     
     return render_template('objects/mobile_add_trench_excavation.html' if is_mobile else 'objects/add_trench_excavation.html', object=obj, trench=trench)
