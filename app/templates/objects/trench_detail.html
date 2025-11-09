@@ -1,0 +1,193 @@
+{% extends "main/layout.html" %}
+
+{% block title %}Траншея - {{ object.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="margin-top: 80px;">
+    <div class="row">
+        <div class="col-12">
+            <!-- Заголовок -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-tools me-2"></i>
+                        Детали траншеи
+                    </h1>
+                    <p class="text-muted mb-0">
+                        Объект: <a href="{{ url_for('objects.object_detail', object_id=object.id) }}">{{ object.name }}</a>
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('objects.trenches_list', object_id=object.id) }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Назад к списку
+                    </a>
+                    <a href="{{ url_for('objects.add_trench_excavation', object_id=object.id, trench_id=trench.id) }}" class="btn btn-success">
+                        <i class="bi bi-plus-lg me-1"></i>
+                        Добавить запись о копке
+                    </a>
+                </div>
+            </div>
+
+            <!-- Общая информация о траншее -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Общая информация
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <strong>Статус:</strong>
+                            <span class="badge bg-{{ 'success' if trench.status == 'completed' else 'warning' if trench.status == 'in_progress' else 'secondary' }} ms-2">
+                                {{ 'Завершено' if trench.status == 'completed' else 'В работе' if trench.status == 'in_progress' else 'Запланировано' }}
+                            </span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Общий метраж:</strong>
+                            <span class="badge bg-primary ms-2">
+                                {% if trench.total_length %}{{ trench.total_length }}м{% else %}Не указан{% endif %}
+                            </span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Выкопано:</strong>
+                            <span class="badge bg-info ms-2">{{ trench.total_excavated }}м</span>
+                            {% if trench.total_length %}
+                            <small class="text-muted ms-2">
+                                ({{ (trench.total_excavated / trench.total_length * 100)|round(1) }}%)
+                            </small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Файлы:</strong>
+                            <span class="badge bg-{{ 'success' if trench.files_count >= trench.required_files else 'warning' }} ms-2">
+                                {{ trench.files_count }}/{{ trench.required_files }}
+                            </span>
+                        </div>
+                        {% if trench.notes %}
+                        <div class="col-12 mb-3">
+                            <strong>Примечания:</strong>
+                            <p class="text-muted mb-0 mt-1">{{ trench.notes }}</p>
+                        </div>
+                        {% endif %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Создано:</strong>
+                            <span class="text-muted ms-2">{{ trench.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                        </div>
+                        {% if trench.creator %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Создал:</strong>
+                            <span class="text-muted ms-2">{{ trench.creator.login }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Записи о копке -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-list-ul me-2"></i>
+                        Записи о копке ({{ excavations|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if excavations %}
+                        {% for excavation in excavations %}
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">
+                                            <i class="bi bi-calendar-check me-2"></i>
+                                            {{ excavation.excavation_date.strftime('%d.%m.%Y') }}
+                                        </h6>
+                                        <small class="text-muted">
+                                            Длина: <strong>{{ excavation.length }}м</strong>
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        {% if excavation.creator %}
+                                        <small class="text-muted d-block">
+                                            <i class="bi bi-person me-1"></i>
+                                            {{ excavation.creator.login }}
+                                        </small>
+                                        {% endif %}
+                                        <small class="text-muted">
+                                            {{ excavation.created_at.strftime('%d.%m.%Y %H:%M') }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                {% if excavation.notes %}
+                                <div class="mb-3">
+                                    <strong>Примечания:</strong>
+                                    <p class="text-muted mb-0">{{ excavation.notes }}</p>
+                                </div>
+                                {% endif %}
+                                
+                                {% if excavation.files_list %}
+                                <div class="mb-3">
+                                    <strong>
+                                        <i class="bi bi-images me-1"></i>
+                                        Файлы ({{ excavation.files_list|length }}):
+                                    </strong>
+                                    <div class="row mt-2">
+                                        {% for file in excavation.files_list %}
+                                        <div class="col-md-4 col-lg-3 mb-3">
+                                            <div class="card h-100">
+                                                {% if file.mime_type and file.mime_type.startswith('image/') %}
+                                                <a href="{{ url_for('objects.download_trench_file', object_id=object.id, trench_id=trench.id, file_id=file.id) }}" 
+                                                   target="_blank" class="text-decoration-none">
+                                                    <img src="{{ url_for('objects.download_trench_file', object_id=object.id, trench_id=trench.id, file_id=file.id) }}" 
+                                                         class="card-img-top" 
+                                                         alt="{{ file.original_filename }}"
+                                                         style="height: 200px; object-fit: cover; cursor: pointer;">
+                                                </a>
+                                                {% else %}
+                                                <div class="card-body text-center">
+                                                    <i class="bi bi-file-earmark display-4 text-muted"></i>
+                                                </div>
+                                                {% endif %}
+                                                <div class="card-footer">
+                                                    <small class="text-muted d-block text-truncate" title="{{ file.original_filename }}">
+                                                        {{ file.original_filename }}
+                                                    </small>
+                                                    <a href="{{ url_for('objects.download_trench_file', object_id=object.id, trench_id=trench.id, file_id=file.id) }}" 
+                                                       class="btn btn-sm btn-outline-primary mt-2 w-100" 
+                                                       download>
+                                                        <i class="bi bi-download me-1"></i>
+                                                        Скачать
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-info mb-0">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Файлы не прикреплены
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="alert alert-info mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Записи о копке отсутствуют
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

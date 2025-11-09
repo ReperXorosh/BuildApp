@@ -1,0 +1,425 @@
+{% extends "main/mobile_layout_bootstrap.html" %}
+{% set active_page = 'objects' %}
+
+{% block title %}Траншея: {{ object.name }}{% endblock %}
+{% block mobile_title %}Детали траншеи{% endblock %}
+{% block mobile_header_actions %}
+<a class="mobile-header-btn" href="{{ url_for('objects.add_trench_excavation', object_id=object.id, trench_id=trench.id) }}" title="Добавить запись о копке" role="button" aria-label="Добавить запись о копке">
+    <svg fill="currentColor" viewBox="0 0 16 16">
+        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+    </svg>
+</a>
+{% endblock %}
+
+{% block content %}
+    <div class="mobile-header-info">
+        <h2 class="mobile-page-title">{{ object.name }}</h2>
+        <p class="mobile-page-subtitle">Детали траншеи</p>
+    </div>
+
+    <!-- Общая информация -->
+    <div class="mobile-card">
+        <div class="mobile-card-header">
+            <div class="mobile-card-title">
+                <i class="bi bi-info-circle me-2"></i>
+                Общая информация
+            </div>
+        </div>
+        <div class="mobile-card-body">
+            <div class="mobile-info-row">
+                <span class="mobile-info-label">Статус:</span>
+                <span class="mobile-info-value">
+                    <span class="badge bg-{{ 'success' if trench.status == 'completed' else 'warning' if trench.status == 'in_progress' else 'secondary' }}">
+                        {{ 'Завершено' if trench.status == 'completed' else 'В работе' if trench.status == 'in_progress' else 'Запланировано' }}
+                    </span>
+                </span>
+            </div>
+            <div class="mobile-info-row">
+                <span class="mobile-info-label">Общий метраж:</span>
+                <span class="mobile-info-value">
+                    {% if trench.total_length %}
+                    <span class="badge bg-primary">{{ trench.total_length }}м</span>
+                    {% else %}
+                    <span class="text-muted">Не указан</span>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="mobile-info-row">
+                <span class="mobile-info-label">Выкопано:</span>
+                <span class="mobile-info-value">
+                    <span class="badge bg-info">{{ trench.total_excavated }}м</span>
+                    {% if trench.total_length %}
+                    <small class="text-muted">
+                        ({{ (trench.total_excavated / trench.total_length * 100)|round(1) }}%)
+                    </small>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="mobile-info-row">
+                <span class="mobile-info-label">Файлы:</span>
+                <span class="mobile-info-value">
+                    <span class="badge bg-{{ 'success' if trench.files_count >= trench.required_files else 'warning' }}">
+                        {{ trench.files_count }}/{{ trench.required_files }}
+                    </span>
+                </span>
+            </div>
+            {% if trench.notes %}
+            <div class="mobile-info-row">
+                <span class="mobile-info-label">Примечания:</span>
+                <span class="mobile-info-value">
+                    <small class="text-muted">{{ trench.notes }}</small>
+                </span>
+            </div>
+            {% endif %}
+            <div class="mobile-info-row">
+                <span class="mobile-info-label">Создано:</span>
+                <span class="mobile-info-value">
+                    <small class="text-muted">{{ trench.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
+                </span>
+            </div>
+            {% if trench.creator %}
+            <div class="mobile-info-row">
+                <span class="mobile-info-label">Создал:</span>
+                <span class="mobile-info-value">
+                    <small class="text-muted">{{ trench.creator.login }}</small>
+                </span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Записи о копке -->
+    <div class="mobile-section-title">
+        <i class="bi bi-list-ul me-2"></i>
+        Записи о копке ({{ excavations|length }})
+    </div>
+
+    {% if excavations %}
+        {% for excavation in excavations %}
+        <div class="mobile-card">
+            <div class="mobile-card-header">
+                <div class="mobile-card-title">
+                    <i class="bi bi-calendar-check me-2"></i>
+                    {{ excavation.excavation_date.strftime('%d.%m.%Y') }}
+                </div>
+                <span class="badge bg-primary">{{ excavation.length }}м</span>
+            </div>
+            <div class="mobile-card-body">
+                {% if excavation.creator %}
+                <div class="mobile-info-row">
+                    <span class="mobile-info-label">Копал:</span>
+                    <span class="mobile-info-value">
+                        <small class="text-muted">{{ excavation.creator.login }}</small>
+                    </span>
+                </div>
+                {% endif %}
+                <div class="mobile-info-row">
+                    <span class="mobile-info-label">Создано:</span>
+                    <span class="mobile-info-value">
+                        <small class="text-muted">{{ excavation.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
+                    </span>
+                </div>
+                {% if excavation.notes %}
+                <div class="mobile-info-row">
+                    <span class="mobile-info-label">Примечания:</span>
+                    <span class="mobile-info-value">
+                        <small class="text-muted">{{ excavation.notes }}</small>
+                    </span>
+                </div>
+                {% endif %}
+                
+                {% if excavation.files_list %}
+                <div class="mt-3">
+                    <strong class="d-block mb-2">
+                        <i class="bi bi-images me-1"></i>
+                        Файлы ({{ excavation.files_list|length }}):
+                    </strong>
+                    <div class="row g-2">
+                        {% for file in excavation.files_list %}
+                        <div class="col-6">
+                            <div class="mobile-file-card">
+                                {% if file.mime_type and file.mime_type.startswith('image/') %}
+                                <a href="{{ url_for('objects.download_trench_file', object_id=object.id, trench_id=trench.id, file_id=file.id) }}" 
+                                   target="_blank" class="text-decoration-none">
+                                    <img src="{{ url_for('objects.download_trench_file', object_id=object.id, trench_id=trench.id, file_id=file.id) }}" 
+                                         class="mobile-file-image" 
+                                         alt="{{ file.original_filename }}">
+                                </a>
+                                {% else %}
+                                <div class="mobile-file-icon">
+                                    <i class="bi bi-file-earmark display-6 text-muted"></i>
+                                </div>
+                                {% endif %}
+                                <div class="mobile-file-info">
+                                    <small class="text-muted d-block text-truncate" title="{{ file.original_filename }}">
+                                        {{ file.original_filename }}
+                                    </small>
+                                    <a href="{{ url_for('objects.download_trench_file', object_id=object.id, trench_id=trench.id, file_id=file.id) }}" 
+                                       class="mobile-btn mobile-btn-outline-primary btn-sm mt-1 w-100" 
+                                       download>
+                                        <i class="bi bi-download me-1"></i>
+                                        Скачать
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="alert alert-info mt-3 mb-0">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Файлы не прикреплены
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="mobile-empty-state">
+        <div class="mobile-empty-icon">
+            <i class="bi bi-list-ul"></i>
+        </div>
+        <h3 class="mobile-empty-title">Записи о копке отсутствуют</h3>
+        <p class="mobile-empty-subtitle">Добавьте первую запись о копке траншеи</p>
+        <a href="{{ url_for('objects.add_trench_excavation', object_id=object.id, trench_id=trench.id) }}" class="mobile-btn mobile-btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>
+            Добавить запись о копке
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Кнопка "Назад" -->
+    <div class="mobile-bottom-actions">
+        <a href="{{ url_for('objects.trenches_list', object_id=object.id) }}" class="mobile-btn mobile-btn-outline-secondary w-100">
+            <i class="bi bi-arrow-left me-2"></i>
+            Назад к списку траншей
+        </a>
+    </div>
+
+<style>
+.mobile-header-info {
+    padding: 16px;
+    background: var(--bs-body-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.mobile-page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    color: var(--bs-body-color);
+}
+
+.mobile-page-subtitle {
+    font-size: 0.9rem;
+    color: var(--bs-secondary-color);
+    margin: 0;
+}
+
+.mobile-section-title {
+    padding: 16px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--bs-body-color);
+    background: var(--bs-body-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.mobile-cards-container {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.mobile-card {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin: 0 16px 16px 16px;
+}
+
+.mobile-card-header {
+    padding: 16px;
+    background: var(--bs-light);
+    border-bottom: 1px solid var(--bs-border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mobile-card-title {
+    font-weight: 600;
+    color: var(--bs-body-color);
+    margin: 0;
+}
+
+.mobile-card-body {
+    padding: 16px;
+}
+
+.mobile-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.mobile-info-row:last-child {
+    margin-bottom: 0;
+}
+
+.mobile-info-label {
+    font-weight: 500;
+    color: var(--bs-body-color);
+    font-size: 0.9rem;
+    flex: 0 0 40%;
+}
+
+.mobile-info-value {
+    text-align: right;
+    font-size: 0.9rem;
+    flex: 1;
+}
+
+.mobile-file-card {
+    background: var(--bs-light);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.mobile-file-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+
+.mobile-file-icon {
+    padding: 20px;
+    text-align: center;
+    background: var(--bs-light);
+}
+
+.mobile-file-info {
+    padding: 12px;
+}
+
+.mobile-bottom-actions {
+    padding: 16px;
+    background: var(--bs-body-bg);
+    border-top: 1px solid var(--bs-border-color);
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+}
+
+.mobile-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    text-decoration: none;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.mobile-btn-primary {
+    background: var(--bs-primary);
+    color: white;
+}
+
+.mobile-btn-primary:hover {
+    background: var(--bs-primary-dark);
+    color: white;
+}
+
+.mobile-btn-outline-primary {
+    background: transparent;
+    color: var(--bs-primary);
+    border: 1px solid var(--bs-primary);
+}
+
+.mobile-btn-outline-primary:hover {
+    background: var(--bs-primary);
+    color: white;
+}
+
+.mobile-btn-outline-secondary {
+    background: transparent;
+    color: var(--bs-secondary);
+    border: 1px solid var(--bs-secondary);
+}
+
+.mobile-btn-outline-secondary:hover {
+    background: var(--bs-secondary);
+    color: white;
+}
+
+.mobile-empty-state {
+    padding: 48px 16px;
+    text-align: center;
+}
+
+.mobile-empty-icon {
+    font-size: 4rem;
+    color: var(--bs-secondary-color);
+    margin-bottom: 16px;
+}
+
+.mobile-empty-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--bs-body-color);
+    margin-bottom: 8px;
+}
+
+.mobile-empty-subtitle {
+    color: var(--bs-secondary-color);
+    margin-bottom: 24px;
+}
+
+.w-100 {
+    width: 100% !important;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.875rem;
+}
+
+/* Стили для темной темы */
+[data-bs-theme="dark"] .mobile-card {
+    background: var(--bs-dark);
+    border: 1px solid var(--bs-border-color);
+}
+
+[data-bs-theme="dark"] .mobile-card-header {
+    background: var(--bs-gray-800);
+}
+
+[data-bs-theme="dark"] .mobile-file-card {
+    background: var(--bs-gray-800);
+}
+
+[data-bs-theme="dark"] .mobile-page-title {
+    color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .mobile-card-title {
+    color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .mobile-info-label {
+    color: var(--bs-light);
+}
+</style>
+{% endblock %}
+

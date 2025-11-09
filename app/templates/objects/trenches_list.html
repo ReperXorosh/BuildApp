@@ -33,7 +33,7 @@
             <div class="row">
                 {% for trench in trenches %}
                 <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100">
+                    <div class="card h-100 clickable-card" data-url="{{ url_for('objects.trench_detail', object_id=object.id, trench_id=trench.id) }}">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h6 class="card-title mb-0">
                                 <i class="bi bi-tools me-2"></i>
@@ -82,9 +82,14 @@
                             
                             <div class="d-grid gap-2">
                             <a href="{{ url_for('objects.add_trench_excavation', object_id=object.id, trench_id=trench.id) }}" 
-                               class="btn btn-success btn-sm">
+                               class="btn btn-success btn-sm" data-ignore-card-click="true">
                                     <i class="bi bi-plus-lg me-1"></i>
                                     Добавить запись о копке
+                                </a>
+                            <a href="{{ url_for('objects.trench_detail', object_id=object.id, trench_id=trench.id) }}" 
+                               class="btn btn-outline-primary btn-sm" data-ignore-card-click="true">
+                                    <i class="bi bi-eye me-1"></i>
+                                    Подробнее
                                 </a>
                             </div>
                         </div>

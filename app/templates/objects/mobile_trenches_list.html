@@ -20,6 +20,7 @@
     {% if trenches %}
     <div class="mobile-cards-container">
         {% for trench in trenches %}
+                <a href="{{ url_for('objects.trench_detail', object_id=object.id, trench_id=trench.id) }}" class="mobile-card-link">
                 <div class="mobile-card">
             <div class="mobile-card-header">
                 <div class="mobile-card-title">
@@ -79,12 +80,13 @@
             
             <div class="mobile-card-footer">
                 <a href="{{ url_for('objects.add_trench_excavation', object_id=object.id, trench_id=trench.id) }}" 
-                   class="mobile-btn mobile-btn-primary w-100">
+                   class="mobile-btn mobile-btn-success w-100" onclick="event.stopPropagation();">
                     <i class="bi bi-plus-lg me-2"></i>
                     Добавить запись о копке
                 </a>
             </div>
         </div>
+        </a>
         {% endfor %}
     </div>
     {% else %}
@@ -129,12 +131,24 @@
     gap: 16px;
 }
 
+.mobile-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
 .mobile-card {
     background: var(--bs-body-bg);
     border: 1px solid var(--bs-border-color);
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mobile-card-link:active .mobile-card {
+    transform: scale(0.98);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 .mobile-card-header {
@@ -226,6 +240,16 @@
 
 .mobile-btn-primary:hover {
     background: var(--bs-primary-dark);
+    color: white;
+}
+
+.mobile-btn-success {
+    background: var(--bs-success);
+    color: white;
+}
+
+.mobile-btn-success:hover {
+    background: var(--bs-success-dark, #198754);
     color: white;
 }
 

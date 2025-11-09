@@ -1767,10 +1767,56 @@ def add_trench_excavation(object_id, trench_id):
     
     return render_template('objects/mobile_add_trench_excavation.html' if is_mobile else 'objects/add_trench_excavation.html', object=obj, trench=trench)
 
+@objects_bp.route('/<uuid:object_id>/trenches/<uuid:trench_id>')
+@login_required
+def trench_detail(object_id, trench_id):
+    """Детальный просмотр траншеи с записями о копке и файлами"""
+    obj = Object.query.get_or_404(object_id)
+    trench = Trench.query.filter_by(id=trench_id, object_id=object_id).first_or_404()
+    
+    # Получаем все записи о копке с файлами
+    excavations = TrenchExcavation.query.filter_by(trench_id=trench_id).order_by(TrenchExcavation.excavation_date.desc(), TrenchExcavation.created_at.desc()).all()
+    
+    # Для каждой записи получаем файлы и информацию о создателе
+    from app.models.users import Users
+    for excavation in excavations:
+        excavation.files_list = TrenchFile.query.filter_by(excavation_id=excavation.id).all()
+        if excavation.created_by:
+            excavation.creator = Users.query.get(excavation.created_by)
+        else:
+            excavation.creator = None
+    
+    # Получаем общую информацию
+    trench.total_excavated = trench.get_total_excavated_length()
+    trench.files_count = trench.get_files_count()
+    trench.required_files = trench.get_required_files_count()
+    
+    # Получаем создателя траншеи
+    if trench.created_by:
+        trench.creator = Users.query.get(trench.created_by)
+    else:
+        trench.creator = None
+    
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр деталей траншеи",
+        description=f"Пользователь {current_user.login} просмотрел детали траншеи объекта '{obj.name}'",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    from ..utils.mobile_detection import is_mobile_device
+    is_mobile = is_mobile_device()
+    
+    return render_template('objects/mobile_trench_detail.html' if is_mobile else 'objects/trench_detail.html', 
+                         object=obj, trench=trench, excavations=excavations)
+
 @objects_bp.route('/<uuid:object_id>/trenches/<uuid:trench_id>/files/<uuid:file_id>/download')
 @login_required
 def download_trench_file(object_id, trench_id, file_id):
-    """Скачивание файла траншеи"""
+    """Скачивание или просмотр файла траншеи"""
     obj = Object.query.get_or_404(object_id)
     trench = Trench.query.filter_by(id=trench_id, object_id=object_id).first_or_404()
     trench_file = TrenchFile.query.filter_by(id=file_id, trench_id=trench_id).first_or_404()
@@ -1778,7 +1824,12 @@ def download_trench_file(object_id, trench_id, file_id):
     import os
     
     if os.path.exists(trench_file.file_path):
-        return send_file(trench_file.file_path, as_attachment=True, download_name=trench_file.original_filename)
+        # Для изображений отдаем без скачивания (для просмотра)
+        if trench_file.mime_type and trench_file.mime_type.startswith('image/'):
+            return send_file(trench_file.file_path, mimetype=trench_file.mime_type)
+        else:
+            # Для остальных файлов - скачивание
+            return send_file(trench_file.file_path, as_attachment=True, download_name=trench_file.original_filename)
     else:
         flash('Файл не найден', 'error')
         return redirect(url_for('objects.trenches_list', object_id=object_id))
