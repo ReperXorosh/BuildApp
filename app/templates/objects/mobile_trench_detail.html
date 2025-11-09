@@ -227,6 +227,12 @@
     align-items: center;
 }
 
+/* В темной теме шапка карточки должна быть темной */
+[data-bs-theme="dark"] .mobile-card-header {
+    background: var(--bs-gray-800) !important;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
 .mobile-card-title {
     font-weight: 600;
     color: var(--bs-body-color);
@@ -387,7 +393,7 @@
 }
 
 [data-bs-theme="dark"] .mobile-card-header {
-    background: var(--bs-gray-800);
+    background: var(--bs-gray-800) !important;
     border-bottom: 1px solid var(--bs-border-color);
 }
 
@@ -395,8 +401,13 @@
     color: var(--bs-light) !important;
 }
 
+[data-bs-theme="dark"] .mobile-card-header .mobile-card-title i {
+    color: var(--bs-light) !important;
+}
+
 [data-bs-theme="dark"] .mobile-card-header .badge {
-    color: var(--bs-light);
+    background-color: var(--bs-primary) !important;
+    color: white !important;
 }
 
 [data-bs-theme="dark"] .mobile-card-header small {
