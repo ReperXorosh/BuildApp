@@ -1569,8 +1569,8 @@ def trenches_list(object_id):
     """Список траншей объекта"""
     obj = Object.query.get_or_404(object_id)
     
-    # Получаем траншеи объекта (сортируем по возрастанию даты создания, чтобы первая добавленная траншея была номером 1)
-    trenches = Trench.query.filter_by(object_id=object_id).order_by(Trench.created_at.asc()).all()
+    # Получаем траншеи объекта (сортируем по убыванию даты создания - последние добавленные сверху)
+    trenches = Trench.query.filter_by(object_id=object_id).order_by(Trench.created_at.desc()).all()
     
     # Для каждой траншеи получаем общую длину и количество файлов
     for trench in trenches:

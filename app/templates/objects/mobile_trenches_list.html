@@ -25,7 +25,7 @@
             <div class="mobile-card-header">
                 <div class="mobile-card-title">
                     <i class="bi bi-tools me-2"></i>
-                    Траншея #{{ loop.index }}
+                    Траншея #{{ trenches|length - loop.index + 1 }}
                 </div>
                 <span class="badge bg-{{ 'success' if trench.status == 'completed' else 'warning' if trench.status == 'in_progress' else 'secondary' }}">
                     {{ 'Завершено' if trench.status == 'completed' else 'В работе' if trench.status == 'in_progress' else 'Запланировано' }}
