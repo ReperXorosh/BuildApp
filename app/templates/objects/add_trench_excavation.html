@@ -59,15 +59,32 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="files" class="form-label">
+                                    <label class="form-label">
                                         <i class="bi bi-camera me-1"></i>
                                         Файлы (фото/документы) *
                                     </label>
-                                    <input type="file" class="form-control" id="files" name="files" multiple accept="image/*,.pdf,.doc,.docx" required>
-                                    <div class="form-text">
+                                    
+                                    <!-- Скрытый input для файлов -->
+                                    <input type="file" class="form-control d-none" id="files" name="files" multiple accept="image/*,.pdf,.doc,.docx">
+                                    
+                                    <!-- Кнопки для выбора файлов -->
+                                    <div class="d-flex gap-2 mb-2">
+                                        <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('files').click()">
+                                            <i class="bi bi-plus-circle me-1"></i>
+                                            Выбрать файлы
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="clearAllFiles()">
+                                            <i class="bi bi-trash me-1"></i>
+                                            Очистить все
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="form-text" style="min-height: 40px;">
                                         <strong>Требование:</strong> минимум 1 файл на каждые 20 метров. 
                                         <span id="required-files-info"></span>
+                                        <br><strong>Совет:</strong> Удерживайте Ctrl (Cmd на Mac) для выбора нескольких файлов одновременно.
                                     </div>
+                                    <div id="selected-files-list" class="mt-2"></div>
                                 </div>
 
                                 <div class="mb-3">
@@ -112,28 +129,171 @@ document.addEventListener('DOMContentLoaded', function() {
         requiredFilesInfo.textContent = `Для ${length}м требуется минимум ${requiredFiles} файл(ов)`;
     }
     
+    // Массив для хранения выбранных файлов
+    let selectedFiles = [];
+    
+    // Функция для отображения выбранных файлов
+    function updateSelectedFilesList() {
+        const filesList = document.getElementById('selected-files-list');
+        
+        if (selectedFiles.length === 0) {
+            filesList.innerHTML = '';
+            return;
+        }
+        
+        let html = '<div class="alert alert-info"><strong>Выбранные файлы:</strong><ul class="mb-0 mt-2" style="list-style: none; padding-left: 0;">';
+        for (let i = 0; i < selectedFiles.length; i++) {
+            html += `<li class="d-flex justify-content-between align-items-center mb-2">
+                        <span>${selectedFiles[i].name} (${(selectedFiles[i].size / 1024 / 1024).toFixed(2)} МБ)</span>
+                        <button type="button" class="btn btn-sm btn-outline-danger ms-3" onclick="removeFile(${i})" title="Удалить файл">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                     </li>`;
+        }
+        html += '</ul></div>';
+        
+        filesList.innerHTML = html;
+    }
+    
+    // Функция для проверки дубликатов файлов
+    function isDuplicateFile(newFile) {
+        return selectedFiles.some(existingFile => 
+            existingFile.name === newFile.name && 
+            existingFile.size === newFile.size &&
+            existingFile.lastModified === newFile.lastModified
+        );
+    }
+    
+    // Функция для проверки дубликатов изображений по содержимому (асинхронная)
+    async function checkImageDuplicates(newFile) {
+        if (!newFile.type.startsWith('image/')) {
+            return false;
+        }
+        
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const newImageData = e.target.result;
+                
+                // Проверяем каждое существующее изображение
+                for (let existingFile of selectedFiles) {
+                    if (existingFile.type.startsWith('image/')) {
+                        const existingReader = new FileReader();
+                        existingReader.onload = function(e2) {
+                            if (e2.target.result === newImageData) {
+                                resolve(true);
+                                return;
+                            }
+                        };
+                        existingReader.readAsDataURL(existingFile);
+                    }
+                }
+                resolve(false);
+            };
+            reader.readAsDataURL(newFile);
+        });
+    }
+    
+    // Функция для добавления файлов
+    async function addFiles(newFiles) {
+        let addedCount = 0;
+        let duplicateCount = 0;
+        
+        for (let i = 0; i < newFiles.length; i++) {
+            const newFile = newFiles[i];
+            
+            // Проверяем базовые дубликаты (имя, размер, дата изменения)
+            if (isDuplicateFile(newFile)) {
+                duplicateCount++;
+                continue;
+            }
+            
+            // Для изображений проверяем содержимое
+            if (newFile.type.startsWith('image/')) {
+                const isImageDuplicate = await checkImageDuplicates(newFile);
+                if (isImageDuplicate) {
+                    duplicateCount++;
+                    continue;
+                }
+            }
+            
+            // Если файл не дубликат, добавляем его
+            selectedFiles.push(newFile);
+            addedCount++;
+        }
+        
+        updateSelectedFilesList();
+        
+        // Показываем уведомление о дубликатах
+        if (duplicateCount > 0) {
+            alert(`Пропущено ${duplicateCount} дубликат(ов) файлов. Одинаковые файлы не добавляются повторно.`);
+        }
+        
+        if (addedCount > 0) {
+            console.log(`Добавлено ${addedCount} новых файл(ов)`);
+        }
+    }
+    
+    // Функция для удаления файла
+    function removeFile(index) {
+        selectedFiles.splice(index, 1);
+        updateSelectedFilesList();
+    }
+    
+    // Делаем функцию глобальной
+    window.removeFile = removeFile;
+    
+    // Функция для очистки всех файлов
+    function clearAllFiles() {
+        selectedFiles = [];
+        filesInput.value = '';
+        updateSelectedFilesList();
+    }
+    
+    // Делаем функцию глобальной
+    window.clearAllFiles = clearAllFiles;
+    
     // Обновляем информацию при изменении длины
     lengthInput.addEventListener('input', updateRequiredFilesInfo);
+    
+    // Обновляем список файлов при выборе
+    filesInput.addEventListener('change', function() {
+        const newFiles = Array.from(this.files);
+        addFiles(newFiles);
+        // Очищаем input для возможности повторного выбора
+        this.value = '';
+    });
     
     // Валидация при отправке формы
     form.addEventListener('submit', function(e) {
         const length = parseFloat(lengthInput.value);
-        const files = filesInput.files;
         const requiredFiles = Math.max(1, Math.ceil(length / 20));
         
-        if (length <= 0) {
+        if (isNaN(length) || length <= 0) {
             e.preventDefault();
             alert('Длина должна быть больше 0');
             lengthInput.focus();
             return;
         }
         
-        if (files.length < requiredFiles) {
+        if (selectedFiles.length < requiredFiles) {
             e.preventDefault();
-            alert(`Необходимо прикрепить минимум ${requiredFiles} файл(ов) для ${length} метров`);
-            filesInput.focus();
+            alert(`Необходимо прикрепить минимум ${requiredFiles} файл(ов) для ${length} метров. Сейчас выбрано: ${selectedFiles.length} файл(ов)`);
             return;
         }
+        
+        // Создаем DataTransfer для передачи файлов в input
+        const dataTransfer = new DataTransfer();
+        selectedFiles.forEach(file => dataTransfer.items.add(file));
+        filesInput.files = dataTransfer.files;
+        
+        // Если валидация прошла успешно, форма отправится естественным образом
+        console.log('Отправляем форму с', selectedFiles.length, 'файлами');
     });
     
     // Устанавливаем сегодняшнюю дату по умолчанию
@@ -141,4 +301,36 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('excavation_date').value = today;
 });
 </script>
+
+<style>
+    /* Стабилизация полей формы */
+    .mb-3 {
+        transition: none !important;
+    }
+    
+    .form-control {
+        transition: none !important;
+    }
+    
+    /* Уменьшение высоты полей формы */
+    .row .col-md-6 .mb-3 {
+        margin-bottom: 1rem;
+    }
+    
+    .row .col-md-6 .form-label {
+        margin-bottom: 0.25rem;
+        font-size: 0.9rem;
+    }
+    
+    .row .col-md-6 .form-control {
+        height: 2.25rem;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Компактные поля */
+    .form-control {
+        line-height: 1.4;
+    }
+</style>
 {% endblock %}

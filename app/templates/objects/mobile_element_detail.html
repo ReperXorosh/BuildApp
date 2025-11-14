@@ -16,7 +16,14 @@
 </div>
 
 <div class="mobile-card">
-    <div class="mobile-card-title">Информация</div>
+    <div class="d-flex justify-content-between align-items-center">
+        <div class="mobile-card-title m-0">Информация</div>
+        <a class="btn btn-sm btn-outline-secondary" target="_blank"
+           href="{{ url_for('objects.view_element_attachment_latest', object_id=object.id, element_type=element_type_code, element_id=element.id) }}"
+           title="Просмотреть файл">
+            <i class="bi bi-eye"></i>
+        </a>
+    </div>
     <div>
         <div class="d-flex justify-content-between mb-2">
             <span class="text-muted">Название</span>
@@ -24,7 +31,27 @@
         </div>
         <div class="d-flex justify-content-between mb-2">
             <span class="text-muted">Статус</span>
-            <span class="badge bg-secondary">{{ element.status or '—' }}</span>
+            <span class="badge bg-secondary">
+              {% if element.status %}
+              {% set status_translation = {
+                  'pending': 'Ожидает',
+                  'in_progress': 'В работе',
+                  'completed': 'Завершено',
+                  'cancelled': 'Отменено',
+                  'active': 'Активно',
+                  'inactive': 'Неактивно',
+                  'installed': 'Установлено',
+                  'not_installed': 'Не установлено',
+                  'working': 'Работает',
+                  'broken': 'Сломано',
+                  'maintenance': 'Обслуживание',
+                  'planned': 'Запланировано'
+              } %}
+              {{ status_translation.get(element.status.lower(), element.status) }}
+              {% else %}
+              —
+              {% endif %}
+            </span>
         </div>
     {% set _notes_lines = (element.notes or '').split('\n') %}
     {% set _filtered = [] %}
@@ -45,12 +72,20 @@
         {% endfor %}
         <div>{{ (_trimmed|length > 0) and (_trimmed|join('\n')|replace('\n','<br>')|safe) or '—' }}</div>
     </div>
-    {% if file_url %}
+    {% if attachments %}
     <div class="mt-3">
-        <a href="{{ file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary w-100">
-            <svg class="bi me-1" width="16" height="16" aria-hidden="true"><use href="#file-earmark-text"></use></svg>
-            Просмотреть файл
-        </a>
+        <div class="text-muted mb-2">Файлы:</div>
+        
+        {% for attachment in attachments %}
+        <div class="mb-2">
+            <a href="{{ url_for('objects.view_element_attachment', object_id=object.id, element_type=element_type.lower(), element_id=element.id, attachment_id=attachment.id) }}" 
+               target="_blank" class="btn btn-sm btn-outline-secondary w-100">
+                <i class="bi bi-file-earmark-text me-1"></i>
+                {{ attachment.original_filename }}
+            </a>
+            <small class="text-muted">({{ attachment.size_bytes // 1024 }} КБ)</small>
+        </div>
+        {% endfor %}
     </div>
     {% endif %}
     </div>

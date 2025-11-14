@@ -2,6 +2,17 @@
 
 {% block title %}Опора - {{ object.name }}{% endblock %}
 
+{% block extra_head %}
+<style>
+    .item-actions {
+        display: flex;
+        gap: 0.25rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid" style="margin-top: 80px;">
     <div class="row">
@@ -93,9 +104,9 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="btn-group btn-group-sm">
+                                        <div class="item-actions">
                                             <a href="{{ url_for('objects.support_detail', object_id=object.id, support_id=support.id) }}" 
-                                               class="btn btn-outline-primary" title="Просмотр деталей">
+                                               class="btn btn-sm btn-outline-primary" title="Просмотр деталей">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                     <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                                     <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -103,7 +114,7 @@
                                             </a>
                                             {% if support.planned_work %}
                                             <a href="{{ url_for('objects.planned_works_list', object_id=object.id) }}" 
-                                               class="btn btn-outline-info" title="Запланированные работы">
+                                               class="btn btn-sm btn-outline-info" title="Запланированные работы">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                     <path d="M8 2V5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                                     <path d="M16 2V5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -115,11 +126,23 @@
                                             {% endif %}
                                             {% if support.status != 'completed' %}
                                             <a href="{{ url_for('objects.confirm_support_installation', object_id=object.id, support_id=support.id) }}" 
-                                               class="btn btn-outline-success" title="Подтвердить установку">
+                                               class="btn btn-sm btn-outline-success" title="Подтвердить установку">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                     <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                                 </svg>
                                             </a>
+                                            {% endif %}
+                                            {% if current_user.role in ['Инженер ПТО', 'Ген.Директор'] %}
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                    onclick="deleteSupport('{{ support.id }}', '{{ support.support_number }}')" 
+                                                    title="Удалить опору">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                            </button>
                                             {% endif %}
                                         </div>
                                     </td>
@@ -148,5 +171,31 @@
         </div>
     </div>
 </div>
+
+<script>
+function deleteSupport(supportId, supportNumber) {
+    if (confirm(`Вы уверены, что хотите удалить опору ${supportNumber}? Это действие нельзя отменить. Будут удалены все связанные элементы, файлы и действия.`)) {
+        fetch(`/objects/{{ object.id }}/supports/${supportId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                return response.json().then(data => {
+                    alert('Ошибка при удалении опоры: ' + (data.error || 'Неизвестная ошибка'));
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при удалении опоры: ' + error.message);
+        });
+    }
+}
+</script>
 {% endblock %}
 

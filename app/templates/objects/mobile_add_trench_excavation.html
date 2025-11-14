@@ -33,18 +33,34 @@
         </div>
 
         <div class="mobile-form-group mobile-form-group-files">
-            <label class="mobile-form-label" for="files">Файлы (фото/документы) *</label>
+            <label class="mobile-form-label">Файлы (фото/документы) *</label>
+            
+            <!-- Скрытый input для файлов -->
             <input type="file" 
                    name="files" 
                    id="files" 
-                   class="mobile-form-control mobile-form-control-file" 
+                   class="d-none" 
                    multiple 
-                   accept="image/*,.pdf,.doc,.docx"
-                   required>
-            <div class="form-text">
+                   accept="image/*,.pdf,.doc,.docx">
+            
+            <!-- Кнопки для выбора файлов -->
+            <div class="d-flex gap-2 mb-2">
+                <button type="button" class="mobile-btn mobile-btn-outline-primary" onclick="document.getElementById('files').click()">
+                    <i class="bi bi-plus-circle me-1"></i>
+                    Выбрать файлы
+                </button>
+                <button type="button" class="mobile-btn mobile-btn-outline-secondary" onclick="clearAllFiles()">
+                    <i class="bi bi-trash me-1"></i>
+                    Очистить
+                </button>
+            </div>
+            
+            <div class="form-text" style="min-height: 40px;">
                 <strong>Требование:</strong> минимум 1 файл на каждые 20 метров.
                 <div id="required-files-info"></div>
+                <br><strong>Совет:</strong> Удерживайте Ctrl (Cmd на Mac) для выбора нескольких файлов одновременно.
             </div>
+            <div id="selected-files-list" class="mt-2"></div>
         </div>
 
         <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
@@ -88,8 +104,140 @@ document.addEventListener('DOMContentLoaded', function() {
         requiredFilesInfo.textContent = `Для ${lengthValue}м требуется минимум ${requiredFiles} файл(ов)`;
     }
     
+    // Массив для хранения выбранных файлов
+    let selectedFiles = [];
+    
+    // Функция для отображения выбранных файлов
+    function updateSelectedFilesList() {
+        const filesList = document.getElementById('selected-files-list');
+        
+        if (selectedFiles.length === 0) {
+            filesList.innerHTML = '';
+            return;
+        }
+        
+        let html = '<div class="alert alert-info"><strong>Выбранные файлы:</strong><ul class="mb-0 mt-2">';
+        for (let i = 0; i < selectedFiles.length; i++) {
+            html += `<li class="d-flex justify-content-between align-items-center">
+                        <span>${selectedFiles[i].name} (${(selectedFiles[i].size / 1024 / 1024).toFixed(2)} МБ)</span>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile(${i})" title="Удалить файл">
+                            <svg class="bi" width="16" height="16" aria-hidden="true"><use xlink:href="#trash"></use></svg>
+                        </button>
+                     </li>`;
+        }
+        html += '</ul></div>';
+        
+        filesList.innerHTML = html;
+    }
+    
+    // Функция для проверки дубликатов файлов
+    function isDuplicateFile(newFile) {
+        return selectedFiles.some(existingFile => 
+            existingFile.name === newFile.name && 
+            existingFile.size === newFile.size &&
+            existingFile.lastModified === newFile.lastModified
+        );
+    }
+    
+    // Функция для проверки дубликатов изображений по содержимому (асинхронная)
+    async function checkImageDuplicates(newFile) {
+        if (!newFile.type.startsWith('image/')) {
+            return false;
+        }
+        
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const newImageData = e.target.result;
+                
+                // Проверяем каждое существующее изображение
+                for (let existingFile of selectedFiles) {
+                    if (existingFile.type.startsWith('image/')) {
+                        const existingReader = new FileReader();
+                        existingReader.onload = function(e2) {
+                            if (e2.target.result === newImageData) {
+                                resolve(true);
+                                return;
+                            }
+                        };
+                        existingReader.readAsDataURL(existingFile);
+                    }
+                }
+                resolve(false);
+            };
+            reader.readAsDataURL(newFile);
+        });
+    }
+    
+    // Функция для добавления файлов
+    async function addFiles(newFiles) {
+        let addedCount = 0;
+        let duplicateCount = 0;
+        
+        for (let i = 0; i < newFiles.length; i++) {
+            const newFile = newFiles[i];
+            
+            // Проверяем базовые дубликаты (имя, размер, дата изменения)
+            if (isDuplicateFile(newFile)) {
+                duplicateCount++;
+                continue;
+            }
+            
+            // Для изображений проверяем содержимое
+            if (newFile.type.startsWith('image/')) {
+                const isImageDuplicate = await checkImageDuplicates(newFile);
+                if (isImageDuplicate) {
+                    duplicateCount++;
+                    continue;
+                }
+            }
+            
+            // Если файл не дубликат, добавляем его
+            selectedFiles.push(newFile);
+            addedCount++;
+        }
+        
+        updateSelectedFilesList();
+        
+        // Показываем уведомление о дубликатах
+        if (duplicateCount > 0) {
+            alert(`Пропущено ${duplicateCount} дубликат(ов) файлов. Одинаковые файлы не добавляются повторно.`);
+        }
+        
+        if (addedCount > 0) {
+            console.log(`Добавлено ${addedCount} новых файл(ов)`);
+        }
+    }
+    
+    // Функция для удаления файла
+    function removeFile(index) {
+        selectedFiles.splice(index, 1);
+        updateSelectedFilesList();
+    }
+    
+    // Делаем функцию глобальной
+    window.removeFile = removeFile;
+    
+    // Функция для очистки всех файлов
+    function clearAllFiles() {
+        selectedFiles = [];
+        files.value = '';
+        updateSelectedFilesList();
+    }
+    
+    // Делаем функцию глобальной
+    window.clearAllFiles = clearAllFiles;
+    
     // Обновляем информацию при изменении длины
     length.addEventListener('input', updateRequiredFilesInfo);
+    
+    // Обновляем список файлов при выборе
+    files.addEventListener('change', function() {
+        const newFiles = Array.from(this.files);
+        addFiles(newFiles);
+        // Очищаем input для возможности повторного выбора
+        this.value = '';
+    });
     
     // Обработчик «Назад» с предупреждением
     function confirmLeaveIfDirty(action){
@@ -122,7 +270,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Валидация
     const validateForm = () => {
         const lengthValue = parseFloat(length.value);
-        const filesCount = files.files.length;
         const requiredFiles = Math.max(1, Math.ceil(lengthValue / 20));
         
         if (isNaN(lengthValue) || lengthValue <= 0) { 
@@ -130,10 +277,15 @@ document.addEventListener('DOMContentLoaded', function() {
             return false; 
         }
         
-        if (filesCount < requiredFiles) {
-            alert(`Необходимо прикрепить минимум ${requiredFiles} файл(ов) для ${lengthValue} метров`);
+        if (selectedFiles.length < requiredFiles) {
+            alert(`Необходимо прикрепить минимум ${requiredFiles} файл(ов) для ${lengthValue} метров. Сейчас выбрано: ${selectedFiles.length} файл(ов)`);
             return false;
         }
+        
+        // Создаем DataTransfer для передачи файлов в input
+        const dataTransfer = new DataTransfer();
+        selectedFiles.forEach(file => dataTransfer.items.add(file));
+        files.files = dataTransfer.files;
         
         return true;
     };
@@ -141,13 +293,16 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function(e) {
         trimField(notes);
         if (!validateForm()) { 
-            e.preventDefault(); 
+            e.preventDefault();
             return false; 
         }
         
         submitBtn.disabled = true;
         const original = submitBtn.innerHTML;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Сохранение...';
+        
+        // Если валидация прошла успешно, форма отправится естественным образом
+        console.log('Отправляем мобильную форму с', selectedFiles.length, 'файлами');
         
         setTimeout(() => { 
             submitBtn.disabled = false; 
@@ -373,6 +528,37 @@ document.addEventListener('DOMContentLoaded', function() {
     .mobile-form-group-files {
         margin-bottom: 16px;
     }
+}
+
+/* Стабилизация полей формы */
+.mobile-form-group {
+    transition: none !important;
+}
+
+.mobile-form-control {
+    transition: none !important;
+}
+
+/* Компактные поля в мобильной версии */
+.mobile-form-group {
+    margin-bottom: 1rem;
+}
+
+.mobile-form-label {
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.mobile-form-control {
+    height: 2.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.mobile-form-control-lg {
+    height: 2.75rem;
+    padding: 0.625rem 0.875rem;
 }
 </style>
 {% endblock %}

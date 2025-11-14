@@ -12,4 +12,8 @@ RUN apt-get update && apt-get install -y gcc \
 # Теперь уже код приложения
 COPY . /app/
 
+# Очищаем кэш Python байт-кода для гарантии использования нового кода
+RUN find /app -type d -name __pycache__ -exec rm -r {} + 2>/dev/null || true
+RUN find /app -name "*.pyc" -delete 2>/dev/null || true
+
 CMD ["gunicorn", "-w", "4", "--threads", "2", "-b", "0.0.0.0:8080", "run:application", "--log-level", "info", "--access-logfile", "-"]

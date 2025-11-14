@@ -33,17 +33,17 @@
             <div class="row">
                 {% for trench in trenches %}
                 <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100">
+                    <div class="card h-100 clickable-card" data-url="{{ url_for('objects.trench_detail', object_id=object.id, trench_id=trench.id) }}">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h6 class="card-title mb-0">
                                 <i class="bi bi-tools me-2"></i>
-                                Траншея #{{ loop.index }}
+                                Траншея #{{ trenches|length - loop.index + 1 }}
                             </h6>
                             <span class="badge bg-{{ 'success' if trench.status == 'completed' else 'warning' if trench.status == 'in_progress' else 'secondary' }}">
                                 {{ 'Завершено' if trench.status == 'completed' else 'В работе' if trench.status == 'in_progress' else 'Запланировано' }}
                             </span>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body d-flex flex-column">
                             <div class="mb-3">
                                 <strong>Общий метраж:</strong>
                                 {% if trench.total_length %}
@@ -70,26 +70,35 @@
                                 </span>
                                 {% if trench.files_count < trench.required_files %}
                                 <small class="text-warning d-block">Недостаточно файлов</small>
+                                {% else %}
+                                <small class="d-block" style="visibility: hidden;">Недостаточно файлов</small>
                                 {% endif %}
                             </div>
                             
-                            {% if trench.notes %}
                             <div class="mb-3">
                                 <strong>Примечания:</strong>
+                                {% if trench.notes %}
                                 <p class="text-muted small mb-0">{{ trench.notes[:100] }}{% if trench.notes|length > 100 %}...{% endif %}</p>
+                                {% else %}
+                                <p class="text-muted small mb-0">—</p>
+                                {% endif %}
                             </div>
-                            {% endif %}
                             
-                            <div class="d-grid gap-2">
-                                <a href="{{ url_for('objects.add_trench_excavation', object_id=object.id, trench_id=trench.id) }}" 
-                                   class="btn btn-success btn-sm">
+                            <div class="d-grid gap-2 mt-auto">
+                            <a href="{{ url_for('objects.add_trench_excavation', object_id=object.id, trench_id=trench.id) }}" 
+                               class="btn btn-success btn-sm" data-ignore-card-click="true">
                                     <i class="bi bi-plus-lg me-1"></i>
                                     Добавить запись о копке
                                 </a>
                             </div>
                         </div>
                         <div class="card-footer text-muted small">
+<<<<<<< HEAD
                             Создано: {{ trench.created_at | moscow_date }}
+=======
+                            <i class="bi bi-calendar me-1"></i>
+                            Создано: {{ trench.created_at | user_time_short }}
+>>>>>>> 3fe7e43390e70469a4a61d3800c8437120ec21c3
                         </div>
                     </div>
                 </div>

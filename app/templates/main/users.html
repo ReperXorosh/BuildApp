@@ -23,7 +23,7 @@
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="GET" action="{{ url_for('main.users') }}">
-                <div class="row g-3 align-items-end">
+                <div class="row g-3">
                     <div class="col-md-6">
                         <label for="search" class="form-label">
                             <svg class="bi me-1" width="16" height="16" fill="currentColor">
@@ -40,7 +40,6 @@
                         <div class="form-text">Поиск по логину, имени, фамилии или отчеству</div>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">&nbsp;</label>
                         <button type="submit" class="btn btn-primary w-100">
                             <svg class="bi me-1" width="16" height="16" fill="currentColor">
                                 <use href="#search"></use>
@@ -49,7 +48,6 @@
                         </button>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">&nbsp;</label>
                         <a href="{{ url_for('main.users') }}" class="btn btn-outline-secondary w-100">
                             <svg class="bi me-1" width="16" height="16" fill="currentColor">
                                 <use href="#x-circle"></use>
@@ -213,5 +211,163 @@ function confirmDelete(userId, userName) {
         form.submit();
     }
 }
+
+// Точное выравнивание кнопок поиска относительно поля ввода
+document.addEventListener('DOMContentLoaded', function() {
+    function alignSearchButtons() {
+        const searchInput = document.getElementById('search');
+        const searchButtons = document.querySelectorAll('.row.g-3 > .col-md-3 button, .row.g-3 > .col-md-3 a');
+        
+        if (searchInput && searchButtons.length > 0) {
+            // Получаем позицию и размеры поля ввода
+            const inputRect = searchInput.getBoundingClientRect();
+            const inputTop = inputRect.top;
+            const inputHeight = inputRect.height;
+            
+            // Находим общий родительский элемент (row)
+            const row = searchInput.closest('.row');
+            if (!row) return;
+            
+            searchButtons.forEach(function(button) {
+                // Получаем позицию кнопки
+                const buttonRect = button.getBoundingClientRect();
+                const buttonTop = buttonRect.top;
+                
+                // Вычисляем разницу между верхней границей поля ввода и верхней границей кнопки
+                const offset = inputTop - buttonTop;
+                
+                // Применяем отступ для выравнивания верхней границы
+                // Используем data-attribute для хранения исходного отступа
+                if (!button.dataset.originalMarginTop) {
+                    const originalMarginTop = parseFloat(getComputedStyle(button).marginTop) || 0;
+                    button.dataset.originalMarginTop = originalMarginTop;
+                }
+                
+                if (Math.abs(offset) > 0.5) {
+                    const originalMarginTop = parseFloat(button.dataset.originalMarginTop) || 0;
+                    button.style.marginTop = (originalMarginTop + offset) + 'px';
+                }
+                
+                // Выравниваем высоту кнопки с высотой поля ввода
+                if (Math.abs(buttonRect.height - inputHeight) > 0.5) {
+                    button.style.height = inputHeight + 'px';
+                }
+            });
+            
+            // Выравниваем текст кнопок после установки высоты
+            // Используем небольшую задержку для применения стилей
+            setTimeout(function() {
+                searchButtons.forEach(function(button) {
+                    centerButtonText(button);
+                });
+            }, 10);
+        }
+    }
+    
+    // Функция для точного выравнивания текста кнопки по центру
+    function centerButtonText(button) {
+        // Сохраняем исходные стили, если еще не сохранены
+        if (!button.dataset.originalDisplay) {
+            const originalStyle = getComputedStyle(button);
+            button.dataset.originalDisplay = originalStyle.display;
+            button.dataset.originalPaddingTop = originalStyle.paddingTop;
+            button.dataset.originalPaddingBottom = originalStyle.paddingBottom;
+        }
+        
+        // Используем flexbox для точного центрирования по горизонтали и вертикали
+        button.style.display = 'flex';
+        button.style.alignItems = 'center';
+        button.style.justifyContent = 'center';
+        button.style.flexDirection = 'row';
+        button.style.flexWrap = 'nowrap';
+        
+        // Получаем текущие стили после установки flexbox
+        const computedStyle = getComputedStyle(button);
+        const paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
+        const paddingRight = parseFloat(computedStyle.paddingRight) || 0;
+        
+        // Вычисляем оптимальный вертикальный padding для центрирования
+        const paddingTop = parseFloat(computedStyle.paddingTop) || 0;
+        const paddingBottom = parseFloat(computedStyle.paddingBottom) || 0;
+        const minPadding = Math.max(paddingTop, paddingBottom);
+        
+        // Устанавливаем равные отступы для симметрии
+        button.style.paddingTop = minPadding + 'px';
+        button.style.paddingBottom = minPadding + 'px';
+        
+        // Убеждаемся, что боковые отступы равны для горизонтального центрирования
+        const sidePadding = Math.max(paddingLeft, paddingRight);
+        button.style.paddingLeft = sidePadding + 'px';
+        button.style.paddingRight = sidePadding + 'px';
+        
+        // Убираем line-height, так как flexbox сам выровняет
+        button.style.lineHeight = 'normal';
+        button.style.textAlign = 'center';
+        
+        // Убеждаемся, что все дочерние элементы (иконки, текст) выровнены
+        const children = Array.from(button.children);
+        children.forEach(child => {
+            // Убираем все margin у дочерних элементов, которые могут влиять на выравнивание
+            child.style.marginTop = '0';
+            child.style.marginBottom = '0';
+            child.style.marginLeft = '0';
+            child.style.marginRight = '0';
+            
+            // Убираем vertical-align и text-align, так как flexbox сам выровняет
+            child.style.verticalAlign = 'unset';
+            child.style.textAlign = 'unset';
+            
+            // Убеждаемся, что SVG иконки выровнены
+            if (child.tagName === 'SVG' || child.tagName === 'svg') {
+                child.style.display = 'block';
+                child.style.flexShrink = '0';
+                child.style.margin = '0';
+            }
+            
+            // Сохраняем margin-right для классов Bootstrap (me-1, me-2), но только если они есть
+            if (child.classList.contains('me-1')) {
+                child.style.marginRight = '0.25rem';
+            } else if (child.classList.contains('me-2')) {
+                child.style.marginRight = '0.5rem';
+            }
+        });
+        
+        // Убеждаемся, что flexbox правильно центрирует содержимое
+        // Используем gap для равномерного распределения элементов
+        button.style.gap = '0.25rem';
+    }
+    
+    // Выравниваем при загрузке страницы
+    setTimeout(alignSearchButtons, 50);
+    
+    // Выравниваем при изменении размера окна
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(alignSearchButtons, 100);
+    });
+    
+    // Выравниваем при изменении ориентации устройства
+    window.addEventListener('orientationchange', function() {
+        setTimeout(alignSearchButtons, 200);
+    });
+});
 </script>
+
+<style>
+/* Выравнивание кнопок поиска относительно поля ввода */
+@media (min-width: 768px) {
+    /* Выравниваем кнопки относительно поля ввода */
+    .row.g-3 > .col-md-3 {
+        display: flex;
+        align-items: flex-start;
+    }
+    
+    /* Базовый отступ для кнопок (будет скорректирован JavaScript) */
+    .row.g-3 > .col-md-3 button,
+    .row.g-3 > .col-md-3 a {
+        margin-top: 0;
+    }
+}
+</style>
 {% endblock %}

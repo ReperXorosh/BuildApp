@@ -51,6 +51,7 @@ class Support(db.Model):
     installation_date = db.Column(db.Date)
     status = db.Column(db.String(50), default='planned')  # planned, in_progress, completed
     notes = db.Column(db.Text)
+    installation_file_path = db.Column(db.String(500))  # путь к файлу установки
     planned_work_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('planned_works.id'))  # связь с запланированной работой
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -478,11 +479,13 @@ class ZDF(db.Model):
     
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)
+    support_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('supports.id'), nullable=True)  # связь с опорой
     zdf_number = db.Column(db.String(50), nullable=False)
     zdf_name = db.Column(db.String(100))  # название ЗДФ
     installation_date = db.Column(db.Date)
     status = db.Column(db.String(50), default='planned')  # planned, in_progress, completed
     notes = db.Column(db.Text)
+    installation_file_path = db.Column(db.String(500))  # путь к файлу установки
     planned_work_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('planned_works.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -490,6 +493,8 @@ class ZDF(db.Model):
     
     # Связь с запланированной работой
     planned_work = db.relationship('PlannedWork', backref='zdf', lazy=True)
+    # Связь с опорой
+    support = db.relationship('Support', backref='zdf_elements', lazy=True)
 
 class Bracket(db.Model):
     """Модель Кронштейна"""
@@ -497,11 +502,13 @@ class Bracket(db.Model):
     
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)
+    support_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('supports.id'), nullable=True)  # связь с опорой
     bracket_number = db.Column(db.String(50), nullable=False)
     bracket_name = db.Column(db.String(100))  # название кронштейна
     installation_date = db.Column(db.Date)
     status = db.Column(db.String(50), default='planned')  # planned, in_progress, completed
     notes = db.Column(db.Text)
+    installation_file_path = db.Column(db.String(500))  # путь к файлу установки
     planned_work_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('planned_works.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -509,6 +516,8 @@ class Bracket(db.Model):
     
     # Связь с запланированной работой
     planned_work = db.relationship('PlannedWork', backref='brackets', lazy=True)
+    # Связь с опорой
+    support = db.relationship('Support', backref='bracket_elements', lazy=True)
 
 class Luminaire(db.Model):
     """Модель Светильника"""
@@ -516,11 +525,13 @@ class Luminaire(db.Model):
     
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     object_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('objects.id'), nullable=False)
+    support_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('supports.id'), nullable=True)  # связь с опорой
     luminaire_number = db.Column(db.String(50), nullable=False)
     luminaire_name = db.Column(db.String(100))  # название светильника
     installation_date = db.Column(db.Date)
     status = db.Column(db.String(50), default='planned')  # planned, in_progress, completed
     notes = db.Column(db.Text)
+    installation_file_path = db.Column(db.String(500))  # путь к файлу установки
     planned_work_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('planned_works.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -528,6 +539,42 @@ class Luminaire(db.Model):
     
     # Связь с запланированной работой
     planned_work = db.relationship('PlannedWork', backref='luminaires', lazy=True)
+    # Связь с опорой
+    support = db.relationship('Support', backref='luminaire_elements', lazy=True)
+
+class ElementAttachment(db.Model):
+    """Модель для файлов-вложений элементов (ZDF, Bracket, Luminaire)"""
+    __tablename__ = 'element_attachments'
+    
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    element_type = db.Column(db.String(20), nullable=False)  # 'zdf', 'bracket', 'luminaire'
+    element_id = db.Column(db.UUID(as_uuid=True), nullable=False)  # ID элемента
+    filename = db.Column(db.String(255), nullable=False)
+    original_filename = db.Column(db.String(255), nullable=False)
+    content_type = db.Column(db.String(127), nullable=True)
+    data = db.Column(db.LargeBinary, nullable=False)
+    size_bytes = db.Column(db.Integer, nullable=False)
+    uploaded_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'), nullable=False)
+    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Связь с пользователем
+    uploader = db.relationship('Users', backref='uploaded_element_attachments')
+    
+    def to_dict(self, include_data: bool = False):
+        payload = {
+            'id': self.id,
+            'element_type': self.element_type,
+            'element_id': self.element_id,
+            'filename': self.filename,
+            'original_filename': self.original_filename,
+            'content_type': self.content_type,
+            'size_bytes': self.size_bytes,
+            'uploaded_by': self.uploaded_by,
+            'uploaded_at': self.uploaded_at.isoformat() if self.uploaded_at else None,
+        }
+        if include_data:
+            payload['data'] = self.data
+        return payload
 
 class DailyReport(db.Model):
     """Модель ежедневного отчёта"""

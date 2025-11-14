@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort, send_file, current_app
+from io import BytesIO
 from flask_login import login_required, current_user
 from app.extensions import db, cache
-from app.models.objects import Object, Support, Trench, TrenchExcavation, TrenchFile, Report, Checklist, ChecklistItem, PlannedWork, WorkExecution, WorkComparison, ZDF, Bracket, Luminaire, DailyReport
+from app.models.objects import Object, Support, Trench, TrenchExcavation, TrenchFile, Report, Checklist, ChecklistItem, PlannedWork, WorkExecution, WorkComparison, ZDF, Bracket, Luminaire, DailyReport, ElementAttachment
 from app.models.activity_log import ActivityLog
 from datetime import datetime
 import uuid
@@ -440,9 +441,9 @@ def object_detail(object_id):
 
 @objects_bp.route('/<uuid:object_id>/elements')
 @login_required
-@cache.cached(timeout=60, query_string=True)
 def elements_list(object_id):
     """Список элементов объекта (ЗДФ, кронштейны, светильники)"""
+    print(f"DEBUG elements_list: Loading elements for object {object_id}")
     obj = Object.query.get_or_404(object_id)
     
     # Загружаем элементы объекта узкой выборкой полей для ускорения
@@ -476,6 +477,80 @@ def elements_list(object_id):
     obj.brackets = brackets_list
     obj.luminaires = luminaires_list
     
+    # Получаем файлы для всех элементов
+    zdf_ids = [zdf.id for zdf in zdf_list]
+    bracket_ids = [bracket.id for bracket in brackets_list]
+    luminaire_ids = [luminaire.id for luminaire in luminaires_list]
+    
+    # Загружаем файлы для каждого типа элементов
+    zdf_attachments = {}
+    bracket_attachments = {}
+    luminaire_attachments = {}
+    zdf_latest = {}
+    bracket_latest = {}
+    luminaire_latest = {}
+    
+    zdf_with_files = set()
+    bracket_with_files = set()
+    luminaire_with_files = set()
+
+    # Надёжно получаем наличие файлов (count>0) и параллельно собираем первые вложения для кнопки
+    if zdf_ids:
+        zdf_files = ElementAttachment.query.filter(
+            ElementAttachment.element_type == 'zdf',
+            ElementAttachment.element_id.in_(zdf_ids)
+        ).order_by(ElementAttachment.uploaded_at.desc()).all()
+        for file in zdf_files:
+            zdf_with_files.add(file.element_id)
+            if file.element_id not in zdf_attachments:
+                zdf_attachments[file.element_id] = []
+            zdf_attachments[file.element_id].append(file)
+            if file.element_id not in zdf_latest:
+                zdf_latest[file.element_id] = file.id
+
+    if bracket_ids:
+        bracket_files = ElementAttachment.query.filter(
+            ElementAttachment.element_type == 'bracket',
+            ElementAttachment.element_id.in_(bracket_ids)
+        ).order_by(ElementAttachment.uploaded_at.desc()).all()
+        for file in bracket_files:
+            bracket_with_files.add(file.element_id)
+            if file.element_id not in bracket_attachments:
+                bracket_attachments[file.element_id] = []
+            bracket_attachments[file.element_id].append(file)
+            if file.element_id not in bracket_latest:
+                bracket_latest[file.element_id] = file.id
+
+    if luminaire_ids:
+        luminaire_files = ElementAttachment.query.filter(
+            ElementAttachment.element_type == 'luminaire',
+            ElementAttachment.element_id.in_(luminaire_ids)
+        ).order_by(ElementAttachment.uploaded_at.desc()).all()
+        for file in luminaire_files:
+            luminaire_with_files.add(file.element_id)
+            if file.element_id not in luminaire_attachments:
+                luminaire_attachments[file.element_id] = []
+            luminaire_attachments[file.element_id].append(file)
+            if file.element_id not in luminaire_latest:
+                luminaire_latest[file.element_id] = file.id
+
+    # Проставляем флаг has_preview на объектах, чтобы шаблон не зависел от типа ключа (UUID/str)
+    for z in zdf_list:
+        try:
+            z.has_preview = (z.id in zdf_with_files) or (str(z.id) in {str(x) for x in zdf_with_files})
+        except Exception:
+            z.has_preview = False
+    for b in brackets_list:
+        try:
+            b.has_preview = (b.id in bracket_with_files) or (str(b.id) in {str(x) for x in bracket_with_files})
+        except Exception:
+            b.has_preview = False
+    for l in luminaires_list:
+        try:
+            l.has_preview = (l.id in luminaire_with_files) or (str(l.id) in {str(x) for x in luminaire_with_files})
+        except Exception:
+            l.has_preview = False
+    
     # Логирование активности
     from ..models.activity_log import ActivityLog
     ActivityLog.log_action(
@@ -490,9 +565,20 @@ def elements_list(object_id):
     
     from ..utils.mobile_detection import is_mobile_device
     if is_mobile_device():
-        return render_template('objects/mobile_elements_list.html', object=obj)
+        return render_template('objects/mobile_elements_list.html', 
+                             object=obj, 
+                             zdf_attachments=zdf_attachments,
+                             bracket_attachments=bracket_attachments,
+                             luminaire_attachments=luminaire_attachments)
     else:
-        return render_template('objects/elements_list.html', object=obj)
+        return render_template('objects/elements_list.html', 
+                             object=obj,
+                             zdf_attachments=zdf_attachments,
+                             bracket_attachments=bracket_attachments,
+                             luminaire_attachments=luminaire_attachments,
+                             zdf_latest=zdf_latest,
+                             bracket_latest=bracket_latest,
+                             luminaire_latest=luminaire_latest)
 
 # Маршруты для опор
 @objects_bp.route('/<uuid:object_id>/supports')
@@ -549,9 +635,31 @@ def add_support(object_id):
         support_type = request.form.get('support_type', '').strip()
         notes = request.form.get('notes', '').strip()
         
+        # Получаем выбранные элементы
+        selected_zdf_id = request.form.get('selected_zdf_id', '').strip()
+        selected_bracket_id = request.form.get('selected_bracket_id', '').strip()
+        selected_luminaire_ids = request.form.getlist('selected_luminaire_ids')  # Может быть несколько светильников
+        
+        # Отладочная информация
+        print(f"DEBUG add_support: selected_zdf_id = {selected_zdf_id}")
+        print(f"DEBUG add_support: selected_bracket_id = {selected_bracket_id}")
+        print(f"DEBUG add_support: selected_luminaire_ids = {selected_luminaire_ids}")
+        
         if not support_number:
             flash('Номер опоры обязателен для заполнения', 'error')
-            return render_template('objects/mobile_add_support.html' if is_mobile else 'objects/add_support.html', object=obj, zdf_list=zdf_list, brackets_list=brackets_list, luminaires_list=luminaires_list)
+            return render_template('objects/mobile_add_support.html' if is_mobile else 'objects/add_support.html', 
+                                 object=obj, zdf_list=zdf_list, brackets_list=brackets_list, luminaires_list=luminaires_list,
+                                 form_data={'support_number': support_number, 'support_type': support_type, 'notes': notes,
+                                          'selected_zdf_id': selected_zdf_id, 'selected_bracket_id': selected_bracket_id, 'selected_luminaire_ids': selected_luminaire_ids})
+        
+        # Проверяем уникальность номера опоры
+        existing_support = Support.query.filter_by(support_number=support_number).first()
+        if existing_support:
+            flash(f'Опора с номером "{support_number}" уже существует. Пожалуйста, выберите другой номер.', 'error')
+            return render_template('objects/mobile_add_support.html' if is_mobile else 'objects/add_support.html', 
+                                 object=obj, zdf_list=zdf_list, brackets_list=brackets_list, luminaires_list=luminaires_list,
+                                 form_data={'support_number': support_number, 'support_type': support_type, 'notes': notes,
+                                          'selected_zdf_id': selected_zdf_id, 'selected_bracket_id': selected_bracket_id, 'selected_luminaire_ids': selected_luminaire_ids})
         
         new_support = Support(
             id=str(uuid.uuid4()),
@@ -589,6 +697,38 @@ def add_support(object_id):
         # Связываем опору с запланированной работой
         new_support.planned_work_id = planned_work.id
         
+        # Привязываем выбранные элементы к опоре и сбрасываем их статус
+        if selected_zdf_id:
+            zdf = ZDF.query.get(selected_zdf_id)
+            if zdf and zdf.object_id == object_id:
+                zdf.support_id = new_support.id
+                # Сбрасываем статус и дату установки при привязке к новой опоре
+                zdf.status = 'planned'
+                zdf.installation_date = None
+                zdf.installation_file_path = None
+                print(f"DEBUG add_support: Linked ZDF {zdf.zdf_name} to support {support_number} and reset status")
+        
+        if selected_bracket_id:
+            bracket = Bracket.query.get(selected_bracket_id)
+            if bracket and bracket.object_id == object_id:
+                bracket.support_id = new_support.id
+                # Сбрасываем статус и дату установки при привязке к новой опоре
+                bracket.status = 'planned'
+                bracket.installation_date = None
+                bracket.installation_file_path = None
+                print(f"DEBUG add_support: Linked Bracket {bracket.bracket_name} to support {support_number} and reset status")
+        
+        for luminaire_id in selected_luminaire_ids:
+            if luminaire_id:
+                luminaire = Luminaire.query.get(luminaire_id)
+                if luminaire and luminaire.object_id == object_id:
+                    luminaire.support_id = new_support.id
+                    # Сбрасываем статус и дату установки при привязке к новой опоре
+                    luminaire.status = 'planned'
+                    luminaire.installation_date = None
+                    luminaire.installation_file_path = None
+                    print(f"DEBUG add_support: Linked Luminaire {luminaire.luminaire_name} to support {support_number} and reset status")
+        
         db.session.commit()
         
         ActivityLog.log_action(
@@ -619,44 +759,68 @@ def add_element(object_id):
         flash('У вас нет прав для добавления элементов. Только инженер ПТО может добавлять элементы по проекту.', 'error')
         return redirect(url_for('objects.elements_list', object_id=object_id))
     
+    # Получаем список опор для выбора
+    supports = Support.query.filter_by(object_id=object_id).order_by(Support.support_number.asc()).all()
+    
     if request.method == 'POST':
         element_type = request.form.get('element_type', '').strip()
         element_name = request.form.get('element_name', '').strip()
         notes = request.form.get('notes', '').strip()
-        file_url = None
-        # Обработка вложения
+        support_id = request.form.get('support_id', '').strip()
+        
+        # Отладочная информация
+        print(f"DEBUG add_element: element_type = {element_type}")
+        print(f"DEBUG add_element: element_name = {element_name}")
+        print(f"DEBUG add_element: support_id = {support_id}")
+        print(f"DEBUG add_element: support_id is None or empty = {not support_id}")
+        # Обработка вложения - используем новую систему ElementAttachment
+        attachment_id = None
         if 'attachment' in request.files:
-            from werkzeug.utils import secure_filename
             file = request.files.get('attachment')
             if file and file.filename:
-                filename = secure_filename(file.filename)
-                # Каталог для элементов
-                import os
-                upload_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'static', 'uploads', 'elements')
-                upload_dir = os.path.normpath(upload_dir)
-                os.makedirs(upload_dir, exist_ok=True)
-                # Уникализируем имя
-                import uuid as _uuid
-                name, ext = os.path.splitext(filename)
-                safe_name = f"{_uuid.uuid4().hex}{ext.lower()}"
-                save_path = os.path.join(upload_dir, safe_name)
-                file.save(save_path)
-                # URL для доступа из браузера
-                file_url = f"/static/uploads/elements/{safe_name}"
-        
-        # Если приложен файл — добавим его URL в заметки (для UI-отображения кнопки просмотра)
-        if file_url:
-            notes = f"{(notes + '\n') if notes else ''}Файл: {file_url}"
+                print(f"DEBUG add_element: Processing file {file.filename}")
+                try:
+                    # Читаем данные файла
+                    file_data = file.read()
+                    file.seek(0)  # Возвращаем указатель в начало
+                    
+                    # Определяем MIME тип
+                    import mimetypes
+                    content_type, _ = mimetypes.guess_type(file.filename)
+                    if not content_type:
+                        content_type = 'application/octet-stream'
+                    
+                    # Создаем запись в ElementAttachment
+                    from ..models.objects import ElementAttachment
+                    attachment = ElementAttachment(
+                        element_type=element_type,
+                        element_id=None,  # Будет установлен после создания элемента
+                        original_filename=file.filename,
+                        content_type=content_type,
+                        data=file_data,
+                        size_bytes=len(file_data),
+                        uploaded_by=current_user.userid
+                    )
+                    
+                    db.session.add(attachment)
+                    db.session.flush()  # Получаем ID без коммита
+                    attachment_id = attachment.id
+                    print(f"DEBUG add_element: Created attachment with ID {attachment_id}")
+                    
+                except Exception as e:
+                    print(f"DEBUG add_element: Error processing file: {str(e)}")
+                    db.session.rollback()
 
         if not element_type:
             flash('Тип элемента обязателен для заполнения', 'error')
-            return render_template('objects/mobile_add_element.html' if is_mobile else 'objects/add_element.html', object=obj)
+            return render_template('objects/mobile_add_element.html' if is_mobile else 'objects/add_element.html', object=obj, supports=supports)
         
         # Создаем элемент в зависимости от типа
         if element_type == 'zdf':
             new_element = ZDF(
                 id=str(uuid.uuid4()),
                 object_id=object_id,
+                support_id=support_id if support_id else None,
                 zdf_number='',
                 zdf_name=element_name,
                 status='planned',
@@ -664,10 +828,12 @@ def add_element(object_id):
                 created_by=current_user.userid
             )
             element_type_name = 'ЗДФ'
+            print(f"DEBUG add_element: Created ZDF with support_id = {new_element.support_id}")
         elif element_type == 'bracket':
             new_element = Bracket(
                 id=str(uuid.uuid4()),
                 object_id=object_id,
+                support_id=support_id if support_id else None,
                 bracket_number='',
                 bracket_name=element_name,
                 status='planned',
@@ -675,10 +841,12 @@ def add_element(object_id):
                 created_by=current_user.userid
             )
             element_type_name = 'Кронштейн'
+            print(f"DEBUG add_element: Created Bracket with support_id = {new_element.support_id}")
         elif element_type == 'luminaire':
             new_element = Luminaire(
                 id=str(uuid.uuid4()),
                 object_id=object_id,
+                support_id=support_id if support_id else None,
                 luminaire_number='',
                 luminaire_name=element_name,
                 status='planned',
@@ -686,17 +854,39 @@ def add_element(object_id):
                 created_by=current_user.userid
             )
             element_type_name = 'Светильник'
+            print(f"DEBUG add_element: Created Luminaire with support_id = {new_element.support_id}")
         else:
             flash('Неверный тип элемента', 'error')
-            return render_template('objects/mobile_add_element.html' if is_mobile else 'objects/add_element.html', object=obj)
+            return render_template('objects/mobile_add_element.html' if is_mobile else 'objects/add_element.html', object=obj, supports=supports)
         
-        # Если есть файл, добавим ссылку в примечания (не теряем введённые заметки)
-        if file_url:
-            attach_note = f"\nФайл: {file_url}"
-            notes = (notes or '') + attach_note
         new_element.notes = notes
         db.session.add(new_element)
+        db.session.flush()  # Получаем ID элемента
+        
+        # Если есть файл, связываем его с элементом
+        if attachment_id:
+            attachment = ElementAttachment.query.get(attachment_id)
+            if attachment:
+                attachment.element_id = new_element.id
+                print(f"DEBUG add_element: Linked attachment {attachment_id} to element {new_element.id}")
+                print(f"DEBUG add_element: Attachment element_type = {attachment.element_type}")
+                print(f"DEBUG add_element: Element type = {element_type}")
+            else:
+                print(f"DEBUG add_element: Attachment {attachment_id} not found!")
+        else:
+            print(f"DEBUG add_element: No attachment_id to link")
+        
         db.session.commit()
+        
+        # Отладочная информация после сохранения
+        print(f"DEBUG add_element: Element saved with ID = {new_element.id}")
+        print(f"DEBUG add_element: Element support_id after save = {new_element.support_id}")
+
+        # Сбрасываем кеш списка элементов, чтобы сразу увидеть кнопку просмотра файла
+        try:
+            cache.delete_memoized(elements_list, object_id)
+        except Exception as _:
+            pass
         
         ActivityLog.log_action(
             user_id=current_user.userid,
@@ -711,7 +901,7 @@ def add_element(object_id):
         flash(f'{element_type_name} успешно добавлен', 'success')
         return redirect(url_for('objects.elements_list', object_id=object_id))
     
-    return render_template('objects/mobile_add_element.html' if is_mobile else 'objects/add_element.html', object=obj)
+    return render_template('objects/mobile_add_element.html' if is_mobile else 'objects/add_element.html', object=obj, supports=supports)
 
 @objects_bp.route('/<uuid:object_id>/supports/<uuid:support_id>')
 @login_required
@@ -722,6 +912,43 @@ def support_detail(object_id, support_id):
     
     if support.object_id != object_id:
         abort(404)
+    
+    # Загружаем элементы опоры
+    from ..models.objects import ZDF, Bracket, Luminaire
+    zdf_elements = ZDF.query.filter_by(support_id=support_id).order_by(ZDF.zdf_name.asc()).all()
+    bracket_elements = Bracket.query.filter_by(support_id=support_id).order_by(Bracket.bracket_name.asc()).all()
+    luminaire_elements = Luminaire.query.filter_by(support_id=support_id).order_by(Luminaire.luminaire_name.asc()).all()
+    
+    # Отладочная информация
+    print(f"DEBUG support_detail: support_id = {support_id}")
+    print(f"DEBUG support_detail: zdf_elements count = {len(zdf_elements)}")
+    print(f"DEBUG support_detail: bracket_elements count = {len(bracket_elements)}")
+    print(f"DEBUG support_detail: luminaire_elements count = {len(luminaire_elements)}")
+    
+    # Проверяем все элементы объекта для отладки
+    all_zdf = ZDF.query.filter_by(object_id=object_id).all()
+    all_brackets = Bracket.query.filter_by(object_id=object_id).all()
+    all_luminaires = Luminaire.query.filter_by(object_id=object_id).all()
+    print(f"DEBUG support_detail: Total ZDF in object = {len(all_zdf)}")
+    print(f"DEBUG support_detail: Total Brackets in object = {len(all_brackets)}")
+    print(f"DEBUG support_detail: Total Luminaires in object = {len(all_luminaires)}")
+    
+    # Проверяем, какие элементы не привязаны к опорам
+    unassigned_zdf = [z for z in all_zdf if z.support_id is None]
+    unassigned_brackets = [b for b in all_brackets if b.support_id is None]
+    unassigned_luminaires = [l for l in all_luminaires if l.support_id is None]
+    print(f"DEBUG support_detail: Unassigned ZDF = {len(unassigned_zdf)}")
+    print(f"DEBUG support_detail: Unassigned Brackets = {len(unassigned_brackets)}")
+    print(f"DEBUG support_detail: Unassigned Luminaires = {len(unassigned_luminaires)}")
+    
+    # Вычисляем прогресс опоры на основе выполненных элементов
+    total_elements = len(zdf_elements) + len(bracket_elements) + len(luminaire_elements)
+    completed_elements = (
+        len([z for z in zdf_elements if z.status == 'completed']) +
+        len([b for b in bracket_elements if b.status == 'completed']) +
+        len([l for l in luminaire_elements if l.status == 'completed'])
+    )
+    progress_percentage = (completed_elements / total_elements * 100) if total_elements > 0 else 0
     
     ActivityLog.log_action(
         user_id=current_user.userid,
@@ -744,10 +971,20 @@ def support_detail(object_id, support_id):
     
     if is_mobile:
         print("DEBUG support_detail: Rendering mobile template")
-        return render_template('objects/mobile_support_detail.html', object=obj, support=support)
+        return render_template('objects/mobile_support_detail.html', 
+                             object=obj, support=support,
+                             zdf_elements=zdf_elements,
+                             bracket_elements=bracket_elements,
+                             luminaire_elements=luminaire_elements,
+                             progress_percentage=progress_percentage)
     else:
         print("DEBUG support_detail: Rendering desktop template")
-        return render_template('objects/support_detail.html', object=obj, support=support)
+        return render_template('objects/support_detail.html', 
+                             object=obj, support=support,
+                             zdf_elements=zdf_elements,
+                             bracket_elements=bracket_elements,
+                             luminaire_elements=luminaire_elements,
+                             progress_percentage=progress_percentage)
 # Детальная страница элемента (ЗДФ, Кронштейн, Светильник)
 @objects_bp.route('/<uuid:object_id>/elements/<string:element_type>/<uuid:element_id>')
 @login_required
@@ -785,10 +1022,325 @@ def element_detail(object_id, element_type, element_id):
         method=request.method
     )
 
+    # Получаем файлы элемента
+    print(f"DEBUG element_detail: Searching for attachments with element_type='{element_type}' and element_id='{element_id}'")
+    attachments = ElementAttachment.query.filter_by(
+        element_type=element_type,
+        element_id=element_id
+    ).order_by(ElementAttachment.uploaded_at.desc()).all()
+    
+    print(f"DEBUG element_detail: Found {len(attachments)} attachments for element {element_id}")
+    for attachment in attachments:
+        print(f"DEBUG element_detail: Attachment {attachment.id}: {attachment.original_filename}")
+    
+    # Попробуем найти все файлы для этого элемента без фильтра по типу
+    all_attachments = ElementAttachment.query.filter_by(element_id=element_id).all()
+    print(f"DEBUG element_detail: Total attachments for element_id {element_id}: {len(all_attachments)}")
+    for att in all_attachments:
+        print(f"DEBUG element_detail: Found attachment with element_type='{att.element_type}', element_id='{att.element_id}'")
+    
     from ..utils.mobile_detection import is_mobile_device
     is_mobile = is_mobile_device() or (request.args.get('mobile') == '1')
     template = 'objects/mobile_element_detail.html' if is_mobile else 'objects/element_detail.html'
-    return render_template(template, object=obj, element=element, element_type=title)
+    return render_template(template, object=obj, element=element, element_type=title, element_type_code=element_type, attachments=attachments)
+
+# Обновление статуса элемента
+@objects_bp.route('/api/objects/<uuid:object_id>/elements/<string:element_type>/<uuid:element_id>/status', methods=['PUT'])
+@login_required
+def update_element_status(object_id, element_type, element_id):
+    """Обновление статуса элемента (ЗДФ, Кронштейн, Светильник)"""
+    print(f"DEBUG update_element_status: Called with object_id={object_id}, element_type={element_type}, element_id={element_id}")
+    obj = Object.query.get_or_404(object_id)
+    element_type = (element_type or '').lower()
+    
+    # Получаем элемент
+    element = None
+    if element_type == 'zdf':
+        element = ZDF.query.get_or_404(element_id)
+    elif element_type == 'bracket':
+        element = Bracket.query.get_or_404(element_id)
+    elif element_type == 'luminaire':
+        element = Luminaire.query.get_or_404(element_id)
+    else:
+        return jsonify({'error': 'Неверный тип элемента'}), 400
+    
+    if element.object_id != object_id:
+        return jsonify({'error': 'Элемент не принадлежит данному объекту'}), 404
+    
+    data = request.get_json(force=True, silent=True) or {}
+    new_status = data.get('status', '').strip()
+    
+    if new_status not in ['planned', 'in_progress', 'completed']:
+        return jsonify({'error': 'Неверный статус'}), 400
+    
+    # Обновляем статус
+    element.status = new_status
+    if new_status == 'completed':
+        element.installation_date = datetime.now().date()
+    elif new_status == 'planned':
+        element.installation_date = None
+    
+    element.updated_at = datetime.utcnow()
+    db.session.commit()
+    
+    # Логируем действие
+    element_type_name = {'zdf': 'ЗДФ', 'bracket': 'Кронштейн', 'luminaire': 'Светильник'}[element_type]
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action=f"Обновление статуса {element_type_name}",
+        description=f"Пользователь {current_user.login} изменил статус {element_type_name} на '{new_status}'",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return jsonify({
+        'success': True,
+        'status': new_status,
+        'installation_date': element.installation_date.isoformat() if element.installation_date else None
+    })
+
+@objects_bp.route('/<uuid:object_id>/elements/<string:element_type>/<uuid:element_id>/install', methods=['POST'])
+@login_required
+def install_element_with_file(object_id, element_type, element_id):
+    """Установка элемента с обязательным файлом"""
+    obj = Object.query.get_or_404(object_id)
+    element_type = (element_type or '').lower()
+    
+    # Получаем элемент
+    element = None
+    if element_type == 'zdf':
+        element = ZDF.query.get_or_404(element_id)
+    elif element_type == 'bracket':
+        element = Bracket.query.get_or_404(element_id)
+    elif element_type == 'luminaire':
+        element = Luminaire.query.get_or_404(element_id)
+    else:
+        return jsonify({'error': 'Неверный тип элемента'}), 400
+    
+    if element.object_id != object_id:
+        return jsonify({'error': 'Элемент не принадлежит данному объекту'}), 404
+    
+    # Проверяем наличие файла
+    if 'installation_file' not in request.files or request.files['installation_file'].filename == '':
+        return jsonify({'error': 'Необходимо прикрепить файл установки'}), 400
+    
+    # Обрабатываем файл
+    installation_file = request.files['installation_file']
+    if installation_file and installation_file.filename:
+        from werkzeug.utils import secure_filename
+        import os
+        
+        # Создаем папку для файлов элемента, если её нет
+        element_files_dir = os.path.join('app', 'static', 'uploads', 'elements', str(element_id))
+        os.makedirs(element_files_dir, exist_ok=True)
+        
+        # Сохраняем файл
+        filename = secure_filename(installation_file.filename)
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"{timestamp}_{filename}"
+        file_path = os.path.join(element_files_dir, filename)
+        installation_file.save(file_path)
+        
+        # Сохраняем путь к файлу в базе данных
+        element.installation_file_path = f"uploads/elements/{element_id}/{filename}"
+        print(f"DEBUG: Saved element installation file: {element.installation_file_path}")
+    
+    # Обновляем статус элемента
+    element.status = 'completed'
+    element.installation_date = datetime.now().date()
+    element.updated_at = datetime.utcnow()
+    
+    db.session.commit()
+    
+    # Логируем действие
+    element_type_name = {'zdf': 'ЗДФ', 'bracket': 'Кронштейн', 'luminaire': 'Светильник'}[element_type]
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action=f"Установка {element_type_name}",
+        description=f"Пользователь {current_user.login} установил {element_type_name} с прикрепленным файлом",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return jsonify({
+        'success': True,
+        'status': 'completed',
+        'installation_date': element.installation_date.isoformat()
+    })
+
+# Удаление опоры (для админа)
+@objects_bp.route('/<uuid:object_id>/supports/<uuid:support_id>', methods=['DELETE'])
+@login_required
+def delete_support(object_id, support_id):
+    """Удаление опоры (только для админа)"""
+    obj = Object.query.get_or_404(object_id)
+    support = Support.query.get_or_404(support_id)
+    
+    if support.object_id != object_id:
+        return jsonify({'error': 'Опора не принадлежит данному объекту'}), 404
+    
+    # Проверяем права доступа - только админ может удалять опоры
+    if current_user.role not in ['Инженер ПТО', 'Ген.Директор']:
+        return jsonify({'error': 'У вас нет прав для удаления опор'}), 403
+    
+    # Удаляем связанные элементы (отвязываем их от опоры)
+    from ..models.objects import ZDF, Bracket, Luminaire
+    
+    zdf_elements = ZDF.query.filter_by(support_id=support_id).all()
+    bracket_elements = Bracket.query.filter_by(support_id=support_id).all()
+    luminaire_elements = Luminaire.query.filter_by(support_id=support_id).all()
+    
+    for zdf in zdf_elements:
+        zdf.support_id = None
+        print(f"DEBUG: Unlinked ZDF {zdf.zdf_name or zdf.zdf_number} from support")
+    
+    for bracket in bracket_elements:
+        bracket.support_id = None
+        print(f"DEBUG: Unlinked Bracket {bracket.bracket_name or bracket.bracket_number} from support")
+    
+    for luminaire in luminaire_elements:
+        luminaire.support_id = None
+        print(f"DEBUG: Unlinked Luminaire {luminaire.luminaire_name or luminaire.luminaire_number} from support")
+    
+    # Удаляем запланированную работу, если она есть
+    if support.planned_work:
+        # Сначала удаляем связанные записи в work_comparisons
+        from ..models.objects import WorkComparison
+        work_comparisons = WorkComparison.query.filter_by(planned_work_id=support.planned_work.id).all()
+        for comparison in work_comparisons:
+            db.session.delete(comparison)
+            print(f"DEBUG: Deleted work comparison {comparison.id}")
+        
+        # Теперь удаляем planned_work
+        db.session.delete(support.planned_work)
+        print(f"DEBUG: Deleted planned work for support {support.support_number}")
+    
+    # Удаляем файлы установки, если они есть
+    if support.installation_file_path:
+        import os
+        file_path = os.path.join('app', 'static', support.installation_file_path)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            print(f"DEBUG: Deleted installation file: {file_path}")
+    
+    # Удаляем все связанные действия из ActivityLog
+    from ..models.activity_log import ActivityLog
+    
+    # Удаляем записи об опоре
+    support_related_actions = ActivityLog.query.filter(
+        ActivityLog.description.contains(f"опора {support.support_number}")
+    ).all()
+    
+    for action in support_related_actions:
+        db.session.delete(action)
+        print(f"DEBUG: Deleted support activity log: {action.action}")
+    
+    # Удаляем записи об установке элементов, которые были связаны с этой опорой
+    for zdf in zdf_elements:
+        zdf_actions = ActivityLog.query.filter(
+            ActivityLog.description.contains(f"ЗДФ {zdf.zdf_name or zdf.zdf_number}")
+        ).all()
+        for action in zdf_actions:
+            db.session.delete(action)
+            print(f"DEBUG: Deleted ZDF activity log: {action.action}")
+    
+    for bracket in bracket_elements:
+        bracket_actions = ActivityLog.query.filter(
+            ActivityLog.description.contains(f"Кронштейн {bracket.bracket_name or bracket.bracket_number}")
+        ).all()
+        for action in bracket_actions:
+            db.session.delete(action)
+            print(f"DEBUG: Deleted Bracket activity log: {action.action}")
+    
+    for luminaire in luminaire_elements:
+        luminaire_actions = ActivityLog.query.filter(
+            ActivityLog.description.contains(f"Светильник {luminaire.luminaire_name or luminaire.luminaire_number}")
+        ).all()
+        for action in luminaire_actions:
+            db.session.delete(action)
+            print(f"DEBUG: Deleted Luminaire activity log: {action.action}")
+    
+    # Сохраняем данные для логирования перед удалением
+    support_number = support.support_number
+    support_status = support.status
+    
+    # Удаляем опору
+    db.session.delete(support)
+    db.session.commit()
+    
+    # Логируем действие
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Удаление опоры",
+        description=f"Пользователь {current_user.login} полностью удалил опору {support_number} (статус: {support_status}). Удалено: {len(zdf_elements) + len(bracket_elements) + len(luminaire_elements)} элементов, {len(support_related_actions)} записей в истории, файлы установки",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return jsonify({'success': True, 'message': 'Опора успешно удалена'})
+
+# Привязка элемента к опоре
+@objects_bp.route('/api/objects/<uuid:object_id>/elements/<string:element_type>/<uuid:element_id>/assign-support', methods=['PUT'])
+@login_required
+def assign_element_to_support(object_id, element_type, element_id):
+    """Привязка элемента к опоре"""
+    obj = Object.query.get_or_404(object_id)
+    element_type = (element_type or '').lower()
+    
+    # Получаем элемент
+    element = None
+    if element_type == 'zdf':
+        element = ZDF.query.get_or_404(element_id)
+    elif element_type == 'bracket':
+        element = Bracket.query.get_or_404(element_id)
+    elif element_type == 'luminaire':
+        element = Luminaire.query.get_or_404(element_id)
+    else:
+        return jsonify({'error': 'Неверный тип элемента'}), 400
+    
+    if element.object_id != object_id:
+        return jsonify({'error': 'Элемент не принадлежит данному объекту'}), 404
+    
+    data = request.get_json(force=True, silent=True) or {}
+    support_id = data.get('support_id')
+    
+    if support_id:
+        # Проверяем, что опора существует и принадлежит тому же объекту
+        support = Support.query.get(support_id)
+        if not support or support.object_id != object_id:
+            return jsonify({'error': 'Опора не найдена или не принадлежит данному объекту'}), 404
+        element.support_id = support_id
+    else:
+        # Отвязываем от опоры
+        element.support_id = None
+    
+    element.updated_at = datetime.utcnow()
+    db.session.commit()
+    
+    # Логируем действие
+    element_type_name = {'zdf': 'ЗДФ', 'bracket': 'Кронштейн', 'luminaire': 'Светильник'}[element_type]
+    action_text = f"привязан к опоре {support.support_number}" if support_id else "отвязан от опоры"
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action=f"Привязка {element_type_name} к опоре",
+        description=f"Пользователь {current_user.login} {action_text} {element_type_name}",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    return jsonify({
+        'success': True,
+        'support_id': element.support_id,
+        'support_number': support.support_number if support_id else None
+    })
 
 # Удаление элемента (для Инженер ПТО)
 @objects_bp.route('/api/objects/<uuid:object_id>/elements/<string:element_type>/<uuid:element_id>', methods=['DELETE'])
@@ -858,6 +1410,69 @@ def confirm_support_installation(object_id, support_id):
             else:
                 return render_template('objects/confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
         
+        # Проверяем наличие файла установки опоры
+        if 'support_installation_file' not in request.files or request.files['support_installation_file'].filename == '':
+            flash('Необходимо прикрепить файл установки опоры', 'error')
+            from ..utils.mobile_detection import is_mobile_device
+            mobile_param = request.args.get('mobile') == '1'
+            device_mobile = is_mobile_device()
+            is_mobile = mobile_param or device_mobile
+            if is_mobile:
+                return render_template('objects/mobile_confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
+            else:
+                return render_template('objects/confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
+        
+        # Проверяем, что все элементы установлены
+        from ..models.objects import ZDF, Bracket, Luminaire
+        zdf_elements = ZDF.query.filter_by(support_id=support_id).all()
+        bracket_elements = Bracket.query.filter_by(support_id=support_id).all()
+        luminaire_elements = Luminaire.query.filter_by(support_id=support_id).all()
+        
+        uninstalled_elements = []
+        for zdf in zdf_elements:
+            if zdf.status != 'completed':
+                uninstalled_elements.append(f"ЗДФ {zdf.zdf_name or zdf.zdf_number}")
+        
+        for bracket in bracket_elements:
+            if bracket.status != 'completed':
+                uninstalled_elements.append(f"Кронштейн {bracket.bracket_name or bracket.bracket_number}")
+        
+        for luminaire in luminaire_elements:
+            if luminaire.status != 'completed':
+                uninstalled_elements.append(f"Светильник {luminaire.luminaire_name or luminaire.luminaire_number}")
+        
+        if uninstalled_elements:
+            flash(f'Нельзя установить опору, пока не установлены элементы: {", ".join(uninstalled_elements)}', 'error')
+            from ..utils.mobile_detection import is_mobile_device
+            mobile_param = request.args.get('mobile') == '1'
+            device_mobile = is_mobile_device()
+            is_mobile = mobile_param or device_mobile
+            if is_mobile:
+                return render_template('objects/mobile_confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
+            else:
+                return render_template('objects/confirm_support_installation.html', object=obj, support=support, today_date=datetime.now().strftime('%Y-%m-%d'))
+        
+        # Обрабатываем файл установки опоры
+        support_file = request.files['support_installation_file']
+        if support_file and support_file.filename:
+            from werkzeug.utils import secure_filename
+            import os
+            
+            # Создаем папку для файлов опоры, если её нет
+            support_files_dir = os.path.join('app', 'static', 'uploads', 'supports', str(support_id))
+            os.makedirs(support_files_dir, exist_ok=True)
+            
+            # Сохраняем файл
+            filename = secure_filename(support_file.filename)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"{timestamp}_{filename}"
+            file_path = os.path.join(support_files_dir, filename)
+            support_file.save(file_path)
+            
+            # Сохраняем путь к файлу в базе данных
+            support.installation_file_path = f"uploads/supports/{support_id}/{filename}"
+            print(f"DEBUG: Saved support installation file: {support.installation_file_path}")
+        
         # Обновляем статус опоры
         support.status = 'completed'
         support.installation_date = installation_date
@@ -866,19 +1481,64 @@ def confirm_support_installation(object_id, support_id):
             support.notes += f'\nПримечания по установке: {installation_notes}'
         support.updated_at = datetime.utcnow()
         
+        # Автоматически устанавливаем все связанные элементы
+        from ..models.objects import ZDF, Bracket, Luminaire
+        
+        # Получаем все элементы, связанные с опорой
+        zdf_elements = ZDF.query.filter_by(support_id=support_id).all()
+        bracket_elements = Bracket.query.filter_by(support_id=support_id).all()
+        luminaire_elements = Luminaire.query.filter_by(support_id=support_id).all()
+        
+        # Устанавливаем все элементы
+        for zdf in zdf_elements:
+            if zdf.status != 'completed':
+                zdf.status = 'completed'
+                zdf.installation_date = installation_date
+                zdf.updated_at = datetime.utcnow()
+                print(f"DEBUG: Auto-installed ZDF {zdf.zdf_name or zdf.zdf_number}")
+        
+        for bracket in bracket_elements:
+            if bracket.status != 'completed':
+                bracket.status = 'completed'
+                bracket.installation_date = installation_date
+                bracket.updated_at = datetime.utcnow()
+                print(f"DEBUG: Auto-installed Bracket {bracket.bracket_name or bracket.bracket_number}")
+        
+        for luminaire in luminaire_elements:
+            if luminaire.status != 'completed':
+                luminaire.status = 'completed'
+                luminaire.installation_date = installation_date
+                luminaire.updated_at = datetime.utcnow()
+                print(f"DEBUG: Auto-installed Luminaire {luminaire.luminaire_name or luminaire.luminaire_number}")
+        
         db.session.commit()
+        
+        # Подсчитываем количество установленных элементов
+        total_elements = len(zdf_elements) + len(bracket_elements) + len(luminaire_elements)
+        elements_info = []
+        if zdf_elements:
+            elements_info.append(f"ЗДФ: {len(zdf_elements)}")
+        if bracket_elements:
+            elements_info.append(f"Кронштейны: {len(bracket_elements)}")
+        if luminaire_elements:
+            elements_info.append(f"Светильники: {len(luminaire_elements)}")
+        
+        elements_text = f" и автоматически установил {total_elements} элементов ({', '.join(elements_info)})" if total_elements > 0 else ""
         
         ActivityLog.log_action(
             user_id=current_user.userid,
             user_login=current_user.login,
             action="Подтверждение установки опоры",
-            description=f"Пользователь {current_user.login} подтвердил установку опоры {support.support_number}",
+            description=f"Пользователь {current_user.login} подтвердил установку опоры {support.support_number}{elements_text}",
             ip_address=request.remote_addr,
             page_url=request.url,
             method=request.method
         )
         
-        flash('Установка опоры успешно подтверждена', 'success')
+        if total_elements > 0:
+            flash(f'Установка опоры успешно подтверждена. Автоматически установлено {total_elements} элементов.', 'success')
+        else:
+            flash('Установка опоры успешно подтверждена', 'success')
         # Сохраняем параметр mobile при редиректе
         mobile_param = request.args.get('mobile') == '1'
         if mobile_param:
@@ -909,7 +1569,7 @@ def trenches_list(object_id):
     """Список траншей объекта"""
     obj = Object.query.get_or_404(object_id)
     
-    # Получаем траншеи объекта
+    # Получаем траншеи объекта (сортируем по убыванию даты создания - последние добавленные сверху)
     trenches = Trench.query.filter_by(object_id=object_id).order_by(Trench.created_at.desc()).all()
     
     # Для каждой траншеи получаем общую длину и количество файлов
@@ -933,6 +1593,9 @@ def trenches_list(object_id):
         return render_template('objects/mobile_trenches_list.html', object=obj, trenches=trenches)
     else:
         return render_template('objects/trenches_list.html', object=obj, trenches=trenches)
+
+
+
 
 @objects_bp.route('/<uuid:object_id>/trenches/add', methods=['GET', 'POST'])
 @login_required
@@ -1041,32 +1704,47 @@ def add_trench_excavation(object_id, trench_id):
         
         # Сохраняем файлы
         import os
+        import mimetypes
         from werkzeug.utils import secure_filename
         
+        # Используем путь относительно рабочей директории
+        # Рабочая директория в контейнере - /app, поэтому путь будет /app/app/static/uploads/trenches/...
         upload_folder = os.path.join('app', 'static', 'uploads', 'trenches', str(trench_id))
         os.makedirs(upload_folder, exist_ok=True)
         
+        saved_files_count = 0
         for file in files:
             if file and file.filename:
-                filename = secure_filename(file.filename)
-                unique_filename = f"{uuid.uuid4()}_{filename}"
-                file_path = os.path.join(upload_folder, unique_filename)
-                
-                file.save(file_path)
-                
-                trench_file = TrenchFile(
-                    id=str(uuid.uuid4()),
-                    trench_id=trench_id,
-                    excavation_id=excavation.id,
-                    filename=unique_filename,
-                    original_filename=filename,
-                    file_path=file_path,
-                    file_size=os.path.getsize(file_path),
-                    mime_type=file.content_type,
-                    created_by=current_user.userid
-                )
-                
-                db.session.add(trench_file)
+                try:
+                    filename = secure_filename(file.filename)
+                    unique_filename = f"{uuid.uuid4()}_{filename}"
+                    file_path = os.path.join(upload_folder, unique_filename)
+                    
+                    file.save(file_path)
+                    
+                    # Определяем MIME тип
+                    content_type, _ = mimetypes.guess_type(file.filename)
+                    if not content_type:
+                        content_type = 'application/octet-stream'
+                    
+                    trench_file = TrenchFile(
+                        id=str(uuid.uuid4()),
+                        trench_id=trench_id,
+                        excavation_id=excavation.id,
+                        filename=unique_filename,
+                        original_filename=filename,
+                        file_path=file_path,
+                        file_size=os.path.getsize(file_path),
+                        mime_type=content_type,
+                        created_by=current_user.userid
+                    )
+                    
+                    db.session.add(trench_file)
+                    saved_files_count += 1
+                except Exception as e:
+                    # Логируем ошибку, но продолжаем обработку остальных файлов
+                    current_app.logger.error(f'Ошибка при сохранении файла {file.filename}: {str(e)}')
+                    continue
         
         # Обновляем статус траншеи
         trench.check_completion_status()
@@ -1083,25 +1761,106 @@ def add_trench_excavation(object_id, trench_id):
             method=request.method
         )
         
-        flash(f'Запись о копке {length}м успешно добавлена с {len(files)} файл(ами)', 'success')
+        if saved_files_count < len(files):
+            flash(f'Запись о копке {length}м добавлена. Сохранено {saved_files_count} из {len(files)} файл(ов)', 'warning' if saved_files_count > 0 else 'error')
+        else:
+            flash(f'Запись о копке {length}м успешно добавлена с {saved_files_count} файл(ами)', 'success')
         return redirect(url_for('objects.trenches_list', object_id=object_id))
     
     return render_template('objects/mobile_add_trench_excavation.html' if is_mobile else 'objects/add_trench_excavation.html', object=obj, trench=trench)
 
+@objects_bp.route('/<uuid:object_id>/trenches/<uuid:trench_id>')
+@login_required
+def trench_detail(object_id, trench_id):
+    """Детальный просмотр траншеи с записями о копке и файлами"""
+    obj = Object.query.get_or_404(object_id)
+    trench = Trench.query.filter_by(id=trench_id, object_id=object_id).first_or_404()
+    
+    # Получаем все записи о копке с файлами
+    excavations = TrenchExcavation.query.filter_by(trench_id=trench_id).order_by(TrenchExcavation.excavation_date.desc(), TrenchExcavation.created_at.desc()).all()
+    
+    # Для каждой записи получаем файлы и информацию о создателе
+    from app.models.users import Users
+    for excavation in excavations:
+        excavation.files_list = TrenchFile.query.filter_by(excavation_id=excavation.id).all()
+        if excavation.created_by:
+            excavation.creator = Users.query.get(excavation.created_by)
+        else:
+            excavation.creator = None
+    
+    # Получаем общую информацию
+    trench.total_excavated = trench.get_total_excavated_length()
+    trench.files_count = trench.get_files_count()
+    trench.required_files = trench.get_required_files_count()
+    
+    # Получаем создателя траншеи
+    if trench.created_by:
+        trench.creator = Users.query.get(trench.created_by)
+    else:
+        trench.creator = None
+    
+    ActivityLog.log_action(
+        user_id=current_user.userid,
+        user_login=current_user.login,
+        action="Просмотр деталей траншеи",
+        description=f"Пользователь {current_user.login} просмотрел детали траншеи объекта '{obj.name}'",
+        ip_address=request.remote_addr,
+        page_url=request.url,
+        method=request.method
+    )
+    
+    from ..utils.mobile_detection import is_mobile_device
+    is_mobile = is_mobile_device()
+    
+    return render_template('objects/mobile_trench_detail.html' if is_mobile else 'objects/trench_detail.html', 
+                         object=obj, trench=trench, excavations=excavations)
+
 @objects_bp.route('/<uuid:object_id>/trenches/<uuid:trench_id>/files/<uuid:file_id>/download')
 @login_required
 def download_trench_file(object_id, trench_id, file_id):
-    """Скачивание файла траншеи"""
+    """Скачивание или просмотр файла траншеи"""
     obj = Object.query.get_or_404(object_id)
     trench = Trench.query.filter_by(id=trench_id, object_id=object_id).first_or_404()
     trench_file = TrenchFile.query.filter_by(id=file_id, trench_id=trench_id).first_or_404()
     
-    from flask import send_file
     import os
     
-    if os.path.exists(trench_file.file_path):
-        return send_file(trench_file.file_path, as_attachment=True, download_name=trench_file.original_filename)
+    # Нормализуем путь к файлу
+    # В БД может быть сохранен путь вида 'app/static/uploads/trenches/...'
+    # Рабочая директория в контейнере - /app, поэтому нужно убрать 'app/' из начала пути
+    file_path = trench_file.file_path
+    
+    # Если путь начинается с 'app/', убираем его
+    if file_path.startswith('app/'):
+        file_path = file_path[4:]  # Убираем 'app/'
+    
+    # Если путь все еще относительный, делаем его абсолютным относительно рабочей директории
+    if not os.path.isabs(file_path):
+        # Рабочая директория в контейнере - /app
+        file_path = os.path.join('/', 'app', file_path)
+    
+    # Альтернативный вариант: если файл не найден, пробуем найти по имени файла
+    if not os.path.exists(file_path):
+        # Пробуем найти файл по имени в папке траншеи
+        upload_folder = os.path.join('/', 'app', 'app', 'static', 'uploads', 'trenches', str(trench_id))
+        alt_path = os.path.join(upload_folder, trench_file.filename)
+        if os.path.exists(alt_path):
+            file_path = alt_path
+        else:
+            # Пробуем еще один вариант
+            alt_path2 = os.path.join('/', 'app', 'static', 'uploads', 'trenches', str(trench_id), trench_file.filename)
+            if os.path.exists(alt_path2):
+                file_path = alt_path2
+    
+    if os.path.exists(file_path):
+        # Для изображений отдаем без скачивания (для просмотра)
+        if trench_file.mime_type and trench_file.mime_type.startswith('image/'):
+            return send_file(file_path, mimetype=trench_file.mime_type)
+        else:
+            # Для остальных файлов - скачивание
+            return send_file(file_path, as_attachment=True, download_name=trench_file.original_filename)
     else:
+        current_app.logger.error(f'Файл не найден: {file_path} (оригинальный путь в БД: {trench_file.file_path}, filename: {trench_file.filename})')
         flash('Файл не найден', 'error')
         return redirect(url_for('objects.trenches_list', object_id=object_id))
 
@@ -2462,6 +3221,181 @@ def delete_object(object_id):
         db.session.rollback()
         return jsonify({'success': False, 'error': f'Ошибка при удалении объекта: {str(e)}'})
 
-# Отладочная информация будет добавлена позже в приложении
+# API endpoints для работы с файлами элементов
+
+@objects_bp.route('/<uuid:object_id>/elements/<element_type>/<uuid:element_id>/attachments', methods=['POST'])
+@login_required
+def upload_element_attachment(object_id, element_type, element_id):
+    """Загрузка файла для элемента"""
+    if not is_pto_engineer(current_user):
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    
+    # Проверяем, что элемент существует
+    element = None
+    if element_type == 'zdf':
+        element = ZDF.query.filter_by(id=element_id, object_id=object_id).first()
+    elif element_type == 'bracket':
+        element = Bracket.query.filter_by(id=element_id, object_id=object_id).first()
+    elif element_type == 'luminaire':
+        element = Luminaire.query.filter_by(id=element_id, object_id=object_id).first()
+    
+    if not element:
+        return jsonify({'error': 'Элемент не найден'}), 404
+    
+    if 'file' not in request.files:
+        return jsonify({'error': 'Файл не выбран'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'Файл не выбран'}), 400
+    
+    try:
+        # Читаем данные файла
+        file_data = file.read()
+        file.seek(0)  # Возвращаем указатель в начало
+        
+        # Определяем MIME тип
+        import mimetypes
+        content_type, _ = mimetypes.guess_type(file.filename)
+        if not content_type:
+            content_type = 'application/octet-stream'
+        
+        # Создаем запись о файле
+        attachment = ElementAttachment(
+            element_type=element_type,
+            element_id=element_id,
+            filename=secure_filename(file.filename),
+            original_filename=file.filename,
+            content_type=content_type,
+            data=file_data,
+            size_bytes=len(file_data),
+            uploaded_by=current_user.userid
+        )
+        
+        db.session.add(attachment)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'attachment_id': attachment.id,
+            'filename': attachment.original_filename,
+            'size_bytes': attachment.size_bytes
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Ошибка загрузки файла: {str(e)}'}), 500
+
+@objects_bp.route('/<uuid:object_id>/elements/<element_type>/<uuid:element_id>/attachments/<uuid:attachment_id>/view', methods=['GET'])
+@login_required
+def view_element_attachment(object_id, element_type, element_id, attachment_id):
+    """Просмотр файла элемента в браузере"""
+    attachment = ElementAttachment.query.filter_by(
+        id=attachment_id,
+        element_type=element_type,
+        element_id=element_id
+    ).first()
+    
+    if not attachment:
+        return jsonify({'error': 'Файл не найден'}), 404
+    
+    # Определяем, можно ли отобразить файл в браузере
+    viewable_types = [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+        'application/pdf',
+        'text/plain', 'text/html', 'text/css', 'text/javascript',
+        'application/json', 'application/xml', 'text/xml'
+    ]
+    
+    if attachment.content_type in viewable_types:
+        # Отправляем файл для просмотра в браузере
+        return send_file(
+            BytesIO(attachment.data), 
+            mimetype=attachment.content_type or 'application/octet-stream', 
+            as_attachment=False
+        )
+    else:
+        # Принудительно скачиваем файл
+        return send_file(
+            BytesIO(attachment.data), 
+            mimetype=attachment.content_type or 'application/octet-stream', 
+            as_attachment=True, 
+            download_name=attachment.original_filename or getattr(attachment, 'filename', None) or 'file'
+        )
+
+@objects_bp.route('/<uuid:object_id>/elements/<element_type>/<uuid:element_id>/attachments/latest/view', methods=['GET'])
+@login_required
+def view_element_attachment_latest(object_id, element_type, element_id):
+    """Просмотр последнего (по дате) файла элемента без указания attachment_id"""
+    attachment = ElementAttachment.query.filter_by(
+        element_type=element_type,
+        element_id=element_id
+    ).order_by(ElementAttachment.uploaded_at.desc()).first()
+    if not attachment:
+        return jsonify({'error': 'Файл не найден'}), 404
+    viewable_types = [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+        'application/pdf',
+        'text/plain', 'text/html', 'text/css', 'text/javascript',
+        'application/json', 'application/xml', 'text/xml'
+    ]
+    if attachment.content_type in viewable_types:
+        return send_file(
+            BytesIO(attachment.data),
+            mimetype=attachment.content_type or 'application/octet-stream',
+            as_attachment=False
+        )
+    return send_file(
+        BytesIO(attachment.data),
+        mimetype=attachment.content_type or 'application/octet-stream',
+        as_attachment=True,
+        download_name=attachment.original_filename or getattr(attachment, 'filename', None) or 'file'
+    )
+
+@objects_bp.route('/<uuid:object_id>/elements/<element_type>/<uuid:element_id>/attachments/<uuid:attachment_id>/download', methods=['GET'])
+@login_required
+def download_element_attachment(object_id, element_type, element_id, attachment_id):
+    """Скачивание файла элемента"""
+    attachment = ElementAttachment.query.filter_by(
+        id=attachment_id,
+        element_type=element_type,
+        element_id=element_id
+    ).first()
+    
+    if not attachment:
+        return jsonify({'error': 'Файл не найден'}), 404
+    
+    return send_file(
+        BytesIO(attachment.data), 
+        mimetype=attachment.content_type or 'application/octet-stream', 
+        as_attachment=True, 
+        download_name=attachment.original_filename
+    )
+
+@objects_bp.route('/<uuid:object_id>/elements/<element_type>/<uuid:element_id>/attachments/<uuid:attachment_id>', methods=['DELETE'])
+@login_required
+def delete_element_attachment(object_id, element_type, element_id, attachment_id):
+    """Удаление файла элемента"""
+    if not is_pto_engineer(current_user):
+        return jsonify({'error': 'Недостаточно прав'}), 403
+    
+    attachment = ElementAttachment.query.filter_by(
+        id=attachment_id,
+        element_type=element_type,
+        element_id=element_id
+    ).first()
+    
+    if not attachment:
+        return jsonify({'error': 'Файл не найден'}), 404
+    
+    try:
+        db.session.delete(attachment)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Файл удалён'})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Ошибка удаления файла: {str(e)}'}), 500
 
 

@@ -46,7 +46,6 @@
                 <div class="col-md-2">
                     <div class="card text-center">
                         <div class="card-body">
-                            <i class="bi bi-pin-angle display-4 text-primary"></i>
                             <h4 class="mt-2">{{ object.supports|length }}</h4>
                             <p class="text-muted mb-0">Опора</p>
                         </div>
@@ -55,7 +54,6 @@
                 <div class="col-md-2">
                     <div class="card text-center">
                         <div class="card-body">
-                            <i class="bi bi-tools display-4 text-success"></i>
                             <h4 class="mt-2">{{ object.trenches|length }}</h4>
                             <p class="text-muted mb-0">Траншея</p>
                         </div>
@@ -64,7 +62,6 @@
                 <div class="col-md-2">
                     <div class="card text-center">
                         <div class="card-body">
-                            <i class="bi bi-file-earmark-text display-4 text-info"></i>
                             <h4 class="mt-2">{{ object.reports|length }}</h4>
                             <p class="text-muted mb-0">Отчёт</p>
                         </div>
@@ -73,7 +70,6 @@
                 <div class="col-md-2">
                     <div class="card text-center">
                         <div class="card-body">
-                            <i class="bi bi-check2-square display-4 text-warning"></i>
                             <h4 class="mt-2">{{ object.checklist.items|length if object.checklist else 0 }}</h4>
                             <p class="text-muted mb-0">Чек-лист</p>
                         </div>
@@ -82,7 +78,6 @@
                 <div class="col-md-2">
                     <div class="card text-center">
                         <div class="card-body">
-                            <i class="bi bi-calendar-check display-4 text-danger"></i>
                             <h4 class="mt-2">{{ object.planned_works|length }}</h4>
                             <p class="text-muted mb-0">Запланированно</p>
                         </div>
@@ -91,7 +86,6 @@
                 <div class="col-md-2">
                     <div class="card text-center">
                         <div class="card-body">
-                            <i class="bi bi-bar-chart display-4 text-secondary"></i>
                             <h4 class="mt-2">{{ object.planned_works|selectattr('status', 'equalto', 'completed')|list|length }}</h4>
                             <p class="text-muted mb-0">Выполнено</p>
                         </div>

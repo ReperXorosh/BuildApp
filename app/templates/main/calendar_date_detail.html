@@ -45,23 +45,23 @@
     <!-- Статистика по дате -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card">
+            <div class="card stats-summary">
                 <div class="card-body">
                     <div class="row text-center">
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <div class="border-end">
                                 <h4 class="text-primary">{{ objects_data|length }}</h4>
                                 <small class="text-muted">Объектов с активностью</small>
                             </div>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <div class="border-end">
                                 {% set total_reports = objects_data | sum(attribute='total_reports') %}
                                 <h4 class="text-success">{{ total_reports }}</h4>
                                 <small class="text-muted">Отчётов</small>
                             </div>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <div class="border-end">
                                 {% set total_planned_works = objects_data | sum(attribute='total_planned_works') %}
                                 {% set total_supports = objects_data | sum(attribute='total_supports_created') %}
@@ -70,7 +70,7 @@
                                 <small class="text-muted">Работ</small>
                             </div>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             {% set total_checklist = objects_data | sum(attribute='total_checklist_completed') %}
                             <h4 class="text-danger">{{ total_checklist }}</h4>
                             <small class="text-muted">Выполнение чек-листа</small>
@@ -94,28 +94,11 @@
                                 <i class="bi bi-building me-2"></i>
                                 {{ data.object.name }}
                             </h5>
-                            <span class="badge bg-primary">
-                                <i class="bi bi-arrow-right me-1"></i>
-                                Подробнее
-                            </span>
+                            
                         </div>
                     </div>
                 <div class="card-body">
-                    <!-- Статистика по объекту -->
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-file-earmark-text text-success me-2"></i>
-                                <span class="badge bg-success">{{ data.total_reports }} отчётов</span>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-calendar-check text-info me-2"></i>
-                                <span class="badge bg-info">{{ data.total_planned_works + data.total_supports_created + data.total_trenches_created }} работ</span>
-                            </div>
-                        </div>
-                    </div>
+                    
                     
                     {% if data.total_checklist_completed > 0 %}
                     <div class="row mb-3">
@@ -297,12 +280,41 @@
 }
 
 .object-card {
-    border: 1px solid #dee2e6;
+    border: 1px solid rgba(108, 117, 125, 0.3);
+    background: var(--bs-body-bg);
+    border-radius: 0.375rem;
+    box-shadow: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .object-card:hover {
-    border-color: #0d6efd;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    border-color: rgba(108, 117, 125, 0.5);
 }
+
+[data-bs-theme="dark"] .object-card {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: var(--bs-dark);
+}
+
+[data-bs-theme="dark"] .object-card:hover {
+    box-shadow: 0 6px 16px rgba(0,0,0,0.45);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Растянуть блок статистики на всю ширину карточки */
+.stats-summary .card-body {
+    padding: 0;
+}
+.stats-summary .row {
+    margin: 0;
+}
+.stats-summary .col-md-3 {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+}
+.stats-summary .border-end { height: 100%; display: flex; flex-direction: column; justify-content: center; }
 </style>
 
 <script>

@@ -64,6 +64,11 @@
     .swipeable-item, .swipeable-content {
         touch-action: pan-y;
     }
+    /* Улучшаем инерционный скролл и изоляцию overscroll (Safari/iOS) */
+    .list-group {
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
+    }
 </style>
 
 {% if objects and objects|length > 0 %}
@@ -114,6 +119,111 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    initObjectsPage();
+});
+
+// Инициализация после возврата из BFCache (iOS Safari) и при повторном показе
+window.addEventListener('pageshow', function(e) {
+    initObjectsPage();
+});
+
+// На всякий случай при возврате во вкладку сбрасываем состояние жеста
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+        try { window.__swipeReset && window.__swipeReset(); } catch(_) {}
+        initObjectsPage();
+    }
+});
+
+window.addEventListener('focus', initObjectsPage);
+
+function initObjectsPage() {
+    // Инициализируем поиск (без дублирования обработчиков)
+    const searchToggle = document.getElementById('searchToggle');
+    const searchContainer = document.getElementById('searchContainer');
+    const objectSearch = document.getElementById('objectSearch');
+    const clearSearch = document.getElementById('clearSearch');
+    const objectItems = document.querySelectorAll('.list-group-item');
+
+    if (searchToggle && !searchToggle.dataset.bound) {
+        searchToggle.dataset.bound = 'true';
+        searchToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (searchContainer.style.display === 'none') {
+                searchContainer.style.display = 'block';
+                objectSearch && objectSearch.focus();
+            } else {
+                searchContainer.style.display = 'none';
+                if (objectSearch) objectSearch.value = '';
+                clearSearchResults();
+            }
+        });
+    }
+    if (clearSearch && !clearSearch.dataset.bound) {
+        clearSearch.dataset.bound = 'true';
+        clearSearch.addEventListener('click', function() {
+            if (objectSearch) objectSearch.value = '';
+            clearSearchResults();
+            objectSearch && objectSearch.focus();
+        });
+    }
+    if (objectSearch && !objectSearch.dataset.bound) {
+        objectSearch.dataset.bound = 'true';
+        objectSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            if (searchTerm === '') {
+                clearSearchResults();
+                return;
+            }
+            document.querySelectorAll('.list-group-item').forEach(item => {
+                const nameEl = item.querySelector('h5');
+                const objectName = (nameEl && nameEl.textContent || '').toLowerCase();
+                const objectLocation = item.querySelector('small');
+                const locationText = objectLocation ? objectLocation.textContent.toLowerCase() : '';
+                item.style.display = (objectName.includes(searchTerm) || locationText.includes(searchTerm)) ? '' : 'none';
+            });
+            showNoResultsMessage(searchTerm);
+        });
+        // ESC закрывает поиск
+        objectSearch.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                searchContainer.style.display = 'none';
+                objectSearch.value = '';
+                clearSearchResults();
+            }
+        });
+    }
+
+    initSwipeableList();
+
+    function clearSearchResults() {
+        document.querySelectorAll('.list-group-item').forEach(item => { item.style.display = ''; });
+        hideNoResultsMessage();
+    }
+    function showNoResultsMessage(searchTerm) {
+        const visibleItems = Array.from(document.querySelectorAll('.list-group-item')).filter(item => item.style.display !== 'none');
+        if (visibleItems.length === 0 && searchTerm !== '') {
+            hideNoResultsMessage();
+            const noResultsDiv = document.createElement('div');
+            noResultsDiv.id = 'noResultsMessage';
+            noResultsDiv.className = 'text-center py-4 text-body-secondary';
+            noResultsDiv.innerHTML = `По запросу "<strong>${searchTerm}</strong>" ничего не найдено`;
+            const listGroup = document.querySelector('.list-group');
+            if (listGroup) listGroup.appendChild(noResultsDiv);
+        } else {
+            hideNoResultsMessage();
+        }
+    }
+    function hideNoResultsMessage() {
+        const noResultsMessage = document.getElementById('noResultsMessage');
+        if (noResultsMessage) noResultsMessage.remove();
+    }
+
+    // Экспорт функций в замыкание initObjectsPage
+    window.__objectsClearSearchResults = clearSearchResults;
+}
+
+function initSwipeableList() {
     const searchToggle = document.getElementById('searchToggle');
     const searchContainer = document.getElementById('searchContainer');
     const objectSearch = document.getElementById('objectSearch');
@@ -221,13 +331,17 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentY = 0;
     let isDragging = false;
     let currentItem = null;
-    let isSwipeGesture = false;
+    let isSwipeGesture = false; // устаревший флаг — оставляем для совместимости
+    let lockedDirection = null; // null | 'horizontal' | 'vertical'
     const threshold = 80; // финальный порог открытия кнопки
-    const gestureThreshold = 16; // чувствительность распознавания свайпа
-    const directionBias = 1.2; // горизонталь должна превосходить вертикаль
+    const gestureThreshold = 24; // минимальный горизонтальный сдвиг, прежде чем захватывать жест
+    const directionBias = 2.0; // горизонталь должна превосходить вертикаль минимум в 2 раза
+    const verticalLeeway = 10; // допускаем мелкое вертикальное дрожание
     const maxSwipe = 160;
     
     swipeableItems.forEach((item, index) => {
+        if (item.dataset.swipeBound === 'true') return; // не дублируем обработчики
+        item.dataset.swipeBound = 'true';
         const content = item.querySelector('.swipeable-content');
         const actions = item.querySelector('.swipe-actions');
         const deleteBtn = item.querySelector('.swipe-action-btn');
@@ -262,7 +376,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Touch события для кнопки
             deleteBtn.addEventListener('touchend', function(e) {
                 e.stopPropagation();
-                e.preventDefault();
+                if (e.cancelable) e.preventDefault();
                 
                 const objectId = this.getAttribute('data-object-id');
                 const objectName = this.getAttribute('data-object-name');
@@ -295,6 +409,12 @@ document.addEventListener('DOMContentLoaded', function() {
         currentItem = item;
         isDragging = true;
         isSwipeGesture = false; // Сбрасываем флаг свайпа
+        lockedDirection = null;
+
+        // Разрешаем системный жест «назад» от края экрана в iOS: не перехватываем касания у самого левого края
+        if (startX <= 16) {
+            lockedDirection = 'vertical';
+        }
         
         item.classList.add('swiping');
         // НЕ вызываем preventDefault() здесь - позволяем обычным кликам работать
@@ -308,21 +428,30 @@ document.addEventListener('DOMContentLoaded', function() {
         const deltaX = currentX - startX;
         const deltaY = currentY - startY;
 
-        // Распознаём жест как свайп только если горизонталь заметно превосходит вертикаль
-        if (!isSwipeGesture && Math.abs(deltaX) > gestureThreshold && Math.abs(Math.abs(deltaX) / Math.max(1, Math.abs(deltaY))) > directionBias) {
-            isSwipeGesture = true;
+        // Определяем направление один раз
+        if (!lockedDirection) {
+            // Вертикальный скролл: доминирует Y и превышает допустимую «дрожь»
+            if (Math.abs(deltaY) > Math.max(verticalLeeway, Math.abs(deltaX))) {
+                lockedDirection = 'vertical';
+            } else if (
+                Math.abs(deltaX) > gestureThreshold &&
+                Math.abs(deltaX) > Math.abs(deltaY) * directionBias
+            ) {
+                lockedDirection = 'horizontal';
+                isSwipeGesture = true; // для обратной совместимости
+            }
         }
 
-        // Если вертикальное движение доминирует — даём нативному скроллу работать
-        if (!isSwipeGesture && Math.abs(deltaY) > Math.abs(deltaX)) {
-            return; // не блокируем скролл
+        if (lockedDirection === 'vertical') {
+            // Даём странице нативно скроллиться
+            return;
         }
 
-        // Лишь при реальном свайпе влево движем контент и блокируем нативные действия
-        if (isSwipeGesture && deltaX < 0) {
+        if (lockedDirection === 'horizontal') {
+            // Лишь при реальном свайпе влево движем контент и блокируем нативные действия
             const translateX = Math.max(deltaX, -maxSwipe);
-            updateTransform(currentItem, translateX);
-            e.preventDefault();
+            updateTransform(currentItem, translateX < 0 ? translateX : 0);
+            if (e.cancelable) e.preventDefault();
         }
     }
     
@@ -349,9 +478,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 250);
         
-        // Блокируем клик только если это был свайп (а не вертикальный скролл)
-        if (isSwipeGesture) {
-            e.preventDefault();
+        // Блокируем клик только если это был горизонтальный свайп (а не вертикальный скролл)
+        if (lockedDirection === 'horizontal' || isSwipeGesture) {
+            if (e.cancelable) e.preventDefault();
         }
         
         reset();
@@ -378,6 +507,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentItem = item;
         isDragging = true;
         isSwipeGesture = false; // Сбрасываем флаг свайпа
+        lockedDirection = null;
         
         item.classList.add('swiping');
         // НЕ вызываем preventDefault() здесь - позволяем обычным кликам работать
@@ -391,18 +521,26 @@ document.addEventListener('DOMContentLoaded', function() {
         const deltaX = currentX - startX;
         const deltaY = currentY - startY;
 
-        if (!isSwipeGesture && Math.abs(deltaX) > gestureThreshold && Math.abs(Math.abs(deltaX) / Math.max(1, Math.abs(deltaY))) > directionBias) {
-            isSwipeGesture = true;
+        if (!lockedDirection) {
+            if (Math.abs(deltaY) > Math.max(verticalLeeway, Math.abs(deltaX))) {
+                lockedDirection = 'vertical';
+            } else if (
+                Math.abs(deltaX) > gestureThreshold &&
+                Math.abs(deltaX) > Math.abs(deltaY) * directionBias
+            ) {
+                lockedDirection = 'horizontal';
+                isSwipeGesture = true;
+            }
         }
 
-        if (!isSwipeGesture && Math.abs(deltaY) > Math.abs(deltaX)) {
+        if (lockedDirection === 'vertical') {
             return;
         }
 
-        if (isSwipeGesture && deltaX < 0) {
+        if (lockedDirection === 'horizontal') {
             const translateX = Math.max(deltaX, -maxSwipe);
-            updateTransform(currentItem, translateX);
-            e.preventDefault();
+            updateTransform(currentItem, translateX < 0 ? translateX : 0);
+            if (e.cancelable) e.preventDefault();
         }
     }
     
@@ -429,9 +567,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 250);
         
-        // Блокируем клик только если это был свайп
-        if (isSwipeGesture) {
-            e.preventDefault();
+        // Блокируем клик только если это был горизонтальный свайп
+        if (lockedDirection === 'horizontal' || isSwipeGesture) {
+            if (e.cancelable) e.preventDefault();
         }
         
         reset();
@@ -464,10 +602,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const actions = item.querySelector('.swipe-actions');
         
         if (content && actions) {
-            content.style.transform = `translateX(-${maxSwipe}px)`;
+            // Плавно доводим до -maxSwipe
+            content.style.transition = 'transform 180ms ease-out';
+            requestAnimationFrame(() => {
+                content.style.transform = `translateX(-${maxSwipe}px)`;
+            });
             actions.style.opacity = '1';
             actions.style.transform = 'translateX(0)';
             actions.classList.add('show');
+            // Снимаем transition после завершения
+            setTimeout(() => { content.style.transition = ''; }, 200);
         }
     }
     
@@ -476,10 +620,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const actions = item.querySelector('.swipe-actions');
         
         if (content && actions) {
-            content.style.transform = 'translateX(0)';
+            content.style.transition = 'transform 160ms ease-out';
+            requestAnimationFrame(() => {
+                content.style.transform = 'translateX(0)';
+            });
             actions.style.opacity = '0';
             actions.style.transform = 'translateX(100%)';
             actions.classList.remove('show');
+            setTimeout(() => { content.style.transition = ''; }, 180);
         }
     }
     
@@ -487,7 +635,11 @@ document.addEventListener('DOMContentLoaded', function() {
         isDragging = false;
         currentItem = null;
         isSwipeGesture = false;
+        lockedDirection = null;
     }
+
+    // Делаем функцию доступной для внешнего вызова (pageshow/visibilitychange)
+    window.__swipeReset = reset;
     
     // Обработка кликов
     document.addEventListener('click', function(e) {
@@ -526,7 +678,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
-});
+}
 
 // Функции для действий с объектами
 function deleteObject(objectId, objectName) {

@@ -83,7 +83,12 @@
                             <dl class="row mb-0">
                                 <dt class="col-sm-6">Всего отчётов:</dt>
                                 <dd class="col-sm-6">
-                                    <span class="badge bg-primary">{{ reports|length }}</span>
+                                    {% set total_all = (reports|length) + (daily_reports|length if daily_reports else 0) %}
+                                    <span class="badge bg-primary">{{ total_all }}</span>
+                                </dd>
+                                <dt class="col-sm-6">Ежедневных:</dt>
+                                <dd class="col-sm-6">
+                                    <span class="badge bg-info">{{ daily_reports|length if daily_reports else 0 }}</span>
                                 </dd>
                                 <dt class="col-sm-6">Одобренных:</dt>
                                 <dd class="col-sm-6">
@@ -121,8 +126,33 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    {% if reports %}
+                    {% if reports or daily_reports %}
                         <div class="row g-4">
+                            {% for d in (daily_reports or []) %}
+                            <div class="col-md-6 col-lg-4">
+                                <a href="{{ url_for('objects.daily_report_view', object_id=object_obj.id, date=date.strftime('%Y-%m-%d')) }}" class="text-decoration-none">
+                                <div class="card h-100 border-success" style="cursor: pointer;">
+                                    <div class="card-header bg-success text-white">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0">Ежедневный отчёт</h6>
+                                            <span class="badge bg-light text-dark">{{ date | moscow_date }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <dl class="row mb-0">
+                                            <dt class="col-sm-4">Статус:</dt>
+                                            <dd class="col-sm-8">
+                                                <span class="badge bg-{{ 'success' if (d.approval_status or d.status) == 'approved' else 'secondary' }}">{{ d.approval_status or d.status or '—' }}</span>
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                    <div class="card-footer d-flex justify-content-end">
+                                        <span class="btn btn-outline-success btn-sm">Открыть</span>
+                                    </div>
+                                </div>
+                                </a>
+                            </div>
+                            {% endfor %}
                             {% for report in reports %}
                             <div class="col-md-6 col-lg-4">
                                 <div class="card h-100 border-info">

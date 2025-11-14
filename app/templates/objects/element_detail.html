@@ -2,14 +2,41 @@
 {% block title %}Элемент: {{ element_type }}{% endblock %}
 {% block content %}
 <div class="container py-4">
-  <h2 class="mb-3">{{ element_type }}</h2>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="m-0">{{ element_type }}</h2>
+    <a class="btn btn-outline-secondary btn-sm" target="_blank"
+       href="{{ url_for('objects.view_element_attachment_latest', object_id=object.id, element_type=element_type_code, element_id=element.id) }}"
+       title="Просмотреть файл">
+      <i class="bi bi-eye"></i> Просмотр файла
+    </a>
+  </div>
   <div class="card">
     <div class="card-body">
       <dl class="row mb-0">
         <dt class="col-sm-3">Название</dt>
         <dd class="col-sm-9">{{ element.zdf_name or element.bracket_name or element.luminaire_name or '—' }}</dd>
         <dt class="col-sm-3">Статус</dt>
-        <dd class="col-sm-9">{{ element.status or '—' }}</dd>
+        <dd class="col-sm-9">
+          {% if element.status %}
+          {% set status_translation = {
+              'pending': 'Ожидает',
+              'in_progress': 'В работе',
+              'completed': 'Завершено',
+              'cancelled': 'Отменено',
+              'active': 'Активно',
+              'inactive': 'Неактивно',
+              'installed': 'Установлено',
+              'not_installed': 'Не установлено',
+              'working': 'Работает',
+              'broken': 'Сломано',
+              'maintenance': 'Обслуживание',
+              'planned': 'Запланировано'
+          } %}
+          {{ status_translation.get(element.status.lower(), element.status) }}
+          {% else %}
+          —
+          {% endif %}
+        </dd>
         <dt class="col-sm-3">Заметки</dt>
         {% set _notes_lines = (element.notes or '').split('\n') %}
         {% set _filtered = [] %}
@@ -18,21 +45,23 @@
           {% if _t and ('Файл:' not in _t) %}{% set _ = _filtered.append(_t) %}{% endif %}
         {% endfor %}
         <dd class="col-sm-9">{{ (_filtered|length > 0) and (_filtered|join('\n')|replace('\n','<br>')|safe) or '—' }}</dd>
-        {# Попытка извлечь прикреплённый файл из заметок вида: "Файл: /static/uploads/elements/<name>" #}
-        {% set file_url = None %}
-        {% for line in (element.notes or '').split('\n') %}
-          {% if 'Файл:' in line %}
-            {% set file_url = line|replace('Файл:', '')|trim %}
-          {% endif %}
-        {% endfor %}
-        {% if file_url %}
-          <dt class="col-sm-3">Файл</dt>
+        <!-- DEBUG: attachments count = {{ attachments|length }} -->
+        {% if attachments %}
+          <dt class="col-sm-3">Файлы</dt>
           <dd class="col-sm-9">
-            <a href="{{ file_url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Просмотреть файл">
-              <svg class="bi me-1" width="16" height="16" aria-hidden="true"><use href="#file-earmark-text"></use></svg>
-              Просмотреть
-            </a>
+            {% for attachment in attachments %}
+            <div class="mb-2">
+              <a href="{{ url_for('objects.view_element_attachment', object_id=object.id, element_type=element_type.lower(), element_id=element.id, attachment_id=attachment.id) }}" 
+                 target="_blank" class="btn btn-sm btn-outline-secondary me-2" title="Просмотреть файл">
+                <i class="bi bi-file-earmark-text me-1"></i>
+                {{ attachment.original_filename }}
+              </a>
+              <small class="text-muted">({{ attachment.size_bytes // 1024 }} КБ)</small>
+            </div>
+            {% endfor %}
           </dd>
+        {% else %}
+          <!-- DEBUG: No attachments found -->
         {% endif %}
       </dl>
     </div>

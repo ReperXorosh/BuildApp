@@ -42,7 +42,7 @@
                                         Номер опоры *
                                     </label>
                                     <input type="text" class="form-control" id="support_number" name="support_number" 
-                                           placeholder="Например: ОП-001" required>
+                                           placeholder="Например: ОП-001" value="{{ form_data.support_number if form_data else '' }}" required>
                                 </div>
 
                                 <div class="mb-3">
@@ -51,7 +51,7 @@
                                         Название опоры
                                     </label>
                                     <input type="text" class="form-control" id="support_type" name="support_type" 
-                                           placeholder="Например: Железобетонная опора, Металлическая стойка">
+                                           placeholder="Например: Железобетонная опора, Металлическая стойка" value="{{ form_data.support_type if form_data else '' }}">
                                 </div>
 
                                 <div class="alert alert-info">
@@ -71,19 +71,16 @@
                                     <ul class="nav nav-tabs" id="elementTabs" role="tablist">
                                         <li class="nav-item" role="presentation">
                                             <button class="nav-link active" id="zdf-tab" data-bs-toggle="tab" data-bs-target="#zdf" type="button" role="tab">
-                                                <i class="bi bi-shield-check me-1"></i>
                                                 ЗДФ
                                             </button>
                                         </li>
                                         <li class="nav-item" role="presentation">
                                             <button class="nav-link" id="bracket-tab" data-bs-toggle="tab" data-bs-target="#bracket" type="button" role="tab">
-                                                <i class="bi bi-bracket me-1"></i>
                                                 Кронштейн
                                             </button>
                                         </li>
                                         <li class="nav-item" role="presentation">
                                             <button class="nav-link" id="luminaire-tab" data-bs-toggle="tab" data-bs-target="#luminaire" type="button" role="tab">
-                                                <i class="bi bi-lightbulb me-1"></i>
                                                 Светильник
                                             </button>
                                         </li>
@@ -99,27 +96,28 @@
                                                     <div class="accordion-item">
                                                         <h2 class="accordion-header" id="zdf-heading-{{ loop.index }}">
                                                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#zdf-collapse-{{ loop.index }}">
-                                                                <div class="d-flex align-items-center">
-                                                                    <input type="checkbox" class="form-check-input me-2" name="selected_zdf" value="{{ zdf.id }}" id="zdf-{{ zdf.id }}">
-                                                                    <div>
-                                                                        <strong>{{ zdf.zdf_number }}</strong>
-                                                                        {% if zdf.zdf_name %} - {{ zdf.zdf_name }}{% endif %}
-                                                                    </div>
-                                                                </div>
+                                                                <strong>{{ zdf.zdf_number }}</strong>
+                                                                {% if zdf.zdf_name %} - {{ zdf.zdf_name }}{% endif %}
                                                             </button>
                                                         </h2>
                                                         <div id="zdf-collapse-{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#zdfAccordion">
                                                             <div class="accordion-body">
-                                                                <p class="mb-1"><strong>Номер:</strong> {{ zdf.zdf_number }}</p>
-                                                                {% if zdf.zdf_name %}<p class="mb-1"><strong>Название:</strong> {{ zdf.zdf_name }}</p>{% endif %}
-                                                                {% if zdf.notes %}<p class="mb-0"><strong>Примечания:</strong> {{ zdf.notes }}</p>{% endif %}
+                                                                <div class="form-check mb-3">
+                                                                    <input type="radio" class="form-check-input" name="selected_zdf_id" value="{{ zdf.id }}" id="zdf-{{ zdf.id }}">
+                                                                    <label class="form-check-label" for="zdf-{{ zdf.id }}">
+                                                                        Выбрать этот ЗДФ
+                                                                    </label>
+                                                                </div>
+                                                                <p><strong>Номер:</strong> {{ zdf.zdf_number }}</p>
+                                                                {% if zdf.zdf_name %}<p><strong>Название:</strong> {{ zdf.zdf_name }}</p>{% endif %}
+                                                                {% if zdf.notes %}<p><strong>Примечания:</strong> {{ zdf.notes }}</p>{% endif %}
                                                             </div>
                                                         </div>
                                                     </div>
                                                     {% endfor %}
                                                 {% else %}
                                                     <div class="text-center py-3 text-muted">
-                                                        <i class="bi bi-shield-check fs-1 mb-2"></i>
+                                                        <i class="bi bi-box fs-1 mb-2"></i>
                                                         <p>Нет доступных ЗДФ для данного объекта</p>
                                                     </div>
                                                 {% endif %}
@@ -134,20 +132,21 @@
                                                     <div class="accordion-item">
                                                         <h2 class="accordion-header" id="bracket-heading-{{ loop.index }}">
                                                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bracket-collapse-{{ loop.index }}">
-                                                                <div class="d-flex align-items-center">
-                                                                    <input type="checkbox" class="form-check-input me-2" name="selected_brackets" value="{{ bracket.id }}" id="bracket-{{ bracket.id }}">
-                                                                    <div>
-                                                                        <strong>{{ bracket.bracket_number }}</strong>
-                                                                        {% if bracket.bracket_name %} - {{ bracket.bracket_name }}{% endif %}
-                                                                    </div>
-                                                                </div>
+                                                                <strong>{{ bracket.bracket_number }}</strong>
+                                                                {% if bracket.bracket_name %} - {{ bracket.bracket_name }}{% endif %}
                                                             </button>
                                                         </h2>
                                                         <div id="bracket-collapse-{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#bracketAccordion">
                                                             <div class="accordion-body">
-                                                                <p class="mb-1"><strong>Номер:</strong> {{ bracket.bracket_number }}</p>
-                                                                {% if bracket.bracket_name %}<p class="mb-1"><strong>Название:</strong> {{ bracket.bracket_name }}</p>{% endif %}
-                                                                {% if bracket.notes %}<p class="mb-0"><strong>Примечания:</strong> {{ bracket.notes }}</p>{% endif %}
+                                                                <div class="form-check mb-3">
+                                                                    <input type="radio" class="form-check-input" name="selected_bracket_id" value="{{ bracket.id }}" id="bracket-{{ bracket.id }}">
+                                                                    <label class="form-check-label" for="bracket-{{ bracket.id }}">
+                                                                        Выбрать этот кронштейн
+                                                                    </label>
+                                                                </div>
+                                                                <p><strong>Номер:</strong> {{ bracket.bracket_number }}</p>
+                                                                {% if bracket.bracket_name %}<p><strong>Название:</strong> {{ bracket.bracket_name }}</p>{% endif %}
+                                                                {% if bracket.notes %}<p><strong>Примечания:</strong> {{ bracket.notes }}</p>{% endif %}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -169,20 +168,21 @@
                                                     <div class="accordion-item">
                                                         <h2 class="accordion-header" id="luminaire-heading-{{ loop.index }}">
                                                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#luminaire-collapse-{{ loop.index }}">
-                                                                <div class="d-flex align-items-center">
-                                                                    <input type="checkbox" class="form-check-input me-2" name="selected_luminaires" value="{{ luminaire.id }}" id="luminaire-{{ luminaire.id }}">
-                                                                    <div>
-                                                                        <strong>{{ luminaire.luminaire_number }}</strong>
-                                                                        {% if luminaire.luminaire_name %} - {{ luminaire.luminaire_name }}{% endif %}
-                                                                    </div>
-                                                                </div>
+                                                                <strong>{{ luminaire.luminaire_number }}</strong>
+                                                                {% if luminaire.luminaire_name %} - {{ luminaire.luminaire_name }}{% endif %}
                                                             </button>
                                                         </h2>
                                                         <div id="luminaire-collapse-{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#luminaireAccordion">
                                                             <div class="accordion-body">
-                                                                <p class="mb-1"><strong>Номер:</strong> {{ luminaire.luminaire_number }}</p>
-                                                                {% if luminaire.luminaire_name %}<p class="mb-1"><strong>Название:</strong> {{ luminaire.luminaire_name }}</p>{% endif %}
-                                                                {% if luminaire.notes %}<p class="mb-0"><strong>Примечания:</strong> {{ luminaire.notes }}</p>{% endif %}
+                                                                <div class="form-check mb-3">
+                                                                    <input type="checkbox" class="form-check-input" name="selected_luminaire_ids" value="{{ luminaire.id }}" id="luminaire-{{ luminaire.id }}">
+                                                                    <label class="form-check-label" for="luminaire-{{ luminaire.id }}">
+                                                                        Выбрать этот светильник
+                                                                    </label>
+                                                                </div>
+                                                                <p><strong>Номер:</strong> {{ luminaire.luminaire_number }}</p>
+                                                                {% if luminaire.luminaire_name %}<p><strong>Название:</strong> {{ luminaire.luminaire_name }}</p>{% endif %}
+                                                                {% if luminaire.notes %}<p><strong>Примечания:</strong> {{ luminaire.notes }}</p>{% endif %}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -204,7 +204,7 @@
                                         Примечания
                                     </label>
                                     <textarea class="form-control" id="notes" name="notes" rows="3" 
-                                              placeholder="Дополнительная информация об опоре"></textarea>
+                                              placeholder="Дополнительная информация об опоре">{{ form_data.notes if form_data else '' }}</textarea>
                                 </div>
 
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">

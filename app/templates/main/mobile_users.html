@@ -19,7 +19,6 @@
 {% endblock %}
 
 {% block content %}
-<div class="mobile-content">
     <!-- Поисковая панель -->
     <div class="users-toolbar p-2" style="margin-bottom:8px;">
         <form method="GET" action="{{ url_for('main.users') }}" class="m-0">
@@ -96,7 +95,6 @@
         </div>
         {% endif %}
     </div>
-</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

@@ -264,7 +264,7 @@ def format_phone_for_display(phone_number):
 @login_required
 def calendar():
     from datetime import datetime, date
-    from ..models.objects import Object, Report, PlannedWork, Support, Trench, ChecklistItem
+    from ..models.objects import Object, Report, PlannedWork, Support, Trench, ChecklistItem, DailyReport
     
     # Обновляем статус просроченных работ
     PlannedWork.update_overdue_works()
@@ -280,6 +280,14 @@ def calendar():
     for (report_date,) in reports_dates:
         if report_date:
             active_dates.add(report_date.strftime('%Y-%m-%d'))
+    # Даты с ежедневными отчётами
+    try:
+        daily_dates = db.session.query(db.func.date(DailyReport.report_date)).distinct().all()
+        for (d,) in daily_dates:
+            if d:
+                active_dates.add(d.strftime('%Y-%m-%d'))
+    except Exception:
+        pass
     
     # Даты с запланированными работами
     planned_works_dates = db.session.query(db.func.date(PlannedWork.planned_date)).distinct().all()
@@ -334,7 +342,7 @@ def calendar_date_detail(date):
     """Детальная информация по выбранной дате"""
     try:
         from datetime import datetime
-        from ..models.objects import Object, Report, PlannedWork, Support, Trench, Checklist, ChecklistItem
+        from ..models.objects import Object, Report, PlannedWork, Support, Trench, Checklist, ChecklistItem, DailyReport
         # Попробуем подключить старую модель отчётов, если она используется
         try:
             from ..models.reports import Reports as LegacyReports
@@ -378,6 +386,19 @@ def calendar_date_detail(date):
                     r.report_number = ''
                     r.status = getattr(r, 'status', '')
                 reports = legacy or reports
+
+            # Подтягиваем ежедневный отчёт как отдельный элемент в блок "Отчёты"
+            try:
+                daily = DailyReport.query.filter_by(object_id=obj.id, report_date=report_date).all()
+            except Exception:
+                daily = []
+            for d in daily:
+                reports.append(type('DailyStub', (), {
+                    'title': 'Ежедневный отчёт',
+                    'report_number': '',
+                    'status': getattr(d, 'approval_status', getattr(d, 'status', '')),
+                    'created_by': None
+                }))
             
             # Запланированные работы на эту дату
             planned_works = PlannedWork.query.filter(
@@ -1240,8 +1261,15 @@ def reports_by_date(date):
         from datetime import datetime
         report_date = datetime.strptime(date, '%Y-%m-%d').date()
         
-        # Получаем отчёты за эту дату с информацией о создателях
+        # Получаем отчёты за эту дату с информацией о создателях (ручные)
         reports = Report.query.filter_by(report_date=report_date).all()
+
+        # Получаем ежедневные отчёты за эту дату
+        try:
+            from ..models.objects import DailyReport
+            daily_reports = DailyReport.query.filter_by(report_date=report_date).all()
+        except Exception:
+            daily_reports = []
         
         # Загружаем информацию о создателях отчётов
         from ..models.users import Users
@@ -1251,16 +1279,38 @@ def reports_by_date(date):
             else:
                 report.creator = None
         
-        # Группируем объекты с отчётами
+        # Группируем объекты с отчётами (ручные + ежедневные как отдельные элементы)
         objects_with_reports = {}
         for report in reports:
             object_obj = report.object
             if object_obj.id not in objects_with_reports:
                 objects_with_reports[object_obj.id] = {
                     'object': object_obj,
-                    'reports': []
+                    'reports': [],
+                    'daily_reports': []
                 }
             objects_with_reports[object_obj.id]['reports'].append(report)
+
+        for d in daily_reports:
+            try:
+                object_obj = d.object
+            except Exception:
+                # Совместимость, если объект связан иначе
+                object_obj = getattr(d, 'object_obj', None) or getattr(d, 'obj', None)
+            if not object_obj:
+                continue
+            if object_obj.id not in objects_with_reports:
+                objects_with_reports[object_obj.id] = {
+                    'object': object_obj,
+                    'reports': [],
+                    'daily_reports': []
+                }
+            # Приводим к лёгкому виду для шаблона
+            objects_with_reports[object_obj.id]['daily_reports'].append({
+                'title': 'Ежедневный отчёт',
+                'status': getattr(d, 'approval_status', getattr(d, 'status', '')),
+                'report_date': d.report_date
+            })
         
         # Логируем просмотр отчётов по дате
         ActivityLog.log_action(
@@ -1300,6 +1350,16 @@ def object_report_by_date(object_id, date):
             object_id=object_id, 
             report_date=report_date
         ).order_by(Report.created_at).all()
+
+        # Подтягиваем ежедневные отчёты за эту дату
+        try:
+            from ..models.objects import DailyReport
+            daily_reports = DailyReport.query.filter_by(
+                object_id=object_id,
+                report_date=report_date
+            ).all()
+        except Exception:
+            daily_reports = []
         
         # Загружаем информацию о создателях отчётов
         from ..models.users import Users
@@ -1323,7 +1383,8 @@ def object_report_by_date(object_id, date):
         return render_template('main/object_report_by_date.html', 
                              object_obj=object_obj,
                              date=report_date,
-                             reports=reports)
+                             reports=reports,
+                             daily_reports=daily_reports)
     
     except ValueError:
         flash('Неверный формат даты', 'error')

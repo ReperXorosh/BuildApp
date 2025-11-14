@@ -99,6 +99,42 @@ class WarehouseAttachment(db.Model):
             payload['data'] = self.data
         return payload
 
+
+class MaterialAttachment(db.Model):
+    """Файл-превью, прикрепленный к материалу для отображения внешнего вида.
+    Хранится в БД аналогично WarehouseAttachment.
+    """
+    __tablename__ = 'material_attachments'
+
+    id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    material_id = db.Column(
+        db.UUID(as_uuid=True),
+        db.ForeignKey('materials.id', ondelete='CASCADE'),
+        nullable=False,
+    )
+    filename = db.Column(db.String(255), nullable=False)
+    content_type = db.Column(db.String(127), nullable=True)
+    data = db.Column(db.LargeBinary, nullable=False)
+    size_bytes = db.Column(db.Integer, nullable=False)
+    uploaded_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'), nullable=False)
+    uploaded_at = db.Column(db.DateTime, default=get_moscow_now, nullable=False)
+
+    material = db.relationship('Material', passive_deletes=True)
+
+    def to_dict(self, include_data: bool = False):
+        payload = {
+            'id': self.id,
+            'material_id': self.material_id,
+            'filename': self.filename,
+            'content_type': self.content_type,
+            'size_bytes': self.size_bytes,
+            'uploaded_by': self.uploaded_by,
+            'uploaded_at': self.uploaded_at.isoformat() if self.uploaded_at else None,
+        }
+        if include_data:
+            payload['data'] = self.data
+        return payload
+
 class UserMaterialAllocation(db.Model):
     """Текущее распределение материалов по пользователям (денормализация для быстрых отчетов)."""
     __tablename__ = 'user_material_allocations'
@@ -302,11 +338,15 @@ class MaterialGroupItem(db.Model):
 
     id = db.Column(db.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     group_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('material_groups.id'), nullable=False)
-    material_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('materials.id'), nullable=False)
+    material_id = db.Column(
+        db.UUID(as_uuid=True),
+        db.ForeignKey('materials.id', ondelete='CASCADE'),
+        nullable=False,
+    )
     added_at = db.Column(db.DateTime, default=get_moscow_now, nullable=False)
 
     group = db.relationship('MaterialGroup', backref='items')
-    material = db.relationship('Material')
+    material = db.relationship('Material', passive_deletes=True)
 
     __table_args__ = (
         db.UniqueConstraint('group_id', 'material_id', name='uq_group_material'),

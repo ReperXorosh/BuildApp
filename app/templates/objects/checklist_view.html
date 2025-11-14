@@ -50,11 +50,13 @@
         padding: 1rem;
         margin-bottom: 1rem;
         transition: all 0.2s ease;
+        cursor: default;
     }
     
     .checklist-item:hover {
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         border-color: var(--bs-primary);
+        transform: translateY(-2px);
     }
     
     .checklist-item.completed {
@@ -63,14 +65,46 @@
     }
     
     .item-number {
-        font-weight: 600;
-        color: var(--bs-primary);
-        font-size: 1.1em;
+        font-weight: normal;
+        color: var(--bs-body-color);
+        font-size: 1em;
     }
     
     .item-text {
-        font-weight: 500;
+        font-weight: normal;
         color: var(--bs-body-color);
+    }
+    
+    .item-text-clickable {
+        font-weight: normal !important;
+        color: var(--bs-body-color) !important;
+        text-decoration: none !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease;
+    }
+    
+    .item-text-clickable:hover {
+        color: var(--bs-body-color) !important;
+        text-decoration: none !important;
+        background-color: var(--bs-primary-bg-subtle);
+        border-radius: 4px;
+        padding: 2px 4px;
+        margin: -2px -4px;
+        border: 1px solid var(--bs-primary-border-subtle);
+    }
+    
+    /* Специальные стили для темной темы */
+    [data-bs-theme="dark"] .item-text-clickable:hover {
+        background-color: rgba(13, 110, 253, 0.15);
+        border-color: rgba(13, 110, 253, 0.3);
+        color: var(--bs-body-color) !important;
+    }
+    
+    /* Специальные стили для светлой темы */
+    [data-bs-theme="light"] .item-text-clickable:hover {
+        background-color: rgba(13, 110, 253, 0.1);
+        border-color: rgba(13, 110, 253, 0.2);
+        color: var(--bs-body-color) !important;
     }
     
     .unit-badge, .quantity-badge {
@@ -231,17 +265,6 @@
         gap: 0.5rem;
     }
      
-     .item-text-clickable {
-         cursor: pointer;
-         color: var(--bs-primary);
-         text-decoration: underline;
-         transition: color 0.2s ease;
-     }
-     
-     .item-text-clickable:hover {
-         color: var(--bs-primary-dark);
-         text-decoration: none;
-     }
      
      /* Стили для поиска */
      .search-container {

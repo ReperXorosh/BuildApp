@@ -27,6 +27,17 @@
         </div>
         
         <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
+            <label class="mobile-form-label">Привязать к опоре (необязательно)</label>
+            <select name="support_id" id="support_id" class="mobile-form-control">
+                <option value="">Выберите опору (необязательно)</option>
+                {% for support in supports %}
+                <option value="{{ support.id }}">{{ support.support_number }} - {{ support.support_type or 'Без названия' }}</option>
+                {% endfor %}
+            </select>
+            <div class="small text-muted">Элемент можно привязать к конкретной опоре</div>
+        </div>
+        
+        <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label">Примечания</label>
             <textarea name="notes" id="notes" class="mobile-form-control" rows="2" maxlength="300" placeholder="Дополнительная информация"></textarea>
             <div class="small text-muted" id="notes-counter">0 / 300</div>

@@ -7,6 +7,7 @@ from app.models.supply import (
     SupplyOrderItem,
     WarehouseMovement,
     WarehouseAttachment,
+    MaterialAttachment,
     UserMaterialAllocation,
     SupplyRequest,
     SupplyRequestItem,
@@ -416,6 +417,8 @@ def material_detail(material_id):
         
         # Получаем информацию о материале
         material = Material.query.get_or_404(material_id)
+        # Превью-файл (если есть)
+        material_preview = MaterialAttachment.query.filter_by(material_id=material_id).order_by(MaterialAttachment.uploaded_at.desc()).first()
         print(f"DEBUG: Материал найден: {material.name}")
         
         # Получаем историю движений по материалу с загрузкой связанных пользователей
@@ -472,7 +475,13 @@ def material_detail(material_id):
         )
         
         print(f"DEBUG: Рендерим шаблон material_detail.html")
-        return render_template('supply/material_detail.html', material=material, movements=all_actions, allocations=allocations)
+        return render_template(
+            'supply/material_detail.html',
+            material=material,
+            movements=all_actions,
+            allocations=allocations,
+            material_preview=material_preview,
+        )
     
     except Exception as e:
         print(f"Ошибка в material_detail: {e}")
@@ -552,7 +561,18 @@ def api_materials():
         return jsonify({'error': 'Недостаточно прав'}), 403
     
     materials = Material.query.filter_by(is_active=True).all()
-    return jsonify([material.to_dict() for material in materials])
+    # определяем материалы с превью-файлами
+    ids_with_preview = set(
+        db.session.query(MaterialAttachment.material_id).distinct().all()
+    )
+    # rows come as list of tuples; normalize to set of UUIDs
+    ids_with_preview = {row[0] for row in ids_with_preview}
+    payload = []
+    for m in materials:
+        d = m.to_dict()
+        d['has_preview'] = m.id in ids_with_preview
+        payload.append(d)
+    return jsonify(payload)
 
 @supply.route('/api/supply/groups', methods=['GET', 'POST'])
 @login_required
@@ -647,7 +667,16 @@ def api_materials_all():
         return jsonify({'error': 'Просмотр скрытых материалов доступен только администраторам'}), 403
     
     materials = Material.query.all()
-    return jsonify([material.to_dict() for material in materials])
+    ids_with_preview = set(
+        db.session.query(MaterialAttachment.material_id).distinct().all()
+    )
+    ids_with_preview = {row[0] for row in ids_with_preview}
+    payload = []
+    for m in materials:
+        d = m.to_dict()
+        d['has_preview'] = m.id in ids_with_preview
+        payload.append(d)
+    return jsonify(payload)
 
 @supply.route('/api/supply/materials/check', methods=['POST'])
 @login_required
@@ -747,11 +776,32 @@ def api_materials_check():
 @supply.route('/api/supply/materials', methods=['POST'])
 @login_required
 def api_materials_create():
-    """Создание материала"""
+    """Создание материала.
+    Поддерживает два формата ввода:
+    - JSON (как раньше)
+    - multipart/form-data с полем файла `file` или `preview_file` для превью материала
+    """
     if not is_supplier_or_admin():
         return jsonify({'error': 'Недостаточно прав'}), 403
 
-    data = request.get_json(force=True, silent=True) or {}
+    upload = None
+    if request.content_type and 'multipart/form-data' in request.content_type:
+        # Режим формы: читаем из request.form и request.files
+        form = request.form
+        data = {
+            'name': form.get('name'),
+            'unit': form.get('unit'),
+            'description': form.get('description'),
+            'current_quantity': form.get('current_quantity'),
+            'min_quantity': form.get('min_quantity'),
+            'supplier': form.get('supplier'),
+            'price_per_unit': form.get('price_per_unit'),
+            'addition_reason': form.get('addition_reason'),
+        }
+        upload = request.files.get('preview_file') or request.files.get('file')
+    else:
+        data = request.get_json(force=True, silent=True) or {}
+
     name = (data.get('name') or '').strip()
     unit = (data.get('unit') or '').strip()
     if not name or not unit:
@@ -833,6 +883,25 @@ def api_materials_create():
             created_by=current_user.userid,
         )
         db.session.add(material)
+        db.session.flush()
+
+        # Если в форме был передан файл превью, сохраняем его как вложение к материалу
+        if upload and getattr(upload, 'filename', None):
+            try:
+                data_bytes = upload.read()
+                attach = MaterialAttachment(
+                    material_id=material.id,
+                    filename=secure_filename(upload.filename),
+                    content_type=upload.mimetype,
+                    data=data_bytes,
+                    size_bytes=len(data_bytes),
+                    uploaded_by=current_user.userid,
+                )
+                db.session.add(attach)
+            except Exception as e:
+                db.session.rollback()
+                return jsonify({'error': f'Ошибка сохранения файла превью: {str(e)}'}), 500
+
         db.session.commit()
         return jsonify(material.to_dict()), 201
 
@@ -931,6 +1000,22 @@ def api_materials_restore(material_id):
     db.session.commit()
     
     return jsonify({'success': True, 'message': f'Материал "{material_name}" успешно восстановлен'})
+
+
+@supply.route('/api/supply/materials/<uuid:material_id>/attachment', methods=['GET'])
+@login_required
+def api_material_preview(material_id):
+    """Отдать файл-превью материала (если прикреплён)."""
+    attachment = MaterialAttachment.query.filter_by(material_id=material_id).order_by(MaterialAttachment.uploaded_at.desc()).first()
+    if not attachment:
+        return jsonify({'error': 'Файл не найден'}), 404
+    return send_file(
+        BytesIO(attachment.data),
+        mimetype=attachment.content_type or 'application/octet-stream',
+        as_attachment=False,
+        download_name=attachment.filename,
+        conditional=True,
+    )
 
 @supply.route('/api/supply/materials/<uuid:material_id>/hard-delete', methods=['DELETE'])
 @login_required

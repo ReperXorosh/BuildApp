@@ -2,14 +2,15 @@
     {% extends "main/mobile_layout_bootstrap.html" %}
 {% else %}
 <!doctype html>
-<html lang="en">
-<head>
+<html lang="en"><head>
     <meta charset="UTF-8">
     <title>{% block title %}My App{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="canonical" href="object-list.html">
     <script src="/static/js/color-modes.js"></script>
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
     <!-- Apple Touch Icon для iOS "Добавить на главный экран" -->
     <link rel="apple-touch-icon" href="/static/img/converted_image.png" sizes="180x180" type="image/png">
     <link rel="apple-touch-icon" href="/static/img/converted_image.png" sizes="152x152" type="image/png">
@@ -611,6 +612,20 @@
         <symbol id="calendar-check" viewBox="0 0 16 16">
             <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
             <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+        </symbol>
+        
+        <!-- Calendar3 icon - качественная иконка календаря -->
+        <symbol id="calendar3" viewBox="0 0 16 16">
+            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+            <path d="M2.5 2a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-11z"/>
+            <path d="M1 4h14v9a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4z"/>
+            <path d="M3 6h2v2H3V6zm3 0h2v2H6V6zm3 0h2v2H9V6zm3 0h2v2h-2V6zM3 9h2v2H3V9zm3 0h2v2H6V9zm3 0h2v2H9V9zm3 0h2v2h-2V9z"/>
+        </symbol>
+        
+        <!-- Solid calendar icon for titles and dates -->
+        <symbol id="calendar-solid" viewBox="0 0 24 24">
+            <path d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h1V3a1 1 0 0 1 1-1zM21 8H3v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8z"/>
+            <path d="M6 11h3v3H6v-3zm5 0h3v3h-3v-3zm5 0h3v3h-3v-3z"/>
         </symbol>
         <!-- Trash icon -->
         <symbol id="trash" viewBox="0 0 16 16">

@@ -16,6 +16,7 @@
                    id="support_number"
                    name="support_number"
                    placeholder="Например: ОП-001"
+                   value="{{ form_data.support_number if form_data else '' }}"
                    inputmode="text"
                    maxlength="40"
                    required>
@@ -29,6 +30,7 @@
                    id="support_type"
                    name="support_type"
                    placeholder="Например: Железобетонная опора, Металлическая стойка"
+                   value="{{ form_data.support_type if form_data else '' }}"
                    maxlength="80">
         </div>
 
@@ -46,13 +48,13 @@
                     <div id="collapseZdf" class="accordion-collapse collapse" aria-labelledby="headingZdf" data-bs-parent="#supportElementsAccordion">
                         <div class="accordion-body">
                             {% for zdf in zdf_list %}
-                            <label class="d-flex align-items-start mobile-mb-1" for="zdf-{{ zdf.id }}">
-                                <input type="checkbox" class="form-check-input me-2" name="selected_zdf" value="{{ zdf.id }}" id="zdf-{{ zdf.id }}">
-                                <div>
-                                    <div>{% if zdf.zdf_name %}<strong>{{ zdf.zdf_name }}</strong>{% else %}<strong>ЗДФ</strong>{% endif %}</div>
-                                    {% if zdf.notes %}<div class="text-muted small">{{ zdf.notes }}</div>{% endif %}
-                                </div>
-                            </label>
+                            <div class="form-check mb-3">
+                                <input type="radio" class="form-check-input" name="selected_zdf_id" value="{{ zdf.id }}" id="zdf-{{ zdf.id }}">
+                                <label class="form-check-label" for="zdf-{{ zdf.id }}">
+                                    {% if zdf.zdf_name %}{{ zdf.zdf_name }}{% else %}ЗДФ{% endif %}
+                                </label>
+                            </div>
+                            {% if zdf.notes %}<div class="text-muted small mb-2">{{ zdf.notes }}</div>{% endif %}
                             {% endfor %}
                         </div>
                     </div>
@@ -69,13 +71,13 @@
                     <div id="collapseBr" class="accordion-collapse collapse" aria-labelledby="headingBr" data-bs-parent="#supportElementsAccordion">
                         <div class="accordion-body">
                             {% for bracket in brackets_list %}
-                            <label class="d-flex align-items-start mobile-mb-1" for="bracket-{{ bracket.id }}">
-                                <input type="checkbox" class="form-check-input me-2" name="selected_brackets" value="{{ bracket.id }}" id="bracket-{{ bracket.id }}">
-                                <div>
-                                    <div>{% if bracket.bracket_name %}<strong>{{ bracket.bracket_name }}</strong>{% else %}<strong>Кронштейн</strong>{% endif %}</div>
-                                    {% if bracket.notes %}<div class="text-muted small">{{ bracket.notes }}</div>{% endif %}
-                                </div>
-                            </label>
+                            <div class="form-check mb-3">
+                                <input type="radio" class="form-check-input" name="selected_bracket_id" value="{{ bracket.id }}" id="bracket-{{ bracket.id }}">
+                                <label class="form-check-label" for="bracket-{{ bracket.id }}">
+                                    {% if bracket.bracket_name %}{{ bracket.bracket_name }}{% else %}Кронштейн{% endif %}
+                                </label>
+                            </div>
+                            {% if bracket.notes %}<div class="text-muted small mb-2">{{ bracket.notes }}</div>{% endif %}
                             {% endfor %}
                         </div>
                     </div>
@@ -92,13 +94,13 @@
                     <div id="collapseLum" class="accordion-collapse collapse" aria-labelledby="headingLum" data-bs-parent="#supportElementsAccordion">
                         <div class="accordion-body">
                             {% for luminaire in luminaires_list %}
-                            <label class="d-flex align-items-start mobile-mb-1" for="luminaire-{{ luminaire.id }}">
-                                <input type="checkbox" class="form-check-input me-2" name="selected_luminaires" value="{{ luminaire.id }}" id="luminaire-{{ luminaire.id }}">
-                                <div>
-                                    <div>{% if luminaire.luminaire_name %}<strong>{{ luminaire.luminaire_name }}</strong>{% else %}<strong>Светильник</strong>{% endif %}</div>
-                                    {% if luminaire.notes %}<div class="text-muted small">{{ luminaire.notes }}</div>{% endif %}
-                                </div>
-                            </label>
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" name="selected_luminaire_ids" value="{{ luminaire.id }}" id="luminaire-{{ luminaire.id }}">
+                                <label class="form-check-label" for="luminaire-{{ luminaire.id }}">
+                                    {% if luminaire.luminaire_name %}{{ luminaire.luminaire_name }}{% else %}Светильник{% endif %}
+                                </label>
+                            </div>
+                            {% if luminaire.notes %}<div class="text-muted small mb-2">{{ luminaire.notes }}</div>{% endif %}
                             {% endfor %}
                         </div>
                     </div>
@@ -109,7 +111,7 @@
 
         <div class="mobile-form-group" style="border:none; background:transparent; padding-left:0; padding-right:0;">
             <label class="mobile-form-label" for="notes">Примечания</label>
-            <textarea class="mobile-form-control" id="notes" name="notes" rows="2" maxlength="500" placeholder="Дополнительная информация об опоре"></textarea>
+            <textarea class="mobile-form-control" id="notes" name="notes" rows="2" maxlength="500" placeholder="Дополнительная информация об опоре">{{ form_data.notes if form_data else '' }}</textarea>
             <div class="small text-muted" id="notes-counter">0 / 500</div>
         </div>
 
