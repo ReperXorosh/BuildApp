@@ -1,6 +1,7 @@
 from app.extensions import db
 from datetime import datetime
 import uuid
+from app.utils.timezone_utils import get_moscow_now
 
 class Object(db.Model):
     """Модель объекта"""
@@ -72,8 +73,8 @@ class Trench(db.Model):
     total_length = db.Column(db.Float, nullable=True)  # общий метраж траншеи (может быть NULL если неизвестен)
     status = db.Column(db.String(50), default='planned')  # planned, in_progress, completed
     notes = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=get_moscow_now)
+    updated_at = db.Column(db.DateTime, default=get_moscow_now, onupdate=get_moscow_now)
     created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))
     
     # Связи
@@ -128,7 +129,7 @@ class Trench(db.Model):
         for trench in overdue_trenches:
             print(f"DEBUG: Обновляем траншею '{trench.id}' со статуса '{trench.status}' на 'overdue'")
             trench.status = 'overdue'
-            trench.updated_at = datetime.utcnow()
+            trench.updated_at = get_moscow_now()
             updated_count += 1
         
         if updated_count > 0:
@@ -152,7 +153,7 @@ class TrenchExcavation(db.Model):
     length = db.Column(db.Float, nullable=False)  # длина выкопанного участка в метрах
     excavation_date = db.Column(db.Date, nullable=False)
     notes = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=get_moscow_now)
     created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))
     
     # Связи
@@ -175,7 +176,7 @@ class TrenchFile(db.Model):
     file_path = db.Column(db.String(500), nullable=False)
     file_size = db.Column(db.Integer, nullable=False)
     mime_type = db.Column(db.String(100), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=get_moscow_now)
     created_by = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.userid'))
 
 class Report(db.Model):

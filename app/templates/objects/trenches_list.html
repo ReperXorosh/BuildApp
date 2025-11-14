@@ -89,7 +89,7 @@
                             </div>
                         </div>
                         <div class="card-footer text-muted small">
-                            Создано: {{ trench.created_at.strftime('%d.%m.%Y %H:%M') }}
+                            Создано: {{ trench.created_at | moscow_date }}
                         </div>
                     </div>
                 </div>
