@@ -603,6 +603,11 @@
                 {{ gettext('Журнал действий') }}
             </a>
             {% endif %}
+            {% if current_user.role == 'Инженер ПТО' %}
+            <a href="{{ url_for('main.users') }}" class="mobile-menu-item {{ 'active' if active_page == 'users' else '' }}">
+                {{ gettext('Пользователи') }}
+            </a>
+            {% endif %}
             <a href="{{ url_for('supply.supply_dashboard') }}" class="mobile-menu-item {{ 'active' if active_page == 'supply' else '' }}">
                 {{ gettext('Снабжение') }}
             </a>
