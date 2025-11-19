@@ -37,23 +37,22 @@
                         <div class="col-md-4">
                             <div class="mb-2">
                                 <svg class="stats-icon stats-icon-primary" width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <!-- Лопата - лезвие (широкое трапециевидное, скруглённое) -->
-                                    <path d="M5 19.5C5 19.8 5.2 20 5.5 20H18.5C18.8 20 19 19.8 19 19.5V12.5C19 12.2 18.8 12 18.5 12H5.5C5.2 12 5 12.2 5 12.5V19.5Z" fill="currentColor"/>
-                                    <path d="M5 19.5L12 10L19 19.5H5Z" fill="currentColor"/>
-                                    <!-- Лопата - верхняя часть лезвия (прямоугольная с скруглениями) -->
-                                    <rect x="7" y="10.5" width="10" height="2" rx="0.5" fill="currentColor"/>
-                                    <!-- Лопата - шейка (узкая часть) -->
-                                    <rect x="11" y="8.5" width="2" height="2.5" rx="0.3" fill="currentColor"/>
-                                    <!-- Ручка лопаты (длинная вертикальная) -->
-                                    <rect x="11.2" y="2" width="1.6" height="7" rx="0.3" fill="currentColor"/>
-                                    <!-- Детали лезвия - внутренняя часть для объёма -->
-                                    <path d="M6.5 18.5L12 12.5L17.5 18.5H6.5Z" fill="currentColor" opacity="0.35"/>
-                                    <!-- Остриё лезвия (заострённый низ) -->
-                                    <path d="M11.2 19.5L12 20.5L12.8 19.5H11.2Z" fill="currentColor" opacity="0.7"/>
-                                    <!-- Блик на лезвии -->
-                                    <path d="M8 17L12 13L16 17H8Z" fill="currentColor" opacity="0.2"/>
-                                    <!-- Детали ручки -->
-                                    <rect x="11.3" y="3" width="1.4" height="6" rx="0.2" fill="currentColor" opacity="0.4"/>
+                                    <!-- Экскаватор - кабина -->
+                                    <rect x="4" y="8" width="6" height="5" rx="0.5" fill="currentColor"/>
+                                    <!-- Экскаватор - гусеницы -->
+                                    <rect x="3" y="16" width="8" height="2" rx="0.3" fill="currentColor"/>
+                                    <rect x="3" y="19" width="8" height="2" rx="0.3" fill="currentColor"/>
+                                    <!-- Экскаватор - стрела (рука) -->
+                                    <path d="M10 10.5L16 7L19 12L17 13.5L10 10.5Z" fill="currentColor"/>
+                                    <!-- Экскаватор - ковш -->
+                                    <path d="M17 13.5L19 12L20 14L19 16L17 15L17 13.5Z" fill="currentColor"/>
+                                    <!-- Детали кабины -->
+                                    <rect x="5" y="9.5" width="4" height="3" rx="0.2" fill="currentColor" opacity="0.3"/>
+                                    <!-- Детали стрелы -->
+                                    <path d="M11 11L15.5 8.5L17.5 11.5L15.5 12.5L11 11Z" fill="currentColor" opacity="0.4"/>
+                                    <!-- Зубцы ковша -->
+                                    <path d="M19 16L19.5 16.5L19 17L18.5 16.5L19 16Z" fill="currentColor" opacity="0.6"/>
+                                    <path d="M20 15L20.5 15.5L20 16L19.5 15.5L20 15Z" fill="currentColor" opacity="0.6"/>
                                 </svg>
                             </div>
                             <h4 class="mb-1 stats-value">{{ total_excavated_all|round(2) }} м</h4>
