@@ -23,7 +23,15 @@
         <div class="mobile-stats-row">
             <div class="mobile-stat-item">
                 <div class="mobile-stat-icon">
-                    <i class="bi bi-rulers"></i>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Лопата - лезвие -->
+                        <path d="M12 3L9 6V10L7 12V18L9 20H15L17 18V12L15 10V6L12 3Z" fill="currentColor"/>
+                        <!-- Лопата - внутренняя часть -->
+                        <path d="M12 4.5L10 6.5V10L8.5 11.5V17.5L9.5 18.5H14.5L15.5 17.5V11.5L14 10V6.5L12 4.5Z" fill="currentColor" opacity="0.7"/>
+                        <!-- Ручка -->
+                        <rect x="11" y="20" width="2" height="3" rx="0.5" fill="currentColor"/>
+                        <rect x="11.2" y="20.2" width="1.6" height="2.6" rx="0.3" fill="currentColor" opacity="0.8"/>
+                    </svg>
                 </div>
                 <div class="mobile-stat-value">{{ total_excavated_all|round(2) }} м</div>
                 <div class="mobile-stat-label">Всего выкопано</div>
@@ -341,6 +349,15 @@
     font-size: 1.5rem;
     color: var(--bs-primary);
     margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mobile-stat-icon svg {
+    width: 32px;
+    height: 32px;
+    color: var(--bs-primary);
 }
 
 .mobile-stat-value {
@@ -368,6 +385,16 @@
 
 [data-bs-theme="dark"] .mobile-stat-label {
     color: var(--bs-secondary);
+}
+
+[data-bs-theme="dark"] .mobile-stats-card {
+    background: var(--bs-dark) !important;
+    border: 1px solid var(--bs-border-color);
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
+}
+
+[data-bs-theme="dark"] .mobile-stat-icon svg {
+    color: var(--bs-primary);
 }
 
 /* Стили для темной темы */
