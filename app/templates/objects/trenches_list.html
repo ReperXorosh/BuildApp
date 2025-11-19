@@ -30,6 +30,54 @@
             </div>
 
             {% if trenches %}
+            <!-- Счётчик общей выкопанной длины -->
+            <div class="card mb-4 bg-light">
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="mb-2">
+                                <i class="bi bi-rulers display-6 text-primary"></i>
+                            </div>
+                            <h4 class="mb-1">{{ total_excavated_all|round(2) }} м</h4>
+                            <p class="text-muted mb-0 small">Всего выкопано</p>
+                        </div>
+                        {% if total_length_all > 0 %}
+                        <div class="col-md-4">
+                            <div class="mb-2">
+                                <i class="bi bi-clipboard-data display-6 text-info"></i>
+                            </div>
+                            <h4 class="mb-1">{{ total_length_all|round(2) }} м</h4>
+                            <p class="text-muted mb-0 small">Общий метраж</p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-2">
+                                <i class="bi bi-percent display-6 text-success"></i>
+                            </div>
+                            <h4 class="mb-1">{{ ((total_excavated_all / total_length_all * 100) if total_length_all > 0 else 0)|round(1) }}%</h4>
+                            <p class="text-muted mb-0 small">Выполнено</p>
+                        </div>
+                        {% else %}
+                        <div class="col-md-4">
+                            <div class="mb-2">
+                                <i class="bi bi-list-ol display-6 text-secondary"></i>
+                            </div>
+                            <h4 class="mb-1">{{ trenches|length }}</h4>
+                            <p class="text-muted mb-0 small">Траншей</p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-2">
+                                <i class="bi bi-check-circle display-6 text-success"></i>
+                            </div>
+                            <h4 class="mb-1">
+                                {{ trenches|selectattr('status', 'equalto', 'completed')|list|length }}
+                            </h4>
+                            <p class="text-muted mb-0 small">Завершено</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
             <div class="row">
                 {% for trench in trenches %}
                 <div class="col-md-6 col-lg-4 mb-4">

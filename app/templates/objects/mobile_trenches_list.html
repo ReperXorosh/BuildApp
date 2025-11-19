@@ -18,6 +18,52 @@
     </div>
 
     {% if trenches %}
+    <!-- Счётчик общей выкопанной длины -->
+    <div class="mobile-stats-card">
+        <div class="mobile-stats-row">
+            <div class="mobile-stat-item">
+                <div class="mobile-stat-icon">
+                    <i class="bi bi-rulers"></i>
+                </div>
+                <div class="mobile-stat-value">{{ total_excavated_all|round(2) }} м</div>
+                <div class="mobile-stat-label">Всего выкопано</div>
+            </div>
+            {% if total_length_all > 0 %}
+            <div class="mobile-stat-item">
+                <div class="mobile-stat-icon">
+                    <i class="bi bi-clipboard-data"></i>
+                </div>
+                <div class="mobile-stat-value">{{ total_length_all|round(2) }} м</div>
+                <div class="mobile-stat-label">Общий метраж</div>
+            </div>
+            <div class="mobile-stat-item">
+                <div class="mobile-stat-icon">
+                    <i class="bi bi-percent"></i>
+                </div>
+                <div class="mobile-stat-value">{{ ((total_excavated_all / total_length_all * 100) if total_length_all > 0 else 0)|round(1) }}%</div>
+                <div class="mobile-stat-label">Выполнено</div>
+            </div>
+            {% else %}
+            <div class="mobile-stat-item">
+                <div class="mobile-stat-icon">
+                    <i class="bi bi-list-ol"></i>
+                </div>
+                <div class="mobile-stat-value">{{ trenches|length }}</div>
+                <div class="mobile-stat-label">Траншей</div>
+            </div>
+            <div class="mobile-stat-item">
+                <div class="mobile-stat-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="mobile-stat-value">
+                    {{ trenches|selectattr('status', 'equalto', 'completed')|list|length }}
+                </div>
+                <div class="mobile-stat-label">Завершено</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
     <div class="mobile-cards-container">
         {% for trench in trenches %}
                 <a href="{{ url_for('objects.trench_detail', object_id=object.id, trench_id=trench.id) }}" class="mobile-card-link">
@@ -265,6 +311,63 @@
 
 .w-100 {
     width: 100% !important;
+}
+
+.mobile-stats-card {
+    margin: 16px;
+    padding: 20px;
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-stats-row {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 12px;
+}
+
+.mobile-stat-item {
+    flex: 1;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.mobile-stat-icon {
+    font-size: 1.5rem;
+    color: var(--bs-primary);
+    margin-bottom: 8px;
+}
+
+.mobile-stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--bs-body-color);
+    margin-bottom: 4px;
+}
+
+.mobile-stat-label {
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color);
+    text-align: center;
+}
+
+[data-bs-theme="dark"] .mobile-stats-card {
+    background: var(--bs-dark);
+    border: 1px solid var(--bs-border-color);
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+}
+
+[data-bs-theme="dark"] .mobile-stat-value {
+    color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .mobile-stat-label {
+    color: var(--bs-secondary);
 }
 
 /* Стили для темной темы */

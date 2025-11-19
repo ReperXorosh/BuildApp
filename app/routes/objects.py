@@ -1573,10 +1573,15 @@ def trenches_list(object_id):
     trenches = Trench.query.filter_by(object_id=object_id).order_by(Trench.created_at.desc()).all()
     
     # Для каждой траншеи получаем общую длину и количество файлов
+    total_excavated_all = 0  # Общая выкопанная длина по всем траншеям
+    total_length_all = 0  # Общий метраж всех траншей (если указан)
     for trench in trenches:
         trench.total_excavated = trench.get_total_excavated_length()
         trench.files_count = trench.get_files_count()
         trench.required_files = trench.get_required_files_count()
+        total_excavated_all += trench.total_excavated
+        if trench.total_length:
+            total_length_all += trench.total_length
     
     ActivityLog.log_action(
         user_id=current_user.userid,
@@ -1590,9 +1595,9 @@ def trenches_list(object_id):
     
     from ..utils.mobile_detection import is_mobile_device
     if is_mobile_device():
-        return render_template('objects/mobile_trenches_list.html', object=obj, trenches=trenches)
+        return render_template('objects/mobile_trenches_list.html', object=obj, trenches=trenches, total_excavated_all=total_excavated_all, total_length_all=total_length_all)
     else:
-        return render_template('objects/trenches_list.html', object=obj, trenches=trenches)
+        return render_template('objects/trenches_list.html', object=obj, trenches=trenches, total_excavated_all=total_excavated_all, total_length_all=total_length_all)
 
 
 
