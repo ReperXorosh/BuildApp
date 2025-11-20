@@ -141,12 +141,7 @@ def sign_in():
     # Если пользователь уже аутентифицирован (включая remember-cookie), сразу в приложение
     from flask_login import current_user
     if current_user.is_authenticated:
-        # Для всех ролей, кроме Инженер ПТО, главная страница — Снабжение
-        try:
-            if getattr(current_user, 'role', None) != 'Инженер ПТО':
-                return redirect(url_for('supply.supply_dashboard'))
-        except Exception:
-            return redirect(url_for('supply.supply_dashboard'))
+        # Всех пользователей перенаправляем на список объектов
         return redirect(url_for('objects.object_list'))
     # Определяем, нужно ли использовать мобильный шаблон
     from ..utils.mobile_detection import is_mobile_device
