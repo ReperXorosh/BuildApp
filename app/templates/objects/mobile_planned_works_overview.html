@@ -14,32 +14,39 @@
 <div class="mobile-card">
     <div class="mobile-card-title">Статистика</div>
     <div class="row text-center">
-        <div class="col-3">
+        <div class="col-2">
             <div class="text-primary">
                 <i class="bi bi-building fs-4"></i>
                 <div class="small">{{ objects|length }}</div>
                 <div class="small text-muted">Объектов</div>
             </div>
         </div>
-        <div class="col-3">
+        <div class="col-2">
             <div class="text-info">
                 <i class="bi bi-list-task fs-4"></i>
                 <div class="small">{{ objects|sum(attribute='planned_works_count') }}</div>
                 <div class="small text-muted">Всего работ</div>
             </div>
         </div>
-        <div class="col-3">
+        <div class="col-2">
             <div class="text-success">
                 <i class="bi bi-check-circle fs-4"></i>
                 <div class="small">{{ objects|sum(attribute='completed_works_count') }}</div>
                 <div class="small text-muted">Завершено</div>
             </div>
         </div>
-        <div class="col-3">
+        <div class="col-2">
             <div class="text-warning">
                 <i class="bi bi-gear fs-4"></i>
                 <div class="small">{{ objects|sum(attribute='in_progress_works_count') }}</div>
                 <div class="small text-muted">В работе</div>
+            </div>
+        </div>
+        <div class="col-2">
+            <div class="text-danger">
+                <i class="bi bi-exclamation-triangle fs-4"></i>
+                <div class="small">{{ objects|sum(attribute='overdue_works_count') }}</div>
+                <div class="small text-muted">Просрочено</div>
             </div>
         </div>
     </div>

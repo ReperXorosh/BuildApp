@@ -57,7 +57,7 @@
 
             <!-- Статистика -->
             <div class="row mb-4">
-                <div class="col-md-3">
+                <div class="col-md-2 col-lg-2">
                     <div class="card bg-primary text-white">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
@@ -77,7 +77,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2 col-lg-2">
                     <div class="card bg-warning text-white">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
@@ -89,7 +89,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2 col-lg-2">
                     <div class="card bg-info text-white">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
@@ -101,13 +101,25 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2 col-lg-2">
                     <div class="card bg-success text-white">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
                                 <div>
                                     <h6 class="card-title">Завершено</h6>
                                     <h3 class="mb-0">{{ planned_works|selectattr('status', 'equalto', 'completed')|list|length }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 col-lg-2">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Просрочено</h6>
+                                    <h3 class="mb-0">{{ planned_works|selectattr('status', 'equalto', 'overdue')|list|length }}</h3>
                                 </div>
                             </div>
                         </div>
