@@ -41,6 +41,12 @@
 <style>
     /* Если у пользователя есть плюс, отодвигаем лупу левее, чтобы не перекрывала плюс */
     .mobile-header .mobile-header-btn.with-plus { margin-right: 48px !important; }
+    /* Скрываем кнопку добавления объекта для всех, кроме Инженер ПТО */
+    {% if current_user.role != 'Инженер ПТО' %}
+    .mobile-header-btn[href*="add_object"] {
+        display: none !important;
+    }
+    {% endif %}
     .list-group-item {
         border-width: 1px !important;
         color: var(--bs-body-color) !important;
@@ -124,6 +130,15 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Скрываем кнопку добавления объекта для всех, кроме Инженер ПТО
+    {% if current_user.role != 'Инженер ПТО' %}
+    const addObjectBtn = document.querySelector('.mobile-header-btn[href*="add_object"]');
+    if (addObjectBtn) {
+        addObjectBtn.style.display = 'none';
+        addObjectBtn.remove();
+    }
+    {% endif %}
+    
     initObjectsPage();
 });
 
