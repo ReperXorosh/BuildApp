@@ -1040,11 +1040,6 @@ def view_user_profile(user_id):
 @main.route('/reports')
 @login_required
 def reports():
-    # Проверяем, что пользователь не является снабженцем
-    if current_user.role != 'Инженер ПТО':
-        flash('У вас нет прав для просмотра отчётов', 'error')
-        return redirect(url_for('objects.object_list'))
-    
     # Получаем список всех объектов
     objects = Object.query.filter_by(status='active').order_by(Object.name).all()
     
