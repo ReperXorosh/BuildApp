@@ -1688,11 +1688,12 @@ def add_trench_excavation(object_id, trench_id):
             flash('Длина должна быть больше 0', 'error')
             return render_template('objects/mobile_add_trench_excavation.html' if is_mobile else 'objects/add_trench_excavation.html', object=obj, trench=trench)
         
-        # Проверяем количество файлов (минимум 1 файл на каждые 20 метров)
-        required_files = max(1, int(length / 20) + (1 if length % 20 > 0 else 0))
-        if len(files) < required_files:
-            flash(f'Необходимо прикрепить минимум {required_files} файл(ов) для {length} метров', 'error')
-            return render_template('objects/mobile_add_trench_excavation.html' if is_mobile else 'objects/add_trench_excavation.html', object=obj, trench=trench)
+        # Проверяем количество файлов только для не-админов (не Инженер ПТО)
+        if not is_pto_engineer(current_user):
+            required_files = max(1, int(length / 20) + (1 if length % 20 > 0 else 0))
+            if len(files) < required_files:
+                flash(f'Необходимо прикрепить минимум {required_files} файл(ов) для {length} метров', 'error')
+                return render_template('objects/mobile_add_trench_excavation.html' if is_mobile else 'objects/add_trench_excavation.html', object=obj, trench=trench)
         
         # Создаем запись о копке
         excavation = TrenchExcavation(

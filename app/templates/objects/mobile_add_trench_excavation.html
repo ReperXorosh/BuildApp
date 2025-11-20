@@ -33,7 +33,7 @@
         </div>
 
         <div class="mobile-form-group mobile-form-group-files">
-            <label class="mobile-form-label">Файлы (фото/документы) *</label>
+            <label class="mobile-form-label">Файлы (фото/документы){% if current_user.role and 'ПТО' not in current_user.role.upper() %} *{% endif %}</label>
             
             <!-- Скрытый input для файлов -->
             <input type="file" 
@@ -56,8 +56,12 @@
             </div>
             
             <div class="form-text" style="min-height: 40px;">
+                {% if current_user.role and 'ПТО' in current_user.role.upper() %}
+                Файлы не обязательны. Вы можете добавить запись без прикрепления файлов или прикрепить любое количество файлов.
+                {% else %}
                 <strong>Требование:</strong> минимум 1 файл на каждые 20 метров.
                 <div id="required-files-info"></div>
+                {% endif %}
                 <br><strong>Совет:</strong> Удерживайте Ctrl (Cmd на Mac) для выбора нескольких файлов одновременно.
             </div>
             <div id="selected-files-list" class="mt-2"></div>
@@ -87,7 +91,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const length = document.getElementById('length');
     const files = document.getElementById('files');
     const notes = document.getElementById('notes');
+    {% if current_user.role and 'ПТО' not in current_user.role.upper() %}
     const requiredFilesInfo = document.getElementById('required-files-info');
+    
+    // Функция для обновления информации о требуемых файлах (только для не-админов)
+    function updateRequiredFilesInfo() {
+        const lengthValue = parseFloat(length.value) || 0;
+        const requiredFiles = Math.max(1, Math.ceil(lengthValue / 20));
+        if (requiredFilesInfo) {
+            requiredFilesInfo.textContent = `Для ${lengthValue}м требуется минимум ${requiredFiles} файл(ов)`;
+        }
+    }
+    {% endif %}
     
     let isDirty = false;
     
@@ -96,13 +111,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!el) return;
         el.addEventListener('input', () => { isDirty = true; });
     });
-    
-    // Функция для обновления информации о требуемых файлах
-    function updateRequiredFilesInfo() {
-        const lengthValue = parseFloat(length.value) || 0;
-        const requiredFiles = Math.max(1, Math.ceil(lengthValue / 20));
-        requiredFilesInfo.textContent = `Для ${lengthValue}м требуется минимум ${requiredFiles} файл(ов)`;
-    }
     
     // Массив для хранения выбранных файлов
     let selectedFiles = [];
@@ -228,8 +236,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Делаем функцию глобальной
     window.clearAllFiles = clearAllFiles;
     
-    // Обновляем информацию при изменении длины
+    {% if current_user.role and 'ПТО' not in current_user.role.upper() %}
+    // Обновляем информацию при изменении длины (только для не-админов)
     length.addEventListener('input', updateRequiredFilesInfo);
+    {% endif %}
     
     // Обновляем список файлов при выборе
     files.addEventListener('change', function() {
@@ -270,17 +280,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Валидация
     const validateForm = () => {
         const lengthValue = parseFloat(length.value);
-        const requiredFiles = Math.max(1, Math.ceil(lengthValue / 20));
         
         if (isNaN(lengthValue) || lengthValue <= 0) { 
             alert('Длина должна быть больше 0');
             return false; 
         }
         
+        {% if current_user.role and 'ПТО' not in current_user.role.upper() %}
+        // Проверяем количество файлов только для не-админов
+        const requiredFiles = Math.max(1, Math.ceil(lengthValue / 20));
         if (selectedFiles.length < requiredFiles) {
             alert(`Необходимо прикрепить минимум ${requiredFiles} файл(ов) для ${lengthValue} метров. Сейчас выбрано: ${selectedFiles.length} файл(ов)`);
             return false;
         }
+        {% endif %}
         
         // Создаем DataTransfer для передачи файлов в input
         const dataTransfer = new DataTransfer();
