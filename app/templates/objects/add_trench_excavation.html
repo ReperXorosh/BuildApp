@@ -61,7 +61,7 @@
                                 <div class="mb-3">
                                     <label class="form-label">
                                         <i class="bi bi-camera me-1"></i>
-                                        Файлы (фото/документы){% if current_user.role and 'ПТО' not in current_user.role.upper() %} *{% endif %}
+                                        Файлы (фото/документы){% if current_user.role != 'Инженер ПТО' %} *{% endif %}
                                     </label>
                                     
                                     <!-- Скрытый input для файлов -->
@@ -80,7 +80,7 @@
                                     </div>
                                     
                                     <div class="form-text" style="min-height: 40px;">
-                                        {% if current_user.role and 'ПТО' in current_user.role.upper() %}
+                                        {% if current_user.role == 'Инженер ПТО' %}
                                         Файлы не обязательны. Вы можете добавить запись без прикрепления файлов или прикрепить любое количество файлов.
                                         {% else %}
                                         <strong>Требование:</strong> минимум 1 файл на каждые 20 метров. 
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('addExcavationForm');
     const lengthInput = document.getElementById('length');
     const filesInput = document.getElementById('files');
-    {% if current_user.role and 'ПТО' not in current_user.role.upper() %}
+    {% if current_user.role != 'Инженер ПТО' %}
     const requiredFilesInfo = document.getElementById('required-files-info');
     
     // Функция для обновления информации о требуемых файлах (только для не-админов)
@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Делаем функцию глобальной
     window.clearAllFiles = clearAllFiles;
     
-    {% if current_user.role and 'ПТО' not in current_user.role.upper() %}
+    {% if current_user.role != 'Инженер ПТО' %}
     // Обновляем информацию при изменении длины (только для не-админов)
     lengthInput.addEventListener('input', updateRequiredFilesInfo);
     {% endif %}
@@ -290,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        {% if current_user.role and 'ПТО' not in current_user.role.upper() %}
+        {% if current_user.role != 'Инженер ПТО' %}
         // Проверяем количество файлов только для не-админов
         const requiredFiles = Math.max(1, Math.ceil(length / 20));
         if (selectedFiles.length < requiredFiles) {
