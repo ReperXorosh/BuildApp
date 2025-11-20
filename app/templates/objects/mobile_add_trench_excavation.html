@@ -71,8 +71,8 @@
             <label class="mobile-form-label" for="notes">Заметки</label>
             <textarea name="notes" 
                       id="notes" 
-                      class="mobile-form-control" 
-                      rows="2" 
+                      class="mobile-form-control mobile-textarea" 
+                      rows="3" 
                       placeholder="Дополнительная информация"></textarea>
         </div>
 
@@ -567,6 +567,16 @@ document.addEventListener('DOMContentLoaded', function() {
     padding: 0.5rem 0.75rem;
     font-size: 0.9rem;
     line-height: 1.4;
+}
+
+/* Специальный стиль для textarea - не применяем фиксированную высоту */
+.mobile-form-control.mobile-textarea,
+textarea.mobile-form-control {
+    height: auto !important;
+    min-height: 4rem;
+    padding: 0.75rem;
+    resize: vertical;
+    line-height: 1.5;
 }
 
 .mobile-form-control-lg {
