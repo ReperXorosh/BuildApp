@@ -643,7 +643,6 @@
         </a>
         <hr>
         <ul class="nav nav-pills flex-column mb-auto">
-            {% if current_user.role == 'Инженер ПТО' %}
             <li class="nav-item">
                 <a href="{{ url_for('objects.object_list') }}"
                    class="nav-link {{ 'active' if active_page == 'object-list' else 'link-body-emphasis' }}"
@@ -654,8 +653,6 @@
                     {{ gettext('Список объектов') }}
                 </a>
             </li>
-            {% endif %}
-            {% if current_user.role == 'Инженер ПТО' %}
             <li class="nav-item">
                 <a href="{{ url_for('objects.planned_works_overview') }}"
                    class="nav-link {{ 'active' if active_page == 'planned-works' else 'link-body-emphasis' }}">
@@ -665,7 +662,6 @@
                     {{ gettext('Запланированные работы') }}
                 </a>
             </li>
-            {% endif %}
             <!--                <li>-->
             <!--                    <a href="calendar" class="nav-link {{ 'active' if active_page == 'calendar' else 'link-body-emphasis' }}">-->
             <!--                        <svg class="bi pe-none me-2" width="16" height="16" aria-hidden="true">-->
@@ -674,7 +670,6 @@
                          <!--                        {{ gettext('Календарь') }}-->
             <!--                    </a>-->
             <!--                </li>-->
-            {% if current_user.role == 'Инженер ПТО' %}
             <li>
                 <a href="{{ url_for('main.calendar') }}"
                    class="nav-link {{ 'active' if active_page == 'calendar' else 'link-body-emphasis' }}">
@@ -684,8 +679,6 @@
                     {{ gettext('Календарь') }}
                 </a>
             </li>
-            {% endif %}
-            {% if current_user.role == 'Инженер ПТО' %}
             <li>
                 <a href="{{ url_for('main.others') }}"
                    class="nav-link {{ 'active' if active_page == 'others' else 'link-body-emphasis' }}">
@@ -695,10 +688,8 @@
                     {{ gettext('Прочее') }}
                 </a>
             </li>
-            {% endif %}
              
-            <!-- Отчёты - доступны только роли Инженер ПТО -->
-            {% if current_user.role == 'Инженер ПТО' %}
+            <!-- Отчёты - доступны всем пользователям -->
              <li>
                  <a href="{{ url_for('main.reports') }}"
                     class="nav-link {{ 'active' if active_page == 'reports' else 'link-body-emphasis' }}">
@@ -708,7 +699,6 @@
                      {{ gettext('Отчёты') }}
                  </a>
              </li>
-             {% endif %}
                    {% if current_user.role == 'Инженер ПТО' %}
        <li>
            <a href="{{ url_for('main.users') }}"
