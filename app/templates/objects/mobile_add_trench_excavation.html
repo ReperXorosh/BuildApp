@@ -327,16 +327,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('excavation_date').value = today;
     
-    // Убираем прокрутку и настраиваем отступы
+    // Настраиваем отступы и разрешаем скроллинг
     try {
         const mobileContent = document.querySelector('.mobile-content');
         if (mobileContent) {
             mobileContent.style.paddingBottom = '16px';
-            mobileContent.style.overflow = 'hidden';
-            mobileContent.style.height = 'auto';
+            mobileContent.style.overflowY = 'auto'; // Разрешаем вертикальный скроллинг
+            mobileContent.style.height = '100%';
         }
-        document.documentElement.style.overscrollBehaviorY = 'contain';
-        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overscrollBehaviorY = 'auto';
+        document.body.style.overflowY = 'auto'; // Разрешаем скроллинг body
         window.scrollTo(0, 0);
     } catch(e) {}
 });
@@ -572,6 +572,28 @@ document.addEventListener('DOMContentLoaded', function() {
 .mobile-form-control-lg {
     height: 2.75rem;
     padding: 0.625rem 0.875rem;
+}
+
+/* Обеспечиваем скроллинг для мобильного контента */
+.mobile-content {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scroll-behavior: smooth !important;
+    height: 100% !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+}
+
+/* Обеспечиваем скроллинг для body */
+body {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+/* Дополнительный отступ внизу для кнопки */
+.add-object-card {
+    padding-bottom: 20px;
+    margin-bottom: 20px;
 }
 </style>
 {% endblock %}
