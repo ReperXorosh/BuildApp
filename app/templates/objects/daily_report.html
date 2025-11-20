@@ -172,10 +172,7 @@
                 </div>
                 <div class="card-body">
                     {% if report_data.completed_works or report_data.trench_excavations %}
-                        <div class="row">
-                            <div class="col-md-3"></div>
-                            <div class="col-md-9">
-                                <div class="accordion" id="completedWorksAccordion">
+                        <div class="accordion" id="completedWorksAccordion">
                             {% for work, execution in report_data.completed_works %}
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="heading{{ loop.index }}">
@@ -329,8 +326,6 @@
                                 </div>
                                 {% endfor %}
                             {% endif %}
-                                </div>
-                            </div>
                         </div>
                     {% else %}
                         <div class="text-center py-4">

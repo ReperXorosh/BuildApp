@@ -1892,11 +1892,33 @@ def reports_list(object_id):
     # Последние 30 дней daily_reports (без пагинации, но с выбором полей)
     from datetime import date, timedelta
     thirty_days_ago = date.today() - timedelta(days=30)
-    daily_reports = DailyReport.query.options(
-        load_only(DailyReport.id, DailyReport.report_date, DailyReport.object_id)
-    ).filter_by(object_id=object_id).filter(
+    daily_reports = DailyReport.query.filter_by(object_id=object_id).filter(
         DailyReport.report_date >= thirty_days_ago
     ).order_by(DailyReport.report_date.desc()).all()
+    
+    # Для каждого отчёта получаем количество траншей за эту дату
+    trenches = Trench.query.filter_by(object_id=object_id).all()
+    trench_ids = [t.id for t in trenches] if trenches else []
+    
+    # Создаём словарь с количеством траншей по датам
+    trench_counts_by_date = {}
+    if trench_ids:
+        from sqlalchemy import func
+        trench_excavations_by_date = db.session.query(
+            TrenchExcavation.excavation_date,
+            func.count(TrenchExcavation.id).label('count')
+        ).filter(
+            TrenchExcavation.trench_id.in_(trench_ids),
+            TrenchExcavation.excavation_date >= thirty_days_ago
+        ).group_by(TrenchExcavation.excavation_date).all()
+        
+        for excavation_date, count in trench_excavations_by_date:
+            trench_counts_by_date[excavation_date] = count
+    
+    # Добавляем количество траншей к каждому отчёту
+    for daily_report in daily_reports:
+        trench_count = trench_counts_by_date.get(daily_report.report_date, 0)
+        daily_report.trench_excavations_count = trench_count
     
     ActivityLog.log_action(
         user_id=current_user.userid,
