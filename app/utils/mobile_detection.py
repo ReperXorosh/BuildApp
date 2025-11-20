@@ -1,5 +1,9 @@
 """
 Утилиты для определения мобильных устройств
+
+Для принудительного переключения версии используйте:
+- URL параметр: ?mobile=1 (мобильная) или ?mobile=0 (десктопная)
+- Cookie: force_mobile=1 (мобильная) или force_desktop=1 (десктопная)
 """
 import re
 from flask import request
@@ -8,121 +12,120 @@ from flask import request
 def is_mobile_device():
     """
     Определяет, является ли устройство мобильным на основе User-Agent
+    Приоритет: сначала проверяем десктопные браузеры, затем мобильные
+    
+    Также проверяет:
+    - Параметр ?mobile=1 или ?mobile=0 в URL (приоритет)
+    - Cookie 'force_mobile' или 'force_desktop' (второй приоритет)
     """
+    # ПРИОРИТЕТ 0: Принудительное переключение через параметр URL
+    mobile_param = request.args.get('mobile')
+    if mobile_param == '1':
+        return True
+    elif mobile_param == '0':
+        return False
+    
+    # ПРИОРИТЕТ 0.5: Принудительное переключение через cookie
+    force_mobile = request.cookies.get('force_mobile')
+    force_desktop = request.cookies.get('force_desktop')
+    if force_mobile == '1':
+        return True
+    elif force_desktop == '1':
+        return False
+    
     user_agent = request.headers.get('User-Agent', '').lower()
     
-    # Сначала проверяем, что это НЕ десктопный браузер
-    desktop_indicators = ['windows nt', 'macintosh', 'linux', 'x11', 'win64', 'wow64', 'mac os x', 'win32']
-    is_desktop = any(indicator in user_agent for indicator in desktop_indicators)
+    if not user_agent:
+        return False
     
-    # Если это явно десктопный браузер (Windows, Mac, Linux), не считаем мобильным
-    # даже если в User-Agent есть слово "mobile" (может быть Chrome Mobile Emulation)
-    if is_desktop:
-        # Проверяем наличие явных мобильных индикаторов
-        # Если есть явные мобильные индикаторы (android, iphone и т.д.), то это мобильное
-        has_mobile_indicators = any(mobile_indicator in user_agent for mobile_indicator in ['android', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone'])
-        if not has_mobile_indicators:
-            # Это десктопный браузер без мобильных индикаторов
+    # ПРИОРИТЕТ 1: Проверяем явные десктопные операционные системы
+    desktop_os_indicators = [
+        'windows nt',      # Windows
+        'windows 10',     # Windows 10
+        'windows 11',     # Windows 11
+        'macintosh',      # macOS
+        'mac os x',       # macOS (старые версии)
+        'mac os',         # macOS (старые версии)
+        'x11',            # Linux X11
+        'linux',          # Linux (но не Android!)
+        'win64',          # Windows 64-bit
+        'wow64',          # Windows on Windows 64
+        'win32',          # Windows 32-bit
+        'freebsd',        # FreeBSD
+        'openbsd',        # OpenBSD
+        'netbsd'          # NetBSD
+    ]
+    
+    # Проверяем наличие десктопной ОС
+    has_desktop_os = any(indicator in user_agent for indicator in desktop_os_indicators)
+    
+    # ПРИОРИТЕТ 2: Проверяем популярные десктопные браузеры
+    desktop_browser_indicators = [
+        'edg/',           # Microsoft Edge (десктоп)
+        'chrome/',        # Google Chrome (десктоп)
+        'firefox/',       # Firefox (десктоп)
+        'safari/',        # Safari (десктоп, но не iOS!)
+        'opera/',         # Opera (десктоп)
+        'msie',           # Internet Explorer
+        'trident/',       # Internet Explorer
+        'rv:'             # Internet Explorer
+    ]
+    
+    has_desktop_browser = any(indicator in user_agent for indicator in desktop_browser_indicators)
+    
+    # Если есть десктопная ОС И десктопный браузер, это точно десктоп
+    if has_desktop_os and has_desktop_browser:
+        # Дополнительная проверка: если это Windows/Mac/Linux БЕЗ мобильных индикаторов - точно десктоп
+        mobile_os_indicators = ['android', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone', 'mobile']
+        has_mobile_os = any(indicator in user_agent for indicator in mobile_os_indicators)
+        
+        if not has_mobile_os:
             return False
     
-    # Дополнительная проверка для Safari на iOS (включая новые iPhone)
-    if 'safari' in user_agent and ('iphone' in user_agent or 'ipad' in user_agent or 'ipod' in user_agent):
+    # ПРИОРИТЕТ 3: Если есть десктопная ОС без мобильных индикаторов - это десктоп
+    if has_desktop_os:
+        mobile_os_indicators = ['android', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone']
+        has_mobile_os = any(indicator in user_agent for indicator in mobile_os_indicators)
+        
+        # Если есть десктопная ОС и нет мобильной ОС - это десктоп
+        if not has_mobile_os:
+            return False
+    
+    # ПРИОРИТЕТ 4: Проверяем мобильные операционные системы
+    # Android (но не Linux десктоп!)
+    if 'android' in user_agent:
         return True
     
-    # Проверка для iPhone
-    if 'iphone' in user_agent:
+    # iOS устройства
+    if 'iphone' in user_agent or 'ipad' in user_agent or 'ipod' in user_agent:
         return True
     
-    # Паттерны для мобильных устройств
-    # Исключаем общий паттерн 'mobile', так как он может быть в десктопных браузерах
-    mobile_patterns = [
-        r'android',
-        r'iphone',
-        r'ipad',
-        r'ipod',
-        r'blackberry',
-        r'windows phone',
+    # Другие мобильные ОС
+    if any(indicator in user_agent for indicator in ['blackberry', 'windows phone', 'webos', 'palm']):
+        return True
+    
+    # ПРИОРИТЕТ 5: Проверяем специфичные мобильные браузеры и устройства
+    mobile_specific_patterns = [
         r'opera mini',
         r'opera mobi',
         r'kindle',
         r'silk',
-        r'webos',
-        r'palm',
-        r'symbian',
         r'fennec',
         r'maemo',
         r'minimo',
-        r'netfront',
         r'up\.browser',
         r'up\.link',
-        r'audiovox',
-        r'avantgo',
-        r'benq',
-        r'cell',
-        r'cldc',
-        r'cmd-',
-        r'danger',
-        r'docomo',
-        r'elaine',
-        r'htc',
         r'iemobile',
-        r'j2me',
-        r'java',
-        r'midp-',
-        r'mot-',
-        r'motorola',
-        r'netfront',
-        r'newt',
-        r'nintendo',
-        r'nitro',
-        r'nokia',
-        r'novarra',
-        r'openwave',
-        r'palm',
-        r'panasonic',
-        r'pantech',
-        r'philips',
-        r'playstation',
-        r'proxinet',
-        r'proximus',
-        r'qtek',
-        r'samsung',
-        r'sanyo',
-        r'sch-',
-        r'sec-',
-        r'sendo',
-        r'sgh-',
-        r'sharp',
-        r'sie-',
-        r'siemens',
-        r'smartphone',
-        r'sony',
-        r'sph-',
-        r'symbian',
-        r't-mobile',
-        r'telus',
-        r'tim-',
-        r'toshiba',
-        r'treo',
-        r'tsm-',
-        r'upg1',
-        r'ups-',
-        r'vertu',
-        r'vodafone',
-        r'wap',
-        r'wellcom',
-        r'wig',
-        r'wmlb',
-        r'xda',
-        r'xoom',
-        r'zte'
+        r'mobile.*safari',  # Mobile Safari (но не десктопный Safari!)
+        r'wml',
+        r'wap'
     ]
     
-    # Проверяем каждый паттерн
-    for pattern in mobile_patterns:
+    for pattern in mobile_specific_patterns:
         if re.search(pattern, user_agent):
             return True
     
+    # По умолчанию считаем десктопом
     return False
 
 
