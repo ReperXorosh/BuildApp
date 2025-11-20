@@ -166,6 +166,8 @@ def object_list():
 @cache.cached(timeout=60, query_string=True)
 def planned_works_overview():
     """Обзор всех запланированных работ по объектам"""
+    # Обновляем статус работ на 'в работе', когда наступает дата
+    PlannedWork.update_works_status_to_in_progress()
     # Обновляем статус просроченных работ
     PlannedWork.update_overdue_works()
     
@@ -212,6 +214,8 @@ def planned_works_overview():
 @login_required
 def all_planned_works():
     """Список всех запланированных работ в виде таблицы"""
+    # Обновляем статус работ на 'в работе', когда наступает дата
+    PlannedWork.update_works_status_to_in_progress()
     # Обновляем статус просроченных работ
     PlannedWork.update_overdue_works()
     
@@ -2304,6 +2308,8 @@ def delete_checklist_item(object_id, item_id):
 @cache.cached(timeout=60, query_string=True)
 def planned_works_list(object_id):
     """Список запланированных работ объекта"""
+    # Обновляем статус работ на 'в работе', когда наступает дата
+    PlannedWork.update_works_status_to_in_progress()
     # Обновляем статус просроченных работ
     PlannedWork.update_overdue_works()
     
@@ -2900,16 +2906,19 @@ def add_checklist_item_quantity(object_id, item_id):
 def manual_update_overdue_works():
     """Ручное обновление статуса просроченных работ"""
     try:
+        # Обновляем статус работ на 'в работе', когда наступает дата
+        in_progress_count = PlannedWork.update_works_status_to_in_progress()
+        # Обновляем статус просроченных работ
         updated_count = PlannedWork.update_overdue_works()
         
         ActivityLog.log_action(
             user_id=current_user.userid,
             action='manual_update_overdue_works',
-            details=f'Обновлено просроченных работ: {updated_count}',
+            details=f'Обновлено работ в работу: {in_progress_count}, просроченных работ: {updated_count}',
             method=request.method
         )
         
-        flash(f'Обновлено просроченных работ: {updated_count}', 'success')
+        flash(f'Обновлено работ в работу: {in_progress_count}, просроченных работ: {updated_count}', 'success')
         
     except Exception as e:
         flash(f'Ошибка при обновлении просроченных работ: {str(e)}', 'error')

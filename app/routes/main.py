@@ -261,6 +261,8 @@ def calendar():
     from datetime import datetime, date
     from ..models.objects import Object, Report, PlannedWork, Support, Trench, ChecklistItem, DailyReport
     
+    # Обновляем статус работ на 'в работе', когда наступает дата
+    PlannedWork.update_works_status_to_in_progress()
     # Обновляем статус просроченных работ
     PlannedWork.update_overdue_works()
     
@@ -345,6 +347,8 @@ def calendar_date_detail(date):
             LegacyReports = None
         from ..models.users import Users
         
+        # Обновляем статус работ на 'в работе', когда наступает дата
+        PlannedWork.update_works_status_to_in_progress()
         # Обновляем статус просроченных работ
         PlannedWork.update_overdue_works()
         

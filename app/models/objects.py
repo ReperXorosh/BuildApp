@@ -376,18 +376,50 @@ class PlannedWork(db.Model):
                 raise ValueError(f"Нельзя планировать работу на прошедшую дату. Выбрана: {self.planned_date.strftime('%d.%m.%Y')}, а сегодня в Москве: {today_moscow.strftime('%d.%m.%Y')}")
     
     @staticmethod
+    def update_works_status_to_in_progress():
+        """Автоматически меняет статус запланированных работ на 'в работе', когда наступает дата выполнения"""
+        from app.utils.timezone_utils import get_moscow_now
+        
+        today_moscow = get_moscow_now().date()
+        print(f"DEBUG: Обновляем статус работ на 'в работе'. Сегодня в Москве: {today_moscow}")
+        
+        # Находим все работы, у которых наступила дата выполнения и статус 'planned'
+        works_to_start = PlannedWork.query.filter(
+            PlannedWork.planned_date.isnot(None),
+            PlannedWork.planned_date == today_moscow,
+            PlannedWork.status == 'planned'
+        ).all()
+        
+        print(f"DEBUG: Найдено работ для перевода в 'в работе': {len(works_to_start)}")
+        
+        updated_count = 0
+        for work in works_to_start:
+            print(f"DEBUG: Обновляем работу '{work.work_title}' с даты {work.planned_date} со статуса '{work.status}' на 'in_progress'")
+            work.status = 'in_progress'
+            work.updated_at = datetime.utcnow()
+            updated_count += 1
+        
+        if updated_count > 0:
+            db.session.commit()
+            print(f"DEBUG: Сохранено {updated_count} обновлений статуса на 'в работе'")
+        else:
+            print("DEBUG: Нет работ для перевода в 'в работе'")
+        
+        return updated_count
+    
+    @staticmethod
     def update_overdue_works():
         """Обновляет статус просроченных работ"""
-        from datetime import date
+        from app.utils.timezone_utils import get_moscow_now
         
-        today = date.today()
-        print(f"DEBUG: Обновляем просроченные работы. Сегодня: {today}")
+        today_moscow = get_moscow_now().date()
+        print(f"DEBUG: Обновляем просроченные работы. Сегодня в Москве: {today_moscow}")
         
         # Находим все работы, которые должны были быть выполнены, но не выполнены
         # Учитываем только работы с конкретной датой (planned_date не NULL)
         overdue_works = PlannedWork.query.filter(
             PlannedWork.planned_date.isnot(None),
-            PlannedWork.planned_date < today,
+            PlannedWork.planned_date < today_moscow,
             PlannedWork.status.in_(['planned', 'in_progress'])
         ).all()
         
