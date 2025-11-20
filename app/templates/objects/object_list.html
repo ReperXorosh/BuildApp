@@ -190,12 +190,31 @@
                     Список объектов
                 </h1>
                 <div>
+                    {% if current_user.role == 'Инженер ПТО' %}
                     <a href="{{ url_for('objects.add_object') }}" class="btn btn-primary">
                         <i class="bi bi-plus-lg me-1"></i>
                         Добавить объект
                     </a>
+                    {% else %}
+                    <button type="button" class="btn btn-outline-primary" id="searchToggleDesktop" title="Поиск объектов">
+                        <i class="bi bi-search me-1"></i>
+                        Поиск
+                    </button>
+                    {% endif %}
                 </div>
             </div>
+
+            <!-- Поле поиска для десктопной версии (скрыто по умолчанию) -->
+            {% if current_user.role != 'Инженер ПТО' %}
+            <div id="searchContainerDesktop" class="mb-3" style="display: none;">
+                <div class="input-group" style="max-width: 400px; margin-left: auto;">
+                    <input type="text" id="objectSearchDesktop" class="form-control" placeholder="Поиск по названию объекта..." autocomplete="off">
+                    <button class="btn btn-outline-secondary" type="button" id="clearSearchDesktop" title="Очистить поиск">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+            {% endif %}
 
             {% if objects %}
             <div class="row">
@@ -277,16 +296,118 @@
             <div class="text-center py-5">
                 <i class="bi bi-building display-1 text-muted"></i>
                 <h3 class="mt-3 text-muted">Объекты не найдены</h3>
+                {% if current_user.role == 'Инженер ПТО' %}
                 <p class="text-muted">Создайте первый объект для начала работы</p>
                 <a href="{{ url_for('objects.add_object') }}" class="btn btn-primary">
                     <i class="bi bi-plus-lg me-1"></i>
                     Добавить объект
                 </a>
+                {% else %}
+                <p class="text-muted">Объекты не найдены</p>
+                {% endif %}
             </div>
             {% endif %}
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if current_user.role != 'Инженер ПТО' %}
+    // Функционал поиска для не-админов в десктопной версии
+    const searchToggleDesktop = document.getElementById('searchToggleDesktop');
+    const searchContainerDesktop = document.getElementById('searchContainerDesktop');
+    const objectSearchDesktop = document.getElementById('objectSearchDesktop');
+    const clearSearchDesktop = document.getElementById('clearSearchDesktop');
+    const objectCards = document.querySelectorAll('.col-md-6.col-lg-4.mb-4');
+    
+    if (searchToggleDesktop) {
+        searchToggleDesktop.addEventListener('click', function() {
+            if (searchContainerDesktop.style.display === 'none' || !searchContainerDesktop.style.display) {
+                searchContainerDesktop.style.display = 'block';
+                if (objectSearchDesktop) objectSearchDesktop.focus();
+            } else {
+                searchContainerDesktop.style.display = 'none';
+                if (objectSearchDesktop) objectSearchDesktop.value = '';
+                clearSearchResultsDesktop();
+            }
+        });
+    }
+    
+    if (clearSearchDesktop && objectSearchDesktop) {
+        clearSearchDesktop.addEventListener('click', function() {
+            objectSearchDesktop.value = '';
+            clearSearchResultsDesktop();
+            objectSearchDesktop.focus();
+        });
+    }
+    
+    if (objectSearchDesktop) {
+        objectSearchDesktop.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            if (searchTerm === '') {
+                clearSearchResultsDesktop();
+                return;
+            }
+            
+            objectCards.forEach(card => {
+                const cardTitle = card.querySelector('.card-title');
+                const cardLocation = card.querySelector('.card-text small');
+                const objectName = cardTitle ? cardTitle.textContent.toLowerCase() : '';
+                const locationText = cardLocation ? cardLocation.textContent.toLowerCase() : '';
+                
+                if (objectName.includes(searchTerm) || locationText.includes(searchTerm)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            showNoResultsMessageDesktop(searchTerm);
+        });
+        
+        objectSearchDesktop.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                searchContainerDesktop.style.display = 'none';
+                this.value = '';
+                clearSearchResultsDesktop();
+            }
+        });
+    }
+    
+    function clearSearchResultsDesktop() {
+        objectCards.forEach(card => {
+            card.style.display = '';
+        });
+        hideNoResultsMessageDesktop();
+    }
+    
+    function showNoResultsMessageDesktop(searchTerm) {
+        const visibleCards = Array.from(objectCards).filter(card => card.style.display !== 'none');
+        if (visibleCards.length === 0 && searchTerm !== '') {
+            hideNoResultsMessageDesktop();
+            const noResultsDiv = document.createElement('div');
+            noResultsDiv.id = 'noResultsMessageDesktop';
+            noResultsDiv.className = 'text-center py-4 text-body-secondary';
+            noResultsDiv.innerHTML = `По запросу "<strong>${searchTerm}</strong>" ничего не найдено`;
+            const row = document.querySelector('.row');
+            if (row) {
+                const existingMessage = document.getElementById('noResultsMessageDesktop');
+                if (existingMessage) existingMessage.remove();
+                row.appendChild(noResultsDiv);
+            }
+        } else {
+            hideNoResultsMessageDesktop();
+        }
+    }
+    
+    function hideNoResultsMessageDesktop() {
+        const noResultsMessage = document.getElementById('noResultsMessageDesktop');
+        if (noResultsMessage) noResultsMessage.remove();
+    }
+    {% endif %}
+});
+</script>
 {% endblock %}
 
 
