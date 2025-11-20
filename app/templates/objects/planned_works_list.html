@@ -174,7 +174,7 @@
                                         </td>
                                         <td>
                                             <div class="item-actions">
-                                                {% if work.status == 'planned' %}
+                                                {% if work.status in ['planned', 'in_progress'] %}
                                                     <a href="{{ url_for('objects.execute_planned_work', object_id=object.id, work_id=work.id) }}" 
                                                        class="btn btn-sm btn-outline-success" title="Выполнить работу">
                                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -329,7 +329,7 @@
                 {% endif %}
             </div>
             <div class="modal-footer">
-                {% if work.status == 'planned' %}
+                {% if work.status in ['planned', 'in_progress'] %}
                     <a href="{{ url_for('objects.execute_planned_work', object_id=object.id, work_id=work.id) }}" 
                        class="btn btn-outline-success">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-1">

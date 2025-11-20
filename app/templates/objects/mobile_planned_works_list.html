@@ -32,7 +32,7 @@
             <div><strong>Приоритет:</strong> {{ translate_priority(work.priority) }}</div>
         </div>
         <div class="d-flex gap-2 mt-2">
-            {% if work.status == 'planned' %}
+            {% if work.status in ['planned', 'in_progress'] %}
             <a class="btn btn-outline-success w-100" href="{{ url_for('objects.execute_planned_work', object_id=object.id, work_id=work.id) }}">Выполнить</a>
             {% elif work.status == 'completed' %}
             <a class="btn btn-outline-info w-100" href="{{ url_for('objects.work_comparison', object_id=object.id, work_id=work.id) }}">Сравнить</a>
