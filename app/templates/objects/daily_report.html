@@ -251,6 +251,87 @@
                 </div>
             </div>
 
+            <!-- Вырытые траншеи -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-shovel me-2"></i>
+                        Вырытые траншеи
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if report_data.trench_excavations %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Траншея</th>
+                                        <th>Длина (м)</th>
+                                        <th>Примечания</th>
+                                        <th>Файлы</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for excavation in report_data.trench_excavations %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ url_for('objects.trench_detail', object_id=object.id, trench_id=excavation.trench.id) }}" class="text-decoration-none">
+                                                <i class="bi bi-diagram-3 me-1"></i>
+                                                Траншея
+                                            </a>
+                                            <br>
+                                            <small class="text-muted">ID: {{ excavation.trench.id|string|truncate(8, True, '') }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">
+                                                {{ excavation.length }} м
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if excavation.notes %}
+                                                <small class="text-muted">{{ excavation.notes }}</small>
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if excavation.files %}
+                                                <span class="badge bg-secondary">
+                                                    <i class="bi bi-file-earmark me-1"></i>
+                                                    {{ excavation.files|length }} файл(ов)
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-info">
+                                        <th>Итого:</th>
+                                        <th>
+                                            <strong>{{ report_data.trench_excavations|sum(attribute='length')|round(2) }} м</strong>
+                                        </th>
+                                        <th colspan="2">
+                                            <small class="text-muted">
+                                                Всего записей: {{ report_data.trench_excavations|length }}
+                                            </small>
+                                        </th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-shovel display-1 text-muted"></i>
+                            <h5 class="mt-3 text-muted">Нет вырытых траншей</h5>
+                            <p class="text-muted">В этот день не было вырыто траншей</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
             <!-- Просроченные работы -->
             {% if report_data.overdue_works %}
             <div class="card mb-4">

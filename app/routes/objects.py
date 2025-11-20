@@ -3052,11 +3052,27 @@ def get_daily_report_data(object_id, report_date):
             PlannedWork.status.in_(['planned', 'in_progress'])
         ).all()
         
+        # Получаем вырытые траншеи за эту дату
+        # Сначала получаем все траншеи объекта
+        trenches = Trench.query.filter_by(object_id=object_id).all()
+        trench_ids = [t.id for t in trenches]
+        
+        # Получаем все записи о копке траншей за эту дату с загрузкой связанных данных
+        from sqlalchemy.orm import joinedload
+        trench_excavations = TrenchExcavation.query.options(
+            joinedload(TrenchExcavation.trench),
+            joinedload(TrenchExcavation.files)
+        ).filter(
+            TrenchExcavation.trench_id.in_(trench_ids),
+            TrenchExcavation.excavation_date == report_date
+        ).order_by(TrenchExcavation.created_at.desc()).all()
+        
         return {
             'report': report,
             'planned_works': planned_works,
             'completed_works': completed_works,
-            'overdue_works': overdue_works
+            'overdue_works': overdue_works,
+            'trench_excavations': trench_excavations
         }
         
     except Exception as e:
