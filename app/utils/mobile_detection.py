@@ -11,15 +11,30 @@ def is_mobile_device():
     """
     user_agent = request.headers.get('User-Agent', '').lower()
     
+    # Сначала проверяем, что это НЕ десктопный браузер
+    desktop_indicators = ['windows nt', 'macintosh', 'linux', 'x11', 'win64', 'wow64', 'mac os x', 'win32']
+    is_desktop = any(indicator in user_agent for indicator in desktop_indicators)
+    
+    # Если это явно десктопный браузер (Windows, Mac, Linux), не считаем мобильным
+    # даже если в User-Agent есть слово "mobile" (может быть Chrome Mobile Emulation)
+    if is_desktop:
+        # Проверяем наличие явных мобильных индикаторов
+        # Если есть явные мобильные индикаторы (android, iphone и т.д.), то это мобильное
+        has_mobile_indicators = any(mobile_indicator in user_agent for mobile_indicator in ['android', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone'])
+        if not has_mobile_indicators:
+            # Это десктопный браузер без мобильных индикаторов
+            return False
+    
     # Дополнительная проверка для Safari на iOS (включая новые iPhone)
     if 'safari' in user_agent and ('iphone' in user_agent or 'ipad' in user_agent or 'ipod' in user_agent):
         return True
     
-    # Проверка для новых iPhone (iPhone 16 Pro и другие)
-    if 'iphone' in user_agent or 'mobile' in user_agent:
+    # Проверка для iPhone
+    if 'iphone' in user_agent:
         return True
     
     # Паттерны для мобильных устройств
+    # Исключаем общий паттерн 'mobile', так как он может быть в десктопных браузерах
     mobile_patterns = [
         r'android',
         r'iphone',
@@ -27,7 +42,6 @@ def is_mobile_device():
         r'ipod',
         r'blackberry',
         r'windows phone',
-        r'mobile',
         r'opera mini',
         r'opera mobi',
         r'kindle',
