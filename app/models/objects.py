@@ -159,6 +159,7 @@ class TrenchExcavation(db.Model):
     
     # Связи
     files = db.relationship('TrenchFile', backref='excavation', lazy=True, cascade='all, delete-orphan')
+    created_by_user = db.relationship('Users', foreign_keys=[created_by], backref='created_trench_excavations')
 
 class TrenchFile(db.Model):
     """Модель файла траншеи"""
